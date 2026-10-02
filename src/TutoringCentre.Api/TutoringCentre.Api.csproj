@@ -5,6 +5,7 @@
     <ItemGroup>
     <ProjectReference Include="..\TutoringCentre.Application\TutoringCentre.Application.csproj" />
     <ProjectReference Include="..\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />
+    <ProjectReference Include="..\TutoringCentre.Domain\TutoringCentre.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
