@@ -4,6 +4,10 @@
     <ProjectReference Include="..\TutoringCentre.Domain\TutoringCentre.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
   </ItemGroup>
 </Project>

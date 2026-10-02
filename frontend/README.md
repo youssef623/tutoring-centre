@@ -22,3 +22,11 @@ frontend/
   components/ui/  # shadcn/ui components and shared primitives
   i18n/           # i18next config and locale files (ar, en)
 ```
+
+## API contract used by the status page
+
+| Request | Response | Meaning |
+| --- | --- | --- |
+| `GET /health/ready` | `200` with plain-text body `Healthy` | API and database reachable |
+| `GET /health/ready` | `503` with plain-text body `Unhealthy` | API running, database unavailable |
+| (no response / network error) | — | API unreachable |
