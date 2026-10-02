@@ -9,4 +9,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" />
+  </ItemGroup>
 </Project>
