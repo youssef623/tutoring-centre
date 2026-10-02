@@ -5,4 +5,11 @@
     <Project Path="src/TutoringCentre.Domain/TutoringCentre.Domain.csproj" />
     <Project Path="src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Architecture.Tests/TutoringCentre.Architecture.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj" />
+  </Folder>
 </Solution>
