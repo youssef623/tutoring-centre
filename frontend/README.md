@@ -31,6 +31,17 @@ frontend/
 | `GET /health/ready`           | `503` with plain-text body `Unhealthy` | API running, database unavailable |
 | (no response / network error) | —                                      | API unreachable                   |
 
+## Conventions
+
+- **One folder per feature** under `src/features/<name>/`: `api.ts` (HTTP calls and response mapping), `use<Thing>.ts` (TanStack Query hooks), components (`<Thing>.tsx`), tests next to what they test (`<Thing>.test.tsx`). Example: `features/status/`.
+- **No `fetch` in components.** Components call hooks; hooks call `api.ts`; only `api.ts` touches the network. Relative URLs only (`/api/...`, `/health/...`) — never an absolute API URL.
+- **Every query renders every state:** loading, empty (when a list can be empty), error, success. Retry is offered where it makes sense.
+- **Errors are modelled:** an answer the API gives (e.g. 503 = dependency down) is data; "no trustworthy answer" is a thrown error.
+- **Logical CSS only:** `ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `text-start`; never `ml-`, `mr-`, `pl-`, `pr-`, `left-`, `right-`, `text-left`.
+- **Tests mock the network with MSW,** not hooks or modules; each test renders with a fresh `QueryClient` (`src/test/render.tsx`).
+- **No `any`, no `!` non-null assertions, no `eslint-disable` comments** in feature code.
+- **Scripts that must pass before a PR:** `npm run lint`, `npm run typecheck`, `npm test -- --run`, `npm run build`.
+
 ## Vite template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
