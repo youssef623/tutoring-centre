@@ -5,9 +5,11 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 using TutoringCentre.Api.Cli;
+using TutoringCentre.Api.Endpoints;
 using TutoringCentre.Api.Http;
 using TutoringCentre.Api.Logging;
 using TutoringCentre.Application;
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 
@@ -73,6 +75,13 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
     Predicate = c => c.Tags.Contains("ready"),
 });
+
+var api = app.MapGroup("/api");
+api.MapPlatformEndpoints();
+
+// Unknown /api/* routes answer with the uniform Problem Details 404. Non-API paths stay free for the SPA (Month 2).
+app.MapFallback("/api/{**path}", () => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
+    .ExcludeFromDescription();
 
 app.Run();
 return 0;
