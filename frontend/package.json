@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:ci": "vitest --run"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
