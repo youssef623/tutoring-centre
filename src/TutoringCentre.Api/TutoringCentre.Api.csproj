@@ -2,7 +2,7 @@
   <PropertyGroup>
     <UserSecretsId>a0748b74-413e-4737-b25c-2a2e46b2d4e6</UserSecretsId>
   </PropertyGroup>
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\TutoringCentre.Application\TutoringCentre.Application.csproj" />
     <ProjectReference Include="..\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />
   </ItemGroup>

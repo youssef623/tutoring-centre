@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "last_full_generation": "42bdfc17fb18ffd05b36f1cd78fceb5e6d901a57",
+  "generated_by": "semantic-git",
+  "docs": {
+    "OVERVIEW.semantic.md": {
+      "covers": ["."],
+      "last_updated_commit": "42bdfc17fb18ffd05b36f1cd78fceb5e6d901a57"
+    },
+    "ARCHITECTURE.semantic.md": {
+      "covers": ["."],
+      "last_updated_commit": "42bdfc17fb18ffd05b36f1cd78fceb5e6d901a57"
+    },
+    "src/.semantic.md": {
+      "covers": [
+        "src/TutoringCentre.Domain/",
+        "src/TutoringCentre.Application/",
+        "src/TutoringCentre.Infrastructure/",
+        "src/TutoringCentre.Api/"
+      ],
+      "last_updated_commit": "42bdfc17fb18ffd05b36f1cd78fceb5e6d901a57"
+    },
+    "tests/.semantic.md": {
+      "covers": [
+        "tests/TutoringCentre.Domain.Tests/",
+        "tests/TutoringCentre.Application.Tests/",
+        "tests/TutoringCentre.Infrastructure.Tests/",
+        "tests/TutoringCentre.Api.Tests/",
+        "tests/TutoringCentre.Architecture.Tests/"
+      ],
+      "last_updated_commit": "42bdfc17fb18ffd05b36f1cd78fceb5e6d901a57"
+    }
+  }
+}
