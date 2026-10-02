@@ -4,6 +4,7 @@ using Serilog.Events;
 using Serilog.Formatting.Compact;
 using TutoringCentre.Application;
 using TutoringCentre.Infrastructure;
+using TutoringCentre.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,13 @@ builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+// Development convenience only. Production migrations run from the deployment pipeline (Month 2), never at app startup:
+// auto-migrating there is risky (several instances racing, no review, long locks).
+if (app.Environment.IsDevelopment())
+{
+    await app.Services.ApplyMigrationsAsync();
+}
 
 // One line per HTTP request; health probes are noise at Information level.
 app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exception) =>
