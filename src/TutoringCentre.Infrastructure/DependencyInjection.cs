@@ -5,8 +5,10 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Application.Platform;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
+using TutoringCentre.Infrastructure.ReadServices;
 using TutoringCentre.Infrastructure.Repositories;
 using TutoringCentre.Infrastructure.Time;
 
@@ -66,6 +68,8 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<ICentreRepository, CentreRepository>();
+
+        services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
 
         return services;
     }

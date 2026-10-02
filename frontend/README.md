@@ -115,3 +115,15 @@ export default defineConfig([
   },
 ]);
 ```
+
+## API contract
+
+`GET /api/system/info` (anonymous) returns:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `applicationVersion` | string | Informational version without build metadata |
+| `latestMigration` | string or null | Latest applied database migration |
+| `databaseUpToDate` | boolean | True when no migrations are pending |
+
+Errors are RFC 9457 Problem Details with a stable `code` and `correlationId`. The MSW handler in `src/test/msw/handlers.ts` mirrors this shape; from Day 12 the generated client in `src/api/generated/` is the source of truth.
