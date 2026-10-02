@@ -1,23 +1,39 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 using TutoringCentre.Api.Cli;
 using TutoringCentre.Api.Http;
+using TutoringCentre.Api.Logging;
 using TutoringCentre.Application;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, loggerConfiguration) => loggerConfiguration
+builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
     .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
     .Enrich.FromLogContext()
+    .Destructure.With<SensitiveDataDestructuringPolicy>()
     .WriteTo.Console(new RenderedCompactJsonFormatter()));
 
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiProblemDetails();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    // Unknown members fail the request (400 request.malformed) instead of being silently ignored.
+    options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+});
+
+// Outside Development, minimal APIs answer a bad request body with an empty 400 instead of throwing.
+// Throwing in every environment lets GlobalExceptionHandler return the uniform `request.malformed` Problem Details (discrepancy D10).
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 
 var app = builder.Build();
 
@@ -34,6 +50,8 @@ if (app.Environment.IsDevelopment())
 {
     await app.Services.ApplyMigrationsAsync();
 }
+
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 // One line per HTTP request; health probes are noise at Information level.
 app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exception) =>
