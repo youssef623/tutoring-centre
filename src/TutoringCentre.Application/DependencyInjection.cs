@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentActor>(provider => provider.GetRequiredService<CurrentActorContext>());
 
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
+        services.AddScoped<Dispatcher>();
 
         return services;
     }

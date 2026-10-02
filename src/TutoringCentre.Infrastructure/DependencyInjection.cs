@@ -1,7 +1,10 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.Time;
 
 namespace TutoringCentre.Infrastructure;
@@ -39,6 +42,18 @@ public static class DependencyInjection
         {
             healthChecks.AddNpgSql(connectionString, name: PostgresHealthCheckName, tags: ReadinessTags);
         }
+
+        // Persistence. The interceptor is stateless (it only needs the singleton clock), so one instance is enough.
+        services.AddSingleton<TimestampInterceptor>();
+        services.AddDbContext<AppDbContext>((serviceProvider, options) => options
+            .UseNpgsql(
+                connectionString,
+                npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", Schemas.Platform))
+            .UseSnakeCaseNamingConvention()
+            .AddInterceptors(serviceProvider.GetRequiredService<TimestampInterceptor>()));
+
+        // One unit of work per scope: the dispatcher begins, saves and commits through it.
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }
