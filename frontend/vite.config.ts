@@ -1,6 +1,7 @@
+/// <reference types="vitest/config" />
 import { fileURLToPath } from "node:url";
-import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
@@ -24,5 +25,9 @@ export default defineConfig({
       "/api": { target: apiTarget },
       "/health": { target: apiTarget },
     },
+  },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
   },
 });
