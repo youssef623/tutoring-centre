@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 
 namespace TutoringCentre.Application;
@@ -13,6 +14,8 @@ public static class DependencyInjection
         // One actor context per scope (HTTP request or job). ICurrentActor resolves to the SAME instance, read-only.
         services.AddScoped<CurrentActorContext>();
         services.AddScoped<ICurrentActor>(provider => provider.GetRequiredService<CurrentActorContext>());
+
+        services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
 
         return services;
     }

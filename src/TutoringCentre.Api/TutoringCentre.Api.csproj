@@ -7,6 +7,9 @@
     <ProjectReference Include="..\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
   </ItemGroup>
 </Project>
