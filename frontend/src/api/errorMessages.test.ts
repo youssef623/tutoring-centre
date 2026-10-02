@@ -1,0 +1,55 @@
+import { describe, expect, it } from "vitest";
+import { messageFor } from "./errorMessages";
+import type { ApiError, ErrorKind } from "./errors";
+
+describe("messageFor", () => {
+  it("returns the specific dictionary message for a known code", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "validation",
+      code: "centre.slug_invalid",
+      message: "x",
+      status: 400,
+    };
+
+    // Act
+    const message = messageFor(error, "en");
+
+    // Assert
+    expect(message).toBe(
+      "The web address may only contain lowercase letters, digits and single hyphens.",
+    );
+  });
+
+  it("falls back to the kind's message for an unknown code", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "conflict",
+      code: "centre.something_new",
+      message: "x",
+      status: 409,
+    };
+
+    // Act
+    const message = messageFor(error, "en");
+
+    // Assert
+    expect(message).toBe("This conflicts with existing data.");
+  });
+
+  it("falls back to the generic message for an unknown code and unknown kind", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "bogus" as ErrorKind,
+      code: "totally.unknown",
+      message: "x",
+      status: 500,
+    };
+
+    // Act
+    const message = messageFor(error, "en");
+
+    // Assert
+    expect(message).toBe("Something went wrong. Please try again.");
+  });
+});
