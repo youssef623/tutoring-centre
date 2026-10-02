@@ -27,3 +27,8 @@ csharp_style_namespace_declarations = file_scoped:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_using_directive_placement = outside_namespace:suggestion
 dotnet_sort_system_directives_first = true
+
+# Test method names use Method_Condition_Result. CA1707 (no underscores in identifiers) is documented
+# by Microsoft as safe to disable for test code; production code keeps the rule.
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
