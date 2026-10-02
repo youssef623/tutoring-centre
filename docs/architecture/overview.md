@@ -46,3 +46,21 @@ Query(query):   validate ─fail→ return failure
 **Who calls SaveChanges.** Only the command pipeline, exactly once, after a successful handler; queries never call it.
 
 **Where tenant and permission checks go.** After validation, before BEGIN, in both pipelines (Month 2). Idempotency for marked commands comes later (Month 6).
+
+## Request path: `CreateCentreCommand` (CLI → table)
+
+| Step | What happens | File |
+| --- | --- | --- |
+| 1 | `dotnet run --project src/TutoringCentre.Api -- seed` starts the host; `args is ["seed"]` | `src/TutoringCentre.Api/Program.cs` |
+| 2 | Migrations are applied; per centre a scope is created and the actor is set to `SystemActor(null)` | `src/TutoringCentre.Api/Cli/SeedCommand.cs` |
+| 3 | `Dispatcher.SendAsync<CreateCentreCommand, CreateCentreResult>` | `src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs` |
+| 4 | Shape validation (no database work) | `.../Centres/Commands/CreateCentre/CreateCentreValidator.cs` |
+| 5 | Read-write transaction begins | `src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs` |
+| 6 | Handler: actor must be `SystemActor`, else `centre.create_forbidden` | `.../CreateCentre/CreateCentreHandler.cs` |
+| 7 | Handler: slug uniqueness via the repository (`centre.slug_taken`) | `src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs` |
+| 8 | Domain rules and construction (UUIDv7 id) | `src/TutoringCentre.Domain/Centres/Centre.cs` |
+| 9 | Repository `Add` tracks the entity — nothing written yet | `CentreRepository.cs` |
+| 10 | Dispatcher saves once: `TimestampInterceptor` stamps `created_at`, `INSERT INTO platform.centres` | `.../Persistence/Interceptors/TimestampInterceptor.cs`, `.../Configurations/Centres/CentreConfiguration.cs` |
+| 11 | Commit; `Result<CreateCentreResult>` returns to the CLI | `UnitOfWork.cs` |
+
+There is no HTTP endpoint for this command — on purpose.

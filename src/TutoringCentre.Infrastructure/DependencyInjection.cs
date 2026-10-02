@@ -3,9 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
+using TutoringCentre.Infrastructure.Repositories;
 using TutoringCentre.Infrastructure.Time;
 
 namespace TutoringCentre.Infrastructure;
@@ -62,6 +64,8 @@ public static class DependencyInjection
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<ICentreRepository, CentreRepository>();
 
         return services;
     }

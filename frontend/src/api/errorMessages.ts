@@ -14,6 +14,8 @@ const byCode: Record<Lang, Dictionary> = {
     "centre.slug_invalid":
       "The web address may only contain lowercase letters, digits and single hyphens.",
     "centre.time_zone_invalid": "The time zone is not recognised.",
+    "centre.slug_taken": "A centre with this web address already exists.",
+    "centre.create_forbidden": "Only the platform can create centres.",
   },
   ar: {
     "validation.failed": "بعض الحقول غير صالحة. يرجى مراجعة النموذج.",
@@ -21,6 +23,8 @@ const byCode: Record<Lang, Dictionary> = {
     "centre.name_too_long": "يجب ألا يزيد اسم المركز عن 120 حرفًا.",
     "centre.slug_invalid": "يجب أن يحتوي العنوان على أحرف إنجليزية صغيرة وأرقام وشرطات مفردة فقط.",
     "centre.time_zone_invalid": "المنطقة الزمنية غير معروفة.",
+    "centre.slug_taken": "يوجد مركز بهذا العنوان بالفعل.",
+    "centre.create_forbidden": "إنشاء المراكز متاح للمنصة فقط.",
   },
 };
 
