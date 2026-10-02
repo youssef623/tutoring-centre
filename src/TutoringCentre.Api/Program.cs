@@ -3,6 +3,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 using TutoringCentre.Api.Cli;
+using TutoringCentre.Api.Http;
 using TutoringCentre.Application;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
@@ -16,6 +17,7 @@ builder.Host.UseSerilog((context, loggerConfiguration) => loggerConfiguration
 
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
+builder.Services.AddApiProblemDetails();
 
 var app = builder.Build();
 
@@ -40,6 +42,9 @@ app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exce
         : httpContext.Request.Path.StartsWithSegments("/health")
             ? LogEventLevel.Verbose
             : LogEventLevel.Information);
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
