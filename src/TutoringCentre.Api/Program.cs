@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using TutoringCentre.Api.Cli;
 using TutoringCentre.Application;
 using TutoringCentre.Infrastructure;
+using TutoringCentre.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,20 @@ builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+// CLI mode: `dotnet run --project src/TutoringCentre.Api -- seed`
+if (args is ["seed"])
+{
+    await app.Services.ApplyMigrationsAsync();
+    return await SeedCommand.RunAsync(app.Services);
+}
+
+// Development convenience only. Production migrations run from the deployment pipeline (Month 2), never at app startup:
+// auto-migrating there is risky (several instances racing, no review, long locks).
+if (app.Environment.IsDevelopment())
+{
+    await app.Services.ApplyMigrationsAsync();
+}
 
 // One line per HTTP request; health probes are noise at Information level.
 app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exception) =>
@@ -36,5 +52,6 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 
 app.Run();
+return 0;
 
 public partial class Program;

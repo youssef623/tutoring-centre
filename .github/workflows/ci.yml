@@ -32,6 +32,19 @@ jobs:
       - name: Build
         run: dotnet build TutoringCentre.slnx --no-restore -c Release
 
+      - name: Tool restore
+        run: dotnet tool restore
+
+      - name: Check for model changes without a migration
+        # Design-time model comparison needs a valid-looking connection string but never connects.
+        env:
+          ConnectionStrings__Postgres: Host=localhost;Database=ci;Username=ci;Password=ci
+        run: >
+          dotnet ef migrations has-pending-model-changes
+          --project src/TutoringCentre.Infrastructure
+          --startup-project src/TutoringCentre.Api
+          --no-build --configuration Release
+
       - name: Test (all test projects, including architecture tests)
         run: dotnet test TutoringCentre.slnx --no-build -c Release
 
