@@ -21,3 +21,28 @@
 **Messages** are for developers and logs. Users see translated text chosen by the code.
 
 **Safety.** Codes and messages never contain internals: no stack traces, SQL, file paths or secrets.
+
+## Dispatcher design (implemented on Day 7)
+
+Two pipelines, one per CQRS interface. Tenant and permission checks (Month 2) plug in **after validation, before BEGIN**, in both pipelines.
+
+```
+Send(command):  validate ─fail→ return failure (no transaction)
+                └ok→ BEGIN (read-write) → handler.HandleAsync
+                     ├ failure result → ROLLBACK → return failure
+                     ├ exception      → ROLLBACK → rethrow (global handler → 500)
+                     └ success        → SaveChanges → COMMIT → return success
+
+Query(query):   validate ─fail→ return failure
+                └ok→ BEGIN READ ONLY → handler.HandleAsync → COMMIT → return result (never SaveChanges)
+```
+
+**Why validation runs before BEGIN.** Invalid input needs no database work, so no transaction (and no connection) is opened for it.
+
+**Why the transaction starts before the handler, not just around SaveChanges.** Repositories will take row locks (`FOR UPDATE`) while the handler reads, and Month 2 sets the PostgreSQL row-level-security tenant inside the transaction; both must cover the whole handler, not just the save.
+
+**What happens when a query handler throws.** End the read-only transaction (roll back) and rethrow; the global handler returns 500.
+
+**Who calls SaveChanges.** Only the command pipeline, exactly once, after a successful handler; queries never call it.
+
+**Where tenant and permission checks go.** After validation, before BEGIN, in both pipelines (Month 2). Idempotency for marked commands comes later (Month 6).
