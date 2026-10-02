@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\TutoringCentre.Application\TutoringCentre.Application.csproj" />
+    <ProjectReference Include="..\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
