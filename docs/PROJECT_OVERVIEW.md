@@ -150,24 +150,23 @@ Frontend/backend boundary: the browser only talks to the **Vite origin** in deve
 ```mermaid
 flowchart LR
     subgraph Browser
-        SPA["React SPA<br/>frontend/src<br/>StatusCard → useReadiness → fetch"]
+        SPA["React SPA<br/>frontend/src<br/>StatusCard, useReadiness, fetch"]
     end
     subgraph Dev["Vite dev server :5173"]
         Proxy["proxy /api, /health<br/>(vite.config.ts)"]
     end
     subgraph Backend["ASP.NET Core process :5080"]
-        direction TB
-        Api["TutoringCentre.Api<br/>Program.cs · middleware · endpoints<br/>CLI: seed"]
-        App["TutoringCentre.Application<br/>Dispatcher · handlers · validators<br/>ports: IUnitOfWork, ICentreRepository,<br/>ISystemInfoReadService, IClock"]
-        Dom["TutoringCentre.Domain<br/>Centre · Entity · Result · Error"]
-        Infra["TutoringCentre.Infrastructure<br/>AppDbContext · UnitOfWork · repositories<br/>SystemClock · health check"]
+        Api["TutoringCentre.Api<br/>Program.cs, middleware, endpoints<br/>CLI: seed"]
+        App["TutoringCentre.Application<br/>Dispatcher, handlers, validators<br/>ports: IUnitOfWork, ICentreRepository,<br/>ISystemInfoReadService, IClock"]
+        Dom["TutoringCentre.Domain<br/>Centre, Entity, Result, Error"]
+        Infra["TutoringCentre.Infrastructure<br/>AppDbContext, UnitOfWork, repositories<br/>SystemClock, health check"]
     end
     PG[("PostgreSQL 17<br/>schema platform<br/>table centres")]
 
     SPA --> Proxy --> Api
     Api --> App
     App --> Dom
-    Infra -.implements ports of.-> App
+    Infra -. "implements ports of" .-> App
     Infra --> Dom
     Api -. "composition root only:<br/>AddInfrastructure()" .-> Infra
     Infra --> PG
