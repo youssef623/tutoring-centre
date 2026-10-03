@@ -8,6 +8,7 @@
 
 ---
 
+<!-- deeper-dive-pass -->
 # 1. Project Overview
 
 ## 1.1 What the application is (and is not yet)
@@ -231,14 +232,14 @@ sequenceDiagram
     P->>APP: builder.Build()
     alt args is exactly seed
         P->>DB: ApplyMigrationsAsync()
-        P->>P: SeedCommand.RunAsync → exit code (host never started)
+        P->>P: SeedCommand.RunAsync then exit code (host never started)
     else normal run
         opt Development
             P->>DB: ApplyMigrationsAsync()
         end
         P->>APP: CorrelationId, SerilogRequestLogging,<br/>ExceptionHandler, StatusCodePages
         P->>APP: map /health, /health/ready, group /api, fallback /api/catch-all
-        P->>APP: app.Run() → hosted services start (ValidateOnStart) → Kestrel listens
+        P->>APP: app.Run(): hosted services start (ValidateOnStart), Kestrel listens
     end
 ```
 
@@ -310,7 +311,7 @@ This traces `src/TutoringCentre.Api/Program.cs` line-by-line in execution order.
 
 Each concept below follows the same shape: **what it means → the problem → how it works → how this repo implements it → a traced example → why it matters here → alternatives → what to know before changing it.** Where the repo does not state its reasons I say so.
 
-Contents: [6.1 Clean Architecture / DI inversion](#61-clean-architecture-dependency-inversion-and-the-composition-root) · [6.2 Dependency Injection](#62-dependency-injection-lifetimes-and-scanning) · [6.3 CQRS and the Dispatcher](#63-cqrs-and-the-hand-written-dispatcher) · [6.4 Result pattern](#64-the-result-pattern-failures-as-values) · [6.5 Validation (two tiers)](#65-validation-two-tiers) · [6.6 Entities & factories](#66-entities-encapsulation-and-factory-methods) · [6.7 Unit of Work / transactions](#67-unit-of-work-and-transactions) · [6.8 Repository & read services](#68-repository-pattern-and-read-services) · [6.9 EF Core mechanics](#69-ef-core-how-the-orm-actually-works-here) · [6.10 Races & unique indexes](#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee) · [6.11 Actor / tenancy](#611-the-actor-model-and-the-tenancy-groundwork) · [6.12 HTTP error handling](#612-http-problem-details-and-error-handling) · [6.13 Logging](#613-structured-logging-correlation-ids-and-redaction) · [6.14 Options & health](#614-options-validation-and-health-checks) · [6.15 Architecture tests](#615-architecture-tests-fitness-functions) · [6.16 Test strategy](#616-test-doubles-vs-real-database-tests) · [6.17 Frontend concepts](#617-frontend-concepts-react-server-state-and-routing)
+Contents: [6.1 Clean Architecture / DI inversion](#61-clean-architecture-dependency-inversion-and-the-composition-root) · [6.2 Dependency Injection](#62-dependency-injection-lifetimes-and-scanning) · [6.3 CQRS and the Dispatcher](#63-cqrs-and-the-hand-written-dispatcher) · [6.4 Result pattern](#64-the-result-pattern-failures-as-values) · [6.5 Validation (two tiers)](#65-validation-two-tiers) · [6.6 Entities & factories](#66-entities-encapsulation-and-factory-methods) · [6.7 Unit of Work / transactions](#67-unit-of-work-and-transactions) · [6.8 Repository & read services](#68-repository-pattern-and-read-services) · [6.9 EF Core mechanics](#69-ef-core-how-the-orm-actually-works-here) · [6.10 Races & unique indexes](#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee) · [6.11 Actor / tenancy](#611-the-actor-model-and-the-tenancy-groundwork) · [6.12 HTTP error handling](#612-http-problem-details-and-error-handling) · [6.13 Logging](#613-structured-logging-correlation-ids-and-redaction) · [6.14 Options & health](#614-options-validation-and-health-checks) · [6.15 Architecture tests](#615-architecture-tests-fitness-functions) · [6.16 Test strategy](#616-test-doubles-vs-real-database-tests) · [6.17 Frontend concepts](#617-frontend-concepts-react-server-state-and-routing) · [6.18 OOP foundations](#618-foundations-interfaces-abstraction-polymorphism-inheritance-and-composition) · [6.19 async/await](#619-foundations-asyncawait-tasks-and-cancellation) · [6.20 generics, records, nullability](#620-foundations-generics-records-immutability-nullable-references-and-pattern-matching) · [6.21 exceptions](#621-foundations-exceptions-throw-and-cleanup) · [6.22 attributes and reflection](#622-foundations-attributes-and-reflection) · [6.23 JSON and model binding](#623-foundations-json-serialization-and-model-binding-in-minimal-apis)
 
 ---
 
@@ -349,6 +350,101 @@ Verified by tests: 22 Application tests run with in-memory fakes and no database
 
 ### Before you modify it
 Put new interfaces in **Application**, implementations in **Infrastructure**, and register them in `Infrastructure/DependencyInjection.cs`. Do not add EF/ASP.NET types to Domain or Application — `DependencyRuleTests` will fail. A new project reference must also update `ProjectReferenceTests`.
+
+
+### Deeper dive: layers, coupling, and the two directions of an arrow
+
+#### Start from zero: what is a "dependency" in code?
+If file A cannot compile (or cannot run) without file B, then A **depends on** B. That is all a dependency is. Dependencies are not bad - every program has them - but *which direction they point* decides how painful change becomes. If your business rules depend on the database code, then changing the database code can break the rules, and you cannot test the rules without the database.
+
+Two words you will see often:
+- **Coupling** - how much one piece of code knows about another. *Tight* coupling: `CreateCentreHandler` would know it uses PostgreSQL through EF Core. *Loose* coupling: it only knows "something that satisfies `ICentreRepository`".
+- **Cohesion** - how much the things *inside* one piece belong together. `Centre.cs` has high cohesion: everything in it is about what a valid centre is.
+
+Good architecture = **low coupling between layers, high cohesion inside them**.
+
+#### What would this project look like without it?
+Imagine the same feature written "the quick way" (hypothetical code, **not** in the repository):
+
+```csharp
+// everything in one place - the endpoint knows HTTP, SQL, rules and logging
+app.MapPost("/centres", async (CreateCentreBody body) =>
+{
+    using var db = new AppDbContext(/* connection string read from config here */);
+    if (db.Centres.Any(c => c.Slug == body.Slug)) return Results.Conflict();
+    if (body.Slug.Length < 3) return Results.BadRequest();
+    db.Centres.Add(new Centre { Name = body.Name, Slug = body.Slug });
+    await db.SaveChangesAsync();
+    return Results.Ok();
+});
+```
+
+It works. The problems appear later: the WhatsApp assistant and background jobs (named in ADR 0001) need the same rule "slug must be unique and valid" but have no HTTP endpoint to call, so the rule gets copied; to test the slug rule you must start a database; to move from PostgreSQL to something else you must rewrite every endpoint.
+
+#### What this project does instead (real code)
+The rule lives in `Centre.Create` (Domain). The orchestration lives in `CreateCentreHandler` (Application) and only talks to interfaces:
+
+```csharp
+internal sealed class CreateCentreHandler(ICurrentActor currentActor, ICentreRepository centres)
+    : ICommandHandler<CreateCentreCommand, CreateCentreResult>
+```
+
+Any delivery mechanism - the `seed` CLI today, an HTTP endpoint or a WhatsApp bot later - calls `Dispatcher`, which calls this handler. Nobody duplicates the rule.
+
+#### Two different arrows - compile time vs run time
+The most common confusion: *"Application does not reference Infrastructure, yet at run time it clearly ends up running Infrastructure code. How?"*
+
+- **Compile-time dependency** ("whose `.csproj` references whose") points **inward**: Infrastructure -> Application -> Domain.
+- **Run-time call** ("whose method is executing") goes **outward**: the handler calls `centres.Add(...)`, and the object behind `centres` is a `CentreRepository` from Infrastructure.
+
+The bridge is the interface (`ICentreRepository`), *owned* by the inner layer and *implemented* by the outer layer, plus the DI container that hands the implementation over at run time. That reversal of the usual direction is what "dependency **inversion**" means.
+
+```mermaid
+flowchart LR
+    subgraph CT["Compile time: who references whom"]
+        I1["Infrastructure"] --> A1["Application"]
+        A1 --> D1["Domain"]
+    end
+    subgraph RT["Run time: who calls whom"]
+        H2["CreateCentreHandler (Application)"] --> R2["ICentreRepository (interface, Application)"]
+        R2 --> C2["CentreRepository (Infrastructure)"]
+        C2 --> E2["Centre entity (Domain)"]
+    end
+```
+
+#### How the compiler and the tests enforce the rule
+1. **The compiler**: `Application.csproj` has no `ProjectReference` to Infrastructure, so writing `using TutoringCentre.Infrastructure;` in Application simply does not compile. A *circular* reference (Domain -> Infrastructure while Infrastructure -> Application -> Domain) is rejected by MSBuild before any test runs (`tests/.semantic.md` records this experiment).
+2. **`ProjectReferenceTests`**: asserts each `.csproj` lists exactly the allowed references.
+3. **`DependencyRuleTests`**: scans compiled types and fails if, for example, a Domain type touches `Microsoft.EntityFrameworkCore`.
+(Details in section 6.15.)
+
+#### Advantages
+- Business rules testable in milliseconds with no database (22 Application tests use fakes).
+- One implementation of each rule for all "front doors".
+- Swapping or upgrading infrastructure (EF version, database) touches one project.
+- Dependency rules are *executable*, not folklore.
+
+#### Disadvantages (the ADR's own list, confirmed in the code)
+- More files per feature: command, handler, result, validator, port, adapter, EF configuration, tests.
+- More indirection: to follow "create a centre" you jump through `SeedCommand` -> `Dispatcher` -> `CreateCentreHandler` -> `ICentreRepository` -> `CentreRepository`.
+- Mapping/boilerplate (`CreateCentreResult` exists only so the entity does not leave the layer).
+- Over-engineering risk for tiny apps: the repository currently has one entity and one real use case, so the structure is far larger than today's feature set (it is investing ahead of the product, as ADR 0001 says).
+
+#### Alternatives
+| Style | One-line idea | Difference from this repo |
+| --- | --- | --- |
+| Classic N-tier (UI -> business -> data) | each layer calls the one below | business layer depends on the data layer, so tests need the data layer |
+| Hexagonal / Ports-and-Adapters, Onion | same inversion idea as Clean Architecture | essentially the same family; Clean Architecture is the name this repo uses |
+| Vertical slice | organise by feature, minimal shared layers | fewer abstractions per feature; weaker enforced boundaries |
+| Modular monolith with one project per module | compiler-enforced module boundaries | ADR 0001 considered and rejected it as too heavy for one developer |
+| Microservices | separate deployables | rejected in ADR 0001 (no need for independent deployment) |
+
+#### What if we removed it here?
+If `Application` referenced EF Core directly: the 22 fast Application tests would need a database (or a heavy in-memory EF provider that does not behave like PostgreSQL), `ReadOnlyQueryTests`-style guarantees would be harder to isolate, and the handler could no longer be reused unchanged by a non-EF front door.
+
+#### Beginner traps
+- "Interface" does not mean "abstraction for its own sake" here: every interface in `Application` exists because an outer layer must implement it.
+- Putting an interface in the *wrong project* silently defeats the idea (an `ICentreRepository` inside Infrastructure would make Application depend on Infrastructure to use it).
 
 ---
 
@@ -398,6 +494,94 @@ Manual `new` (no container), service locator (the Dispatcher itself uses `IServi
 - A new scoped service that depends on `AppDbContext` must be scoped, not singleton — `ValidateScopes` fails otherwise (in tests).
 - Do **not** resolve handlers from the root provider; they need a scope (the actor and DbContext are scoped). Always `CreateAsyncScope()` first (see `DispatchExtensions`, `SeedCommand`).
 - A handler must be a concrete class implementing a closed generic handler interface, or the scan will not register it.
+
+
+### Deeper dive: what the container really does
+
+#### The idea in plain language
+Think of a restaurant kitchen. A chef (your class) needs ingredients (dependencies). Either the chef drives to the market every time (class creates its own dependencies with `new`), or a **supplier delivers exactly what the recipe lists** (the container injects them). The chef never needs to know which farm the tomatoes came from.
+
+- **Dependency**: another object your class needs (`ICentreRepository` for `CreateCentreHandler`).
+- **Injection**: the dependency is *handed to* the class from outside - here through the constructor.
+- **Inversion of control (IoC)**: normally the class controls its collaborators; with DI, control is inverted - something else (the container) decides.
+- **Container**: a program that holds the "recipes" and builds objects.
+
+#### The problem, with code (hypothetical vs real)
+Without DI, `CreateCentreHandler` would contain `new CentreRepository(new AppDbContext(...))`. That bakes in three bad things: the handler now depends on Infrastructure (breaking the architecture), you cannot substitute a fake in tests, and *every place* that needs a repository repeats the construction recipe (and must know the connection string).
+
+With DI the handler declares needs and nothing else (real code, `CreateCentreHandler.cs:9-10`):
+
+```csharp
+internal sealed class CreateCentreHandler(ICurrentActor currentActor, ICentreRepository centres)
+```
+
+In tests (`CreateCentreHandlerTests`) the same constructor is called by hand with fakes - the clearest demonstration that DI is "just constructors plus a helper that fills them in":
+
+```csharp
+var handler = new CreateCentreHandler(actorContext, repository);   // repository is FakeCentreRepository
+```
+
+#### Registration and resolution, step by step
+**Registration = writing the recipe.** `services.AddScoped<ICentreRepository, CentreRepository>()` (`Infrastructure/DependencyInjection.cs:70`) stores a descriptor: *service type* `ICentreRepository`, *implementation type* `CentreRepository`, *lifetime* scoped. Nothing is built yet.
+
+**Resolution = cooking.** When code calls `GetRequiredService<ICommandHandler<CreateCentreCommand,CreateCentreResult>>()` the container:
+1. finds the descriptor (registered by the scan in `HandlerRegistration`) -> implementation `CreateCentreHandler`;
+2. reads its constructor `(ICurrentActor, ICentreRepository)`;
+3. resolves each parameter **recursively**;
+4. calls the constructor with the results;
+5. caches the instance in the current scope (because the lifetime is scoped) and returns it.
+
+The full object graph for one command, with the lifetimes of each node:
+
+```mermaid
+flowchart TD
+    H["CreateCentreHandler (scoped)"] --> CA["ICurrentActor => CurrentActorContext (scoped)"]
+    H --> CR["ICentreRepository => CentreRepository (scoped)"]
+    CR --> DB["AppDbContext (scoped)"]
+    DB --> OPT["IOptions of DatabaseOptions (singleton)"]
+    DB --> INT["TimestampInterceptor (singleton)"]
+    INT --> CLK["IClock => SystemClock (singleton)"]
+    CLK --> TP["TimeProvider.System (singleton)"]
+    D["Dispatcher (scoped)"] --> UOW["IUnitOfWork => UnitOfWork (scoped)"]
+    UOW --> DB
+```
+Notice that `CentreRepository` and `UnitOfWork` **share the same `AppDbContext` instance** inside one scope. That is not an accident; the whole "handler adds, dispatcher saves" design depends on it.
+
+#### Lifetimes with an analogy
+- **Singleton** - the building's water main: one for everyone, lives as long as the building (`SystemClock`, `TimestampInterceptor`).
+- **Scoped** - your own table at the restaurant: one per visit (per HTTP request, or per `CreateAsyncScope()` in `SeedCommand`); shared by everything serving *your* table (`AppDbContext`, `UnitOfWork`, handlers, actor).
+- **Transient** - a paper cup: a new one every time you ask (none are used in this repo).
+
+**Captive dependency** = a long-lived object keeps a short-lived one alive. If `TimestampInterceptor` (singleton) took an `AppDbContext` (scoped) in its constructor, one request's DbContext would be reused by all requests (not thread-safe, stale data). `ValidateScopes = true` (switched on in `ApiFactory` and `PostgresFixture`) turns this into an immediate exception in tests.
+
+#### What happens when something goes wrong?
+- **Missing registration** -> `InvalidOperationException: No service for type '...' has been registered` the first time it is resolved. With `ValidateOnBuild = true` (tests) the check happens when the provider is built, so tests fail at startup rather than in the middle of a request.
+- **Two registrations for one type** -> the last one wins for `GetRequiredService`; all are returned by `GetServices` (which is how `Dispatcher` finds *several validators* for one command).
+- **Resolving a scoped service from the root provider** -> in validated mode an exception; otherwise a hidden global instance. This is why `MigrationRunner` and `SeedCommand` always call `CreateAsyncScope()` first.
+
+#### Why constructor injection (and not setters or fields)?
+Constructor parameters make dependencies **mandatory and visible**: an object cannot exist half-configured, and a quick glance at the constructor shows what the class needs. Property injection hides requirements; method injection suits per-call data.
+
+#### Advantages
+Testability (substitute fakes), one place to change wiring, lifetimes managed centrally, clear dependency list per class, enables the architecture rule (Application needs no concrete types).
+
+#### Disadvantages
+- *Indirection*: "where does this object come from?" now needs a search for the registration.
+- *Runtime errors*: a wiring mistake appears at run time, not compile time (mitigated here by `ValidateOnBuild`).
+- *Magic feel*: constructors are called by someone else. That is exactly why this section spells out the resolution steps.
+- *Service locator risk*: asking the container for services inside business code (what `Dispatcher` does with `GetRequiredService`) hides dependencies. This repo contains the locator inside the dispatcher only, because handler types are not known until a command arrives.
+
+#### Alternatives
+| Alternative | How it differs |
+| --- | --- |
+| Manual composition ("poor man's DI") | You write the `new` chain yourself in `Program.cs`; no container, fully explicit, but you must hand-write every graph and lifetime |
+| Service locator everywhere | Classes ask a global registry for things; dependencies become invisible |
+| Static singletons | Easy but untestable and hides coupling |
+| Third-party containers (Autofac etc.) | More features (modules, decorators); the built-in container is enough here |
+| Source-generated DI | Resolves at compile time, avoiding reflection |
+
+#### What if we removed DI from this project?
+`Program.cs` would have to build, for every endpoint, roughly: `options -> TimestampInterceptor(new SystemClock(TimeProvider.System)) -> new AppDbContext(options) -> new UnitOfWork(db) -> new CentreRepository(db) -> new CurrentActorContext() -> handler -> new Dispatcher(...)`, and decide when to dispose each. Handlers could not be discovered by scanning, so a hand-maintained lookup table of command type -> handler would be needed.
 
 ---
 
@@ -453,6 +637,75 @@ Provable from tests: `DispatcherTests` pins nine pipeline cases using a call-rec
 - **Handlers must not dispatch other commands:** `UnitOfWork.BeginAsync` throws "Nested units of work are not supported" if a transaction is already open in the scope.
 - Changing the order of validate/begin/handle/save/commit invalidates `pipeline-cases.md` and `DispatcherTests`.
 
+
+### Deeper dive: commands, queries, mediators and pipelines
+
+#### Start from zero
+Every operation in an app is one of two kinds:
+- a **question** ("what version is the API?") - it must not change anything; asking twice gives the same answer;
+- an **instruction** ("create this centre") - it changes something and can fail halfway.
+
+**CQRS** (*Command Query Responsibility Segregation*) says: model these two kinds separately, because they have different needs. Questions need to be fast and safe (read-only); instructions need validation, authorization and *transactions*. The older, smaller idea **CQS** (Bertrand Meyer) says only: a method should either change state or return data, not both. **CQRS** extends that to whole pipelines (and, at the extreme, separate databases - this repo does *not* go that far).
+
+#### How far does this repo go? (be precise)
+| Level | Meaning | This repo? |
+| --- | --- | --- |
+| 1. Separate message types and handlers | `ICommand<T>` vs `IQuery<T>` | **Yes** |
+| 2. Different pipelines | commands: read-write transaction + save; queries: read-only transaction, never save | **Yes** (`Dispatcher`) |
+| 3. Separate read model/code path | read services return DTOs directly (`ISystemInfoReadService`) | **Partly** (one read service; repositories are write-side only) |
+| 4. Separate databases / event sourcing | write DB and read DB kept in sync | **No** |
+
+#### What is a mediator/dispatcher, and why?
+Without a dispatcher each endpoint (and the CLI) would do: validate input, open a transaction, call logic, save, commit, rollback on error, log. Ten endpoints would repeat that ten times and someone would eventually forget the rollback. A **mediator** is one object everybody talks to; it finds the right handler and runs the shared steps **around** it. The shared steps are called the **pipeline** (some libraries call each step a "behavior").
+
+#### How `Dispatcher` finds the handler (the generic-type trick)
+`SendAsync<TCommand, TResponse>(command)` is a *generic method*. For `CreateCentreCommand` the compiler fills in `TCommand = CreateCentreCommand`, `TResponse = CreateCentreResult`. The dispatcher then asks the container for the **closed generic type** `ICommandHandler<CreateCentreCommand, CreateCentreResult>`. The container returns the class registered for exactly that type (`CreateCentreHandler`, registered by the scan). The dispatcher has never heard of centres; it only knows the *shape* "a command has a handler for its type". That is why adding a use case requires **zero** dispatcher changes.
+
+The constraint `where TCommand : ICommand<TResponse>` makes a mismatched pair (a command that claims to return `string` but is passed with `int`) a **compile error**.
+
+#### The pipeline, as a picture
+```mermaid
+flowchart TD
+    S["caller: SendAsync(command)"] --> V["1 Validate (all IValidator for this command)"]
+    V -->|invalid| F1["return Failure validation.failed (nothing opened)"]
+    V -->|ok| R["2 Resolve handler"]
+    R --> B["3 BEGIN read-write transaction"]
+    B --> H["4 handler.HandleAsync"]
+    H -->|Result failure| RB1["ROLLBACK, return same failure"]
+    H -->|exception| RB2["ROLLBACK, rethrow"]
+    H -->|Result success| SV["5 SaveChanges once"]
+    SV --> C["6 COMMIT"]
+    C --> OK["return success"]
+    OK --> LG["7 log one outcome line"]
+```
+The order has reasons recorded in `docs/architecture/overview.md`: validation first because invalid input needs no database; `BEGIN` before the handler because later features (row locks, tenant setting) must cover the handler's reads too.
+
+#### Advantages
+- Cross-cutting rules (validate, transact, log) are impossible to forget: there is only one road.
+- Handlers are tiny and testable: they return a `Result`; they never touch transactions.
+- The same use case serves CLI, HTTP, future bot.
+- Queries cannot corrupt data: the database itself enforces read-only (`ReadOnlyQueryTests`).
+
+#### Disadvantages
+- Ceremony: a feature = command + handler + result + validator (+ port/adapter). ADR 0001 estimates 4-6 files per feature.
+- Indirection: you cannot "go to definition" from the endpoint to the logic in one hop (the handler is found through the container).
+- A hand-written mediator means *you* own its bugs (library mediators are widely used and reviewed).
+- Everything is one pipeline: special needs (long-running jobs, batch imports) need an escape hatch.
+
+#### Alternatives
+| Alternative | Difference |
+| --- | --- |
+| Plain service classes (`CentreService.CreateAsync`) | simpler; each method must repeat transaction/validation handling |
+| MediatR (library) | same concept, third-party, with "pipeline behaviors"; the repository does not state why it hand-wrote its own (interpretation: learning/portfolio value and full control - ADR 0002 calls it "a hand-written CQRS pipeline") |
+| Endpoint filters / middleware doing the transaction | ties transactions to HTTP, so CLI/jobs would be second-class |
+| Event sourcing + separate read models | far more power and far more complexity; not needed |
+
+#### What the dispatcher does **not** do (yet)
+No authorization step, no tenant step (both are comments marked "Month 2"), no idempotency (`later.md` row 2), no retries, no caching, and no nested dispatch (the unit of work rejects it).
+
+#### What if we removed it here?
+`PlatformEndpoints.GetSystemInfoAsync` would have to open a read-only transaction, call the read service and map exceptions itself - and so would each future endpoint, the CLI and the bot. The nine pipeline guarantees in `docs/notes/pipeline-cases.md` would then need to be re-proved per entry point.
+
 ---
 
 ## 6.4 The Result pattern: failures as values
@@ -487,6 +740,83 @@ Throw custom exceptions per case; `OneOf<…>`/discriminated-union libraries (C#
 ### Before you modify it
 Adding an `ErrorKind` is an **API-contract change**: `ResultHttpExtensions.ToProblemResult` has a `_ => throw` default and the frontend's `ErrorKind` type (`frontend/src/api/errors.ts`) must be updated by hand — there is no generated link yet. Never put exception text in `Error.Message`.
 
+
+### Deeper dive: two kinds of "something went wrong"
+
+#### Start from zero: what is an exception, really?
+When code throws an exception, normal execution **stops** and the runtime *unwinds the call stack* - leaving method after method - until it finds a `catch` that handles it. Think of it as an emergency exit: great for "the building is on fire", clumsy for "the customer typed a bad postcode".
+
+Two very different situations hide behind "failure":
+1. **Expected, normal outcomes** - the slug is already taken; the name is blank; the caller is not allowed. These happen every day, are not bugs, and the caller should *decide* what to do.
+2. **Unexpected faults** - the database is down, a null where none should be, a programming error. Nobody can sensibly "handle" these locally.
+
+The Result pattern says: **return** the first kind as ordinary values; **throw** the second kind.
+
+#### The problem without it (hypothetical code)
+```csharp
+// style A: exceptions for business outcomes
+try { handler.Handle(command); }
+catch (SlugTakenException)      { return Results.Conflict(); }
+catch (ValidationException ex)  { return Results.BadRequest(ex.Errors); }
+catch (NotAllowedException)     { return Results.Forbid(); }
+```
+Problems: the method signature `Handle(...)` does not tell you it can fail in three ways; every caller must remember each `catch`; forgetting one turns a normal outcome into a 500; and exceptions are slower than return values because unwinding the stack is expensive.
+
+#### The same thing with Result (real code, `CreateCentreHandler.cs:24-28`)
+```csharp
+if (await centres.ExistsBySlugAsync(command.Slug, cancellationToken))
+{
+    return Result<CreateCentreResult>.Failure(
+        Error.Conflict("centre.slug_taken", "A centre with this slug already exists."));
+}
+```
+The *return type* `Task<Result<CreateCentreResult>>` now **announces** "this can fail with an error". The caller (the dispatcher) simply checks `result.IsFailure`.
+
+#### How the type guarantees consistency
+`Result`'s constructor refuses invalid combinations (`Result.cs:9-24`): success **with** an error throws `ArgumentException`; failure **without** an error throws `ArgumentNullException`. Therefore *any* `Result` you hold is in one of exactly two legal states. `Result<T>` hides the value behind a property that throws if you read it from a failure (`Result.cs:61-64`) - reading a failed value is a *bug*, so an exception is the right tool for it.
+
+#### Railway picture
+Think of two parallel tracks. Each step is a switch: on success the train continues on the "success" track; on failure it jumps to the "failure" track and *stays there* until it reaches the exit. In the handler, each early `return ... Failure(...)` is a switch to the failure track:
+
+```mermaid
+flowchart LR
+    S0["start"] --> A["authorize"]
+    A -->|ok| U["check slug free"]
+    U -->|ok| D["Centre.Create (domain rules)"]
+    D -->|ok| AD["Add to repository"]
+    AD --> SUC["Success(CreateCentreResult)"]
+    A -->|forbidden| FAIL["Failure(Error)"]
+    U -->|conflict| FAIL
+    D -->|validation| FAIL
+```
+
+#### What the Error carries and why
+`Error(Code, Message, Kind, Fields?)`:
+- `Code` - a stable key such as `centre.slug_taken`; the frontend maps it to words in the user's language (`errorMessages.ts`). Renaming a code is a **breaking API change**.
+- `Message` - for developers and logs, never shown verbatim.
+- `Kind` - one of five categories; the API maps each to one HTTP status (400/404/409/422/403).
+- `Fields` - optional per-field messages for validation.
+
+#### Advantages
+Failure is visible in the type; no stack unwinding for normal cases; easy tests (`Assert.True(result.IsFailure)` instead of `Assert.Throws`); one place (`ResultHttpExtensions`) turns outcomes into HTTP; the dispatcher can roll back on a failed `Result` without catching anything.
+
+#### Disadvantages
+- **Verbosity**: the "if failure, return failure" boilerplate repeats (`CreateCentreHandler.cs:32-35`).
+- **Not enforced**: C# does not force you to look at a `Result`; ignoring one compiles fine.
+- **Two ways to fail** in one codebase (values *and* exceptions) must be understood by every contributor - hence the rule table in `docs/architecture/overview.md`.
+- `Error?` is nullable on the type, so callers use `created.Error!` after proving failure.
+
+#### Alternatives
+| Alternative | Note |
+| --- | --- |
+| Throw custom exceptions for everything | Simplest to write; hides failure from signatures; slow for frequent cases |
+| Return `null`/`bool` | Loses the reason |
+| Libraries: `OneOf`, `ErrorOr`, `FluentResults` | Similar ideas with more features; this repo hand-wrote a small version |
+| F#/Rust `Result`/`Either` types | Language-level support with compiler-enforced handling |
+
+#### What if we removed it here?
+The dispatcher could no longer distinguish "roll back quietly, return 409" from "roll back loudly, return 500" without exception types for every business outcome; `ResultHttpExtensionsTests` and the nine dispatcher cases would need redesign.
+
 ---
 
 ## 6.5 Validation: two tiers
@@ -510,6 +840,46 @@ Data annotations on DTOs; validating only in the domain; validating inside contr
 ### Before you modify it
 A new rule belongs in the Domain if it is a business invariant, in the validator if it is a pure shape check. Mirror new lengths in `CentreConfiguration` *and* create a migration (CI fails otherwise, §11).
 
+
+### Deeper dive: where to check, what to check, and why check twice
+
+#### Start from zero: the trust boundary
+Data coming from *outside* your code (an HTTP body, a CLI argument, a message) is **untrusted**: it may be missing, too long, malformed or hostile. **Validation** is the act of checking it at the boundary before it can do damage. The question this repo answers is *"which checks belong where?"*
+
+#### Three kinds of rules, three homes
+| Kind | Example in this repo | Needs database? | Home |
+| --- | --- | --- | --- |
+| **Shape** | name not empty, at most 120 chars; locale value is a defined enum member | no | `CreateCentreValidator` (FluentValidation) |
+| **Business invariant** | slug matches the pattern; time zone is a real IANA id | no (but needs domain knowledge) | `Centre.Create` (Domain) |
+| **State-dependent rule** | slug not already taken | **yes** | `CreateCentreHandler` (checked through the repository) |
+| **Last line of defence** | unique slug index, `CHECK (default_locale IN ('ar','en'))`, `varchar(120)` | it *is* the database | PostgreSQL constraints |
+
+Each tier is progressively more expensive and more authoritative: shape checks cost nothing; the database check needs a transaction but can never be bypassed.
+
+#### How FluentValidation works inside (briefly)
+`CreateCentreValidator : AbstractValidator<CreateCentreCommand>`. In its **constructor**, each `RuleFor(command => command.Name).NotEmpty().MaximumLength(120)` stores a rule: *a property selector (a lambda) plus a list of checks*. Later `validator.ValidateAsync(context)` loops the rules, reads each property through its lambda, runs the checks and collects `ValidationFailure` objects (`PropertyName`, `ErrorMessage`) into a `ValidationResult`. The dispatcher (`Dispatcher.ValidateAsync`) then groups failures by camel-cased property name into `Error.Fields`, which becomes the `errors` object in the 400 response.
+
+#### Execution example: two inputs, two different error codes
+- Name `""` -> shape rule fails -> `validation.failed` with `fields.name = [...]`; **no transaction opened, handler never runs** (`DispatcherTests` C2).
+- Slug `"Bad Slug"` -> shape rules pass (length ok) -> handler runs inside a transaction -> authorization, uniqueness, then `Centre.Create` -> `centre.slug_invalid`. Both are HTTP 400 but with different `code`s.
+
+*Interpretation (not stated in the repo):* the domain rules also catch blank names and over-long strings, so the shape validator is partly redundant for correctness. What it adds is (a) a field-keyed error dictionary for forms and (b) rejection **before** a connection and transaction are used.
+
+#### The "single source of truth" idea
+A rule written in two places will eventually disagree. The repo keeps numbers in one place: `Centre.NameMaxLength` (120) and `Centre.SlugMaxLength` (60) are read by the validator *and* by EF's `HasMaxLength`. The exception it has not fixed: `TimeZoneIdMaxLength = 64` is declared twice (validator and `CentreConfiguration`).
+
+#### Advantages
+Cheap early rejection, readable declarative rules, uniform error shape, domain stays framework-free, database still protects against bypass.
+
+#### Disadvantages
+Three places to look; overlap between shape rules and domain rules; error codes differ for similar mistakes (`validation.failed` vs `centre.name_required`); a library dependency in Application (FluentValidation).
+
+#### Alternatives
+`DataAnnotations` attributes on DTOs (`[Required]`, `[MaxLength]`) - less expressive; validating only in the domain (simplest, but errors arrive one at a time and after a transaction opens); endpoint filters or MVC model validation (tie validation to HTTP so CLI/jobs are unprotected).
+
+#### What if we removed the validator here?
+Nothing would break for correctness (the domain still rejects bad data and PostgreSQL still enforces length), but responses would lose per-field `errors` for blank fields and every bad request would open a transaction first.
+
 ---
 
 ## 6.6 Entities, encapsulation and factory methods
@@ -532,6 +902,52 @@ Public setters + validation attributes (anemic model); constructor that throws; 
 
 ### Before you modify it
 Time-zone validation depends on the **host OS time-zone database** (`TimeZoneInfo`), so `centre.time_zone_invalid` results can differ across machines that lack ICU/tzdata. Tests use `Africa/Cairo` and `Mars/Base`.
+
+
+### Deeper dive: identity, encapsulation and keeping objects valid
+
+#### Start from zero
+Two objects can be "the same" in two ways:
+- **Value equality**: same contents (two `Error` records with identical code, message and kind). This is a *value object* / record.
+- **Identity equality**: same *thing*, even if its contents change (a centre that is renamed is still the same centre). This is an **entity**, recognised by its `Id`.
+
+`Centre` is an entity (`Id` from `Entity`). `Error`, `CreateCentreCommand`, `SystemInfoDto` are records (value semantics).
+
+**Encapsulation** means an object protects its own rules: outsiders cannot put it into an invalid state. In `Centre`:
+- the properties have `private set` (nobody outside can write `centre.Slug = "!!"`);
+- the constructors are `private`;
+- the only way in is the **factory method** `Centre.Create(...)`, which returns a `Result<Centre>` (it can refuse).
+
+The result: **if you hold a `Centre`, it has already passed the rules.** Contrast with an "anemic" model (public setters, validation elsewhere), where any code can create invalid objects and every consumer must re-check.
+
+#### Why two private constructors? (a classic confusion)
+1. The *value* constructor is used by `Create` after validation.
+2. The *parameterless* constructor exists "for EF Core materialisation": when EF reads a row it must build a `Centre` **without** running `Create`, then set its properties from the columns. EF can use private members through reflection. The parameterless constructor sets string properties to `string.Empty` only to satisfy the nullable-reference-type compiler checks; EF immediately overwrites them. (The base `Entity` constructor also runs and generates a throw-away id that EF overwrites with the stored id.)
+
+#### UUIDv7: what it is and what this repo does
+A UUID/GUID is a 128-bit identifier. **Version 4** is almost all random; **version 7** begins with a *timestamp* (milliseconds since 1970) followed by random bits, so ids created later sort later. This repo assigns the id **in code, at construction** (`Guid.CreateVersion7()` in `Entity`), instead of letting the database generate it. Consequences visible in the code: the entity has its id before it is saved; EF is told `ValueGeneratedNever()`; tests can create entities without a database.
+
+*Interpretation (the repo does not say why v7):* time-ordered ids tend to be friendlier to database indexes than fully random ones, because new rows land near each other. A trade-off: the id reveals roughly when the entity was created.
+
+#### Execution example
+`Centre.Create("  Nile  ", "nile-centre", "Africa/Cairo", Ar)`:
+1. name is trimmed to `"Nile"`, checked (not blank, <= 120);
+2. slug checked against `^[a-z0-9]+(?:-[a-z0-9]+)*\z`, length 3-60;
+3. time zone looked up with `TimeZoneInfo.TryFindSystemTimeZoneById`;
+4. private constructor runs: base `Entity()` assigns `Id = Guid.CreateVersion7()`; fields set;
+5. `Result<Centre>.Success(centre)` returned.
+
+#### Advantages
+Invalid states unrepresentable; rules in one place; entities are trivially unit-testable (`CentreTests`); persistence concerns kept out (shadow properties for timestamps).
+
+#### Disadvantages
+EF needs the extra private constructor; no change methods yet, so you cannot see how updates would be modelled; plain `string` slugs/time zones (no value objects) means format rules are only enforced inside `Create`; `Create` cannot check state-dependent rules (uniqueness).
+
+#### Alternatives
+Public setters + validation attributes; constructor that throws; value objects (`Slug`, `TimeZoneId` types); database-generated ids (identity/sequence, UUIDv4); ULIDs.
+
+#### What if we removed the factory?
+Any code (including a future endpoint) could build a `Centre` with a bad slug; the nine slug/name rules would have to be duplicated at each construction site, and the database would be the first and only line of defence.
 
 ---
 
@@ -562,6 +978,69 @@ Read-only transactions are a defence-in-depth guarantee that a query can never m
 ### Before you modify it
 Do not nest dispatches. Do not call `SaveChangesAsync` in a handler (the tests do so deliberately only in a test-only handler). `SET TRANSACTION READ ONLY` relies on being first in the transaction — don't run other SQL before it.
 
+
+### Deeper dive: transactions from first principles
+
+#### Start from zero: why transactions exist (the bank-transfer story)
+Moving 100 from account A to account B needs two writes: subtract from A, add to B. If the program crashes between them, money vanishes. A **transaction** wraps both writes so that they either **all happen or none happen**. Databases promise four properties, remembered as **ACID**:
+- **A**tomicity - all or nothing;
+- **C**onsistency - constraints (unique, check, foreign keys) hold before and after;
+- **I**solation - concurrent transactions do not see each other's half-finished work (to a configurable degree);
+- **D**urability - once committed, it survives a crash.
+
+In SQL the shape is `BEGIN; ...statements...; COMMIT;` (or `ROLLBACK;` to discard everything).
+
+#### What EF Core does by default, and why this repo does not rely on it
+By default `SaveChanges()` wraps its own writes in a transaction automatically. That is fine for "write these tracked rows". It does **not** cover things done *before* the save - like the handler's `ExistsBySlugAsync` read - and it cannot span several `SaveChanges` calls. This repo wants the **whole handler** inside one transaction (reasons recorded in `docs/architecture/overview.md`: row locks taken during reads and a tenant setting must cover the handler), so the dispatcher opens an explicit transaction first.
+
+#### What is a "unit of work"?
+Martin Fowler's definition: an object that tracks everything you change during a business transaction and writes it out as one unit. EF's `DbContext` already does the tracking (its change tracker). `UnitOfWork` here is a thin wrapper that only exposes **begin / save / commit / rollback** through the `IUnitOfWork` port, so `Dispatcher` (Application) can control the transaction **without referencing EF**.
+
+#### The life of one transaction in this repo
+```mermaid
+sequenceDiagram
+    participant D as Dispatcher
+    participant U as UnitOfWork
+    participant E as AppDbContext
+    participant P as PostgreSQL
+    D->>U: BeginAsync(readOnly false)
+    U->>E: Database.BeginTransactionAsync
+    E->>P: BEGIN
+    Note over D,P: handler runs and its reads use this transaction
+    D->>U: SaveChangesAsync
+    U->>E: SaveChangesAsync
+    E->>P: INSERT (inside the open transaction)
+    D->>U: CommitAsync
+    U->>P: COMMIT
+```
+On failure, `RollbackAsync` sends `ROLLBACK` and calls `ChangeTracker.Clear()`, so the in-memory entities that were never saved are forgotten too (otherwise the scope would still "remember" a centre that does not exist).
+
+#### Read-only transactions
+For queries the unit of work additionally runs `SET TRANSACTION READ ONLY` as the first statement. From then on PostgreSQL itself rejects any write with SQLSTATE `25006`. The protection is **in the database**, not in conventions - a mistake in a query handler cannot silently modify data (`ReadOnlyQueryTests` proves it with a raw `INSERT`).
+
+#### Isolation (what concurrent requests can see)
+PostgreSQL's default isolation level is *Read Committed* (database default; this repo does not change it - the repo never sets an isolation level, so this is general PostgreSQL behaviour, not a repo setting): each statement sees data committed before *that statement* began. It is why two simultaneous creates can both see "slug free" - the subject of section 6.10.
+
+#### Connections and cost
+An open transaction holds a database connection (taken from Npgsql's pool, a library default) until commit/rollback. Keeping handlers short matters; the repo has no long-running handlers yet.
+
+#### Advantages
+Atomic use cases; clear boundary; database-enforced read-only queries; handler code free of transaction plumbing.
+
+#### Disadvantages
+Handlers cannot call other handlers (nested units of work are rejected by design - `UnitOfWork.BeginAsync` throws); one transaction per scope limits patterns such as "commit part, then continue"; long handlers hold connections; a single `DbContext` means all modules share one transaction boundary (stated in `AppDbContext`'s summary).
+
+#### Alternatives
+| Alternative | Note |
+| --- | --- |
+| EF's implicit per-`SaveChanges` transaction | simplest; reads outside it |
+| `TransactionScope` | ambient transaction, can span multiple resources; more magic |
+| Pipeline behaviour in a mediator library | same idea packaged by the library |
+| Saga/outbox for multi-service work | needed only across services - not here |
+
+#### What if we removed it here?
+A handler that adds a centre and then throws would leave behind whatever it had already saved; `TransactionBoundaryTests` shows the three cases (throw, failure result, success control) that the unit of work keeps correct.
+
 ---
 
 ## 6.8 Repository pattern and read services
@@ -579,6 +1058,41 @@ Generic `IRepository<T>`; exposing `IQueryable`; calling `DbContext` directly in
 
 ### Before you modify it
 New write operations: add a method to the port named for the use case, implement in Infrastructure. Reads that don't need domain behaviour: add a read-service method returning a DTO.
+
+
+### Deeper dive: what a repository is for, and what it is not
+
+#### Start from zero
+Imagine your domain objects live in a big in-memory **collection**: you `Add` a centre, you ask "is there a centre with this slug?". A **repository** is that illusion: an object that *looks like a collection* but hides whether the data really lives in PostgreSQL, a file, or memory. The handler says what it wants (`ExistsBySlugAsync`, `Add`); the repository decides how.
+
+Two ideas to keep separate:
+- **Write side**: load/store whole domain objects, enforce rules - the repository (`ICentreRepository`).
+- **Read side**: answer questions with data shaped for the caller (DTOs), skipping domain objects - the **read service** (`ISystemInfoReadService`). Reads rarely need domain behaviour, so forcing them through entities adds cost and no safety.
+
+#### Real code
+Interface (Application): `Task<bool> ExistsBySlugAsync(string slug, CancellationToken ct); void Add(Centre centre);`
+Implementation (Infrastructure): `db.Set<Centre>().AnyAsync(centre => centre.Slug == slug, ct)` and `db.Set<Centre>().Add(centre)`.
+Registration: `services.AddScoped<ICentreRepository, CentreRepository>()`.
+Consumer: `CreateCentreHandler` through its constructor.
+
+Notice what is **absent**: no `SaveChanges`, no `IQueryable` leaking out, no EF types in the interface. Method names describe use ("exists by slug"), not storage ("select where").
+
+#### What happens at run time when the handler calls `centres.Add(...)`?
+`DbSet<Centre>.Add` tells the change tracker "this object is new" (state `Added`) - **no SQL is sent**. Only when the dispatcher later calls `SaveChangesAsync` does EF generate the `INSERT`. So "Add" means "queue this change in the unit of work", exactly like adding to a shopping basket before paying.
+
+#### Advantages
+Handler logic is testable with an in-memory fake (`FakeCentreRepository`); EF stays replaceable; method names express business intent; Application cannot accidentally depend on EF (architecture test).
+
+#### Disadvantages
+- EF's `DbSet` *already is* a repository and its `DbContext` already is a unit of work, so wrapping them can look redundant ("repository over EF" is a debated practice). This repo accepts that cost to keep EF out of Application.
+- Each new query needs a new interface method and implementation.
+- Fakes can drift from the real behaviour (the fake's `ExistsBySlugAsync` searches two lists; the real one runs SQL) - the integration tests exist to close that gap.
+
+#### Alternatives
+Use `DbContext` directly in handlers (less code, but Application then references EF); generic `IRepository<T>` (less per-entity code, leaks CRUD vocabulary and often `IQueryable`); the Specification pattern (composable query objects); Dapper/raw SQL for the read side.
+
+#### What if we removed it here?
+`CreateCentreHandler` would need `AppDbContext`, so Application would reference Infrastructure/EF - `DependencyRuleTests.Application_DoesNotDependOnInfrastructureApiOrFrameworks` would fail and the 22 fast tests would need a database.
 
 ---
 
@@ -619,6 +1133,65 @@ Dapper/raw SQL; Fluent configuration vs data-annotation attributes on entities (
 ### Before you modify it
 After any model change run `dotnet ef migrations add <Name> --project src/TutoringCentre.Infrastructure --startup-project src/TutoringCentre.Api` (the CI step shows these project flags) and commit the three generated artifacts. Entity-type configs must use `Schemas.*` constants (stated in `Schemas.cs`).
 
+
+### Deeper dive: what an ORM is, and what EF Core does between your C# and the database
+
+#### Start from zero
+Relational databases store **rows in tables**; C# programs work with **objects**. These two worlds do not line up (the "object-relational impedance mismatch"): tables have columns and keys, objects have references and methods. An **ORM** (*object-relational mapper*) is a translator. You describe the mapping once (this class <-> this table, this property <-> this column) and the ORM writes the SQL and builds objects from result rows.
+
+#### The five jobs EF Core performs in this repo
+1. **Model building** - at first use EF reads `AppDbContext.OnModelCreating`, which calls `ApplyConfigurationsFromAssembly` and finds `CentreConfiguration`. From that it builds an internal *model* (entity types, properties, keys, indexes, converters). The model is built once per context type and cached *(framework behaviour)*.
+2. **Query translation** - turns a C# lambda into SQL.
+3. **Materialization** - turns result rows into objects.
+4. **Change tracking** - remembers what you changed.
+5. **SaveChanges** - turns tracked changes into `INSERT/UPDATE/DELETE`.
+
+#### Query life cycle for `AnyAsync(c => c.Slug == slug)` (from `CentreRepository.ExistsBySlugAsync`)
+1. `db.Set<Centre>()` gives a `DbSet<Centre>` - an `IQueryable<Centre>`: a *description* of a query, not data.
+2. `.AnyAsync(lambda, ct)` receives the lambda **as an expression tree** (a data structure describing the code `c.Slug == slug`, not compiled code).
+3. When the task is **awaited** the query actually executes (this is *deferred execution*: nothing happens until you enumerate or await). The Npgsql provider walks the expression tree and produces SQL of the form `SELECT EXISTS (SELECT 1 FROM platform.centres AS c WHERE c.slug = @slug)` *(standard translation; the exact text was not captured from a run)*; `slug` becomes a **parameter**, never concatenated (this is what prevents SQL injection).
+4. The SQL is sent on the connection that belongs to the dispatcher's open transaction.
+5. The single boolean comes back; no entity is materialized, so nothing is tracked.
+
+```mermaid
+flowchart LR
+    L["C# lambda: c.Slug == slug"] --> X["expression tree"]
+    X --> T["Npgsql provider translates"]
+    T --> Q["SQL with parameter"]
+    Q --> R["PostgreSQL executes inside the open transaction"]
+    R --> O["bool returned"]
+```
+
+#### The change tracker, with this repo's insert
+- `db.Set<Centre>().Add(centre)` - EF attaches the object and marks it **Added**. No SQL.
+- `SaveChangesAsync()` - EF first runs *DetectChanges* (looks for modified tracked entities), then calls the registered **interceptors** (`TimestampInterceptor` sets the shadow `CreatedAt`), then generates one `INSERT` per Added entity (batched into one round trip *where possible - framework behaviour*), executes them inside the current transaction, and finally marks the entities `Unchanged`.
+- The four states: `Added`, `Unchanged`, `Modified`, `Deleted` (+ `Detached`). `Modified` is what makes the interceptor stamp `UpdatedAt`, but nothing in the repo modifies a centre yet.
+
+#### Value converters and shadow properties - why they exist
+- **Converter**: the C# enum `SupportedLocale.Ar` is stored as the string `'ar'`. `CentreConfiguration` supplies both directions; EF applies them on write and on read.
+- **Shadow property**: `CreatedAt`/`UpdatedAt` columns exist in the model but there is no matching C# property; EF stores their values in the tracker and the interceptor sets them. The Domain stays free of persistence metadata.
+
+#### Migrations: schema as versioned code
+1. You change the model (e.g., add a property).
+2. `dotnet ef migrations add Name` compares the **current model** with the **model snapshot** (`AppDbContextModelSnapshot.cs`) and writes a new migration class with `Up` (apply) and `Down` (undo) plus an updated snapshot.
+3. `Database.MigrateAsync()` reads the **history table** (`platform.__ef_migrations_history`), applies each migration not yet recorded, in timestamp order, and records it.
+4. CI's `dotnet ef migrations has-pending-model-changes` re-does step 2's comparison and **fails** if the model differs from the snapshot - i.e., someone changed the model without adding a migration.
+
+#### Advantages
+Far less hand-written SQL; type-checked queries; parameterised queries by default; one mapping place; migrations keep every environment in sync; interceptors and conventions remove repetition.
+
+#### Disadvantages
+- A *leaky abstraction*: you still need to understand the SQL it generates (performance, locking, N+1 queries when relationships exist).
+- Magic can hide cost: a LINQ expression that cannot be translated fails at run time.
+- Change tracking costs memory/CPU for large result sets (`AsNoTracking` helps; not needed yet here).
+- Migrations must be reviewed; automatic application in production is risky (the repo's own comment says so).
+
+#### Alternatives
+Dapper / raw ADO.NET (you write SQL, full control, more code); NHibernate (older full ORM); Marten (document store on PostgreSQL); stored procedures. ADR 0002 gives the repo's reason for EF: "a mature, battle-tested ORM" suited to money/access-control correctness.
+
+#### What if we removed EF here?
+Infrastructure would hand-write SQL and mapping for each repository method, migrations would need another tool, and the interceptor/shadow-property approach for timestamps would be replaced by SQL defaults or manual code.
+
 ---
 
 ## 6.10 Concurrency: the slug race and why the unique index is the real guarantee
@@ -634,6 +1207,46 @@ After any model change run `dotnet ef migrations add <Name> --project src/Tutori
 
 ### Before you modify it
 Never drop the unique index to "fix" a flaky race test. When you add the translation, do it in one place (the dispatcher or the exception handler), not per handler.
+
+
+### Deeper dive: why "check, then insert" is not safe, step by step
+
+#### Start from zero: what is concurrency?
+A web server handles many requests **at the same time**. Two requests can both be in the middle of "create centre" at the same moment. Code that is correct for one request alone can be wrong for two. A bug that only appears because of unlucky timing is a **race condition**.
+
+#### The timeline that breaks "check then insert"
+Two requests create slug `race-centre`:
+
+| Time | Request A | Request B |
+| --- | --- | --- |
+| t1 | `BEGIN`; asks "does `race-centre` exist?" -> **no** | |
+| t2 | | `BEGIN`; asks the same -> **no** (A has not inserted yet) |
+| t3 | `INSERT` row | |
+| t4 | | `INSERT` row -> **violates the unique index** -> PostgreSQL error `23505` |
+| t5 | `COMMIT` | transaction rolled back (dispatcher catch) |
+
+Both checks were *honest* when they ran. The window between check and insert (the "time of check to time of use") is the bug. No amount of application code can close it unless it can lock across requests.
+
+#### Why Read Committed does not help
+PostgreSQL's default isolation (general database behaviour, not set by this repo) lets each statement see only committed data. A's uncommitted row is invisible to B's check. Stricter isolation (`SERIALIZABLE`) or explicit locks could prevent it but cost throughput and complexity.
+
+#### The standard solution: let the database arbitrate
+A **unique index** makes the invariant "no two rows share a slug" part of the data itself. Whichever insert reaches it second fails, no matter how requests interleave. `ux_centres_slug` (declared in `CentreConfiguration.cs:30`, created by the migration) is that guarantee. The handler's `ExistsBySlugAsync` check remains because it gives a friendly `centre.slug_taken` result in the (much more common) non-racing case and avoids a pointless failed insert.
+
+#### How the test proves it (and why it is written that way)
+`CentreSlugRaceTests` starts two tasks that both `await` a `TaskCompletionSource` (a manual start gate), then releases them together so their database work overlaps. It accepts *either* losing outcome (friendly result, or unique-violation exception) because which one occurs depends on timing, and asserts the invariant that matters: **exactly one row**.
+
+#### Options for resolving races (and what this repo chose)
+| Option | Idea | Used here? |
+| --- | --- | --- |
+| Unique index + handle the error | database arbitrates | **Yes** (error handling still planned) |
+| `INSERT ... ON CONFLICT DO NOTHING/UPDATE` | single atomic statement | no |
+| `SELECT ... FOR UPDATE` row lock | serialise on a row | no (the docs say future repositories will use it) |
+| `SERIALIZABLE` isolation | database detects conflicts | no |
+| Advisory locks / application mutex | explicit lock | no |
+
+#### Current gap
+Today the loser gets a `DbUpdateException`; the dispatcher rolls back and rethrows; if a create-centre HTTP endpoint existed the `GlobalExceptionHandler` would answer **500**, not 409. The test's summary says the translation to 409 is planned.
 
 ---
 
@@ -653,6 +1266,42 @@ An **actor** is "who is executing this use case". A **tenant** is one customer's
 
 ### Before you modify it
 When authentication arrives, the *only* sanctioned place to call `Set` is trusted edge code (middleware/job runner), once per scope. Add the tenant/permission steps where the dispatcher's "Month 2" comments say (after validation, before `BeginAsync`).
+
+
+### Deeper dive: who is calling, and why identity must not come from the request
+
+#### Four words that are easy to mix up
+- **Authentication** - proving *who you are* (login, token). **Not implemented** in this repo.
+- **Authorization** - deciding *what you may do*. **One rule exists**: only `SystemActor` may create centres.
+- **Tenancy** - separating different customers' data inside one system. **Only groundwork exists.**
+- **Actor** - this repo's word for "the identity executing the current use case".
+
+#### Why an `Actor` object instead of a parameter?
+A naive design puts identity into the command: `new CreateCentreCommand(name, slug, ..., userId, isAdmin)`. But a command often arrives from an **untrusted** source (an HTTP body). If the *caller* supplies `isAdmin: true`, authorization is theatre. This repo's rule (comment in `Actor.cs`): handlers "never receive identity or tenant from request data". Identity is placed into a **per-scope holder** by *trusted edge code* (a future middleware that has verified a token, or the CLI), and handlers read it through `ICurrentActor`.
+
+#### How the holder is protected
+- It starts `AnonymousActor` - the safe default; forgetting to authenticate yields the *least* privileged identity.
+- `CurrentActorContext.Set` may be called **exactly once**; a second call throws. Identity cannot be swapped mid-request.
+- Handlers see only `ICurrentActor` (no setter) - same object, narrower interface.
+- It is **scoped**, so one request's actor can never leak into another's.
+
+#### Tracing it in the real code
+`SeedCommand` -> `CreateAsyncScope()` -> `GetRequiredService<CurrentActorContext>().Set(new SystemActor(null))` -> `Dispatcher` -> `CreateCentreHandler` gets `ICurrentActor` (same instance, via the factory registration) -> `currentActor.Actor is not SystemActor` is false -> proceeds. In `CreateCentreTests` the anonymous variant never reaches the database: the check runs **before** any read.
+
+#### The tenancy plan (comments only) and why it matters
+`ITenantOwned.CentreId` plus `Actor.CentreId` are building blocks for: "every query on a tenant-owned table is filtered to the actor's centre" (EF *global query filters*) and, per `docs/architecture/overview.md`, PostgreSQL row-level security with a tenant setting made **inside the transaction**. That is why the dispatcher opens the transaction *before* the handler. None of this exists yet.
+
+#### Advantages
+Identity cannot be forged via request data; authorization logic reads one object; trivially testable (`Set(new AnonymousActor())`); sets up tenant filtering without changing handler signatures.
+
+#### Disadvantages
+It is *ambient* state (hidden input): reading a handler does not show that the result depends on who is calling; correctness depends on edge code calling `Set` exactly once; today nothing in the HTTP pipeline calls it at all.
+
+#### Alternatives
+Pass `userId` in every command (explicit, forgeable if sourced from the body); `IHttpContextAccessor`/`ClaimsPrincipal` in handlers (couples Application to ASP.NET); `AsyncLocal` ambient context; policy-based authorization middleware (planned "Month 2").
+
+#### What if we removed it here?
+`CreateCentreHandler` could not distinguish the platform from a stranger; either anyone could create tenants or the command would need a trusted flag sourced from the caller.
 
 ---
 
@@ -695,6 +1344,69 @@ MVC `[ApiController]` + `ModelState` automatic 400s; exception filters; `Problem
 ### Before you modify it
 Every new error must be a `Result` failure with a stable `code` (the frontend keys translations on it). Do not return `Results.BadRequest(...)` from an endpoint — it bypasses `ProblemResult`/enrichment.
 
+
+### Deeper dive: HTTP in five minutes, and why errors get a standard shape
+
+#### HTTP from zero
+HTTP is a text protocol of **request -> response**, with no memory between requests (*stateless*).
+- A **request**: a *method* (`GET` read, `POST` create/act, `PUT/PATCH` change, `DELETE` remove), a *path* (`/api/system/info`), *headers* (metadata, e.g., `X-Correlation-Id`, `Content-Type`), and optionally a *body* (JSON).
+- A **response**: a *status code*, headers, and optionally a body.
+- **Status code families**: 2xx success (200 OK, 204 No Content), 4xx *the caller's fault* (400, 403, 404, 409, 422), 5xx *the server's fault* (500, 503).
+- **Media type** (`Content-Type`) says how to read the body: `application/json`, or here `application/problem+json`.
+This repo is "REST-ish": resources under `/api`, verbs for actions, JSON bodies, status codes for outcomes. The ones it uses and when:
+
+| Code | Meaning here |
+| --- | --- |
+| 200 / 204 | success with body / success without body |
+| 400 | input could not be read or failed validation |
+| 403 | caller is known but not allowed (`Forbidden`) |
+| 404 | route or resource does not exist |
+| 409 | conflicts with current state (duplicate slug) |
+| 422 | well-formed request that breaks a business rule (`Rule`) |
+| 500 | unexpected fault |
+| 503 | readiness check says a dependency is down |
+
+#### The problem: every endpoint inventing its own error JSON
+One endpoint returns `{"error":"bad"}`, another `{"message":"..","details":[..]}`, a third an HTML page from the framework. Frontends then need a parser per endpoint, and some responses may leak stack traces. **Problem Details (RFC 9457)** is a standard envelope: `title`, `status`, `detail`, plus extension members. This repo adds `code` (stable machine key), `traceId`, `correlationId`, and (validation only) `errors`.
+
+#### What a real error looks like in this repo
+```json
+{
+  "title": "The request could not be read.",
+  "status": 400,
+  "code": "request.malformed",
+  "traceId": "00-...-00",
+  "correlationId": "5d0c..."
+}
+```
+(Sample from `frontend/src/api/fixtures/problem-400.json`.)
+
+#### How "exactly one writer" is achieved
+All paths converge on `ProblemResult.ExecuteAsync`:
+- business failures -> `ResultHttpExtensions.ToProblemResult` -> `ProblemResult`;
+- exceptions -> `GlobalExceptionHandler` -> `ProblemResult`;
+- framework-generated errors (empty 404) -> `AddProblemDetails(CustomizeProblemDetails = Enrich)` -> same enrichment.
+
+Because one class sets content type, status, `traceId` and `correlationId`, a test (`ProblemDetailsTests`) can assert the shape once and trust it everywhere.
+
+#### Why two identifiers (`traceId`, `correlationId`)?
+`traceId` comes from `Activity.Current` (the framework's/OpenTelemetry-style trace id for *distributed tracing*); `correlationId` is the id the **client** may supply and that appears in every log line of the request. Showing both lets support match a user report to server logs.
+
+#### Why exceptions must never reach the client verbatim
+An exception message can contain connection strings, SQL, file paths, or internal names (a classic *information leakage*). `GlobalExceptionHandler` logs the full exception **server-side only** and answers with a generic message. `ProblemDetailsTests.UnhandledException_Returns500WithoutLeakingInternals` plants `Password=hunter2` in an exception message and asserts it never appears in the response.
+
+#### Advantages
+Uniform client handling, stable error codes for translation, no leaks, simple endpoints (`ToHttpResult`).
+
+#### Disadvantages
+The envelope is more than a bare string; `code` values become a public contract that is expensive to change; clients must learn the extensions; every new error kind needs a mapping.
+
+#### Alternatives
+MVC `[ApiController]` automatic 400s with `ModelState`; exception filters per controller; a custom `{ success, data, error }` envelope; GraphQL-style errors in the body with 200 status.
+
+#### What if we removed it here?
+Different failure paths (validation, exceptions, unknown routes, malformed JSON) would answer in different shapes, `X-Correlation-Id` would be missing on some, and the frontend's single `messageFor(error)` function could not exist.
+
 ---
 
 ## 6.13 Structured logging, correlation IDs and redaction
@@ -715,6 +1427,53 @@ Every new error must be a `Result` failure with a stable `code` (the frontend ke
 ### Before you modify it
 Keep `CorrelationIdMiddleware` **first**: later components (request logging, exception handler, `ProblemResult`) read its value. Don't log command/query objects with `{@…}`.
 
+
+### Deeper dive: logs as data
+
+#### Start from zero
+A **log** is a running diary of what the program did. Beginners write `Console.WriteLine($"Created centre {slug}")`. That produces text that is hard to search ("show me all failures for centre X") because the interesting values are glued into a sentence.
+
+**Structured logging** logs a **template** and **named values** separately:
+
+```csharp
+logger.LogInformation("Seed: created centre {Slug}", centre.Slug);   // real code, SeedCommand
+```
+The sink (here JSON on the console) receives `{ "Message": "Seed: created centre nile-centre", "Slug": "nile-centre", ... }`. Tools can now filter by `Slug`. Never use string interpolation (`$"..."`) in the template - it destroys the structure (the code comments say so for the dispatcher's outcome line).
+
+#### Levels
+`Verbose < Debug < Information < Warning < Error < Fatal`. A configured *minimum level* (here `Information`, `Microsoft.AspNetCore` at `Warning`) drops anything below it. The repo uses levels deliberately: successful dispatch = Information, failed dispatch = Warning, unhandled exception = Error, health probes = Verbose (so they disappear).
+
+#### Serilog concepts used
+- **Sink**: where events go (`WriteTo.Console(new RenderedCompactJsonFormatter())`; in tests an `InMemoryLogSink`).
+- **Enricher**: adds properties to every event (`Enrich.FromLogContext()` pulls in values pushed with `LogContext.PushProperty`).
+- **Destructuring** (`{@Obj}`): "log the object's properties, not `ToString()`"; the repo installs a policy that masks sensitive names.
+- `UseSerilog(..., preserveStaticLogger: true)`: per-host logger instead of the global one (needed because several test hosts share one process).
+
+#### Correlation, step by step
+1. `CorrelationIdMiddleware` runs first; chooses the id (validated client value or new GUID).
+2. `using (LogContext.PushProperty("CorrelationId", id))` wraps `await next(context)`: every event logged while the rest of the pipeline runs gets the property. (`LogContext` flows with the async call chain via `AsyncLocal` *(library mechanism)*.)
+3. The response header is written in `OnStarting` - at the moment the response is about to be sent - because `GlobalExceptionHandler` clears the response before writing a 500, which would erase a header set earlier.
+4. `ProblemResult` copies the id into the error body.
+Result: user report ("error id 5d0c...") -> grep logs -> every line of that request.
+
+#### Why `[LoggerMessage]` in `GlobalExceptionHandler`?
+`logger.LogError("...{X}", x)` parses the template and boxes arguments on every call. `[LoggerMessage]` makes the compiler generate a typed method once (hence `partial`). Faster, and the analyzers in this repo (`CA1848`) push towards it; `Dispatcher` and `SeedCommand` suppress that rule with written justifications because they log from a single call site.
+
+#### Redaction: why a "safety net"
+Logging a command object could leak passwords or phone numbers. `SensitiveDataDestructuringPolicy` masks property names containing Password/Token/Secret/ConnectionString or starting with Phone when an object is destructured. It is a net, not a rule: the primary rule is *never log request objects* (the dispatcher logs only type name, outcome, error code, elapsed milliseconds).
+
+#### Log injection
+A client-supplied header written into logs could contain newlines and forge fake log lines. That is why correlation ids are accepted only if 1-64 characters of letters, digits, `.`, `_`, `-`.
+
+#### Advantages / disadvantages
+Advantages: searchable, correlated, leveled, redacted. Disadvantages: more setup; log volume/cost grows; masking by property *name* can miss differently named sensitive fields (`Pin`, `Email`); JSON logs are harder to read by eye.
+
+#### Alternatives
+Plain `Microsoft.Extensions.Logging` console logger (less structure); OpenTelemetry logs/traces (standard for distributed systems); hosted log platforms (Seq, ELK, Application Insights) which would consume these JSON events.
+
+#### What if we removed it here?
+Support would have no way to connect a client's error with server logs; the 500 handler would have nowhere to record the real exception.
+
 ---
 
 ## 6.14 Options validation and health checks
@@ -730,6 +1489,44 @@ The **options pattern** binds configuration to a typed class and can validate it
 
 ### Before you modify it
 The blank-string fallback is dead code in a normally started app because of `ValidateOnStart`. The frontend's `fetchReadiness` depends on the 200/503 status codes *and* plain-text bodies `Healthy`/`Unhealthy` (documented in `frontend/README.md`); changing the health response format breaks the status page's contract.
+
+
+### Deeper dive: configuration, "fail fast", and what liveness/readiness protect
+
+#### Configuration from zero
+An app needs settings that differ per machine (database address, log levels). Hard-coding them means rebuilding to change; checking secrets into git leaks them. .NET builds one **configuration** object from layered **providers** (later providers override earlier): JSON files -> user-secrets (dev) -> environment variables -> command line. Keys are hierarchical, written `A:B` (environment variable form `A__B`). In this repo the connection string key is `ConnectionStrings:Postgres`.
+
+#### The options pattern
+Reading `configuration["ConnectionStrings:Postgres"]` everywhere is stringly-typed. The **options pattern** gives you a typed class (`DatabaseOptions`) that the container can inject (`IOptions<DatabaseOptions>`). It can also be **validated**: `[Required]` on the property + `.ValidateDataAnnotations()`.
+
+#### "Fail fast" and `ValidateOnStart`
+Without it, an empty connection string would be discovered on the first request that touches the database - possibly hours after deployment. `ValidateOnStart()` registers a start-up check *(framework behaviour: a hosted service that validates when the host starts)*: the process refuses to start with a clear `OptionsValidationException`. The principle: a misconfigured system should crash immediately and loudly, not run half-broken.
+
+Note the consequence documented elsewhere in this overview: because of it, the "not configured" always-`Unhealthy` check registered in the blank-string branch can never serve traffic in a normally started app.
+
+#### Liveness vs readiness - the idea
+Orchestrators (such as Kubernetes - **not present in this repo**, shown only to explain the design) ask two questions:
+- *Liveness*: "Should I restart this process?" If the database is down, restarting the app does not help and could cause a restart storm, so this must **not** depend on the database. `/health` runs zero checks (`Predicate = _ => false`).
+- *Readiness*: "Should I send traffic to this instance?" If the database is down, the instance cannot serve data, so readiness should fail. `/health/ready` runs checks tagged `ready` (the Npgsql check) and answers `503` when it fails.
+
+```mermaid
+flowchart LR
+    LV["GET /health"] --> L0["runs no checks, 200 while the process is up"]
+    RD["GET /health/ready"] --> N["Npgsql check tagged ready"]
+    N -->|database reachable| R200["200 Healthy"]
+    N -->|unreachable| R503["503 Unhealthy"]
+```
+
+The frontend's status page uses readiness, which is why it models 503 as "API is running but the database is unavailable".
+
+#### Advantages / disadvantages
+Typed, validated, centralised configuration; early failure; correct restart/traffic semantics. Disadvantages: a bad value in an *unused* optional section still blocks startup if it is validated; two health endpoints must be explained to every operator.
+
+#### Alternatives
+Direct `IConfiguration` reads; `IOptionsSnapshot`/`IOptionsMonitor` for reloadable settings; a single `/health`; custom `IHealthCheck` classes with richer reports.
+
+#### What if we removed it here?
+A missing connection string would surface as a runtime exception in the middle of the first database call; readiness would report the problem only if the blank-string branch were reachable.
 
 ---
 
@@ -748,6 +1545,48 @@ Not covered by the rules (observation): nothing forbids `Api` from using Npgsql/
 
 ### Before you modify it
 Adding a package that brings a forbidden namespace into Domain/Application will fail tests even if you never `using` it elsewhere. Expected arrays must stay in ordinal sort order.
+
+
+### Deeper dive: how a test can "see" architecture
+
+#### Start from zero
+Architecture rules usually live in a diagram and in people's heads, and drift as deadlines hit ("just this once, the endpoint calls the repository directly"). An **architecture fitness function** turns the rule into a test that runs in CI, so breaking the rule breaks the build. The metaphor: a fitness test for the *shape* of the code.
+
+#### Why this repo needs two different tests
+A .NET project has two separate facts about dependencies:
+1. **Declared**: what the `.csproj` says (`<ProjectReference ...>`).
+2. **Used**: what the compiled code actually touches.
+
+The C# compiler **drops references that no code uses** from the compiled assembly. So:
+- If someone adds a forbidden `ProjectReference` but writes no code using it, only a test reading the `.csproj` can see it (`ProjectReferenceTests` + `ProjectFiles`).
+- If someone uses a forbidden *namespace* (e.g. `Microsoft.EntityFrameworkCore` in Domain), the compiled IL contains it and `DependencyRuleTests` finds it - even if no `ProjectReference` changed (e.g., via a `FrameworkReference`).
+
+```mermaid
+flowchart TD
+    V1["Forbidden ProjectReference, never used in code"] -->|"visible to"| T1["ProjectReferenceTests (reads .csproj XML)"]
+    V1 -.->|"invisible to"| T2["DependencyRuleTests (reads IL)"]
+    V2["Forbidden namespace used in code"] -->|"visible to"| T2
+    V2 -.->|"invisible to"| T1
+```
+(This reasoning and the three experiments that proved it are recorded in `tests/.semantic.md`.)
+
+#### How the pieces work
+- **`ProjectFiles.ReadProjectReferences`** loads the `.csproj` as XML (`XDocument`), takes each `ProjectReference`'s `Include`, strips folders and extension, sorts ordinally. It finds the repo root by walking up from the test's run folder until `TutoringCentre.slnx` is found, so no hard-coded paths. Windows-style `\` paths are normalised so the test passes on Linux CI.
+- **`DependencyRuleTests`** uses NetArchTest: `Types.InAssembly(assembly).ShouldNot().HaveDependencyOnAny(forbidden).GetResult()`. NetArchTest reads the assembly's IL with a library (Mono.Cecil) and checks each type's referenced namespaces *(library behaviour)*.
+- **`AssemblyMarker`**: an empty `internal sealed class` per project plus `InternalsVisibleTo`, so tests can say `typeof(TutoringCentre.Domain.AssemblyMarker).Assembly`. Compare with `Assembly.Load("TutoringCentre.Domain")`: a typo there fails at run time; renaming the marker type fails at compile time.
+- **`Assert.NotEmpty(types.GetTypes())`**: protects against a test that "passes" because it scanned nothing.
+
+#### Advantages
+Rules enforced automatically; new contributors learn rules from failing tests; cheap (milliseconds, no Docker).
+
+#### Disadvantages
+Rules cover only what was written down (the Api assembly is **not** scanned, so nothing forbids Npgsql/EF usage there); string namespace lists need maintenance; tests can pass vacuously if written carelessly (hence the non-empty guard).
+
+#### Alternatives
+ArchUnitNET (another library); Roslyn analyzers (compile-time diagnostics instead of tests); code review (human, inconsistent); separate repositories (compiler-enforced, heavy).
+
+#### What if we removed them here?
+The `.semantic.md` experiments show what would slip through: an unused `Api -> Domain` reference would build and run; Domain could start using ASP.NET types via a framework reference; nobody would notice until coupling hurt.
 
 ---
 
@@ -777,6 +1616,59 @@ EF InMemory/SQLite providers (don't enforce PostgreSQL-specific behaviours such 
 ### Before you modify it
 Docker must be running for Api/Infrastructure tests. `FakeUnitOfWork` call names are asserted verbatim — keep them stable.
 
+
+### Deeper dive: designing a test strategy
+
+#### Start from zero: what is a test for?
+An automated test is a small program that runs your code and checks the result, so you can change code later without fear. A good test is **fast** (runs often), **isolated** (does not depend on other tests), **deterministic** (same result every run) and **meaningful** (fails when behaviour is wrong).
+
+**Arrange - Act - Assert (AAA)** is the standard shape: *arrange* the situation, *act* by calling the code, *assert* on the outcome. Many tests here carry `// Arrange / Act / Assert` comments.
+
+#### The test pyramid applied to this repo
+```mermaid
+flowchart TD
+    E["End-to-end browser tests: none in the repo"]
+    A["Api.Tests / Infrastructure.Tests: real ASP.NET pipeline and real PostgreSQL (Docker)"]
+    B["Application.Tests: logic with fakes, no I/O"]
+    C["Domain.Tests / Architecture.Tests: pure and very fast"]
+    E --- A --- B --- C
+```
+Many small fast tests at the bottom, fewer slower ones above. The repo deliberately has *no* browser end-to-end tests yet.
+
+#### Vocabulary: stub, fake, mock
+- **Stub**: returns canned answers.
+- **Fake**: a *working* simplified version (the repo's `FakeCentreRepository` really stores items in lists).
+- **Mock**: a double that **verifies interactions** ("was `Save` called once?"). `FakeUnitOfWork` records the sequence of calls - a hand-made mock-like fake used to assert pipeline order. The repo uses **no mocking library**; it writes fakes by hand.
+
+#### Why both fakes and a real database?
+Fakes are fast and focused but can **lie**: the fake repository's "exists" searches a list; the real one runs SQL against a unique index. Only the real database can prove `SET TRANSACTION READ ONLY` rejects writes (SQLSTATE 25006) or that two parallel inserts violate the unique index (23505). That is why `Infrastructure.Tests` uses PostgreSQL itself and an in-memory EF provider is *not* used (it would not enforce these behaviours).
+
+#### How xUnit makes it work
+- A **new instance of the test class is created per test method**, so tests do not share fields. Anything expensive is therefore placed in a **fixture** shared via `ICollectionFixture<T>` + `[Collection("postgres")]`. Tests in one collection run **sequentially**, which is required because they share one database.
+- `IAsyncLifetime` gives async `InitializeAsync/DisposeAsync` (start container; reset rows).
+- `[Theory]` + `[InlineData(...)]` runs one method with many inputs (`Create_WithInvalidSlug_ReturnsSlugInvalid` has four cases).
+
+#### How Testcontainers and Respawn fit
+`PostgresFixture.InitializeAsync` asks Docker to start `postgres:17` on a random free port, builds the connection string, applies the **real** migrations, then creates a `Respawner`. Before each test `PostgresTestBase.InitializeAsync` calls `ResetAsync`, which deletes all rows (but keeps `__ef_migrations_history`) - much faster than recreating the database. No test ever touches your development database.
+
+#### `WebApplicationFactory<Program>` - testing HTTP without a network
+It runs the real `Program.cs` in the test process with an in-memory server. Tests call `factory.CreateClient()` and send real `HttpRequestMessage`s through the *real* middleware, routing and DI. Overrides are possible before the host builds: `UseEnvironment("Testing")`, `UseSetting("ConnectionStrings:Postgres", ...)`, `ConfigureTestServices(...)` (register test handlers), an `IStartupFilter` (append test-only endpoints). That is how `ConventionsFactory` creates endpoints that exist only in tests and can trigger every error kind on demand.
+
+#### Determinism pitfalls the repo handles
+- Time: `FakeTimeProvider` instead of the real clock (`SystemClockTests`).
+- Concurrency: `TaskCompletionSource` gate to start two requests together (`CentreSlugRaceTests`), asserting the invariant rather than a timing-dependent outcome.
+- Logging: `InMemoryLogSink.WaitForAsync` polls up to 5 s because the request-completion log line may be written just after the response is sent.
+- Vacuous passes: `Assert.NotEmpty(types)`; control tests (`HandlerSucceedsAfterRowWasWritten_PersistsTheRow`).
+
+#### Advantages / disadvantages
+Advantages: confidence in both logic and wiring; failures point to a layer. Disadvantages: Docker required for part of the suite; two separate factories can start two containers in one run (slower CI); fakes need maintenance; time-zone tests depend on OS tzdata.
+
+#### Alternatives
+EF InMemory/SQLite providers (fast, but different semantics); a shared long-lived test database (fragile); mocking libraries (Moq/NSubstitute) instead of hand-written fakes; Playwright/Cypress end-to-end tests.
+
+#### What if we removed the real-database tests here?
+Nothing would prove that migrations create the unique index and CHECK constraint, that rollback really undoes a written row, or that queries cannot write - the three guarantees the architecture rests on.
+
 ---
 
 ## 6.17 Frontend concepts: React, server state and routing
@@ -804,6 +1696,240 @@ A **component** is a function returning UI. **Props** are its inputs. **State** 
 
 ### Before you modify it
 No `fetch` in components — components → hooks → `api.ts` (README convention). Don't edit `routeTree.gen.ts`. Every query should render loading/error/empty/success. `src/api/*` (error types/messages) is ready but **wired to nothing** — hooking it up will need a fetch wrapper that produces `ApiError` (planned, not present).
+
+
+### Deeper dive: how React, TanStack Query and the tooling really work
+
+#### React from zero
+- **JSX** is syntax that looks like HTML inside TypeScript; it compiles to function calls that create a description of the UI (a tree of "elements"). Nothing touches the browser DOM yet.
+- A **component** is a function that takes **props** (inputs) and returns that description. React calls it ("**render**") whenever it needs to know what the UI should look like.
+- **State** is data React remembers for a component between renders (`useState`). **Calling a state setter does not change the variable immediately**; it tells React "something changed, schedule another render". On that render React calls your function again, this time returning the new state value.
+- After each render React compares the new element tree with the previous one (*reconciliation*) and updates **only the DOM nodes that differ** - which is what we perceive as "the UI updated".
+- **Hooks** (`useState`, `useQuery`...) are functions that start with `use` and "hook into" React's per-component memory. Rule: call them in the same order every render, at the top level - React matches them by call order. `eslint-plugin-react-hooks` (configured in `eslint.config.js`) enforces this.
+- **StrictMode** (in `main.tsx`) deliberately renders components twice in development to expose code that is not a pure function of its inputs. It does nothing in production.
+
+This repo has **no `useState`** and no `useEffect`. All changing data comes from `useQuery`, and `StatusCard` is a pure function of the query result - the preferred style for server data.
+
+#### Why not just `useEffect` + `fetch`?
+That hand-written approach needs you to code: loading flag, error flag, cancelling stale requests, caching, retries, polling, de-duplicating identical requests from two components, refetch on demand. **TanStack Query** supplies all of that.
+
+#### How `useQuery` works, in steps (library mechanics; behaviour verified in the repo's tests)
+1. `QueryClientProvider` (in `main.tsx`) puts the shared `queryClient` into React context. It owns the **query cache**: a map from *query key* to *query state*.
+2. `useQuery({ queryKey: ["health","ready"], queryFn: fetchReadiness, refetchInterval: 15_000 })` looks up that key. On first use it creates a cache entry and an **observer** that subscribes the component.
+3. The observer starts the fetch by calling `queryFn`. While running, `isPending` is true.
+4. The Promise resolves -> the entry stores `data`, records the time, and **notifies observers** -> React re-renders `StatusCard` -> `data` now exists. If the Promise rejects, TanStack retries according to `retry: 1` (from `queryClient.ts`), then sets `isError`.
+5. `staleTime: 30_000` says "this data counts as fresh for 30 s" (no automatic refetch on re-mount within that window); `refetchInterval: 15_000` additionally refetches on a timer while a component is mounted.
+6. `readiness.refetch()` (the Retry button) forces step 3 again.
+Other triggers (library defaults, not configured here): refetch when the window regains focus or the network reconnects.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: first render creates cache entry
+    Pending --> Success: queryFn resolved
+    Pending --> Error: queryFn rejected after 1 retry
+    Success --> Fetching: interval, refetch, focus
+    Fetching --> Success: resolved
+    Fetching --> Error: rejected
+    Error --> Fetching: Retry click
+```
+
+#### TypeScript concepts visible in the code
+- **Discriminated union**: `ReadinessStatus.state` is `"healthy" | "unavailable"`; the query result has `isPending`/`isError`/`data` combinations. After you check `isPending` and `isError`, TypeScript *narrows* the type so `readiness.data` is known to exist (no `!` needed - the repo forbids `!`).
+- **Type predicate** `value is ProblemDetails` (`isProblemDetails`): a function that proves a type to the compiler after a runtime check - the safe way to read untrusted JSON.
+- **`noUncheckedIndexedAccess`**: `byCode[lang][error.code]` is typed `string | undefined`, which forces the `??` fallback chain in `messageFor`.
+- **Module augmentation** (`declare module "@tanstack/react-router" { interface Register ... }`): tells the router library about *your* route tree so links are type-checked.
+
+#### Routing and Vite
+- **File-based routing**: the plugin in `vite.config.ts` scans `src/routes/` and writes `src/routeTree.gen.ts`. `__root.tsx` is the layout; `index.tsx` is `/`; `<Outlet />` is where the matching child renders. `autoCodeSplitting: true` makes route components load as separate JavaScript chunks.
+- **Vite dev server** serves your source files as native ES modules and updates the page instantly when you save (*HMR*). Its **proxy** forwards `/api` and `/health` to `http://localhost:5080`, so the *browser* only ever talks to port 5173. Browsers block cross-origin requests unless the server opts in (**CORS**); with a proxy there is no cross-origin request, which is why the API has no CORS configuration. In production (planned, not built) the API would serve the SPA itself for the same reason.
+
+#### Styling concepts
+**Utility-first CSS (Tailwind)**: instead of writing `.card {...}` you compose small classes (`w-full max-w-md`). **shadcn/ui** copies component source into `src/components/ui`, so you own it. **`cva`** maps a prop like `variant="outline"` to a class string. **Logical properties** (`ms-`, `me-`) mean "margin at the start/end of the line", which flips automatically for right-to-left Arabic, unlike `ml-`/`mr-`.
+
+#### Testing concepts
+**MSW** intercepts `fetch` at the network layer: tests run the real component, real hook, real `fetch`, and decide what the "server" answers (`server.use(http.get("/health/ready", ...))`). `onUnhandledRequest: "error"` fails any test that makes an unmocked request. A **fresh `QueryClient` per test** prevents one test's cached data affecting the next.
+
+#### Advantages / disadvantages
+Advantages: little code for loading/error/retry/polling; type safety end to end; tests exercise real behaviour. Disadvantages: several libraries to learn (Query, Router, Tailwind, MSW); build-time code generation (route tree); generated shadcn files do not follow the repo's own formatting/logical-CSS conventions.
+
+#### Alternatives
+Redux Toolkit Query / SWR (other data-fetching libraries); React Router or Next.js (routing/server rendering); CSS modules or styled-components; Cypress/Playwright for end-to-end tests; Angular (rejected in ADR 0002).
+
+#### What if we removed TanStack Query here?
+`StatusCard` would need its own `useState` for pending/error/data, a `useEffect` with an interval timer and cleanup, and hand-written retry; the "503 is data, network failure is error" modelling would still work but have to be re-implemented and re-tested.
+
+
+---
+
+## 6.18 Foundations: interfaces, abstraction, polymorphism, inheritance and composition
+
+*(Added as a foundation for sections 6.1-6.17. Skip if you already know object-oriented basics.)*
+
+### What these words mean
+- **Interface**: a contract listing *what* can be done, not *how*. `ICentreRepository` says "you can check a slug and add a centre"; it contains no code.
+- **Implementation**: a class that fulfils a contract (`CentreRepository`, `FakeCentreRepository`).
+- **Abstraction**: using something through its contract while ignoring its details. The handler uses a repository without knowing about SQL.
+- **Polymorphism** ("many shapes"): the *same call* behaves differently depending on which implementation is behind the interface. `centres.Add(x)` runs EF code in production and appends to a list in tests - the handler code is identical.
+- **Inheritance**: a class *is a* more specific version of another (`Centre : Entity`). **Composition**: a class *has* collaborators it delegates to (`CreateCentreHandler` has an actor and a repository).
+
+### Why this matters in this repo
+Polymorphism through interfaces is the mechanism behind almost everything: DI (the container returns *an implementation* of the interface you ask for), testing (swap fakes), and architecture (inner layers own interfaces; outer layers implement them).
+
+### Where each appears
+| Concept | Example in the repo |
+| --- | --- |
+| Interface | `ICommandHandler<,>`, `IUnitOfWork`, `IClock`, `ICentreRepository`, `ISystemInfoReadService`, `ICurrentActor`, `IExceptionHandler` (framework), `IDestructuringPolicy` (Serilog), `IResult` (ASP.NET) |
+| Polymorphism | `IUnitOfWork` -> `UnitOfWork` (real) vs `FakeUnitOfWork` (test); `ICentreRepository` -> `CentreRepository` vs `FakeCentreRepository` |
+| Inheritance (used sparingly) | `Centre : Entity`; `Result<T> : Result`; `SystemActor : Actor`; `TimestampInterceptor : SaveChangesInterceptor`; `AppDbContext : DbContext` |
+| Composition | every handler, `Dispatcher` (has `IServiceProvider`, `IUnitOfWork`, `ILogger`) |
+| `sealed` | almost every class is `sealed` (cannot be inherited): the design says "extend by composition, not by subclassing", and sealing lets the runtime optimise calls |
+| `abstract` | `Entity`, `Actor` - cannot be created directly; exist only to be derived from |
+| `internal` | handlers, validators, repositories are `internal`: invisible outside their project, so other layers cannot depend on concrete types (tests get access through `InternalsVisibleTo`) |
+
+### Advantages / disadvantages
+Advantages: swap behaviour without changing callers; enforce dependency direction; make tests easy. Disadvantages: indirection (you must find the implementation); an interface with exactly one production implementation can feel like ceremony - here justified because a second implementation always exists in tests and because of the layering rule.
+
+### Alternatives
+Concrete classes everywhere (simple, but untestable and tightly coupled); delegates/function parameters instead of one-method interfaces; inheritance-based template methods (more rigid).
+
+### Before you modify it
+Add new capabilities by defining an interface in the layer that needs it, and implement it in the outer layer. Prefer composition; the only inheritance hierarchies are small and intentional.
+
+---
+
+## 6.19 Foundations: async/await, Tasks and cancellation
+
+### What it means
+Talking to a database or network is slow compared to the CPU. A **blocking** call parks a thread (an expensive resource) until the answer arrives. A web server handling thousands of requests cannot afford one parked thread per request. **Asynchronous** code says "start this I/O, release the thread, and resume me when it finishes".
+
+- A **`Task`** (or `Task<T>`) is an object representing work that will complete later (a promise/future).
+- **`async`** marks a method that may `await`; the compiler rewrites it into a state machine.
+- **`await`** means: "if this Task is not finished, *return to my caller now* and continue after it with whatever comes next when it completes". No thread waits in between.
+- `ValueTask` is a lighter variant (used for `SavingChangesAsync`).
+
+### How it looks here
+```csharp
+public async Task<Result<CreateCentreResult>> HandleAsync(CreateCentreCommand command, CancellationToken cancellationToken)
+{
+    ...
+    if (await centres.ExistsBySlugAsync(command.Slug, cancellationToken)) ...
+```
+`ExistsBySlugAsync` sends SQL; while PostgreSQL works, no thread is blocked. The dispatcher awaits the handler; the endpoint awaits the dispatcher; the framework awaits the endpoint - an "async all the way" chain. (Mixing in blocking calls like `.Result` would defeat the purpose and can deadlock; the repo has none.)
+
+### Cancellation
+A **`CancellationToken`** is a cooperative signal. ASP.NET binds the token parameter of an endpoint (`GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct)`) to `HttpContext.RequestAborted`: if the client disconnects, the token is cancelled. The token is passed *down* (dispatcher -> handler -> EF `AnyAsync(..., ct)`), so EF can abandon the query. Cooperative means each layer must pass it along; one that forgets simply keeps working.
+**Deliberate exception:** `RollbackAsync(CancellationToken.None)` in the dispatcher's `catch` - if the request was cancelled, the rollback must still run (comment in the code).
+
+### `await using` and scopes
+`await using var scope = services.CreateAsyncScope();` (in `SeedCommand`, `MigrationRunner`, test helpers) disposes the scope - and with it the scoped `AppDbContext`, closing its connection - asynchronously when the block ends, even if an exception occurs.
+
+### Concurrency vs parallelism (needed for `CentreSlugRaceTests`)
+`Task.Run(AttemptAsync)` starts two operations that may overlap; `await Task.WhenAll(first, second)` waits for both. `TaskCompletionSource gate` lets the test hold both back and release them at the same instant to maximise overlap.
+
+### Advantages / disadvantages
+Advantages: far better scalability for I/O-bound servers; responsiveness. Disadvantages: infects the whole call chain (`async` everywhere); stack traces and debugging are harder; forgetting `await` makes a Task run un-awaited (the frontend equivalent is the `void readiness.refetch()` idiom - `void` states the promise is intentionally not awaited and satisfies the lint rule against floating promises).
+
+### Alternatives
+Synchronous blocking code with many threads; callbacks/events; reactive streams (Rx); channels/actors.
+
+### What if removed here?
+Under load, each request would pin a thread while waiting on PostgreSQL; the thread pool would starve long before the database was busy.
+
+---
+
+## 6.20 Foundations: generics, records, immutability, nullable references and pattern matching
+
+### Generics
+A generic type is a template with a hole for a type: `Result<T>`, `ICommandHandler<TCommand, TResponse>`. One definition serves all types and the compiler checks the pairing. **Constraints** (`where TCommand : ICommand<TResponse>`) limit legal types so the compiler knows what members exist. **Variance** (`in TCommand`) lets a handler for a base type be used where one for a derived type is expected. Generics are what let `Dispatcher` stay ignorant of every command yet remain type-safe (section 6.3).
+
+### Records and immutability
+A **record** (`public sealed record Error(...)`) is a class with auto-generated value equality, `ToString`, deconstruction and `with`-copy. **Immutable** means "cannot change after creation": records' positional properties are `init`-only. Immutability makes messages (commands, results, errors) safe to pass around and compare, and it is why `Assert.Equal(TestErrors.HandlerFailure, result.Error)` works. `readonly record struct Unit` is the value-type form.
+
+### Nullable reference types
+With `<Nullable>enable</Nullable>` (`Directory.Build.props`) the compiler tracks whether a reference can be null: `string` = never null, `string?` = maybe. Warnings become errors (`TreatWarningsAsErrors`). You see the consequences in the code: `Error? Error` on `Result`, `created.Error!` (the `!` operator says "I know it is not null here"), `default!`, `null!` in tests to pass null deliberately, and `ArgumentNullException.ThrowIfNull(x)` guards at public boundaries.
+
+### Pattern matching used in the repo
+| Syntax | Where | Meaning |
+| --- | --- | --- |
+| `x is not SystemActor` | `CreateCentreHandler` | type test with negation |
+| `args is ["seed"]` | `Program.cs` | list pattern: exactly one element equal to `"seed"` |
+| `type is { IsClass: true, IsAbstract: false }` | `HandlerRegistration` | property pattern |
+| `value.Length is > 0 and <= MaxLength` | `CorrelationIdMiddleware` | relational pattern |
+| `switch` expression | `ResultHttpExtensions`, `CentreConfiguration` | map a value to a result, compiler checks exhaustiveness (with a throwing default) |
+| `value is ScalarValue { Value: string text }` | `InMemoryLogSink` | type + property pattern with capture |
+
+### Other modern C# idioms you will meet
+Primary constructors (`class CentreRepository(AppDbContext db)`), collection expressions (`[]`, `["ready"]`), file-scoped namespaces (`namespace X;`), top-level statements (`Program.cs`), `partial` classes (needed by `[GeneratedRegex]` and `[LoggerMessage]`), extension methods (`AddApplication(this IServiceCollection ...)`) that let layers add themselves to the container fluently.
+
+### Advantages / disadvantages
+Advantages: less boilerplate; the compiler catches more mistakes; value semantics for messages. Disadvantages: newer syntax is unfamiliar; nullable annotations require `!`/`?` discipline; records' value equality can surprise when comparing mutable members (`Fields` is a dictionary, compared by reference).
+
+---
+
+## 6.21 Foundations: exceptions, `throw;` and cleanup
+
+### What it means
+An **exception** is an object describing a fault; throwing it abandons the current code path and unwinds the stack to the nearest matching `catch`. `finally` blocks and `using` disposal run during unwinding.
+
+### How the repo uses them (and why)
+- **Guard clauses**: `ArgumentNullException.ThrowIfNull(x)` at public entry points - a *programmer* mistake, so an exception is correct.
+- **Impossible states**: `Result.Value` of a failure, `UnitOfWork.BeginAsync` when nested, `CurrentActorContext.Set` twice - bugs, so exceptions.
+- **Boundary translation**: `GlobalExceptionHandler` is the single catch-all at the HTTP edge.
+- **Cleanup + rethrow** in `Dispatcher`: `catch { await RollbackAsync(CancellationToken.None); throw; }`.
+
+### `throw;` vs `throw ex;`
+`throw;` rethrows the *original* exception preserving its stack trace; `throw ex;` would reset the trace to the current line. The dispatcher uses `throw;` because the global handler logs the exception once and the original stack is the valuable part.
+
+### `try/catch/finally` in `UnitOfWork`
+`CommitAsync` uses `try { commit } finally { dispose; _transaction = null; }`: regardless of success or failure the transaction object is disposed and cleared so the next use starts clean. `RollbackAsync` sets `_transaction = null` *before* awaiting the rollback so a second call is a no-op.
+
+### Advantages / disadvantages and alternatives
+Exceptions separate the happy path from fault handling and carry stack traces. They are slow if used for routine outcomes and invisible in signatures - hence the Result pattern for expected failures (6.4). Alternatives: error codes, `Try...` methods (`TimeZoneInfo.TryFindSystemTimeZoneById` returns `bool` instead of throwing - the repo uses it for exactly that reason), Result types.
+
+---
+
+## 6.22 Foundations: attributes and reflection
+
+### What it means
+An **attribute** (`[Fact]`, `[Required]`) attaches metadata to code. By itself it does nothing; some other program (the compiler, a framework, a test runner) **reads** it, usually via **reflection** (inspecting types and members at run time).
+
+### Attributes in this repo and who reads them
+| Attribute | Read by | Effect |
+| --- | --- | --- |
+| `[Fact]`, `[Theory]`, `[InlineData]`, `[Collection]`, `[CollectionDefinition]` | xUnit runner | discovers and parameterises tests, groups them |
+| `[Required(AllowEmptyStrings = false)]` | options validation | `ValidateDataAnnotations` reads it |
+| `[GeneratedRegex(...)]`, `[LoggerMessage(...)]` | C# source generators at compile time | emit the regex matcher / logging method (hence `partial`) |
+| `[SuppressMessage("...", "CA1812", Justification = "...")]` | analyzers | silence one warning with a written reason |
+| `[DbContext]`, `[Migration("...")]` | EF Core | identify the migration and its context |
+| `InternalsVisibleTo` (an MSBuild item that becomes an attribute) | compiler | lets named assemblies see `internal` members |
+
+### Reflection in the repo
+`HandlerRegistration` uses `assembly.GetTypes()` and `GetInterfaces()` to find handlers; `GetSystemInfoHandler` reads `AssemblyInformationalVersionAttribute`; `SensitiveDataDestructuringPolicy` reads an object's properties; EF Core reads your configuration classes. Reflection is flexible but slower and not checked by the compiler - which is why the repo uses it only at start-up/registration or in small safety nets.
+
+### Source generators vs reflection
+A source generator runs at **build time** and writes ordinary C#, so there is no run-time reflection cost (`GeneratedRegex`, `LoggerMessage`). That is the reason the repo prefers them where analyzers push it.
+
+---
+
+## 6.23 Foundations: JSON serialization and model binding in minimal APIs
+
+### What it means
+**Serialization** turns objects into text (JSON) to send; **deserialization** turns incoming JSON back into objects. **Model binding** is the framework step that fills endpoint parameters: from the *route* (`/api/test/{kind}`), the *query string*, the *body* (JSON), headers, or the DI container (services such as `Dispatcher`, plus `CancellationToken`).
+
+### What the repo configures (`Program.cs:34-43`)
+- `UnmappedMemberHandling = Disallow`: JSON containing a field the target type does not have is an **error**, not silently ignored. This catches client typos (`{"nmae": "x"}`) and stops "mass assignment" surprises.
+- `JsonStringEnumConverter(JsonNamingPolicy.CamelCase)`: enums travel as readable strings (`"ar"`), not numbers.
+- `RouteHandlerOptions.ThrowOnBadRequest = true`: when binding fails (bad JSON, bad route value), the framework **throws** `BadHttpRequestException` in every environment, so `GlobalExceptionHandler` can answer with the standard 400 `request.malformed` Problem Details. Without it, outside Development the framework would answer with an empty 400 (comment in `Program.cs`).
+- JSON property names are camelCase on the wire by ASP.NET's web defaults *(framework default; not set in this repo)*, which is why the C# `ApplicationVersion` appears as `applicationVersion`.
+
+### Trace: `POST /api/test/name` with `{ "name": "Bob", "extra": "nope" }`
+Body binding tries to read `TestNameBody(string Name)` -> sees unknown member `extra` -> throws `BadHttpRequestException` -> `UseExceptionHandler` -> `GlobalExceptionHandler` -> 400 problem+json (`ProblemDetailsTests.UnknownJsonField_Returns400RequestMalformed`).
+
+### Advantages / disadvantages
+Strictness gives early, clear client errors; disadvantages: adding a new optional field on the client before the server knows it now breaks the request (forward-compatibility cost); every API change must be coordinated with the frontend (the planned generated client addresses this).
+
+### Alternatives
+Lenient JSON (ignore unknown fields - the framework default); Newtonsoft.Json; Protobuf/gRPC with a schema; GraphQL.
 
 ---
 
@@ -882,6 +2008,63 @@ routing matches `/api/{**path}` → pipeline 1→2→3→4 → fallback lambda r
 ## 8.3 Trace: unhandled exception
 Endpoint throws → `UseExceptionHandler` catches → `GlobalExceptionHandler` logs Error with exception → writes 500 `server.unexpected` via `ProblemResult` → request logging line at Error → header still added (it was registered with `OnStarting`).
 
+
+## 8.4 Deeper dive: what middleware and routing actually are
+
+### Middleware from zero
+Every HTTP request must pass through common chores: assign an id, log, catch exceptions, check identity. Instead of writing these in each endpoint, ASP.NET Core arranges them as a **chain of small components**. Each component is a function of the form "receive the request context and a handle to *the rest of the chain* (`next`); do something; optionally call `next`; do something after `next` returns". The framework type for that handle is `RequestDelegate`.
+
+Concretely, `CorrelationIdMiddleware` is:
+```csharp
+public async Task InvokeAsync(HttpContext context)
+{
+    ... // BEFORE: choose id, store it, register OnStarting, push log property
+    await next(context);        // everything after this component runs inside this call
+    ... // AFTER: (the using block ends and pops the log property)
+}
+```
+`app.UseMiddleware<CorrelationIdMiddleware>()` appends it to the chain. The chain is built **once at startup** from the order of the `Use...` calls in `Program.cs` *(framework behaviour)*.
+
+### The onion model
+```mermaid
+flowchart TD
+    REQ["request arrives"] --> M1["1 CorrelationIdMiddleware: before"]
+    M1 --> M2["2 Serilog request logging: before (starts timer)"]
+    M2 --> M3["3 ExceptionHandler: wraps next in try/catch"]
+    M3 --> M4["4 StatusCodePages: before"]
+    M4 --> EP["endpoint: health check, /api handler or fallback"]
+    EP --> R4["4 after: turn empty 4xx/5xx into Problem Details"]
+    R4 --> R3["3 after: if an exception was caught, write 500/400 Problem Details"]
+    R3 --> R2["2 after: write the one request log line"]
+    R2 --> R1["1 after: pop the CorrelationId log property"]
+    R1 --> RESP["response leaves"]
+```
+Each component sees the request on the way **in** and the response on the way **out**, like layers of an onion. That is why position is behaviour:
+
+| If the order were different | Consequence |
+| --- | --- |
+| `CorrelationIdMiddleware` after `ExceptionHandler` | exception responses would lack the correlation id and the error log line would not carry it |
+| Serilog request logging *inside* the exception handler | it would see the exception instead of the final 500 and could not log the final status the same way |
+| `ExceptionHandler` after the endpoints | it would not exist for them; unhandled exceptions would escape to the server's default error |
+| `StatusCodePages` before `ExceptionHandler` | the handler's own error responses would not be post-processed consistently (interpretation) |
+
+### Short-circuiting
+A component may **not** call `next` and write the response itself (e.g., authentication rejecting a request). None of this repo's middleware short-circuits today; endpoints do the final write.
+
+### Routing from zero
+**Routing** decides *which endpoint* handles a request, by matching the HTTP method and path against **route templates**: `/health`, `/health/ready`, `/api/system/info`, and the catch-all `/api/{**path}`. `{name}` captures one path segment (route parameter, e.g. `{kind}` in a test endpoint); `{**path}` captures *the rest* of the path. When several templates match, the framework prefers the **more specific** one - which is why `GET /api/system/info` reaches its endpoint and only unknown `/api/*` paths hit the fallback. A **route group** (`app.MapGroup("/api")`) prepends a prefix (and shared metadata) to everything mapped on it.
+
+In minimal hosting the framework adds the routing step (endpoint *selection*) near the start and endpoint *execution* at the end of the chain automatically *(framework behaviour, not written in `Program.cs`)*.
+
+### Parameter binding on the one real endpoint
+`GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct)`: neither parameter appears in the route or body. The framework recognises `Dispatcher` as a registered service (resolved from the request-scope container) and `CancellationToken` as the request-aborted token. Had the signature included a record type with no registration, it would have been read from the JSON body.
+
+### Advantages / disadvantages
+Advantages: cross-cutting concerns written once; explicit, readable order in `Program.cs`. Disadvantages: order bugs are silent (the code compiles either way); behaviour in `OnStarting` callbacks or async continuations is harder to debug; the framework adds some steps implicitly.
+
+### Alternatives
+MVC filters (action/exception filters tied to controllers); endpoint filters (per endpoint/group); a gateway/reverse proxy doing common chores; per-endpoint code.
+
 ---
 
 # 9. Data Layer
@@ -930,6 +2113,49 @@ Loading strategies (eager/lazy/explicit): **not applicable** — no navigation p
 ## 9.4 Local database lifecycle
 `docker compose up -d` (postgres:17, volume `pgdata`, healthcheck `pg_isready`) → API in Development auto-migrates at startup (or `… -- seed`). Reset: `docker compose down -v` (README).
 
+
+## 9.5 Deeper dive: relational database concepts used here
+
+### Tables, rows, columns
+A relational database stores data in **tables**; each **row** is one record, each **column** one attribute with a **type**. `platform.centres` has seven columns (`id`, `name`, `slug`, `time_zone_id`, `default_locale`, `created_at`, `updated_at`). A **schema** (here `platform`) is a namespace grouping tables - this repo uses one schema per feature module (`Schemas.Platform`; `identity` reserved).
+
+### Column types chosen (and what they mean)
+| Column type | Used for | Note |
+| --- | --- | --- |
+| `uuid` | `id` | 128-bit id; value generated by the app (UUIDv7) |
+| `character varying(n)` | name (120), slug (60), time_zone_id (64), default_locale (2) | variable-length text with a maximum; inserting longer text is an error (SQLSTATE 22001) |
+| `timestamp with time zone` (`timestamptz`) | `created_at`, `updated_at` | stores an *instant* (internally UTC); EF maps `DateTimeOffset` to it; avoids the classic "which time zone is this?" bug |
+| nullable vs `NOT NULL` | `updated_at` nullable; others NOT NULL | a never-updated centre has no update time |
+
+### Keys and indexes
+- **Primary key** (`pk_centres` on `id`): uniquely identifies a row; PostgreSQL automatically creates an index for it.
+- **Index**: an auxiliary structure (a B-tree in PostgreSQL) that lets the database find rows by a column without scanning the whole table - like a book's index. `ux_centres_slug` serves *two* purposes: fast lookup by slug (`ExistsBySlugAsync`) and **uniqueness enforcement** (it rejects a second equal slug).
+- **Foreign keys / relationships**: none exist (single table). *Illustration only, not in the repo:* a future `students` table would carry a `centre_id` column with a foreign key to `centres(id)`, making "one centre has many students" (one-to-many) enforceable by the database.
+
+### Constraints
+`NOT NULL`, `UNIQUE` (via the unique index), `PRIMARY KEY`, and `CHECK (default_locale IN ('ar','en'))`. Constraints are the database's guarantee that bad data cannot exist no matter which program writes it. When one is violated PostgreSQL returns an error with a five-character **SQLSTATE** code, which tests rely on: `23505` unique violation (`CentreSlugRaceTests`), `25006` write in a read-only transaction (`ReadOnlyQueryTests`).
+
+### Naming
+`EFCore.NamingConventions` converts C# `PascalCase` to `snake_case` (`TimeZoneId` -> `time_zone_id`), the PostgreSQL convention, avoiding quoted identifiers. Constraint/index names are chosen explicitly (`pk_`, `ux_`, `ck_` prefixes).
+
+### Normalization
+Normalization means not storing the same fact in several places. With one table there is nothing to normalise yet; the repo's contribution is putting rules (slug uniqueness) in one place.
+
+### Connections and pooling
+Opening a database connection is expensive, so Npgsql keeps a **pool** and hands out existing connections *(library default; not configured in this repo)*. A transaction holds its connection until commit/rollback (section 6.7).
+
+### How a row becomes JSON on screen (the complete data path)
+```mermaid
+flowchart LR
+    ROW[("platform.__ef_migrations_history rows")] --> EF["EF GetAppliedMigrationsAsync / GetPendingMigrationsAsync"]
+    EF --> ST["SchemaStatus record"]
+    ST --> H["GetSystemInfoHandler builds SystemInfoDto"]
+    H --> R["Result Success"]
+    R --> J["Results.Ok serialises to camelCase JSON"]
+    J --> HTTP["HTTP 200 body"]
+```
+(The only HTTP-visible database data today is migration status; `platform.centres` rows are not exposed by any endpoint.)
+
 ---
 
 # 10. Detailed Feature Walkthroughs
@@ -957,7 +2183,7 @@ This is the **only** path that creates business data (there is no HTTP endpoint 
 | 13 | Uniqueness | `CentreRepository.ExistsBySlugAsync` | `AnyAsync(c => c.Slug == "nile-centre")` -> `false` first time. |
 | 14 | Domain | `Centre.Create` (`Centre.cs:38`) | passes name/slug/time-zone checks; `Entity` ctor assigns UUIDv7. |
 | 15 | Track | `CentreRepository.Add` | `Set<Centre>().Add(...)` -> state `Added`. |
-| 16 | Result | handler returns `Success(CreateCentreResult(Id, "nile-centre"))`. |
+| 16 | Result | `CreateCentreHandler.cs:40` | handler returns `Success(CreateCentreResult(Id, "nile-centre"))`. |
 | 17 | Save | `Dispatcher.cs:63` -> `UnitOfWork.SaveChangesAsync` | `TimestampInterceptor.Stamp` sets shadow `CreatedAt`; EF emits `INSERT INTO platform.centres (id, created_at, default_locale, name, slug, time_zone_id, updated_at) ...` with `default_locale = 'ar'` (value converter). |
 | 18 | Commit | `Dispatcher.cs:64` | `COMMIT`. |
 | 19 | Log | `LogOutcome` | `Command CreateCentreCommand completed with Success (none) in N ms` (Information). |
@@ -1145,6 +2371,58 @@ The frontend reads **no** environment variables (searched for `import.meta.env` 
 ## 11.8 Deployment process
 
 **There is none in the repository**: no Dockerfile, no deployment workflow, no infrastructure-as-code, no production configuration. CI builds and tests only (`ci.yml`), plus CodeQL and gitleaks. What the repo *plans*: a deployment pipeline that runs migrations, a single deployable that serves the SPA from the API (ADR 0002). Treat both as unimplemented.
+
+
+## 11.9 Deeper dive: Docker, Compose and CI from first principles
+
+### Containers and images
+A **container** is a process (here PostgreSQL) running in an isolated environment with its own filesystem, network view and process list, sharing the host's operating-system kernel. It is lighter than a virtual machine. An **image** is the read-only template (`postgres:17`) a container starts from; images are built from stacked layers and downloaded from a registry (Docker Hub). A container's own writes vanish when it is removed - unless stored on a **volume**.
+
+### Reading `compose.yaml` as concepts
+| Line | Concept | Effect |
+| --- | --- | --- |
+| `image: postgres:17` | image + tag | pull this template; major version 17 |
+| `environment: POSTGRES_DB: ${POSTGRES_DB}` | environment variables + Compose substitution | Compose reads `.env` next to the file and substitutes; the Postgres image reads these variables on first start to create the database and user |
+| `${POSTGRES_PASSWORD:?message}` | required variable | Compose stops with the message if unset |
+| `ports: "5432:5432"` | port mapping `host:container` | the database is reachable at `localhost:5432` from your laptop (so the API running *outside* Docker can connect) |
+| `volumes: pgdata:/var/lib/postgresql/data` | named volume | database files live in Docker-managed storage and survive `docker compose down`; `down -v` deletes them |
+| `healthcheck: pg_isready ...` | health check | Docker periodically runs the command; status becomes `healthy` after it succeeds - what README step "wait for `(healthy)`" refers to |
+
+Important distinction: **only PostgreSQL runs in Docker**. The API and the Vite dev server run directly on your machine, so the connection string uses `Host=localhost`. In a future all-in-Docker setup the API would use the service name (`Host=postgres`) on Compose's internal network - not implemented here.
+
+There is **no Dockerfile** in the repo; building an image of the API (multi-stage build: SDK image to publish, runtime image to run) would be the natural next step *(illustration, not in the repo)*. Note the earlier-documented consequence: a runtime image must contain time-zone data, because `Centre.Create` validates IANA zone ids with the OS database.
+
+### Environment variables vs configuration
+Environment variables are process-level key/value settings. Docker passes them to containers; .NET reads them as a configuration provider (`A__B` -> `A:B`). Compose's `.env` file is a convenience *for Compose only* - the .NET API never reads it.
+
+### CI/CD from zero
+**Continuous integration**: every change is automatically built and tested on a clean machine, so "works on my machine" bugs and broken merges are caught early. **Continuous delivery/deployment** extends that to releasing; this repo has CI only.
+
+In `ci.yml` (GitHub Actions):
+- A **workflow** is triggered by events (`pull_request`, `push` to `main`).
+- It contains **jobs** (`backend`, `frontend`) that run in parallel, each on a fresh VM (**runner**, `ubuntu-latest`).
+- A job is an ordered list of **steps** (`uses:` runs a prepackaged action; `run:` runs a shell command). The first failing step fails the job.
+- `concurrency` cancels superseded runs of the same branch; `permissions: contents: read` gives the job a read-only token (least privilege).
+- `dotnet restore` downloads packages; `build --no-restore` compiles; `test --no-build` runs tests on what was built - splitting steps avoids repeating work and makes failures clearer.
+- `npm ci` installs **exactly** the lockfile (fails if `package.json` and the lockfile disagree), unlike `npm install` which may update it - essential for reproducible builds.
+- The migration check step ensures database schema and model cannot drift.
+
+```mermaid
+flowchart LR
+    DEV["push or pull request"] --> GH["GitHub Actions"]
+    GH --> BJ["backend job: restore, build, ef check, test"]
+    GH --> FJ["frontend job: npm ci, lint, typecheck, test, build"]
+    GH --> CQ["CodeQL analysis"]
+    GH --> GL["gitleaks secret scan"]
+    BJ --> OK{"all green?"}
+    FJ --> OK
+    CQ --> OK
+    GL --> OK
+    OK -->|yes| MERGE["eligible to merge (branch protection is a GitHub setting, unverifiable here)"]
+```
+
+### Advantages / disadvantages / alternatives
+Compose: advantages - one-command, identical dev databases; disadvantages - extra tool, port clashes, data persists in volumes unexpectedly. Alternatives: install PostgreSQL locally, a shared dev database, Testcontainers for everything, devcontainers. CI: alternatives to GitHub Actions include GitLab CI, Azure DevOps, Jenkins.
 
 ---
 
