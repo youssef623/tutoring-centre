@@ -2,9 +2,9 @@
 
 > **How to read this document.** Every statement about the repository was checked against a file I opened (commit `371be5c` plus this documentation). Where the repository does not say *why* something was done, I say so and label my interpretation. Things I could **not** verify are listed explicitly (for example, I could not run the .NET test suite — see [§1.3](#13-what-i-ran-and-what-i-could-not-run)).
 >
-> Companion documents: [`file-explanations/INDEX.md`](file-explanations/INDEX.md) (every file, categorised) and the per-area deep dives `file-explanations/01…07-*.md`.
+> Companion documents: [`file-explanations/INDEX.md`](file-explanations/INDEX.md) (every file, grouped by directory) and the per-file explanation files it links to; area summaries `file-explanations/01…07-*.md` also exist.
 >
-> **Scope note.** The request I received ended mid-sentence at "9. Data Layer — Exp…". I covered the sections that were fully specified (1–8), then Data Layer (§9) and added the sections a new engineer needs next (§10 Testing, §11 Infrastructure/CI, §12 Frontend, §13 Working on this repo). If you wanted a different set of sections after §8, tell me.
+> **Scope.** This document follows the section list you specified (1-15). Appendix A summarises the frontend and Appendix B is a practical 'working on this repo' guide. Every source file also has its own explanation under [`file-explanations/`](file-explanations/INDEX.md) (one `.md` per file, mirroring the repository paths).
 
 ---
 
@@ -202,7 +202,7 @@ sequenceDiagram
     RS->>PG: read applied + pending migrations
     PG-->>RS: rows
     RS-->>H: SchemaStatus
-    H-->>D: Result<SystemInfoDto>.Success
+    H-->>D: Result of SystemInfoDto.Success
     D->>UOW: CommitAsync
     D-->>EP: Result
     EP-->>EXH: Results.Ok(dto) via ToHttpResult
@@ -933,24 +933,156 @@ Loading strategies (eager/lazy/explicit): **not applicable** — no navigation p
 
 ---
 
-# 10. Testing
+# 10. Detailed Feature Walkthroughs
 
-| Project | What it proves | Needs |
-| --- | --- | --- |
-| `Domain.Tests` | `Centre.Create` rules/boundaries; `Entity` id v7; `Result`/`Error` invariants | nothing |
-| `Application.Tests` | Handler branches (4); validator (3); dispatcher pipeline (9); actor context (3); system-info handler (3) | nothing (fakes) |
-| `Architecture.Tests` | Dependency rules (3 IL + 4 reference tests) | built assemblies |
-| `Infrastructure.Tests` | Create-centre end-to-end on PostgreSQL (4), slug race (1), migrations (4), transaction boundaries (3), read-only enforcement (1), system-info query (1), clock (3) | **Docker** (for the DB tests) |
-| `Api.Tests` | Health (3), correlation (6), logging (2), Problem Details (19), mapping unit tests (6), redaction (3), seed (1) | **Docker** for the factory-based tests |
-| `frontend` (Vitest) | `messageFor` (3), `isProblemDetails` (3), `StatusCard` (3) — **9 passed when I ran them** | Node |
+Five real actions are traced end to end. Each names the exact file and function at every stage and shows what the data looks like as it moves. File explanations are linked as `[file]`; line numbers refer to the files as committed.
 
-Counts are my reading of attributes (not executed for .NET). Conventions: **Arrange/Act/Assert** comments (several tests skip the comments), names `Method_Condition_Result` (CA1707 disabled in `tests/**` by `.editorconfig`).
+## 10.1 Seeding a centre: `dotnet run --project src/TutoringCentre.Api -- seed`
 
-Notable test-design ideas worth copying: the **control test** (`HandlerSucceedsAfterRowWasWritten_PersistsTheRow`) that proves the failure tests could have failed; the **sentinel test with the planted secret** (`hunter2`); **non-vacuous guards** (`Assert.NotEmpty(types.GetTypes())`).
+This is the **only** path that creates business data (there is no HTTP endpoint for it).
+
+| # | Stage | Where | What happens / data |
+| --- | --- | --- | --- |
+| 1 | Process start | `Program.cs:16` | `WebApplication.CreateBuilder(args)` with `args = ["seed"]`. |
+| 2 | Registration | `Program.cs:30-43` | `AddApplication().AddInfrastructure(config)`; `ConnectionStrings:Postgres` captured. |
+| 3 | Build | `Program.cs:45` | `builder.Build()` creates the provider. The host is **not started**. |
+| 4 | CLI branch | `Program.cs:48-52` | list pattern `args is ["seed"]` matches. |
+| 5 | Migrations | `MigrationRunner.ApplyMigrationsAsync` | new scope -> `AppDbContext` -> `Database.MigrateAsync` creates schema/table if missing. |
+| 6 | Loop | `SeedCommand.RunAsync` (`Cli/SeedCommand.cs:29`) | for each of two `SeedCentre` rows. |
+| 7 | Scope + actor | `SeedCommand.cs:39-40` | `CreateAsyncScope()`; `CurrentActorContext.Set(new SystemActor(null))`. |
+| 8 | Dispatch | `SeedCommand.cs:43` | `Dispatcher.SendAsync<CreateCentreCommand,CreateCentreResult>(new CreateCentreCommand("Nile Tutoring Centre","nile-centre","Africa/Cairo",Ar))`. |
+| 9 | Validate | `Dispatcher.ValidateAsync` (`Dispatcher.cs:109`) | `CreateCentreValidator` runs: not empty, max lengths, enum defined. No errors -> continue. |
+| 10 | Resolve handler | `Dispatcher.cs:47` | container returns `CreateCentreHandler(ICurrentActor, ICentreRepository)`; `ICentreRepository` -> `CentreRepository(AppDbContext)`. |
+| 11 | Begin | `UnitOfWork.BeginAsync(false)` | `BEGIN` on PostgreSQL. |
+| 12 | Authorize | `CreateCentreHandler.cs:17` | actor is `SystemActor` -> proceed. |
+| 13 | Uniqueness | `CentreRepository.ExistsBySlugAsync` | `AnyAsync(c => c.Slug == "nile-centre")` -> `false` first time. |
+| 14 | Domain | `Centre.Create` (`Centre.cs:38`) | passes name/slug/time-zone checks; `Entity` ctor assigns UUIDv7. |
+| 15 | Track | `CentreRepository.Add` | `Set<Centre>().Add(...)` -> state `Added`. |
+| 16 | Result | handler returns `Success(CreateCentreResult(Id, "nile-centre"))`. |
+| 17 | Save | `Dispatcher.cs:63` -> `UnitOfWork.SaveChangesAsync` | `TimestampInterceptor.Stamp` sets shadow `CreatedAt`; EF emits `INSERT INTO platform.centres (id, created_at, default_locale, name, slug, time_zone_id, updated_at) ...` with `default_locale = 'ar'` (value converter). |
+| 18 | Commit | `Dispatcher.cs:64` | `COMMIT`. |
+| 19 | Log | `LogOutcome` | `Command CreateCentreCommand completed with Success (none) in N ms` (Information). |
+| 20 | CLI log | `SeedCommand.cs` | `Seed: created centre nile-centre`. Second run: step 13 returns true -> `Conflict centre.slug_taken` -> rollback -> logged 'already exists', exit code stays 0. |
+| 21 | Exit | `Program.cs:51` | `return` the exit code; process ends. |
+
+Data shape: command (4 strings/enum) -> `Result<CreateCentreResult>` -> one row. Concepts at work: composition root (2), DI scopes and factory registration (7, 10), CQRS pipeline (8-19), Result pattern (16, 20), two-tier validation (9, 14), repository + change tracking (13-15), unit of work (11, 18), interceptor + shadow properties (17), migrations (5), TOCTOU/unique index (13 vs 17).
+Files: [Program.cs](file-explanations/src/TutoringCentre.Api/Program.cs.md), [SeedCommand.cs](file-explanations/src/TutoringCentre.Api/Cli/SeedCommand.cs.md), [Dispatcher.cs](file-explanations/src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md), [CreateCentreHandler.cs](file-explanations/src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md), [Centre.cs](file-explanations/src/TutoringCentre.Domain/Centres/Centre.cs.md), [UnitOfWork.cs](file-explanations/src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs.md), [CentreConfiguration.cs](file-explanations/src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs.md).
+
+```mermaid
+sequenceDiagram
+    participant CLI as dotnet run -- seed
+    participant P as Program.cs
+    participant S as SeedCommand
+    participant D as Dispatcher
+    participant H as CreateCentreHandler
+    participant R as CentreRepository
+    participant U as UnitOfWork
+    participant PG as PostgreSQL
+    CLI->>P: args = [seed]
+    P->>PG: MigrateAsync
+    P->>S: RunAsync(provider)
+    S->>S: scope + Set(SystemActor(null))
+    S->>D: SendAsync(CreateCentreCommand)
+    D->>D: CreateCentreValidator
+    D->>U: BeginAsync(rw) = BEGIN
+    D->>H: HandleAsync
+    H->>R: ExistsBySlugAsync -> SELECT EXISTS
+    H->>H: Centre.Create (domain rules, UUIDv7)
+    H->>R: Add (tracked, no SQL)
+    D->>U: SaveChangesAsync -> INSERT (created_at stamped)
+    D->>U: CommitAsync = COMMIT
+    D-->>S: Result.Success
+```
+
+**Failure variants** (all verified by tests): invalid slug -> `Centre.Create` returns `centre.slug_invalid` -> handler returns it -> dispatcher rolls back (nothing was written) -> `SeedCommand` logs an error and exit code 1; duplicate -> `centre.slug_taken` as above; database down -> `BeginAsync` throws -> dispatcher's `catch` is **not** reached for `BeginAsync` (it is outside the `try`), the exception propagates out of `SeedCommand` and ends the process.
+
+## 10.2 Reading system info: `GET /api/system/info`
+
+| # | Stage | Where | Data |
+| --- | --- | --- | --- |
+| 1 | HTTP request | client | `GET /api/system/info`, optional `X-Correlation-Id`. |
+| 2 | Routing | framework + `Program.cs:84-85` | `MapGroup("/api")` + `MapGet("/system/info")` -> endpoint `GetSystemInfo`. The catch-all `/api/{**path}` loses to this more specific route. |
+| 3 | Middleware | `Program.cs:61-72` | `CorrelationIdMiddleware` (id chosen, header deferred via `OnStarting`, `LogContext` property) -> `UseSerilogRequestLogging` -> `UseExceptionHandler` -> `UseStatusCodePages`. |
+| 4 | Endpoint | `PlatformEndpoints.GetSystemInfoAsync` | framework supplies `Dispatcher` from the request-scope container and `ct` = request-aborted token. |
+| 5 | Dispatch | `Dispatcher.QueryAsync` | no validators registered for `GetSystemInfoQuery` -> skip. |
+| 6 | Handler lookup | `Dispatcher.cs:91` | `IQueryHandler<GetSystemInfoQuery,SystemInfoDto>` -> `GetSystemInfoHandler(ISystemInfoReadService)`. |
+| 7 | Transaction | `UnitOfWork.BeginAsync(true)` | `BEGIN; SET TRANSACTION READ ONLY`. |
+| 8 | Handler | `GetSystemInfoHandler.HandleAsync` | calls the read service. |
+| 9 | Data access | `SystemInfoReadService.GetSchemaStatusAsync` | `GetAppliedMigrationsAsync` -> rows from `platform.__ef_migrations_history`; `GetPendingMigrationsAsync` -> model migrations minus applied; result `SchemaStatus("20261002222404_InitialPlatform", 0)`. |
+| 10 | Mapping | handler | `SystemInfoDto(ReadApplicationVersion(), latest, DatabaseUpToDate: pending == 0)`; version from `AssemblyInformationalVersionAttribute` with `+sha` stripped, or `"unknown"`. |
+| 11 | Commit | `Dispatcher.cs:98` | `COMMIT` (ends the read-only transaction; no save). |
+| 12 | HTTP mapping | `ResultHttpExtensions.ToHttpResult` | success -> `Results.Ok(dto)`. |
+| 13 | Serialisation | framework | JSON, camelCase: `{"applicationVersion":"...","latestMigration":"20261002222404_InitialPlatform","databaseUpToDate":true}`. |
+| 14 | Response | `OnStarting` callback | adds `X-Correlation-Id`; request log line at Information. |
+
+Frontend: **no component calls this endpoint**; `frontend/README.md` documents the contract and `test/msw/handlers.ts` mocks it. Backend proof: `SystemInfoQueryTests` (dispatch level) - there is no HTTP-level test of this endpoint (no test calls `/api/system/info`; verified by search).
+
+## 10.3 The status page: browser -> `/health/ready` -> UI
+
+User opens `http://localhost:5173`:
+
+| # | Stage | File / function | What happens |
+| --- | --- | --- | --- |
+| 1 | HTML | `frontend/index.html` | loads `/src/main.tsx` as a module (served by Vite). |
+| 2 | Mount | `main.tsx:23` `createRoot(...).render` | `StrictMode > QueryClientProvider(queryClient) > RouterProvider(router)`. |
+| 3 | Route | generated `routeTree.gen.ts` -> `routes/__root.tsx` `RootLayout` -> `<Outlet/>` -> `routes/index.tsx` `IndexPage` | URL `/` matches `IndexPage`: `<h1>System status</h1><StatusCard/>`. |
+| 4 | Hook | `StatusCard.tsx:8` `useReadiness()` | `useQuery({queryKey:["health","ready"], queryFn: fetchReadiness, refetchInterval: 15_000})`. First render: `isPending = true` -> skeleton. |
+| 5 | Query runs | TanStack Query | observer starts `fetchReadiness`. |
+| 6 | HTTP | `features/status/api.ts:12` | `fetch("/health/ready")` (relative). |
+| 7 | Proxy | `vite.config.ts` `server.proxy["/health"]` | Vite forwards to `http://localhost:5080/health/ready`. |
+| 8 | API | `Program.cs:79-82` | `MapHealthChecks("/health/ready", Predicate = c => c.Tags.Contains("ready"))` runs the Npgsql check (registered in `AddInfrastructure`). Response: `200 Healthy` or `503 Unhealthy` as plain text. |
+| 9 | Mapping | `fetchReadiness` | 200 -> `{state:"healthy", checkedAt:new Date()}`; 503 -> `{state:"unavailable", ...}`; other status or network failure -> throw. |
+| 10 | Cache + notify | TanStack Query | stores result under `["health","ready"]`; the observer tells React the component's subscribed value changed. |
+| 11 | Re-render | React | `StatusCard` function runs again; `isPending` false; branch chosen; DOM updated (skeleton replaced by the Card or an Alert). |
+| 12 | Polling | `refetchInterval` | every 15 s steps 5-11 repeat; the new `Date` changes 'Last checked at'. |
+| 13 | Retry | `Button onClick={retry}` -> `readiness.refetch()` | repeats steps 5-11 immediately. |
+
+Data transformations: HTTP status + text body -> `ReadinessStatus` object -> JSX. Error handling: network failure (API down) -> `isError` after 1 retry (`queryClient` default) -> destructive Alert; 503 -> data, not error. Verified by `StatusCard.test.tsx` (3 passing tests when I ran them).
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant R as React (StatusCard)
+    participant Q as TanStack Query
+    participant F as fetchReadiness
+    participant V as Vite proxy :5173
+    participant A as API :5080 /health/ready
+    participant DB as PostgreSQL
+    U->>R: open /
+    R->>Q: useQuery(["health","ready"])
+    Q->>F: queryFn
+    F->>V: fetch /health/ready
+    V->>A: proxy
+    A->>DB: Npgsql health check
+    DB-->>A: ok / unreachable
+    A-->>F: 200 Healthy / 503 Unhealthy
+    F-->>Q: {state, checkedAt} or throw
+    Q-->>R: notify -> re-render
+    R-->>U: Card / Alert
+```
+
+## 10.4 A bad request body: how errors reach the client
+
+Using the test-only endpoint `POST /api/test/name` (the pipeline is identical for real endpoints):
+
+1. Client sends `{ "name": "Bob", "extra": "nope" }`.
+2. Routing selects the `/api/test/name` handler (`ConventionEndpoints`).
+3. Minimal-API body binding deserialises `TestNameBody` with the JSON options from `Program.cs:34-39`: `UnmappedMemberHandling.Disallow` makes the unknown `extra` member an error, and `RouteHandlerOptions.ThrowOnBadRequest = true` (line 43) makes the failed binding **throw** `BadHttpRequestException` instead of answering an empty 400.
+4. The exception unwinds through `UseStatusCodePages` to `UseExceptionHandler`, which calls `GlobalExceptionHandler.TryHandleAsync`.
+5. `exception is BadHttpRequestException` -> `LogMalformedRequest` (Warning) -> `ProblemDetails{Status=400, Title="The request could not be read.", code="request.malformed"}`.
+6. `new ProblemResult(problem).ExecuteAsync(httpContext)` adds `traceId`/`correlationId`, sets status 400, writes `application/problem+json`.
+7. Response header `X-Correlation-Id` is added by the `OnStarting` callback registered in step 3 of the pipeline.
+8. Serilog request logging records the line (Information for 400; Error would require exception/500).
+
+Valid JSON that fails *validation* takes a different branch: `TestNameValidator` fails inside `Dispatcher.ValidateAsync` -> `Error.Validation("validation.failed", ..., {"name":[...]})` -> `ToHttpResult` -> `ValidationProblemDetails` 400 with an `errors` object. A thrown handler exception takes yet another: dispatcher rollback + rethrow -> `GlobalExceptionHandler` -> 500 `server.unexpected` with no internals. Tests for all branches: `ProblemDetailsTests`.
+
+## 10.5 Development startup and database migration
+
+`dotnet run --launch-profile http` -> `ASPNETCORE_ENVIRONMENT=Development` -> `Program.cs:56` `IsDevelopment()` true -> `ApplyMigrationsAsync()` (new scope, `MigrateAsync`) -> pipeline built -> `app.Run()` -> Kestrel on 5080 -> `ValidateOnStart` has already validated `DatabaseOptions` (non-empty connection string) when hosted services started. In any other environment step 2 is skipped; the schema must already exist (the repository has no deployment pipeline to do it). Tests use environment `Testing`, so they apply migrations explicitly in their fixtures.
 
 ---
 
-# 11. Infrastructure, CI and Security Automation
+# 11. Configuration / Environment / Deployment
 
 ## 11.1 Docker Compose (`compose.yaml`)
 Single service `postgres`: image `postgres:17`; env `POSTGRES_DB`, `POSTGRES_USER` from `.env`; `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}` — Compose's `:?` syntax aborts with that message if unset; port `5432:5432` published to the host; named volume `pgdata` persists data across restarts; healthcheck runs `pg_isready` every 5 s (5 retries) — README says wait for `(healthy)`. `.env.example` comment: keep `DB` and `USER` as-is because "the API's connection string and the Compose healthcheck use these names." Secrets: password lives only in your local `.env` and in your user-secrets connection string (same password; README warns no `;` or spaces). **No Dockerfile, no reverse proxy, no app container, no network definitions beyond Compose's default.**
@@ -967,21 +1099,230 @@ README claims "`main` is protected: nothing merges unless every check is green."
 
 ## 11.4 Build/analysis strictness
 `Directory.Build.props`: `TreatWarningsAsErrors=true` + `AnalysisLevel=latest-recommended`. That is why the source has many `[SuppressMessage(... Justification = "...")]` attributes (e.g., CA1812 "uninstantiated internal class" for DI-created classes, CA1848/CA1873 logging analyzers) — each suppression carries a written justification. `.editorconfig` style rules are suggestions only.
+## 11.5 Environment variables and configuration keys
+
+Only variables/keys that actually appear in the repository are listed. (.NET maps the environment variable `A__B` to the configuration key `A:B`.)
+
+| Variable / key | Defined where | Used where | Purpose | Required? | Secret? |
+| --- | --- | --- | --- | --- | --- |
+| `POSTGRES_DB` | `.env.example` (value `tutoring`), your local `.env` | `compose.yaml` (`environment`, healthcheck) | Database name created in the container | Yes for Compose (no default) | No |
+| `POSTGRES_USER` | `.env.example` (`tutoring_dev`) | `compose.yaml` | Database user | Yes for Compose | No |
+| `POSTGRES_PASSWORD` | `.env.example` (blank), local `.env` | `compose.yaml` (`${POSTGRES_PASSWORD:?...}`) | Database password; Compose aborts if unset | **Yes** | **Yes** |
+| `ConnectionStrings:Postgres` (key) | `appsettings.json` (empty string); real value in user-secrets (README step 3) | `Infrastructure/DependencyInjection.cs:35` (`GetConnectionString("Postgres")`), health check, `DatabaseOptions` | Connection to PostgreSQL | **Yes** (empty -> host fails to start via `ValidateOnStart`) | **Yes** (contains password) |
+| `ConnectionStrings__Postgres` (env var form of the key) | `.github/workflows/ci.yml` step 'Check for model changes' (fake value `Host=localhost;Database=ci;Username=ci;Password=ci`) | same code path via `dotnet ef` | Lets design-time model comparison start the Api host | Only in that CI step | Fake value; not a real secret |
+| `ConnectionStrings:Postgres` set in code | `HealthEndpointTests`, `ApiFactory` (`UseSetting`), `PostgresFixture` (in-memory configuration) | same | Test databases (unreachable port or Testcontainers connection string) | Test-time | Generated per container |
+| `ASPNETCORE_ENVIRONMENT` | `Properties/launchSettings.json` (`Development` in both profiles); tests call `UseEnvironment("Testing")` | `Program.cs:56` (`IsDevelopment()`); config file selection; default DI validation | Selects environment behaviour (auto-migrate, `appsettings.Development.json`, user-secrets) | No (framework default is Production) | No |
+| `Serilog:MinimumLevel:Default`, `Serilog:MinimumLevel:Override:Microsoft.AspNetCore` | `appsettings.json` | `Program.cs:20` `ReadFrom.Configuration` | Log levels | No | No |
+| `Logging:LogLevel:*` | `appsettings.json`, `appsettings.Development.json` | not read by Serilog (legacy section) | none effective | No | No |
+| `AllowedHosts` | `appsettings.json` (`*`) | ASP.NET host filtering middleware (framework) | Accepted Host headers | No | No |
+| `applicationUrl` (profile setting) | `launchSettings.json` (`http://localhost:5080`; `https://localhost:7197;http://localhost:5245`) | `dotnet run` | Development listen URLs | Dev only | No |
+| `secrets.GITHUB_TOKEN` | provided by GitHub Actions | `.github/workflows/secret-scan.yml` (`GITHUB_TOKEN`) | gitleaks PR comments | Automatic | Yes (managed by GitHub) |
+| `UserSecretsId` | `TutoringCentre.Api.csproj` (`a0748b74-...`) | `dotnet user-secrets` | Names the per-user secrets store | Dev only | No (an identifier) |
+| `apiTarget` (TS constant, **not** an env var) | `frontend/vite.config.ts` (`http://localhost:5080`) | Vite dev proxy | API URL for dev proxy | Dev only | No |
+| CLI argument `seed` | n/a | `Program.cs:48` | Run seeding instead of the web host | No | No |
+
+The frontend reads **no** environment variables (searched for `import.meta.env` and `process.env` in `frontend/src` and `vite.config.ts`: none).
+
+## 11.6 Configuration layering, user secrets, and `.env`
+
+1. `appsettings.json` provides defaults (empty connection string, log levels).
+2. `appsettings.{Environment}.json` overlays it (the Development file changes nothing effective today).
+3. **user-secrets** (Development only; the per-user store keyed by `UserSecretsId`) supplies `ConnectionStrings:Postgres` locally; this keeps the password out of git.
+4. **Environment variables** override files (used by CI for the fake string; the natural production mechanism - not demonstrated in the repo).
+5. Command-line arguments override everything.
+`.env` is **not** read by the .NET app. It is read by Docker Compose only; you therefore type the same password in two places (`.env` and the user-secrets connection string). `.env` is git-ignored (`.gitignore`), `.env.example` documents keys.
+
+## 11.7 Development vs production
+
+| Aspect | Development (verified) | Production (what the repo says/does not say) |
+| --- | --- | --- |
+| Database | Compose container, user-secrets string | No production configuration in the repo |
+| Migrations | Auto-applied at startup (`Program.cs:56`) | Explicitly **never** at startup; 'run from the deployment pipeline (Month 2)' - no such pipeline exists |
+| DI validation | `ValidateOnBuild/ValidateScopes` on by framework default in Development | Off unless configured (tests turn it on explicitly) |
+| Frontend | Vite dev server + proxy | Plan: same-origin hosting by the API (ADR 0002) - not implemented (no static-file middleware) |
+| HTTPS | `https` launch profile exists | No redirection/HSTS configured |
+| Auth | none | none |
+
+## 11.8 Deployment process
+
+**There is none in the repository**: no Dockerfile, no deployment workflow, no infrastructure-as-code, no production configuration. CI builds and tests only (`ci.yml`), plus CodeQL and gitleaks. What the repo *plans*: a deployment pipeline that runs migrations, a single deployable that serves the SPA from the API (ADR 0002). Treat both as unimplemented.
 
 ---
 
-# 12. Frontend summary
+# 12. Testing
+
+## 12.1 Test projects and strategy
+
+| Project | What it proves | Needs |
+| --- | --- | --- |
+| `Domain.Tests` | `Centre.Create` rules/boundaries; `Entity` id v7; `Result`/`Error` invariants | nothing |
+| `Application.Tests` | Handler branches (4); validator (3); dispatcher pipeline (9); actor context (3); system-info handler (3) | nothing (fakes) |
+| `Architecture.Tests` | Dependency rules (3 IL + 4 reference tests) | built assemblies |
+| `Infrastructure.Tests` | Create-centre end-to-end on PostgreSQL (4), slug race (1), migrations (4), transaction boundaries (3), read-only enforcement (1), system-info query (1), clock (3) | **Docker** (for the DB tests) |
+| `Api.Tests` | Health (3), correlation (6), logging (2), Problem Details (19), mapping unit tests (6), redaction (3), seed (1) | **Docker** for the factory-based tests |
+| `frontend` (Vitest) | `messageFor` (3), `isProblemDetails` (3), `StatusCard` (3) — **9 passed when I ran them** | Node |
+
+Counts are my reading of attributes (not executed for .NET). Conventions: **Arrange/Act/Assert** comments (several tests skip the comments), names `Method_Condition_Result` (CA1707 disabled in `tests/**` by `.editorconfig`).
+
+Notable test-design ideas worth copying: the **control test** (`HandlerSucceedsAfterRowWasWritten_PersistsTheRow`) that proves the failure tests could have failed; the **sentinel test with the planted secret** (`hunter2`); **non-vacuous guards** (`Assert.NotEmpty(types.GetTypes())`).
+
+## 12.2 What the tests prove, and what they do not
+
+| Area | Covered (evidence) | Not covered / gaps |
+| --- | --- | --- |
+| Domain rules | `CentreTests`: trimming, name/slug/time-zone failures, inclusive 120 boundary | slug 60/61 boundary, null inputs, whitespace-only time zone |
+| Result/Error | `ResultTests`, `ErrorTests` | constructor 'success with error' guard, record equality |
+| Validation | validator unit tests; dispatcher grouping (C9); HTTP 400 (`EmptyName_FailsValidation_Returns400`) | time-zone length, enum validity, name over 120 at validator level |
+| Dispatcher pipeline | 9 cases C1-C9 with fake UoW; real-DB rollback/commit/read-only tests | cancellation, missing handler registration, nested dispatch, logging output |
+| Authorization | handler forbidden (unit + integration) | no actors other than system/anonymous exist |
+| Persistence | create/persist, conflict, rollback, read-only `25006`, unique-violation race, migrations (table/index/CHECK/history), timestamps | updates (`UpdatedAt`), locale round-trip read, down-migration |
+| HTTP conventions | every error kind -> status/code/shape, strict JSON, 404 fallback, trace/correlation IDs, content type, no leakage, logging levels, masking | HTTP-level test of `/api/system/info`; the `/api/test/log-sensitive` endpoint is never called |
+| CLI | seed twice => exactly two rows | failure exit code 1 |
+| Health | liveness 200, readiness 503 (unreachable) and 200 (real DB) | readiness with the 'not configured' fallback (unreachable code) |
+| Architecture | declared references + IL-level namespace rules | Api assembly not scanned; package references not checked |
+| Frontend | `messageFor`, `isProblemDetails`, `StatusCard` three states | network-error branch, polling, loading skeleton, routing, anything else (little UI exists) |
+| End-to-end (browser) | **none** (no Playwright/Cypress in the repo) | the SPA against the real API |
+| Performance/load/security tests | **none** | - |
+
+Test strategy in one sentence: pure logic is tested with fakes (fast, no Docker); anything whose correctness depends on PostgreSQL behaviour or on the real ASP.NET pipeline is tested against the real thing (Testcontainers, `WebApplicationFactory`). Setup/teardown: one container per test run (xUnit collection fixtures), Respawn clears rows before each test, `IAsyncLifetime` for async setup. Assertions use xUnit's built-in `Assert` (no assertion library).
+Which results I verified myself: frontend only (9/9). The .NET suite could not be run in this sandbox.
+
+---
+
+# 13. Quality Assessment
+
+Assessment is based only on files I read. Format per issue: **Location -> Evidence -> Why it matters -> Suggested improvement -> Priority.** I did not run the .NET suite, so nothing here is a claim about test failures.
+
+## 13.1 Strengths (evidence)
+- **Enforced architecture:** `ProjectReferenceTests` + `DependencyRuleTests` make the dependency rule executable; each guards against vacuous passes.
+- **One pipeline for all use cases** with documented, tested transaction semantics (`DispatcherTests`, `TransactionBoundaryTests`, `ReadOnlyQueryTests` incl. a success *control* test).
+- **Uniform, leak-free errors:** single writer (`ProblemResult`), single mapper, single exception handler; test plants a secret and proves it never appears.
+- **Database as final authority:** unique index, CHECK constraint, read-only transactions, concurrency test.
+- **Reproducibility:** pinned SDK, central package versions, pinned EF tool, lockfile + `npm ci`, CI checks for missing migrations.
+- **Security hygiene:** no secret in git, `.env` ignored, gitleaks, CodeQL, header validation, log redaction.
+- **Honest comments:** many `[SuppressMessage]` carry written justifications; comments explain *why* (OnStarting, `\z`, `preserveStaticLogger`).
+
+## 13.2 Findings
+
+| # | Location | Evidence | Why it matters | Suggested improvement | Priority |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Whole HTTP surface | No `AddAuthentication`/`UseAuthorization`/CORS/HTTPS redirection found; `CurrentActorContext.Set` is called only by `SeedCommand`; `PlatformEndpoints` uses `.AllowAnonymous()` with no auth middleware | Today harmless (one public endpoint), but any new endpoint is anonymous-by-default and handlers would always see `AnonymousActor` | Add authentication + an actor-setting middleware **before** adding the first non-public endpoint; add a test that every non-anonymous endpoint requires a caller | High (before feature work), currently informational |
+| 2 | `Infrastructure/DependencyInjection.cs:38-45` vs `54-58` | blank-string branch registers an always-Unhealthy check and a comment says 'must not crash startup', but `DatabaseOptions` is `[Required]` + `ValidateOnStart` | Dead branch and contradictory comment; `ARCHITECTURE.semantic.md` repeats the stale claim | Delete the branch or the validation; update comment/docs | Low |
+| 3 | Race on slug: `CreateCentreHandler.cs:24`, `CentreSlugRaceTests` summary, `GlobalExceptionHandler` | loser of a race gets `DbUpdateException` (SQLSTATE 23505); only `BadHttpRequestException` is classified, so it would be a 500 | If a create-centre endpoint is added, concurrent duplicates return 500 instead of 409 (test summary says translation is planned) | Translate unique violations to `Error.Conflict("centre.slug_taken")` in one place (dispatcher or handler), keep the test | Medium (when exposed) |
+| 4 | Production migrations | `Program.cs:54-55` comment; no pipeline/Dockerfile in repo | Release process undefined; auto-migrate is deliberately off outside Development | Add a migration step to the (future) deployment workflow, e.g. `dotnet ef migrations bundle` | Medium |
+| 5 | Generated docs `OVERVIEW.semantic.md`, `ARCHITECTURE.semantic.md`, `src/.semantic.md`, `tests/.semantic.md`, `.semantic-manifest.json` | claim Domain/Application empty, 9 tests, frontend not scaffolded | New readers are misled | Regenerate or delete; note staleness | Medium |
+| 6 | `Architecture.Tests/DependencyRuleTests.cs` | rules cover Domain/Application/Infrastructure only; Api not scanned; `Api.csproj` can reference any package | Nothing stops `Program.cs` or an endpoint from using EF/Npgsql types, which `src/.semantic.md` says must never happen | Add a rule: Api must not depend on `Microsoft.EntityFrameworkCore`/`Npgsql` (allow only `Infrastructure` registration) | Low-Medium |
+| 7 | Unused code | `Unit`, `Schemas.Identity`, `ITenantOwned`, `IClock.ToLocal/FromLocal` (tests only), `Api/AssemblyMarker`, frontend `messageFor`/`ApiError`/`isProblemDetails`/fixtures/`lib/utils.ts`/Toaster/`next-themes`/`icons.svg`, test endpoint `/api/test/log-sensitive`, MSW `/api/system/info` handler | Speculative surface to maintain and mislead; some is clearly planned groundwork | Keep deliberately planned items (tenancy, errors) but mark them; remove unreferenced template leftovers (`icons.svg`) and the unused test endpoint (or add the test) | Low |
+| 8 | Duplicated limits | `TimeZoneIdMaxLength = 64` in `CreateCentreValidator.cs` and `CentreConfiguration.cs`; `"120"` hard-coded in a domain message | Divergence risk | Put the 64 on `Centre` as a constant like name/slug | Low |
+| 9 | `Centre.Create` time-zone check | uses `TimeZoneInfo.TryFindSystemTimeZoneById` | Result depends on OS tzdata/ICU; a minimal container image without tzdata could reject valid ids (`centre.time_zone_invalid`) | Document the runtime requirement or include tzdata in the future Dockerfile; keep Cairo test | Low-Medium (deployment) |
+| 10 | `SensitiveDataDestructuringPolicy` | masks only names containing Password/Token/Secret/ConnectionString or starting with Phone; ignores fields; reflection per call | Not exhaustive (e.g. `Email`, `Pin`); acceptable because it is a documented safety net | Extend list when personal-data types arrive; keep 'never log requests' rule | Low |
+| 11 | `GlobalExceptionHandler` | classifies only `BadHttpRequestException` | Other client-caused exceptions (e.g. `JsonException` thrown outside binding) become 500 + Error logs | Add cases when such paths exist | Low |
+| 12 | `appsettings.json`/`Development.json` | `Logging` section ignored by Serilog; Development file has no effective settings; `AllowedHosts: *` | Misleading config; host filtering off | Remove redundant section; set `AllowedHosts` for production | Low |
+| 13 | `frontend` lint | `npm run lint` -> 2 `react-refresh/only-export-components` warnings (`routes/__root.tsx`, `routes/index.tsx`) despite the override | CI passes (warnings) but noise hides future warnings | Fix override options or accept explicitly (e.g. `--max-warnings 0` after fixing) | Low |
+| 14 | `frontend/README.md` vs code | plans i18next, generated client, `i18n/`; none exists; README says 'logical CSS only' but generated UI files contain `text-left`, `pr-18`, `right-2`; `components.json` has `rtl: false` | Arabic/RTL is a stated goal; current UI would not flip correctly | When adding i18n, run shadcn with RTL support and audit `components/ui/*` | Low (now), Medium (before Arabic UI) |
+| 15 | `frontend/index.html` | `<title>frontend</title>`, `<html lang="en">` | Placeholder title; language fixed | Product title; set `lang`/`dir` from locale | Low |
+| 16 | `frontend/src/test/msw/handlers.ts` | mock `latestMigration: "20261012_InitialPlatform"` vs real `20261002222404_InitialPlatform` | Mock does not match real data | Align or comment as fake | Low |
+| 17 | `LoggingConventionTests` | name says 'one completion line' but asserts only existence | Test weaker than its name | Assert count or rename | Low |
+| 18 | Test runtime | `ApiFactory` and `ConventionsFactory` each start a PostgreSQL container; `Infrastructure.Tests` starts another | Slower CI; image pull cost | Share one container via a static/lazy fixture | Low |
+| 19 | `compose.yaml` | `5432:5432` publishes on all host interfaces (Docker default binding; interpretation) | Database reachable from the LAN on a dev machine | Use `127.0.0.1:5432:5432` | Low |
+| 20 | CI | no coverage upload, no `dotnet format --verify-no-changes`, no NuGet cache, no `--max-warnings` on ESLint | Missed quality signals | Add as needed | Low |
+| 21 | `Directory.Packages.props` | empty scaffolding `ItemGroup`; `AspNetCore.HealthChecks.NpgSql` 9.0.0 while other packages are 10.x | Cosmetic / version-line mismatch (not verified to be a problem) | Remove empty group; confirm compatibility | Low |
+| 22 | `Dispatcher` | tenant/permission steps are comments only; handler-level `is SystemActor` is the sole authorization | Cross-cutting authorization is not yet centralised, so a future handler could forget it | Implement the planned step and test it | Medium (planned) |
+
+## 13.3 Not verifiable from the repository
+Production behaviour; branch protection (README claim); whether Docker-based tests pass in CI; actual SQL text emitted by EF (not captured); `AddNpgSql`'s probe query; FluentValidation lifetime defaults; behaviour of anything requiring a running database.
+
+---
+
+# 14. Glossary
+
+| Term | Meaning | How it is used in this repository |
+| --- | --- | --- |
+| Centre | A tutoring centre; the tenant | The only entity (`Domain/Centres/Centre.cs`), table `platform.centres` |
+| Tenant / multi-tenancy | One customer's isolated data slice; one deployment serving many | Planned: `ITenantOwned`, `Actor.CentreId`; no enforcement yet |
+| Slug | URL-friendly unique centre name (`nile-centre`) | Validated by regex in `Centre.Create`; unique index `ux_centres_slug` |
+| Actor | Who executes a use case | `Actor`, `SystemActor`, `AnonymousActor` in Application |
+| SystemActor | The application itself (CLI, jobs) | Only actor allowed to create centres; set by `SeedCommand` |
+| Anonymous actor | No authenticated caller | Default in `CurrentActorContext`; what every HTTP request has today |
+| Clean Architecture | Layers with dependencies pointing inward | Four projects; rules enforced by architecture tests |
+| Port / Adapter | Interface owned by the inner layer / implementation in the outer layer | `ICentreRepository`/`CentreRepository`, `IUnitOfWork`/`UnitOfWork`, `IClock`/`SystemClock` |
+| Composition root | The one place where concrete types are wired | `Api/Program.cs` calling `AddApplication().AddInfrastructure()` |
+| DI container / lifetime / scope | Object factory with lifetimes | `IServiceCollection`; singleton/scoped; scope per request or seed command |
+| CQRS | Separate commands (write) and queries (read) | `ICommand`/`IQuery` + handlers + `Dispatcher` |
+| Command / Query / Handler | Intent to change / read; class that executes one | `CreateCentreCommand`, `GetSystemInfoQuery`, `*Handler` |
+| Dispatcher | Single entry point wrapping validation + transaction + logging | `Application/Common/Cqrs/Dispatcher.cs` |
+| Result / Error / ErrorKind / code | Value-based failure model | `Domain/Common`; codes like `centre.slug_invalid` |
+| Problem Details | RFC 9457 JSON error body | `ProblemResult`, `application/problem+json` |
+| Correlation ID | Per-request id in logs and responses | `X-Correlation-Id`, `CorrelationIdMiddleware` |
+| traceId | Distributed-tracing id (`Activity.Current`) | Added to every error body |
+| Unit of Work | Transaction boundary around one use case | `IUnitOfWork`/`UnitOfWork` |
+| Repository | Collection-like persistence abstraction | `ICentreRepository` |
+| Read service | Query-side DTO provider | `ISystemInfoReadService` |
+| DTO | Data transfer object | `SystemInfoDto`, `CreateCentreResult` |
+| Shadow property | Model column absent from the C# class | `CreatedAt`, `UpdatedAt` |
+| Interceptor | Hook into EF operations | `TimestampInterceptor` |
+| Migration / snapshot | Versioned schema change / last known model | `InitialPlatform`, `AppDbContextModelSnapshot` |
+| TOCTOU | Check-then-act race | Slug uniqueness; unique index is the guarantee |
+| UUIDv7 | Time-ordered UUID | `Guid.CreateVersion7()` in `Entity` |
+| IANA time zone | Zone id like `Africa/Cairo` | `Centre.TimeZoneId`, `IClock` |
+| Liveness / readiness | Process alive / dependencies OK | `/health`, `/health/ready` |
+| Seed | Insert initial data | `seed` CLI creating two centres |
+| AssemblyMarker | Empty type naming an assembly | One per `src` project |
+| CPM | Central Package Management | `Directory.Packages.props` |
+| TFM | Target framework moniker | `net10.0` in `Directory.Build.props` |
+| Fitness function | Test enforcing an architectural rule | `Architecture.Tests` |
+| Testcontainers / Respawn | Disposable DB container / row cleaner | Infrastructure and Api tests |
+| WebApplicationFactory | In-process test host | `ApiFactory`, `ConventionsFactory` |
+| Fake | Simple in-memory test double | `FakeCentreRepository`, `FakeUnitOfWork` |
+| Serilog / destructuring | Structured logging library / logging an object's properties | `Program.cs`, `SensitiveDataDestructuringPolicy` |
+| ar / en / RTL | Arabic / English / right-to-left | `SupportedLocale`, frontend dictionaries, README CSS rule |
+| TanStack Query / Router | Server-state cache / file-based router | `useReadiness`, `routes/` |
+| MSW | Mock Service Worker | `src/test/msw` |
+| shadcn/ui, cva, Base UI | Copied components, variant helper, headless primitives | `components/ui/*` |
+| Logical CSS properties | `margin-inline-start` style properties that flip in RTL | README convention (`ms-`, `me-`) |
+| ADR | Architecture Decision Record | `docs/adr/*` |
+| semantic-git | Doc generator that produced `*.semantic.md` | Stale generated docs |
+| 'Day N' / 'Month N' | References to an external build plan | Comments and docs; plan not in repo |
+
+---
+
+# 15. Recommended Learning Path
+
+Order: foundations -> this repo's patterns -> advanced project-specific topics. For each: what to learn, why it matters here, where to see it, and what to understand before moving on.
+
+| Step | Learn | Why here | See in repo | Understand before moving on |
+| --- | --- | --- | --- | --- |
+| 1 | C# basics used here: records, primary constructors, `async/await`, nullable types, pattern matching (`is`, list patterns), expression-bodied members | All code is idiomatic modern C# | `Error.cs`, `CreateCentreHandler.cs`, `Program.cs:48` | What `await` does; why `Task<Result<T>>`; why `string?` exists |
+| 2 | HTTP fundamentals: methods, status codes, headers, JSON | Every endpoint convention builds on them | `ResultHttpExtensions.cs`, `api-conventions.md` | 400 vs 404 vs 409 vs 422 vs 403 as used here |
+| 3 | .NET project model: SDK, `.csproj`, `Directory.Build.props`, central packages | Explains why projects look nearly empty | `Directory.*.props`, `global.json` | How MSBuild imports props; what `ProjectReference` allows |
+| 4 | Dependency injection & lifetimes | Backbone of wiring | `Application/DependencyInjection.cs`, `Infrastructure/DependencyInjection.cs` | Scoped vs singleton; why handlers are scoped; what a factory registration does |
+| 5 | ASP.NET Core minimal hosting & middleware | The pipeline order is behaviour | `Program.cs`, `CorrelationIdMiddleware.cs` | Why correlation is first; what `UseExceptionHandler` wraps |
+| 6 | Clean Architecture & dependency inversion | Project layout and tests assume it | ADR 0001, `ProjectReferenceTests.cs` | Which direction references may point and why |
+| 7 | Result pattern & domain modelling | Failure model of the whole app | `Result.cs`, `Centre.cs` | Result vs exception; factory method invariants |
+| 8 | CQRS & the dispatcher | The use-case pipeline | `Dispatcher.cs`, `DispatcherTests.cs`, `pipeline-cases.md` | The order validate/begin/handle/save/commit; rollback paths |
+| 9 | Relational basics: PK, unique index, CHECK, transactions, isolation of read-only transactions | Data guarantees live in PostgreSQL | migration file, `UnitOfWork.cs`, `CentreSlugRaceTests.cs` | Why app checks can't prevent races |
+| 10 | EF Core: DbContext, change tracking, configuration, value converters, shadow properties, interceptors, migrations | The persistence adapter | `AppDbContext.cs`, `CentreConfiguration.cs`, `TimestampInterceptor.cs` | When SQL is generated; what the snapshot is |
+| 11 | Structured logging (Serilog), correlation, redaction | Observability conventions | `Program.cs`, `SensitiveDataDestructuringPolicy.cs` | Template vs interpolation; `LogContext` |
+| 12 | Testing: xUnit, fakes, Testcontainers, `WebApplicationFactory`, architecture tests | How behaviour is pinned | `tests/*` | Which layer each test project owns and why |
+| 13 | Docker & Compose, CI/CD with GitHub Actions | Local DB and quality gates | `compose.yaml`, `ci.yml` | Env substitution, healthchecks, why CI checks migrations |
+| 14 | TypeScript (strict), React components/hooks | Frontend foundation | `StatusCard.tsx`, `tsconfig.app.json` | Props, state, re-render; discriminated unions and narrowing |
+| 15 | TanStack Query & Router; Vite proxy; MSW testing | Frontend data flow | `useReadiness.ts`, `main.tsx`, `vite.config.ts`, `StatusCard.test.tsx` | Query keys, cache, refetch; why a proxy avoids CORS |
+| 16 | Tailwind + shadcn/ui + cva | Styling approach | `components/ui/*`, `index.css` | How variants map to classes; logical vs physical CSS |
+| 17 | Authentication/authorization & multi-tenancy (not yet implemented) | The planned next layer; tests and comments reserve places for it | `Actor.cs`, `Dispatcher.cs` comments, `ITenantOwned.cs` | Where the actor must be set and where checks go (after validation, before BEGIN) |
+
+---
+
+# Appendix A. Frontend summary
 
 See [§6.17](#617-frontend-concepts-react-server-state-and-routing) for the full trace and `file-explanations/07-frontend.md` for every file. Highlights:
 - One feature (`status`), one route (`/`), five shadcn components, strict TypeScript, strict type-aware ESLint.
 - **Tooling check results:** tests 9/9, typecheck clean, lint 0 errors / 2 warnings.
 - **Gaps between docs and code:** `frontend/README.md` lists `i18next`, `app/ api/ features/ components/ui/ i18n/` structure and a generated OpenAPI client — only `features/` and `components/ui/` and a small `api/` exist; `index.html` title is still `frontend`; `public/icons.svg` (template sprite) is unreferenced in `src`; `src/lib/utils.ts` exists but components import `cn` from the `cn` package directly; MSW's `latestMigration` mock (`20261012_InitialPlatform`) differs from the real migration id (`20261002222404_InitialPlatform`) — harmless in tests but a sign the mock was written from the plan.
-
 ---
 
-# 13. Working on this repository
+# Appendix B. Working on this repository
 
-## 13.1 Run it
+## B.1 Run it
 ```bash
 cp .env.example .env            # set POSTGRES_PASSWORD
 docker compose up -d
@@ -993,7 +1334,7 @@ dotnet test ; (cd frontend && npm run test:ci)
 ```
 (From README; backend commands unverified here — no SDK in this sandbox.)
 
-## 13.2 How to add a use case (the pattern, derived from `CreateCentre`)
+## B.2 How to add a use case (the pattern, derived from `CreateCentre`)
 1. **Domain:** entity/rules returning `Result<T>` with `<feature>.<reason>` codes.
 2. **Application:** folder `Feature/Commands|Queries/UseCase/` with `Command|Query`, `Handler` (internal sealed, primary-constructor injection), `Result|Dto`, `Validator` (shape only). Add a port in `Feature/` if you need new persistence. No registration needed — scanning finds handler + validator.
 3. **Infrastructure:** implement the port; add an `IEntityTypeConfiguration<T>`; register the port in `AddInfrastructure`; `dotnet ef migrations add …` (commit migration, designer, snapshot).
@@ -1001,7 +1342,7 @@ dotnet test ; (cd frontend && npm run test:ci)
 5. **Tests:** domain unit, handler with fakes, dispatcher-through-real-DB test, HTTP convention test if new error codes.
 6. **Frontend:** add `features/<name>/{api.ts,use*.ts,*.tsx,*.test.tsx}`; add error-code strings to `errorMessages.ts`.
 
-## 13.3 Pitfalls found while reading
+## B.3 Pitfalls found while reading
 - Stale generated docs (`*.semantic.md`, "Domain is empty") — trust code and `docs/architecture/*`.
 - `ValidateOnStart` means an empty connection string stops the app from starting.
 - No HTTP path can create a centre; no code sets an actor for HTTP requests.
@@ -1010,7 +1351,7 @@ dotnet test ; (cd frontend && npm run test:ci)
 - `.claude/` is git-ignored; nothing there is documented.
 - Backend tests need Docker; I could not execute them here.
 
-## 13.4 Open questions I could not answer from the repository
+## B.4 Open questions I could not answer from the repository
 - Why UUIDv7, why a hand-written dispatcher rather than a library, why `cn`+`base-nova` shadcn style — not stated.
 - The authoritative build plan ("Day N / Month N / Task N.N") is referenced by comments but not included.
 - Whether `main` branch protection is actually enabled.
