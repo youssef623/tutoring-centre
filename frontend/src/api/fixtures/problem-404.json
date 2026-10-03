@@ -1,0 +1,8 @@
+{
+  "title": "The requested resource was not found.",
+  "status": 404,
+  "detail": "The requested route does not exist.",
+  "code": "route.not_found",
+  "traceId": "00-00000000000000000000000000000000-0000000000000000-00",
+  "correlationId": "00000000000000000000000000000000"
+}
