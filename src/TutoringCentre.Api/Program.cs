@@ -15,12 +15,17 @@ using TutoringCentre.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
-    .ReadFrom.Configuration(context.Configuration)
-    .ReadFrom.Services(services)
-    .Enrich.FromLogContext()
-    .Destructure.With<SensitiveDataDestructuringPolicy>()
-    .WriteTo.Console(new RenderedCompactJsonFormatter()));
+builder.Host.UseSerilog(
+    (context, services, loggerConfiguration) => loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .Destructure.With<SensitiveDataDestructuringPolicy>()
+        .WriteTo.Console(new RenderedCompactJsonFormatter()),
+    // Each host gets its own logger instead of overwriting the process-wide static Log.Logger: several
+    // WebApplicationFactory hosts (ApiFactory, ConventionsFactory) run concurrently in the test process,
+    // and without this the last host to start wins, silently dropping test-only sinks like InMemoryLogSink.
+    preserveStaticLogger: true);
 
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
