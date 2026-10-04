@@ -10,4 +10,11 @@ export const handlers = [
       databaseUpToDate: true,
     }),
   ),
+  // No session by default; tests that need a signed-in user override this with server.use(...).
+  http.get("/api/me", () =>
+    HttpResponse.json(
+      { title: "Unauthorized", status: 401 },
+      { status: 401 },
+    ),
+  ),
 ];

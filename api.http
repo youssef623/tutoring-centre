@@ -1,0 +1,62 @@
+### Manual walkthrough of the session API (Day 15).
+### Requires: `docker compose up -d`, the API running on http://localhost:5080, and the Day 13 staff
+### seeded (`dotnet run --project src/TutoringCentre.Api -- seed`, with Seed:Password configured).
+###
+### The password is never written here. Create a git-ignored `.env` file at the repo root containing:
+###   password=<the Seed:Password value you configured>
+### VS Code's REST Client extension reads it via {{$dotenv password}}; no secret is ever committed.
+
+@baseUrl = http://localhost:5080
+
+### 1. Log in as owner@nile.test — expect 200, Set-Cookie __Host-tcm.session, activeCentreId = nile-centre's id
+# @name loginOwner
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "owner@nile.test",
+  "password": "{{$dotenv password}}"
+}
+
+### 2. GET /api/me — expect 200, active centre nile-centre
+GET {{baseUrl}}/api/me
+
+### 3. Log in as teacher@both.test — expect 200, no active centre (two active memberships, no auto-select)
+# @name loginTeacher
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@both.test",
+  "password": "{{$dotenv password}}"
+}
+
+### 4. GET /api/me — expect 200, activeCentreId null, two memberships.
+### Copy the "maadi-hub" membership's centreId from the response body into @maadiHubCentreId below.
+GET {{baseUrl}}/api/me
+
+### 5. Select maadi-hub — expect 204
+@maadiHubCentreId = replace-with-the-centreId-from-step-4
+POST {{baseUrl}}/api/session/centre
+Content-Type: application/json
+
+{
+  "centreId": "{{maadiHubCentreId}}"
+}
+
+### 6. GET /api/me — expect 200, active centre maadi-hub
+GET {{baseUrl}}/api/me
+
+### 7. Select a random GUID — expect 403 tenant.no_membership; /api/me still shows maadi-hub afterwards
+POST {{baseUrl}}/api/session/centre
+Content-Type: application/json
+
+{
+  "centreId": "00000000-0000-0000-0000-000000000000"
+}
+
+### 8. Logout — expect 204
+POST {{baseUrl}}/api/auth/logout
+
+### 9. GET /api/me — expect 401
+GET {{baseUrl}}/api/me

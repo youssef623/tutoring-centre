@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using TutoringCentre.Api.Auth;
 using TutoringCentre.Api.Cli;
 using TutoringCentre.Api.Endpoints;
 using TutoringCentre.Api.Http;
@@ -43,6 +44,7 @@ builder.Host.UseSerilog(
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiProblemDetails();
+builder.Services.AddApiAuthentication();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -92,6 +94,10 @@ app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exce
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
+app.UseAuthentication();
+app.UseMiddleware<ActorMiddleware>();
+app.UseAuthorization();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -109,6 +115,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 
 var api = app.MapGroup("/api");
 api.MapPlatformEndpoints();
+api.MapAuthEndpoints();
 
 // Unknown /api/* routes answer with the uniform Problem Details 404. Non-API paths stay free for the SPA (Month 2).
 app.MapFallback("/api/{**path}", () => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
