@@ -32,6 +32,9 @@ jobs:
       - name: Build
         run: dotnet build TutoringCentre.slnx --no-restore -c Release
 
+      - name: OpenAPI document is up to date
+        run: git diff --exit-code -- frontend/openapi
+
       - name: Tool restore
         run: dotnet tool restore
 
@@ -67,6 +70,12 @@ jobs:
 
       - name: Install exactly the lock file
         run: npm ci
+
+      - name: Generated API client is up to date
+        working-directory: frontend
+        run: |
+          npm run generate:api
+          git diff --exit-code -- src/api/generated
 
       - name: Lint
         run: npm run lint
