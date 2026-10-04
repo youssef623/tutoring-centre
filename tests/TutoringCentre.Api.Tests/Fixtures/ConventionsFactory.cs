@@ -21,6 +21,7 @@ public sealed class ConventionsFactory : ApiFactory
             services.AddScoped<ICommandHandler<ConventionCommand, string>, ConventionCommandHandler>();
             services.AddScoped<ICommandHandler<TestNameCommand, string>, TestNameHandler>();
             services.AddScoped<IValidator<TestNameCommand>, TestNameValidator>();
+            services.AddScoped<IQueryHandler<CurrentActorQuery, CurrentActorDto>, CurrentActorQueryHandler>();
             services.AddSingleton<ILogEventSink>(Logs);
             services.AddSingleton<IStartupFilter, ConventionEndpointsStartupFilter>();
         });

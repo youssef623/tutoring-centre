@@ -1,11 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Api.Tests.Fixtures;
 
 internal sealed record ConventionCommand(string Kind) : ICommand<string>;
+
+/// <summary>Proves the actor set by ActorMiddleware actually reaches the Application layer (Day 16, Task 16.7).</summary>
+internal sealed record CurrentActorQuery : IQuery<CurrentActorDto>;
+
+internal sealed record CurrentActorDto(string Kind, Guid? UserId, Guid? CentreId, StaffRole? Role);
 
 internal sealed record TestNameCommand(string Name) : ICommand<string>;
 
@@ -54,4 +61,20 @@ internal sealed class TestNameHandler : ICommandHandler<TestNameCommand, string>
 internal sealed class TestNameValidator : AbstractValidator<TestNameCommand>
 {
     public TestNameValidator() => RuleFor(command => command.Name).NotEmpty();
+}
+
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class CurrentActorQueryHandler(ICurrentActor currentActor) : IQueryHandler<CurrentActorQuery, CurrentActorDto>
+{
+    public Task<Result<CurrentActorDto>> HandleAsync(CurrentActorQuery query, CancellationToken cancellationToken)
+    {
+        var dto = currentActor.Actor switch
+        {
+            StaffActor staff => new CurrentActorDto("Staff", staff.UserId, staff.CentreId, staff.Role),
+            SystemActor system => new CurrentActorDto("System", null, system.CentreId, null),
+            _ => new CurrentActorDto("Anonymous", null, null, null),
+        };
+
+        return Task.FromResult(Result<CurrentActorDto>.Success(dto));
+    }
 }

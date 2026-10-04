@@ -21,6 +21,13 @@ internal static class ConventionEndpoints
             (await dispatcher.SendAsync<TestNameCommand, string>(new TestNameCommand(body.Name), ct)).ToHttpResult(value => Results.Ok(value)));
 
         group.MapGet("/log-sensitive", LogSensitive);
+
+        group.MapGet("/actor", async (Dispatcher dispatcher, CancellationToken ct) =>
+            (await dispatcher.QueryAsync<CurrentActorQuery, CurrentActorDto>(new CurrentActorQuery(), ct)).ToHttpResult(dto => Results.Ok(dto)));
+
+        // Deliberately mapped outside the anonymous /api/test group, with no authorization attribute at all —
+        // proves the authorization fallback policy (Day 16, Task 16.5) protects a forgotten endpoint by default.
+        endpoints.MapGet("/api/test-default-protection", () => Results.Ok());
     }
 
     [SuppressMessage("Performance", "CA1848:Use the LoggerMessage delegates", Justification = "Test-only probe.")]
