@@ -45,13 +45,15 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    dotnet user-secrets set "ConnectionStrings:Postgres" "Host=localhost;Port=5432;Database=tutoring;Username=tutoring_dev;Password=<your password>" --project src/TutoringCentre.Api
    ```
 
-4. **Run the API** on http://localhost:5080
+4. **Run the API** on https://localhost:7197 (HTTPS: the session and antiforgery cookies are `Secure` + `__Host-`,
+   which a real browser only stores from an HTTPS origin)
 
    ```bash
-   dotnet run --project src/TutoringCentre.Api --launch-profile http
+   dotnet dev-certs https --trust   # once per machine
+   dotnet run --project src/TutoringCentre.Api --launch-profile https
    ```
 
-   Check: http://localhost:5080/health → `Healthy`; http://localhost:5080/health/ready → `Healthy` when the database is up.
+   Check: https://localhost:7197/health → `Healthy`; https://localhost:7197/health/ready → `Healthy` when the database is up.
 
 5. **Run the frontend** in a second terminal, then open http://localhost:5173
 

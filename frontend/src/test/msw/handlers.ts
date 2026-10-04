@@ -17,4 +17,7 @@ export const handlers = [
       { status: 401 },
     ),
   ),
+  // Every non-GET request fetches this first (apiFetch's CSRF handling); a fixed token keeps that invisible
+  // to tests that aren't about CSRF themselves.
+  http.get("/api/auth/antiforgery", () => HttpResponse.json({ token: "test-csrf-token" })),
 ];

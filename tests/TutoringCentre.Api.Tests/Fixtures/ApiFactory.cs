@@ -64,6 +64,15 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         return (T)(await command.ExecuteScalarAsync())!;
     }
 
+    /// <summary>Runs a non-query statement directly against the test database (e.g. revoking a membership out from under a live session).</summary>
+    public async Task ExecuteAsync(string sql)
+    {
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(sql, connection);
+        await command.ExecuteNonQueryAsync();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -71,6 +80,9 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Postgres", ConnectionString);
         builder.UseSetting("Seed:Password", TestSeedPassword);
+
+        // Zero: every test re-checks the session instead of racing a background cache window (Day 16).
+        builder.UseSetting("SessionValidation:CacheDuration", "00:00:00");
 
         // Development turns these on by default; Testing does not. Missing registrations must fail the tests.
         builder.UseDefaultServiceProvider(options =>

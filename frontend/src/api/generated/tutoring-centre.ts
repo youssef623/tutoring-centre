@@ -24,6 +24,10 @@ import type {
 } from '@tanstack/react-query';
 
 import { apiFetch } from '../apiFetch';
+export interface AntiforgeryTokenResponse {
+  token: string;
+}
+
 export type HttpValidationProblemDetailsErrors = {[key: string]: string[]};
 
 export interface HttpValidationProblemDetails {
@@ -204,6 +208,101 @@ export function useGetSystemInfo<TData = Awaited<ReturnType<typeof getSystemInfo
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSystemInfoQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAntiforgeryTokenUrl = () => {
+
+
+
+
+  return `/api/auth/antiforgery`
+}
+
+export const getAntiforgeryToken = async ( options?: Parameters<typeof apiFetch>[1]): Promise<AntiforgeryTokenResponse> => {
+
+  return apiFetch<AntiforgeryTokenResponse>(getGetAntiforgeryTokenUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAntiforgeryTokenQueryKey = () => {
+    return [
+    `/api/auth/antiforgery`
+    ] as const;
+    }
+
+
+export const getGetAntiforgeryTokenQueryOptions = <TData = Awaited<ReturnType<typeof getAntiforgeryToken>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAntiforgeryToken>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAntiforgeryTokenQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAntiforgeryToken>>> = ({ signal }) => getAntiforgeryToken({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAntiforgeryToken>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAntiforgeryTokenQueryResult = NonNullable<Awaited<ReturnType<typeof getAntiforgeryToken>>>
+export type GetAntiforgeryTokenQueryError = unknown
+
+
+export function useGetAntiforgeryToken<TData = Awaited<ReturnType<typeof getAntiforgeryToken>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAntiforgeryToken>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAntiforgeryToken>>,
+          TError,
+          Awaited<ReturnType<typeof getAntiforgeryToken>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAntiforgeryToken<TData = Awaited<ReturnType<typeof getAntiforgeryToken>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAntiforgeryToken>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAntiforgeryToken>>,
+          TError,
+          Awaited<ReturnType<typeof getAntiforgeryToken>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAntiforgeryToken<TData = Awaited<ReturnType<typeof getAntiforgeryToken>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAntiforgeryToken>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAntiforgeryToken<TData = Awaited<ReturnType<typeof getAntiforgeryToken>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAntiforgeryToken>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAntiforgeryTokenQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 
 namespace TutoringCentre.Api.Auth;
@@ -31,6 +32,7 @@ public static class AuthenticationSetup
 
                 options.Events = new CookieAuthenticationEvents
                 {
+                    OnValidatePrincipal = SessionRevalidationHandler.ValidateAsync,
                     OnRedirectToLogin = context =>
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -44,7 +46,14 @@ public static class AuthenticationSetup
                 };
             });
 
-        services.AddAuthorization();
+        // Fail-closed: a new endpoint is protected unless it explicitly opts out with .AllowAnonymous().
+        services.AddAuthorization(options =>
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build());
+
+        services.AddMemoryCache();
+        services.AddOptions<SessionValidationOptions>().BindConfiguration("SessionValidation");
 
         // Local key ring in Development (the framework default); persisted keys are Month 2.
         services.AddDataProtection().SetApplicationName("TutoringCentre");

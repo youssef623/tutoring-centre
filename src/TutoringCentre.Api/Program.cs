@@ -45,6 +45,8 @@ builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiProblemDetails();
 builder.Services.AddApiAuthentication();
+builder.Services.AddApiAntiforgery();
+builder.Services.AddLoginRateLimiting();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -97,29 +99,40 @@ app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseMiddleware<ActorMiddleware>();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    // Local tooling only; this endpoint never exists outside Development, so anonymous access here is harmless.
+    app.MapOpenApi().AllowAnonymous();
 }
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     Predicate = _ => false,
-});
+}).AllowAnonymous();
 
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
     Predicate = c => c.Tags.Contains("ready"),
-});
+}).AllowAnonymous();
 
-var api = app.MapGroup("/api");
+var api = app.MapGroup("/api").AddEndpointFilter<AntiforgeryEndpointFilter>();
 api.MapPlatformEndpoints();
 api.MapAuthEndpoints();
 
 // Unknown /api/* routes answer with the uniform Problem Details 404. Non-API paths stay free for the SPA (Month 2).
+// Anonymous: a signed-out caller probing an unknown route must see the same 404 as anyone else, not a 401.
 app.MapFallback("/api/{**path}", () => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
-    .ExcludeFromDescription();
+    .ExcludeFromDescription()
+    .AllowAnonymous();
+
+// Any other unmatched route (outside /api) gets the same anonymous 404 rather than first demanding a session —
+// the authorization fallback policy would otherwise turn "no endpoint matched" into 401. Replaced by the
+// SPA's static file serving (Month 2), which is anonymous for the same reason: the shell itself needs no session.
+app.MapFallback(() => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
+    .ExcludeFromDescription()
+    .AllowAnonymous();
 
 app.Run();
 return 0;

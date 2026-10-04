@@ -1,5 +1,11 @@
+import { getCsrfToken, refreshCsrfToken } from "./csrf";
 import type { ApiError, ErrorKind } from "./errors";
 import { isProblemDetails } from "./problemDetails";
+
+const CsrfHeaderName = "X-XSRF-TOKEN";
+
+// The token is bound to the signed-in user, so these three requests invalidate it when they succeed.
+const SessionChangingPaths = new Set(["/api/auth/login", "/api/auth/logout", "/api/session/centre"]);
 
 /**
  * What apiFetch throws. It extends Error (so lint's only-throw-error is satisfied) and implements ApiError,
@@ -95,11 +101,11 @@ async function readBody(response: Response): Promise<unknown> {
   }
 }
 
-/**
- * The only function that talks to the API. Network failure → ApiError(network.unreachable, status 0);
- * 204 → undefined; 2xx → parsed JSON; otherwise the body is mapped by toApiError and thrown as ApiRequestError.
- */
-export async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
+function isCsrfError(error: unknown): boolean {
+  return error instanceof ApiRequestError && error.status === 403 && error.code === "auth.csrf_invalid";
+}
+
+async function buildHeaders(init: RequestInit | undefined, attachCsrfToken: boolean): Promise<Headers> {
   const headers = new Headers(init?.headers);
   if (!headers.has("Accept")) {
     headers.set("Accept", "application/json");
@@ -107,7 +113,14 @@ export async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   if (init?.body !== undefined && init.body !== null && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
+  if (attachCsrfToken) {
+    headers.set(CsrfHeaderName, await getCsrfToken());
+  }
 
+  return headers;
+}
+
+async function sendOnce<T>(url: string, init: RequestInit | undefined, headers: Headers): Promise<T> {
   let response: Response;
   try {
     response = await fetch(url, { credentials: "same-origin", ...init, headers });
@@ -132,4 +145,35 @@ export async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   }
 
   throw new ApiRequestError(toApiError(body, response.status));
+}
+
+/**
+ * The only function that talks to the API. Network failure → ApiError(network.unreachable, status 0);
+ * 204 → undefined; 2xx → parsed JSON; otherwise the body is mapped by toApiError and thrown as ApiRequestError.
+ *
+ * Every non-GET/HEAD request carries X-XSRF-TOKEN. A 403 auth.csrf_invalid refreshes the token and retries the
+ * request exactly once (a stale token heals itself); a second failure is surfaced as-is, no further retry.
+ * A successful login, logout or centre selection refreshes the token, since it is bound to the signed-in user.
+ */
+export async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const isUnsafe = method !== "GET" && method !== "HEAD";
+
+  let result: T;
+  try {
+    result = await sendOnce<T>(url, init, await buildHeaders(init, isUnsafe));
+  } catch (error) {
+    if (!isUnsafe || !isCsrfError(error)) {
+      throw error;
+    }
+
+    await refreshCsrfToken();
+    result = await sendOnce<T>(url, init, await buildHeaders(init, isUnsafe));
+  }
+
+  if (isUnsafe && SessionChangingPaths.has(url)) {
+    void refreshCsrfToken();
+  }
+
+  return result;
 }

@@ -28,7 +28,8 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     {
         using var client = CreateSessionClient();
 
-        using var response = await client.PostAsJsonAsync(
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client,
             LoginUri,
             new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword });
 
@@ -50,7 +51,8 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     {
         using var client = CreateSessionClient();
 
-        using var response = await client.PostAsJsonAsync(
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client,
             LoginUri,
             new { email = "teacher@both.test", password = ApiFactory.TestSeedPassword });
 
@@ -66,7 +68,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         using var client = CreateSessionClient();
         var maadiHubCentreId = await LoginAsTeacherAndGetMaadiHubCentreIdAsync(client);
 
-        using var selectResponse = await client.PostAsJsonAsync(SelectCentreUri, new { centreId = maadiHubCentreId });
+        using var selectResponse = await AntiforgeryTestHelper.PostAsJsonAsync(client, SelectCentreUri, new { centreId = maadiHubCentreId });
         Assert.Equal(HttpStatusCode.NoContent, selectResponse.StatusCode);
 
         using var meResponse = await client.GetAsync(MeUri);
@@ -80,12 +82,12 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     {
         using var client = CreateSessionClient();
         var maadiHubCentreId = await LoginAsTeacherAndGetMaadiHubCentreIdAsync(client);
-        using (var firstSelect = await client.PostAsJsonAsync(SelectCentreUri, new { centreId = maadiHubCentreId }))
+        using (var firstSelect = await AntiforgeryTestHelper.PostAsJsonAsync(client, SelectCentreUri, new { centreId = maadiHubCentreId }))
         {
             Assert.Equal(HttpStatusCode.NoContent, firstSelect.StatusCode);
         }
 
-        using var forbidden = await client.PostAsJsonAsync(SelectCentreUri, new { centreId = Guid.Empty });
+        using var forbidden = await AntiforgeryTestHelper.PostAsJsonAsync(client, SelectCentreUri, new { centreId = Guid.Empty });
         var problem = await ReadJsonAsync(forbidden);
         Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
         Assert.Equal("tenant.no_membership", problem.RootElement.GetProperty("code").GetString());
@@ -99,12 +101,12 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     public async Task Logout_Returns204AndClearsTheCookie()
     {
         using var client = CreateSessionClient();
-        using (var login = await client.PostAsJsonAsync(LoginUri, new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword }))
+        using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(client, LoginUri, new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword }))
         {
             Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         }
 
-        using var logout = await client.PostAsync(LogoutUri, content: null);
+        using var logout = await AntiforgeryTestHelper.PostAsync(client, LogoutUri, null);
 
         Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
         var setCookie = Assert.Single(logout.Headers.GetValues("Set-Cookie"));
@@ -115,11 +117,11 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     public async Task GetMe_AfterLogout_Returns401()
     {
         using var client = CreateSessionClient();
-        using (var login = await client.PostAsJsonAsync(LoginUri, new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword }))
+        using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(client, LoginUri, new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword }))
         {
             Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         }
-        using (var logout = await client.PostAsync(LogoutUri, content: null))
+        using (var logout = await AntiforgeryTestHelper.PostAsync(client, LogoutUri, null))
         {
             Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
         }
@@ -135,7 +137,8 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
 
     private static async Task<Guid> LoginAsTeacherAndGetMaadiHubCentreIdAsync(HttpClient client)
     {
-        using var response = await client.PostAsJsonAsync(
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client,
             LoginUri,
             new { email = "teacher@both.test", password = ApiFactory.TestSeedPassword });
         var body = await ReadJsonAsync(response);
