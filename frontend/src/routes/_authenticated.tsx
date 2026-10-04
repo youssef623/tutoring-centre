@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/only-throw-error -- TanStack Router's documented redirect idiom:
  * `redirect()` returns a Response, which the router's own data loader catches, not an Error. */
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { AppShell } from "@/features/shell/AppShell";
 import { meQueryOptions } from "@/features/session/meQueryOptions";
+import { useSession } from "@/features/session/useSession";
 
 /**
  * Pathless layout: groups every protected page under one guard without adding a URL segment.
@@ -25,5 +27,16 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  return <Outlet />;
+  const { me } = useSession();
+
+  // The guard above already resolved a signed-in user with an active centre before this renders.
+  if (me === null) {
+    return null;
+  }
+
+  return (
+    <AppShell me={me}>
+      <Outlet />
+    </AppShell>
+  );
 }

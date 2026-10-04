@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -14,6 +15,7 @@ import { meQueryOptions } from "@/features/session/meQueryOptions";
 import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export interface LoginSearch {
   redirect?: string;
@@ -85,67 +87,77 @@ function LoginPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center bg-muted/40 p-6">
       <div className="w-full max-w-sm space-y-4">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            {t("login.brand")}
+          </span>
           <LanguageSwitcher />
         </div>
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-semibold">{t("login.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
-        </div>
-        {banner !== null && (
-          <Alert variant="destructive">
-            <AlertDescription>{banner}</AlertDescription>
-          </Alert>
-        )}
-        <form
-          className="space-y-3"
-          onSubmit={(event) => {
-            void onSubmit(event);
-          }}
-          noValidate
-        >
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="email">
-              {t("login.emailLabel")}
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive"
-              aria-invalid={errors.email !== undefined}
-              {...register("email")}
-            />
-            {errors.email !== undefined && (
-              <p className="text-sm text-destructive">
-                {errors.email.type === "server" ? errors.email.message : t(errors.email.message ?? "")}
-              </p>
+        <Card className="shadow-sm">
+          <CardContent className="space-y-5">
+            <div className="space-y-1 text-center">
+              <h1 className="text-2xl font-semibold tracking-tight">{t("login.title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
+            </div>
+            {banner !== null && (
+              <Alert variant="destructive">
+                <AlertDescription>{banner}</AlertDescription>
+              </Alert>
             )}
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="password">
-              {t("login.passwordLabel")}
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive"
-              aria-invalid={errors.password !== undefined}
-              {...register("password")}
-            />
-            {errors.password !== undefined && (
-              <p className="text-sm text-destructive">
-                {errors.password.type === "server" ? errors.password.message : t(errors.password.message ?? "")}
-              </p>
-            )}
-          </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? t("login.submitting") : t("login.submit")}
-          </Button>
-        </form>
+            <form
+              className="space-y-4"
+              onSubmit={(event) => {
+                void onSubmit(event);
+              }}
+              noValidate
+            >
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium" htmlFor="email">
+                  {t("login.emailLabel")}
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  disabled={isSubmitting}
+                  className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
+                  aria-invalid={errors.email !== undefined}
+                  {...register("email")}
+                />
+                {errors.email !== undefined && (
+                  <p className="text-sm text-destructive">
+                    {errors.email.type === "server" ? errors.email.message : t(errors.email.message ?? "")}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium" htmlFor="password">
+                  {t("login.passwordLabel")}
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  disabled={isSubmitting}
+                  className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
+                  aria-invalid={errors.password !== undefined}
+                  {...register("password")}
+                />
+                {errors.password !== undefined && (
+                  <p className="text-sm text-destructive">
+                    {errors.password.type === "server" ? errors.password.message : t(errors.password.message ?? "")}
+                  </p>
+                )}
+              </div>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="animate-spin" aria-hidden="true" />}
+                {isSubmitting ? t("login.submitting") : t("login.submit")}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
