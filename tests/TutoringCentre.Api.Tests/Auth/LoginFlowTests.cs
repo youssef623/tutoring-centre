@@ -63,6 +63,31 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Login_WhileAlreadySignedIn_ReplacesTheSessionWithTheNewIdentity()
+    {
+        // A request carrying a valid session cookie arrives already authenticated (ActorMiddleware sets the
+        // actor from it); logging in again must supersede that actor, not collide with it.
+        using var client = CreateSessionClient();
+        using (var firstLogin = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword }))
+        {
+            Assert.Equal(HttpStatusCode.OK, firstLogin.StatusCode);
+        }
+
+        using var secondLogin = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "teacher@both.test", password = ApiFactory.TestSeedPassword });
+
+        Assert.Equal(HttpStatusCode.OK, secondLogin.StatusCode);
+        var body = await ReadJsonAsync(secondLogin);
+        Assert.Equal(JsonValueKind.Null, body.RootElement.GetProperty("activeCentreId").ValueKind);
+        Assert.Equal(2, body.RootElement.GetProperty("memberships").GetArrayLength());
+
+        using var meResponse = await client.GetAsync(MeUri);
+        var me = await ReadJsonAsync(meResponse);
+        Assert.Equal("teacher@both.test", me.RootElement.GetProperty("email").GetString());
+    }
+
+    [Fact]
     public async Task SelectCentre_ForAMembershipTheUserHolds_Returns204AndActivatesIt()
     {
         using var client = CreateSessionClient();

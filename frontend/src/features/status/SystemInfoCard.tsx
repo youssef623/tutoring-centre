@@ -59,9 +59,13 @@ export function SystemInfoCard() {
       <CardContent>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted-foreground">{t("systemInfo.applicationVersion")}</dt>
-          <dd>{data.applicationVersion}</dd>
+          <dd dir="ltr" className="text-start">
+            {data.applicationVersion}
+          </dd>
           <dt className="text-muted-foreground">{t("systemInfo.latestMigration")}</dt>
-          <dd>{data.latestMigration ?? t("systemInfo.none")}</dd>
+          <dd dir="ltr" className="text-start">
+            {data.latestMigration ?? t("systemInfo.none")}
+          </dd>
         </dl>
       </CardContent>
     </Card>

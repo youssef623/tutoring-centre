@@ -1,0 +1,19 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "header": {
+    "activeCentre": "Active centre"
+  },
+  "userMenu": {
+    "switchCentre": "Switch centre",
+    "logout": "Log out"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "activeCentre": "You are working in {centreName}.",
+    "placeholder": "More tools for running your centre are on their way."
+  }
+}

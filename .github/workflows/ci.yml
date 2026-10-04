@@ -83,6 +83,9 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      - name: Translation keys match (en/ar)
+        run: npm run i18n:check
+
       - name: Test
         run: npm run test:ci
 
