@@ -31,4 +31,5 @@ public sealed record Error(
     public static Error Conflict(string code, string message) => new(code, message, ErrorKind.Conflict);
     public static Error Rule(string code, string message) => new(code, message, ErrorKind.Rule);
     public static Error Forbidden(string code, string message) => new(code, message, ErrorKind.Forbidden);
+    public static Error Unauthenticated(string code, string message) => new(code, message, ErrorKind.Unauthenticated);
 }

@@ -2,7 +2,14 @@
  * Mirrors the backend's ErrorKind (src/TutoringCentre.Domain/Common/ErrorKind.cs), plus "unexpected"
  * for failures with no business meaning (500s, network errors, unparseable responses).
  */
-export type ErrorKind = "validation" | "notFound" | "conflict" | "rule" | "forbidden" | "unexpected";
+export type ErrorKind =
+  | "validation"
+  | "notFound"
+  | "conflict"
+  | "rule"
+  | "forbidden"
+  | "unauthenticated"
+  | "unexpected";
 
 /** The single error shape every failed API call is turned into (produced by the fetch wrapper from Day 12). */
 export interface ApiError {

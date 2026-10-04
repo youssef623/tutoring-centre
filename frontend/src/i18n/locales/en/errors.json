@@ -18,6 +18,7 @@
     "conflict": "This conflicts with existing data.",
     "rule": "This action is not allowed right now.",
     "forbidden": "You do not have permission to do this.",
+    "unauthenticated": "Please sign in to continue.",
     "unexpected": "Something went wrong. Please try again."
   },
   "generic": "Something went wrong. Please try again."

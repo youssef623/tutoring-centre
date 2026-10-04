@@ -1,3 +1,7 @@
 {
-  "retry": "Retry"
+  "retry": "Retry",
+  "language": {
+    "arabic": "العربية",
+    "english": "English"
+  }
 }
