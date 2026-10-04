@@ -17,43 +17,58 @@ function isLoginMutation(mutationKey: readonly unknown[] | undefined): boolean {
 }
 
 /**
- * A session can end server-side at any time (Day 16 revocation, rate limiting aside), so any request —
- * not just the one on page load — can come back unauthenticated. The login mutation and the "me" query
- * handle a 401 themselves (the session query by resolving it to `null`, never throwing) and are excluded.
+ * Builds a query client wired the same way the app's own instance is: a session can end server-side at any
+ * time (Day 16 revocation, rate limiting aside), so any request — not just the one on page load — can come
+ * back unauthenticated. The login mutation and the "me" query handle a 401 themselves (the session query by
+ * resolving it to `null`, never throwing) and are excluded.
+ *
+ * A factory, not just the one exported instance below, so tests can get a fresh client with the real
+ * session-expiry wiring instead of a reimplementation of it.
  */
-function handleSessionExpiry(error: unknown): void {
-  if (asApiError(error).kind !== "unauthenticated") {
-    return;
+export function createAppQueryClient(): QueryClient {
+  // Holds the client once built, so the error handlers below (defined before it exists) can reach it.
+  // A property on a const ref, not a reassigned `let`: the handlers never run until after it is set.
+  const self: { client: QueryClient | null } = { client: null };
+
+  function handleSessionExpiry(error: unknown): void {
+    if (asApiError(error).kind !== "unauthenticated") {
+      return;
+    }
+
+    if (window.location.pathname === "/login") {
+      return;
+    }
+
+    self.client?.clear();
+    loginRedirect?.(window.location.pathname + window.location.search);
   }
 
-  if (window.location.pathname === "/login") {
-    return;
-  }
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1, // one retry hides a blip without delaying a real failure for long
+        staleTime: 30_000, // data is fresh for 30 s, so remounting a screen doesn't refetch immediately
+      },
+    },
+    queryCache: new QueryCache({
+      onError: (error) => {
+        handleSessionExpiry(error);
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error, _variables, _context, mutation) => {
+        if (isLoginMutation(mutation.options.mutationKey)) {
+          return;
+        }
 
-  queryClient.clear();
-  loginRedirect?.(window.location.pathname + window.location.search);
+        handleSessionExpiry(error);
+      },
+    }),
+  });
+
+  self.client = client;
+  return client;
 }
 
 /** Shared defaults for every query in the app. */
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1, // one retry hides a blip without delaying a real failure for long
-      staleTime: 30_000, // data is fresh for 30 s, so remounting a screen doesn't refetch immediately
-    },
-  },
-  queryCache: new QueryCache({
-    onError: (error) => {
-      handleSessionExpiry(error);
-    },
-  }),
-  mutationCache: new MutationCache({
-    onError: (error, _variables, _context, mutation) => {
-      if (isLoginMutation(mutation.options.mutationKey)) {
-        return;
-      }
-
-      handleSessionExpiry(error);
-    },
-  }),
-});
+export const queryClient = createAppQueryClient();

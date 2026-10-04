@@ -13,7 +13,8 @@ const apiTarget = "https://localhost:7197";
 export default defineConfig({
   plugins: [
     // Must come before the React plugin (TanStack Router docs).
-    tanstackRouter({ target: "react", autoCodeSplitting: true }),
+    // Component tests live beside the routes they cover (e.g. routes/login.test.tsx); they are not routes.
+    tanstackRouter({ target: "react", autoCodeSplitting: true, routeFileIgnorePattern: "\\.test\\.tsx$" }),
     react(),
     tailwindcss(),
   ],
