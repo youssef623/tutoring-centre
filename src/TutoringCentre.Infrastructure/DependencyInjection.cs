@@ -6,6 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Identity;
 using TutoringCentre.Application.Platform;
 using TutoringCentre.Infrastructure.Identity;
@@ -80,11 +81,26 @@ public static class DependencyInjection
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
 
-        // Minimal Identity wiring so UserManager<ApplicationUser> can hash passwords and read/write users for the
-        // development seeder. No role store (there are no role tables), no cookie/sign-in services here: those are
-        // Task 14.10 and Day 15, driven by real options rather than Identity's bare defaults.
-        services.AddIdentityCore<ApplicationUser>().AddEntityFrameworkStores<AppDbContext>();
+        // Identity core only: no SignInManager, no Identity UI, no role services (there are no role tables —
+        // a role belongs to a user in a centre, not globally). Cookie/sign-in wiring is Day 15.
+        services.AddIdentityCore<ApplicationUser>(options =>
+            {
+                // Modern guidance favours password length over composition rules.
+                options.Password.RequiredLength = 10;
+                options.Password.RequireDigit = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.AllowedForNewUsers = true;
+
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<AppDbContext>();
         services.AddScoped<DevelopmentIdentitySeeder>();
+        services.AddScoped<IAuthenticationService, IdentityAuthenticationService>();
 
         return services;
     }
