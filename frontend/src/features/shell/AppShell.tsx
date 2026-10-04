@@ -64,12 +64,12 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
                 <MenuIcon className="size-5" aria-hidden="true" />
               </Dialog.Trigger>
               {activeCentre !== undefined && (
-                <>
+                <div aria-label={tShell("header.activeCentre")} className="flex items-center gap-2">
                   <span dir="auto" className="font-medium">
                     {activeCentre.centreName}
                   </span>
                   <Badge variant="secondary">{tAuth(`roles.${String(activeCentre.role)}`)}</Badge>
-                </>
+                </div>
               )}
             </div>
             <UserMenu me={me} />

@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ci": "vitest --run",
-    "generate:api": "orval --config ./orval.config.ts"
+    "generate:api": "orval --config ./orval.config.ts",
+    "i18n:check": "node scripts/check-i18n-keys.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
