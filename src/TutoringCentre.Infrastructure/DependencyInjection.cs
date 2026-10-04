@@ -6,6 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Application.Identity;
 using TutoringCentre.Application.Platform;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
@@ -77,6 +78,7 @@ public static class DependencyInjection
         services.AddScoped<ICentreRepository, CentreRepository>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
+        services.AddScoped<IMembershipReadService, MembershipReadService>();
 
         // Minimal Identity wiring so UserManager<ApplicationUser> can hash passwords and read/write users for the
         // development seeder. No role store (there are no role tables), no cookie/sign-in services here: those are

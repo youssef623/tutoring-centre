@@ -24,6 +24,7 @@ Validation failures also carry `errors`: a field name (camelCase) → message li
 | `Conflict` | 409 | duplicate slug |
 | `Rule` | 422 | business rule says no |
 | `Forbidden` | 403 | caller not allowed |
+| `Unauthenticated` | 401 | caller's identity is unknown (Day 14) |
 
 A successful `Result` (non-generic) maps to `204 No Content`; a successful `Result<T>` is handed to the caller-supplied `onSuccess` function (usually `Results.Ok(value)`).
 

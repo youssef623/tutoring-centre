@@ -32,6 +32,8 @@ function kindFromStatus(status: number): ErrorKind {
   switch (status) {
     case 400:
       return "validation";
+    case 401:
+      return "unauthenticated";
     case 403:
       return "forbidden";
     case 404:

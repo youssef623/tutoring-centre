@@ -102,6 +102,7 @@ describe("toApiError", () => {
 
   it.each([
     [400, "validation"],
+    [401, "unauthenticated"],
     [403, "forbidden"],
     [404, "notFound"],
     [409, "conflict"],
