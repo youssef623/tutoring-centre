@@ -7,7 +7,7 @@ import { routeTree } from "./routeTree.gen";
 import "./i18n";
 import "./index.css";
 
-const router = createRouter({ routeTree });
+const router = createRouter({ routeTree, context: { queryClient } });
 
 // Registers the router type so links and navigation are type-checked everywhere.
 declare module "@tanstack/react-router" {
