@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using TutoringCentre.Api.Auth;
 using TutoringCentre.Api.Cli;
 using TutoringCentre.Api.Endpoints;
 using TutoringCentre.Api.Http;
@@ -43,6 +44,7 @@ builder.Host.UseSerilog(
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiProblemDetails();
+builder.Services.AddApiAuthentication();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -91,6 +93,10 @@ app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exce
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+
+app.UseAuthentication();
+app.UseMiddleware<ActorMiddleware>();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
