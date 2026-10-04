@@ -16,7 +16,7 @@ namespace TutoringCentre.Api.Tests.Fixtures;
 public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     // A throwaway value for the seed tests; never the real development or any production password.
-    private const string TestSeedPassword = "Test-Only-Seed-Password-1!";
+    internal const string TestSeedPassword = "Test-Only-Seed-Password-1!";
 
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17").Build();
     private Respawner? _respawner;
