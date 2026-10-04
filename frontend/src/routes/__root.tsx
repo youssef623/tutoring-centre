@@ -1,4 +1,5 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createRootRoute({
@@ -9,6 +10,9 @@ function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <main className="mx-auto w-full max-w-3xl p-6">
+        <div className="mb-4 flex justify-end">
+          <LanguageSwitcher />
+        </div>
         <Outlet />
       </main>
       {/* One toaster for the whole app; Day 12's error utilities show API failures here. */}
