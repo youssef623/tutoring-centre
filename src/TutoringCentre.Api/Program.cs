@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -14,6 +15,18 @@ using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Build-time OpenAPI generation (Microsoft.Extensions.ApiDescription.Server) runs this entry point inside GetDocument.Insider.
+// Startup side effects must not run there, but every endpoint must still be registered or the document comes out empty.
+var isDocumentGeneration = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+if (isDocumentGeneration)
+{
+    // Satisfies fail-fast options validation without a real database; nothing connects during generation.
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["ConnectionStrings:Postgres"] = "Host=localhost;Database=openapi_generation",
+    });
+}
 
 builder.Host.UseSerilog(
     (context, services, loggerConfiguration) => loggerConfiguration
@@ -42,6 +55,14 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // Throwing in every environment lets GlobalExceptionHandler return the uniform `request.malformed` Problem Details (discrepancy D10).
 builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 
+builder.Services.AddOpenApi(options =>
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        // Identical document on every machine and in CI: no host-specific server URLs, so the staleness check is reliable.
+        document.Servers = [];
+        return Task.CompletedTask;
+    }));
+
 var app = builder.Build();
 
 // CLI mode: `dotnet run --project src/TutoringCentre.Api -- seed`
@@ -53,7 +74,7 @@ if (args is ["seed"])
 
 // Development convenience only. Production migrations run from the deployment pipeline (Month 2), never at app startup:
 // auto-migrating there is risky (several instances racing, no review, long locks).
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() && !isDocumentGeneration)
 {
     await app.Services.ApplyMigrationsAsync();
 }
@@ -70,6 +91,11 @@ app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exce
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {

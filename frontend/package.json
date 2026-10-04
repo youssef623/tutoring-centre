@@ -11,7 +11,8 @@
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ci": "vitest --run"
+    "test:ci": "vitest --run",
+    "generate:api": "orval --config ./orval.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -46,6 +47,7 @@
     "globals": "^17.12.0",
     "jsdom": "^30.1.1",
     "msw": "^2.15.0",
+    "orval": "^8.39.0",
     "prettier": "^3.9.9",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.69.0",
