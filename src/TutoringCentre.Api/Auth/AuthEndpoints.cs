@@ -40,23 +40,22 @@ public static class AuthEndpoints
         // A bare (HttpContext) => ... lambda here is ambiguous between the Delegate-based MapPost overload (which
         // returns RouteHandlerBuilder, needed for .Produces below) and the low-level RequestDelegate one; the
         // explicit cast forces the former.
+        // No .RequireAuthorization() here: the authorization fallback policy (AuthenticationSetup) already
+        // requires an authenticated user by default (docs/architecture/api-conventions.md).
         api.MapPost("/auth/logout", (Delegate)(Func<HttpContext, Task<IResult>>)(httpContext => LogoutAsync(httpContext)))
             .WithName("Logout")
             .Produces(StatusCodes.Status204NoContent)
-            .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .RequireAuthorization();
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         api.MapGet("/me", GetMeAsync)
             .WithName("GetMe")
             .Produces<MeDto>()
-            .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .RequireAuthorization();
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         api.MapPost("/session/centre", SelectCentreAsync)
             .WithName("SelectCentre")
             .Produces(StatusCodes.Status204NoContent)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
-            .RequireAuthorization();
+            .ProducesProblem(StatusCodes.Status403Forbidden);
 
         return api;
     }

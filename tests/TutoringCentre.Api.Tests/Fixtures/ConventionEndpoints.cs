@@ -11,7 +11,8 @@ internal static class ConventionEndpoints
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        var group = endpoints.MapGroup("/api/test");
+        // These endpoints test HTTP/Problem Details conventions unrelated to authentication.
+        var group = endpoints.MapGroup("/api/test").AllowAnonymous();
 
         group.MapGet("/{kind}", async (string kind, Dispatcher dispatcher, CancellationToken ct) =>
             (await dispatcher.SendAsync<ConventionCommand, string>(new ConventionCommand(kind), ct)).ToHttpResult(value => Results.Ok(value)));

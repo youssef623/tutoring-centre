@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 
 namespace TutoringCentre.Api.Auth;
@@ -45,7 +46,11 @@ public static class AuthenticationSetup
                 };
             });
 
-        services.AddAuthorization();
+        // Fail-closed: a new endpoint is protected unless it explicitly opts out with .AllowAnonymous().
+        services.AddAuthorization(options =>
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build());
 
         services.AddMemoryCache();
         services.AddOptions<SessionValidationOptions>().BindConfiguration("SessionValidation");
