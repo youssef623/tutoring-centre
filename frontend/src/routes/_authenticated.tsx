@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/only-throw-error -- TanStack Router's documented redirect idiom:
+ * `redirect()` returns a Response, which the router's own data loader catches, not an Error. */
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { meQueryOptions } from "@/features/session/meQueryOptions";
 
@@ -9,7 +11,7 @@ import { meQueryOptions } from "@/features/session/meQueryOptions";
  */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ context, location }) => {
-    const me = await context.queryClient.ensureQueryData(meQueryOptions);
+    const me = await context.queryClient.query({ ...meQueryOptions, staleTime: "static" });
 
     if (me === null) {
       throw redirect({ to: "/login", search: { redirect: location.href } });
