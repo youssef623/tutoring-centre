@@ -1,0 +1,24 @@
+{
+  "byCode": {
+    "validation": {
+      "failed": "Some fields are invalid. Please check the form."
+    },
+    "centre": {
+      "name_required": "Centre name is required.",
+      "name_too_long": "Centre name must be at most 120 characters.",
+      "slug_invalid": "The web address may only contain lowercase letters, digits and single hyphens.",
+      "time_zone_invalid": "The time zone is not recognised.",
+      "slug_taken": "A centre with this web address already exists.",
+      "create_forbidden": "Only the platform can create centres."
+    }
+  },
+  "byKind": {
+    "validation": "Please check the highlighted fields.",
+    "notFound": "We could not find what you asked for.",
+    "conflict": "This conflicts with existing data.",
+    "rule": "This action is not allowed right now.",
+    "forbidden": "You do not have permission to do this.",
+    "unexpected": "Something went wrong. Please try again."
+  },
+  "generic": "Something went wrong. Please try again."
+}

@@ -1,13 +1,13 @@
 import { toast } from "sonner";
-import { messageFor, type Lang } from "./errorMessages";
+import { messageFor } from "./errorMessages";
 import type { ApiError } from "./errors";
 
 /** Shows a toast with the translated message; the correlation reference lets a user report an error that can be found in the logs. */
-export function showApiError(error: ApiError, lang: Lang): void {
+export function showApiError(error: ApiError): void {
   const options =
     error.correlationId === undefined ? {} : { description: `Reference: ${error.correlationId}` };
 
-  toast.error(messageFor(error, lang), options);
+  toast.error(messageFor(error), options);
 }
 
 /**

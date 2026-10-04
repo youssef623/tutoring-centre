@@ -21,7 +21,7 @@ describe("showApiError", () => {
     };
 
     // Act
-    showApiError(error, "en");
+    showApiError(error);
 
     // Assert
     expect(toastError).toHaveBeenCalledWith("This conflicts with existing data.", {
@@ -34,7 +34,7 @@ describe("showApiError", () => {
     const error: ApiError = { kind: "unexpected", code: "x", message: "x", status: 500 };
 
     // Act
-    showApiError(error, "en");
+    showApiError(error);
 
     // Assert
     expect(toastError).toHaveBeenCalledWith("Something went wrong. Please try again.", {});

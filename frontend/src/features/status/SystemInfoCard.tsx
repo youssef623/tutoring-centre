@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { messageFor } from "@/api/errorMessages";
 import { asApiError } from "@/api/apiFetch";
 import { useGetSystemInfo } from "@/api/generated/tutoring-centre";
@@ -9,10 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /** Version and migration status from GET /api/system/info through the generated client. */
 export function SystemInfoCard() {
+  const { t } = useTranslation("status");
+  const { t: tCommon } = useTranslation("common");
   const { data, error, isPending, refetch } = useGetSystemInfo();
 
   if (isPending) {
-    return <Skeleton aria-label="Loading system information" className="h-28 w-full" />;
+    return <Skeleton aria-label={t("systemInfo.loading")} className="h-28 w-full" />;
   }
 
   if (error) {
@@ -20,10 +23,12 @@ export function SystemInfoCard() {
 
     return (
       <Alert variant="destructive">
-        <AlertTitle>System information is unavailable</AlertTitle>
+        <AlertTitle>{t("systemInfo.unavailableTitle")}</AlertTitle>
         <AlertDescription className="flex flex-col gap-2">
-          <p>{messageFor(apiError, "en")}</p>
-          {apiError.correlationId !== undefined && <p>Reference: {apiError.correlationId}</p>}
+          <p>{messageFor(apiError)}</p>
+          {apiError.correlationId !== undefined && (
+            <p>{t("systemInfo.reference", { id: apiError.correlationId })}</p>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -32,7 +37,7 @@ export function SystemInfoCard() {
               void refetch();
             }}
           >
-            Retry
+            {tCommon("retry")}
           </Button>
         </AlertDescription>
       </Alert>
@@ -43,20 +48,20 @@ export function SystemInfoCard() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
-          System information
+          {t("systemInfo.title")}
           {data.databaseUpToDate ? (
-            <Badge>Database schema up to date</Badge>
+            <Badge>{t("systemInfo.schemaUpToDate")}</Badge>
           ) : (
-            <Badge variant="destructive">Migrations pending</Badge>
+            <Badge variant="destructive">{t("systemInfo.migrationsPending")}</Badge>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-muted-foreground">Application version</dt>
+          <dt className="text-muted-foreground">{t("systemInfo.applicationVersion")}</dt>
           <dd>{data.applicationVersion}</dd>
-          <dt className="text-muted-foreground">Latest migration</dt>
-          <dd>{data.latestMigration ?? "none"}</dd>
+          <dt className="text-muted-foreground">{t("systemInfo.latestMigration")}</dt>
+          <dd>{data.latestMigration ?? t("systemInfo.none")}</dd>
         </dl>
       </CardContent>
     </Card>

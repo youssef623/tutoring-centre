@@ -1,0 +1,23 @@
+{
+  "readiness": {
+    "checking": "جارٍ التحقق من حالة واجهة البرمجة",
+    "unreachableTitle": "تعذر الوصول إلى واجهة البرمجة",
+    "unreachableBody": "لم تستجب واجهة البرمجة. تأكد من أنها تعمل، ثم حاول مرة أخرى.",
+    "databaseUnavailableTitle": "واجهة البرمجة تعمل لكن قاعدة البيانات غير متاحة",
+    "databaseUnavailableBody": "شغّل PostgreSQL، ثم حاول مرة أخرى.",
+    "healthyTitle": "سليم",
+    "healthyDescription": "واجهة البرمجة وقاعدة البيانات متاحتان",
+    "lastCheckedAt": "آخر فحص في {time}"
+  },
+  "systemInfo": {
+    "loading": "جارٍ تحميل معلومات النظام",
+    "unavailableTitle": "معلومات النظام غير متاحة",
+    "reference": "المرجع: {id}",
+    "title": "معلومات النظام",
+    "schemaUpToDate": "مخطط قاعدة البيانات محدّث",
+    "migrationsPending": "هناك ترحيلات معلّقة",
+    "applicationVersion": "إصدار التطبيق",
+    "latestMigration": "آخر ترحيل",
+    "none": "لا يوجد"
+  }
+}
