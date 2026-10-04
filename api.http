@@ -1,17 +1,26 @@
-### Manual walkthrough of the session API (Day 15).
-### Requires: `docker compose up -d`, the API running on http://localhost:5080, and the Day 13 staff
-### seeded (`dotnet run --project src/TutoringCentre.Api -- seed`, with Seed:Password configured).
+### Manual walkthrough of the session API (Days 15-16: cookie auth, CSRF, session revalidation, rate limiting).
+### Requires: `docker compose up -d`, the API running on its "https" launch profile (the session and antiforgery
+### cookies are Secure + __Host-, which a real browser — and the antiforgery system itself — only accepts over
+### HTTPS), and staff seeded (`dotnet run --project src/TutoringCentre.Api -- seed`, with Seed:Password configured):
+###   dotnet dev-certs https --trust   (once per machine)
+###   dotnet run --project src/TutoringCentre.Api --launch-profile https
 ###
 ### The password is never written here. Create a git-ignored `.env` file at the repo root containing:
 ###   password=<the Seed:Password value you configured>
 ### VS Code's REST Client extension reads it via {{$dotenv password}}; no secret is ever committed.
 
-@baseUrl = http://localhost:5080
+@baseUrl = https://localhost:7197
+
+### 0. Fetch a CSRF token — expect 200, Cache-Control: no-store, and the __Host-tcm.xsrf cookie.
+### Every POST below sends it back as X-XSRF-TOKEN; re-run this step whenever a POST fails with 403 auth.csrf_invalid.
+# @name antiforgery
+GET {{baseUrl}}/api/auth/antiforgery
 
 ### 1. Log in as owner@nile.test — expect 200, Set-Cookie __Host-tcm.session, activeCentreId = nile-centre's id
 # @name loginOwner
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
 
 {
   "email": "owner@nile.test",
@@ -25,6 +34,7 @@ GET {{baseUrl}}/api/me
 # @name loginTeacher
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
 
 {
   "email": "teacher@both.test",
@@ -39,6 +49,7 @@ GET {{baseUrl}}/api/me
 @maadiHubCentreId = replace-with-the-centreId-from-step-4
 POST {{baseUrl}}/api/session/centre
 Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
 
 {
   "centreId": "{{maadiHubCentreId}}"
@@ -50,13 +61,21 @@ GET {{baseUrl}}/api/me
 ### 7. Select a random GUID — expect 403 tenant.no_membership; /api/me still shows maadi-hub afterwards
 POST {{baseUrl}}/api/session/centre
 Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
 
 {
   "centreId": "00000000-0000-0000-0000-000000000000"
 }
 
-### 8. Logout — expect 204
+### 8. Logout WITHOUT the CSRF header — expect 403 auth.csrf_invalid; the session still works afterwards
 POST {{baseUrl}}/api/auth/logout
 
-### 9. GET /api/me — expect 401
+### 8b. GET /api/me — expect 200 (step 8 had no side effects)
+GET {{baseUrl}}/api/me
+
+### 9. Logout, this time with the token — expect 204
+POST {{baseUrl}}/api/auth/logout
+X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
+
+### 10. GET /api/me — expect 401
 GET {{baseUrl}}/api/me

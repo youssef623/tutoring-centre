@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import problem400 from "./fixtures/problem-400.json";
 import problem404 from "./fixtures/problem-404.json";
 import { server } from "@/test/msw/server";
@@ -94,6 +94,96 @@ describe("apiFetch", () => {
 
     // Assert
     await expect(act).rejects.toMatchObject({ kind: "unexpected", code: "http.502", status: 502 });
+  });
+});
+
+describe("apiFetch CSRF handling", () => {
+  // The token cache (csrf.ts) is module-level state; a fresh module instance per test keeps call counts exact.
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("attaches X-XSRF-TOKEN on a non-GET request", async () => {
+    // Arrange
+    let seenHeader: string | null = null;
+    server.use(
+      http.post("*/api/things", ({ request }) => {
+        seenHeader = request.headers.get("X-XSRF-TOKEN");
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    const { apiFetch: freshApiFetch } = await import("./apiFetch");
+
+    // Act
+    await freshApiFetch("/api/things", { method: "POST" });
+
+    // Assert
+    expect(seenHeader).toBe("test-csrf-token");
+  });
+
+  it("does not attach X-XSRF-TOKEN on a GET request", async () => {
+    // Arrange
+    let sawHeader = false;
+    server.use(
+      http.get("*/api/things", ({ request }) => {
+        sawHeader = request.headers.has("X-XSRF-TOKEN");
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    const { apiFetch: freshApiFetch } = await import("./apiFetch");
+
+    // Act
+    await freshApiFetch("/api/things");
+
+    // Assert
+    expect(sawHeader).toBe(false);
+  });
+
+  it("refreshes the token and retries exactly once after a 403 auth.csrf_invalid, then succeeds", async () => {
+    // Arrange
+    let antiforgeryCalls = 0;
+    let postAttempts = 0;
+    server.use(
+      http.get("*/api/auth/antiforgery", () => {
+        antiforgeryCalls += 1;
+        return HttpResponse.json({ token: `token-${String(antiforgeryCalls)}` });
+      }),
+      http.post("*/api/things", ({ request }) => {
+        postAttempts += 1;
+        if (postAttempts === 1) {
+          return HttpResponse.json({ title: "Forbidden", status: 403, code: "auth.csrf_invalid" }, { status: 403 });
+        }
+        return HttpResponse.json({ receivedToken: request.headers.get("X-XSRF-TOKEN") });
+      }),
+    );
+    const { apiFetch: freshApiFetch } = await import("./apiFetch");
+
+    // Act
+    const result = await freshApiFetch<{ receivedToken: string }>("/api/things", { method: "POST" });
+
+    // Assert
+    expect(postAttempts).toBe(2);
+    expect(antiforgeryCalls).toBe(2);
+    expect(result.receivedToken).toBe("token-2");
+  });
+
+  it("surfaces the error when the retry also fails with auth.csrf_invalid, without retrying again", async () => {
+    // Arrange
+    let postAttempts = 0;
+    server.use(
+      http.post("*/api/things", () => {
+        postAttempts += 1;
+        return HttpResponse.json({ title: "Forbidden", status: 403, code: "auth.csrf_invalid" }, { status: 403 });
+      }),
+    );
+    const { apiFetch: freshApiFetch } = await import("./apiFetch");
+
+    // Act
+    const act = freshApiFetch("/api/things", { method: "POST" });
+
+    // Assert
+    await expect(act).rejects.toMatchObject({ status: 403, code: "auth.csrf_invalid" });
+    expect(postAttempts).toBe(2);
   });
 });
 
