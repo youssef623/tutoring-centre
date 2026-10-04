@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using TutoringCentre.Api.Http;
@@ -21,6 +22,11 @@ public static class AuthEndpoints
     public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder api)
     {
         ArgumentNullException.ThrowIfNull(api);
+
+        api.MapGet("/auth/antiforgery", GetAntiforgeryTokenAsync)
+            .WithName("GetAntiforgeryToken")
+            .Produces<AntiforgeryTokenResponse>()
+            .AllowAnonymous();
 
         api.MapPost("/auth/login", LoginAsync)
             .WithName("Login")
@@ -51,6 +57,16 @@ public static class AuthEndpoints
             .RequireAuthorization();
 
         return api;
+    }
+
+    private static IResult GetAntiforgeryTokenAsync(HttpContext httpContext, IAntiforgery antiforgery)
+    {
+        var tokens = antiforgery.GetAndStoreTokens(httpContext);
+
+        // Never cached: a stale token in a shared/browser cache would be reused across sessions.
+        httpContext.Response.Headers.CacheControl = "no-store";
+
+        return Results.Ok(new AntiforgeryTokenResponse(tokens.RequestToken!));
     }
 
     private static async Task<IResult> LoginAsync(

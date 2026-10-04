@@ -45,6 +45,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiProblemDetails();
 builder.Services.AddApiAuthentication();
+builder.Services.AddApiAntiforgery();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -113,7 +114,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = c => c.Tags.Contains("ready"),
 });
 
-var api = app.MapGroup("/api");
+var api = app.MapGroup("/api").AddEndpointFilter<AntiforgeryEndpointFilter>();
 api.MapPlatformEndpoints();
 api.MapAuthEndpoints();
 
