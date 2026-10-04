@@ -5,6 +5,7 @@ using TutoringCentre.Application.Centres.Commands.CreateCentre;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Centres;
+using TutoringCentre.Infrastructure.Identity;
 
 namespace TutoringCentre.Api.Cli;
 
@@ -55,6 +56,22 @@ public static class SeedCommand
             else
             {
                 logger.LogError("Seed: creating centre {Slug} failed with {ErrorCode}", centre.Slug, result.Error?.Code);
+                exitCode = 1;
+            }
+        }
+
+        await using (var scope = services.CreateAsyncScope())
+        {
+            var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentIdentitySeeder>();
+            var result = await seeder.SeedAsync(CancellationToken.None);
+
+            if (result.IsSuccess)
+            {
+                logger.LogInformation("Seed: staff accounts and memberships are up to date");
+            }
+            else
+            {
+                logger.LogError("Seed: seeding staff failed with {ErrorCode}", result.Error?.Code);
                 exitCode = 1;
             }
         }

@@ -15,6 +15,9 @@ namespace TutoringCentre.Api.Tests.Fixtures;
 /// </summary>
 public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    // A throwaway value for the seed tests; never the real development or any production password.
+    private const string TestSeedPassword = "Test-Only-Seed-Password-1!";
+
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17").Build();
     private Respawner? _respawner;
 
@@ -67,6 +70,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Postgres", ConnectionString);
+        builder.UseSetting("Seed:Password", TestSeedPassword);
 
         // Development turns these on by default; Testing does not. Missing registrations must fail the tests.
         builder.UseDefaultServiceProvider(options =>

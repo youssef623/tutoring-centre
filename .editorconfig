@@ -32,3 +32,9 @@ dotnet_sort_system_directives_first = true
 # by Microsoft as safe to disable for test code; production code keeps the rule.
 [tests/**/*.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+# EF Core generates these files verbatim from the model; a composite-column array literal in a
+# generated CreateIndex call trips CA1861 even though migrations run once, never in a hot path.
+# Never hand-edit this folder — if the SQL is wrong, fix the entity configuration and regenerate.
+[src/TutoringCentre.Infrastructure/Persistence/Migrations/*.cs]
+dotnet_diagnostic.CA1861.severity = none

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Platform;
+using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.ReadServices;
@@ -27,6 +29,11 @@ public static class DependencyInjection
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        // The host (WebApplicationBuilder) already registers this in production; registering it here too means
+        // services that need IConfiguration directly (the development seeder's Seed:Password lookup) also resolve
+        // in test harnesses that build a plain ServiceCollection instead of a full host.
+        services.AddSingleton(configuration);
 
         // Time: stateless and thread-safe, so one instance for the app.
         services.AddSingleton(TimeProvider.System);
@@ -70,6 +77,12 @@ public static class DependencyInjection
         services.AddScoped<ICentreRepository, CentreRepository>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
+
+        // Minimal Identity wiring so UserManager<ApplicationUser> can hash passwords and read/write users for the
+        // development seeder. No role store (there are no role tables), no cookie/sign-in services here: those are
+        // Task 14.10 and Day 15, driven by real options rather than Identity's bare defaults.
+        services.AddIdentityCore<ApplicationUser>().AddEntityFrameworkStores<AppDbContext>();
+        services.AddScoped<DevelopmentIdentitySeeder>();
 
         return services;
     }
