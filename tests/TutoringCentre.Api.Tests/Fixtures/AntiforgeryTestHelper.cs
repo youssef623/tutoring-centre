@@ -17,15 +17,24 @@ internal static class AntiforgeryTestHelper
         return body.RootElement.GetProperty("token").GetString()!;
     }
 
-    /// <summary>POSTs with a freshly fetched token attached. Pass <paramref name="content"/> null for a bodyless POST (e.g. logout).</summary>
-    public static async Task<HttpResponseMessage> PostAsync(HttpClient client, Uri uri, HttpContent? content)
+    /// <summary>
+    /// POSTs with a freshly fetched token attached. Pass <paramref name="content"/> null for a bodyless POST
+    /// (e.g. logout). Each call gets its own random rate-limit partition (see
+    /// <see cref="LoginRateLimiting.TestPartitionHeaderName"/>) unless <paramref name="rateLimitPartition"/> is
+    /// given explicitly — so ordinary tests never share a login rate-limit window with each other, and only a
+    /// test that deliberately wants to trigger the limit passes the same partition value on every call.
+    /// </summary>
+    public static async Task<HttpResponseMessage> PostAsync(
+        HttpClient client, Uri uri, HttpContent? content, string? rateLimitPartition = null)
     {
         var token = await GetCsrfTokenAsync(client);
         using var request = new HttpRequestMessage(HttpMethod.Post, uri) { Content = content };
         request.Headers.Add(AntiforgerySetup.HeaderName, token);
+        request.Headers.Add(LoginRateLimiting.TestPartitionHeaderName, rateLimitPartition ?? Guid.NewGuid().ToString());
         return await client.SendAsync(request);
     }
 
-    public static Task<HttpResponseMessage> PostAsJsonAsync<TValue>(HttpClient client, Uri uri, TValue value) =>
-        PostAsync(client, uri, JsonContent.Create(value));
+    public static Task<HttpResponseMessage> PostAsJsonAsync<TValue>(
+        HttpClient client, Uri uri, TValue value, string? rateLimitPartition = null) =>
+        PostAsync(client, uri, JsonContent.Create(value), rateLimitPartition);
 }

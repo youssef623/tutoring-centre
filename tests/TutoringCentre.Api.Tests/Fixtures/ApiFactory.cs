@@ -72,6 +72,9 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("ConnectionStrings:Postgres", ConnectionString);
         builder.UseSetting("Seed:Password", TestSeedPassword);
 
+        // Zero: every test re-checks the session instead of racing a background cache window (Day 16).
+        builder.UseSetting("SessionValidation:CacheDuration", "00:00:00");
+
         // Development turns these on by default; Testing does not. Missing registrations must fail the tests.
         builder.UseDefaultServiceProvider(options =>
         {

@@ -33,6 +33,8 @@ public static class AuthEndpoints
             .Produces<MeDto>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting(LoginRateLimiting.PolicyName)
             .AllowAnonymous();
 
         // A bare (HttpContext) => ... lambda here is ambiguous between the Delegate-based MapPost overload (which

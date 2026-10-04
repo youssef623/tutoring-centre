@@ -46,6 +46,7 @@ builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiProblemDetails();
 builder.Services.AddApiAuthentication();
 builder.Services.AddApiAntiforgery();
+builder.Services.AddLoginRateLimiting();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -98,6 +99,7 @@ app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseMiddleware<ActorMiddleware>();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {

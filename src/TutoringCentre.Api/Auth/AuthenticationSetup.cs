@@ -31,6 +31,7 @@ public static class AuthenticationSetup
 
                 options.Events = new CookieAuthenticationEvents
                 {
+                    OnValidatePrincipal = SessionRevalidationHandler.ValidateAsync,
                     OnRedirectToLogin = context =>
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -45,6 +46,9 @@ public static class AuthenticationSetup
             });
 
         services.AddAuthorization();
+
+        services.AddMemoryCache();
+        services.AddOptions<SessionValidationOptions>().BindConfiguration("SessionValidation");
 
         // Local key ring in Development (the framework default); persisted keys are Month 2.
         services.AddDataProtection().SetApplicationName("TutoringCentre");
