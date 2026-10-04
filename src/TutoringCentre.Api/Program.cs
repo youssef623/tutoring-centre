@@ -115,6 +115,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 
 var api = app.MapGroup("/api");
 api.MapPlatformEndpoints();
+api.MapAuthEndpoints();
 
 // Unknown /api/* routes answer with the uniform Problem Details 404. Non-API paths stay free for the SPA (Month 2).
 app.MapFallback("/api/{**path}", () => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
