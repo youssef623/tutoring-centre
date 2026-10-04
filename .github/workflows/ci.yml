@@ -91,3 +91,77 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: tutoring
+          POSTGRES_USER: tutoring_dev
+          # CI-only throwaway, not a real credential: the service container never leaves this job.
+          POSTGRES_PASSWORD: ci-only-throwaway-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tutoring_dev -d tutoring"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ConnectionStrings__Postgres: Host=localhost;Port=5432;Database=tutoring;Username=tutoring_dev;Password=ci-only-throwaway-password
+      # CI-only throwaway seed password, not a real credential: both names are read by different
+      # layers (.NET config via Seed__Password, the Playwright spec directly via SEED_PASSWORD).
+      Seed__Password: ci-only-throwaway-seed-password
+      SEED_PASSWORD: ci-only-throwaway-seed-password
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+
+      - name: Set up .NET from global.json
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Set up Node.js (LTS) with npm cache
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Tool restore
+        run: dotnet tool restore
+
+      # Kestrel auto-generates a development certificate on first HTTPS use, but generating it up
+      # front avoids any first-run race with the webServer Playwright starts below. No --trust: that
+      # needs an interactive OS keychain prompt, and it is not needed — the dev-server proxy already
+      # talks to the API with secure: false (Day 16), bypassing certificate validation, not trust.
+      - name: Generate the HTTPS development certificate
+        run: dotnet dev-certs https
+
+      - name: Seed the database (centres and staff)
+        run: dotnet run --project src/TutoringCentre.Api -- seed
+
+      - name: Install exactly the lock file
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Chromium with its system dependencies
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the E2E auth journeys
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7

@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Playwright (Day 18): reports, traces and the browser binaries it downloads
+playwright-report
+blob-report
+test-results
+/e2e/playwright/.cache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
