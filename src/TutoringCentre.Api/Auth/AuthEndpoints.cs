@@ -90,9 +90,11 @@ public static class AuthEndpoints
             return authResult.Error!.ToProblemResult();
         }
 
-        // The request is now authenticated as this user, with no centre yet — nothing else may Set the actor this scope.
+        // The request is now authenticated as this user, with no centre yet. A request that already carried a
+        // valid session arrives with ActorMiddleware having set the actor from the old cookie; the freshly
+        // verified identity must replace it, not collide with it.
         var authenticatedUser = authResult.Value;
-        currentActor.Set(new StaffActor(authenticatedUser.UserId, null, null));
+        currentActor.Reauthenticate(new StaffActor(authenticatedUser.UserId, null, null));
 
         var meResult = await dispatcher.QueryAsync<GetMyMembershipsQuery, MeDto>(new GetMyMembershipsQuery(), ct);
         if (meResult.IsFailure)
