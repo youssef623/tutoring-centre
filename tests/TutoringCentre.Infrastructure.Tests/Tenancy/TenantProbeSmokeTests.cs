@@ -30,7 +30,7 @@ public sealed class TenantProbeSmokeTests(PostgresFixture fixture, ITestOutputHe
     {
         var nileActor = new StaffActor(Guid.CreateVersion7(), NileCentreId, StaffRole.Teacher);
 
-        await using var probe = CreateProbeScope(nileActor);
+        await using var probe = await CreateProbeScope(nileActor);
         var sql = probe.Context.Set<TenantProbe>().ToQueryString();
         output.WriteLine(sql);
 

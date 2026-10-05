@@ -24,7 +24,7 @@ public abstract class TenantProbeTestBase(PostgresFixture fixture) : PostgresTes
 
     /// <summary>Opens a probe scope as the given actor — the context is created, then the actor is set, matching
     /// how a real request can build AppDbContext before login runs (Task 20.1).</summary>
-    private protected ProbeScope CreateProbeScope(Actor actor) => Fixture.CreateProbeScope(actor);
+    private protected Task<ProbeScope> CreateProbeScope(Actor actor) => Fixture.CreateProbeScope(actor);
 
     private async Task<Guid> CreateCentreAsync(string name, string slug)
     {

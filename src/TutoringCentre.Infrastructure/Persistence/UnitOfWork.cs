@@ -34,6 +34,8 @@ internal sealed class UnitOfWork : IUnitOfWork
             try
             {
                 // Must be the first statement in the transaction; PostgreSQL then rejects any write (SQLSTATE 25006).
+                // Also must precede the setting below: PostgreSQL refuses SET TRANSACTION once any other statement,
+                // including a SELECT, has run in the transaction.
                 await _db.Database.ExecuteSqlRawAsync("SET TRANSACTION READ ONLY", ct);
             }
             catch
@@ -42,6 +44,17 @@ internal sealed class UnitOfWork : IUnitOfWork
                 throw;
             }
         }
+
+        // Row-level security (Task 21.3) reads this every statement the transaction runs. Set explicitly on every
+        // transaction, never left to inherit from a previous request on this pooled connection: empty when the
+        // actor has no centre, never a value the server did not itself validate. Transaction-local (third
+        // argument true) — a rollback undoes it like any other change, so it can never leak into whatever request
+        // reuses this connection next. Parameterised: the centre id never touches the SQL text.
+        var centreId = _db.CurrentCentreId?.ToString() ?? string.Empty;
+        await _db.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_centre', {0}, true)",
+            [centreId],
+            ct);
     }
 
     public async Task SaveChangesAsync(CancellationToken ct) => await _db.SaveChangesAsync(ct);

@@ -15,7 +15,7 @@ public sealed class TenantQueryFilterTests(PostgresFixture fixture) : TenantProb
         await Fixture.SeedProbeAsync(NileCentreId, "nile-2");
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-1");
 
-        await using var probe = CreateProbeScope(StaffActorIn(NileCentreId));
+        await using var probe = await CreateProbeScope(StaffActorIn(NileCentreId));
         var rows = await probe.Context.Set<TenantProbe>().ToListAsync();
 
         Assert.Equal(2, rows.Count);
@@ -29,7 +29,7 @@ public sealed class TenantQueryFilterTests(PostgresFixture fixture) : TenantProb
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-1");
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-2");
 
-        await using var probe = CreateProbeScope(StaffActorIn(MaadiCentreId));
+        await using var probe = await CreateProbeScope(StaffActorIn(MaadiCentreId));
         var rows = await probe.Context.Set<TenantProbe>().ToListAsync();
 
         Assert.Equal(2, rows.Count);
@@ -42,7 +42,7 @@ public sealed class TenantQueryFilterTests(PostgresFixture fixture) : TenantProb
         await Fixture.SeedProbeAsync(NileCentreId, "nile-1");
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-1");
 
-        await using var probe = CreateProbeScope(new StaffActor(Guid.CreateVersion7(), null, null));
+        await using var probe = await CreateProbeScope(new StaffActor(Guid.CreateVersion7(), null, null));
         var rows = await probe.Context.Set<TenantProbe>().ToListAsync();
 
         Assert.Empty(rows);
@@ -54,7 +54,7 @@ public sealed class TenantQueryFilterTests(PostgresFixture fixture) : TenantProb
         await Fixture.SeedProbeAsync(NileCentreId, "nile-1");
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-1");
 
-        await using var probe = CreateProbeScope(new AnonymousActor());
+        await using var probe = await CreateProbeScope(new AnonymousActor());
         var rows = await probe.Context.Set<TenantProbe>().ToListAsync();
 
         Assert.Empty(rows);
@@ -65,7 +65,7 @@ public sealed class TenantQueryFilterTests(PostgresFixture fixture) : TenantProb
     {
         var maadiProbeId = await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-1");
 
-        await using var probe = CreateProbeScope(StaffActorIn(NileCentreId));
+        await using var probe = await CreateProbeScope(StaffActorIn(NileCentreId));
         var found = await probe.Context.Set<TenantProbe>().SingleOrDefaultAsync(row => row.Id == maadiProbeId);
 
         Assert.Null(found);
@@ -78,7 +78,7 @@ public sealed class TenantQueryFilterTests(PostgresFixture fixture) : TenantProb
         await Fixture.SeedProbeAsync(NileCentreId, "nile-2");
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-1");
 
-        await using var probe = CreateProbeScope(StaffActorIn(NileCentreId));
+        await using var probe = await CreateProbeScope(StaffActorIn(NileCentreId));
 
         Assert.Equal(2, await probe.Context.Set<TenantProbe>().CountAsync());
         Assert.True(await probe.Context.Set<TenantProbe>().AnyAsync());
@@ -92,8 +92,8 @@ public sealed class TenantQueryFilterTests(PostgresFixture fixture) : TenantProb
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-1");
         await Fixture.SeedProbeAsync(MaadiCentreId, "maadi-2");
 
-        await using var nileProbe = CreateProbeScope(StaffActorIn(NileCentreId));
-        await using var maadiProbe = CreateProbeScope(StaffActorIn(MaadiCentreId));
+        await using var nileProbe = await CreateProbeScope(StaffActorIn(NileCentreId));
+        await using var maadiProbe = await CreateProbeScope(StaffActorIn(MaadiCentreId));
 
         var nileTask = nileProbe.Context.Set<TenantProbe>().ToListAsync();
         var maadiTask = maadiProbe.Context.Set<TenantProbe>().ToListAsync();
