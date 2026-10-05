@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Infrastructure.Persistence;
 
 namespace TutoringCentre.Api.Cli;
@@ -34,6 +35,8 @@ public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         AppDbContextOptionsConfigurator.Configure(optionsBuilder, connectionString);
-        return new AppDbContext(optionsBuilder.Options);
+
+        // No request is running this tool: the actor stays anonymous, same as the runtime migration path.
+        return new AppDbContext(optionsBuilder.Options, new CurrentActorContext());
     }
 }
