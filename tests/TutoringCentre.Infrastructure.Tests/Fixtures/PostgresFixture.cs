@@ -10,6 +10,7 @@ using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
+using TutoringCentre.Infrastructure.Persistence.Migrations;
 using TutoringCentre.Infrastructure.Tests.Tenancy;
 
 namespace TutoringCentre.Infrastructure.Tests.Fixtures;
@@ -29,7 +30,19 @@ public sealed class PostgresFixture : IAsyncLifetime
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17").Build();
     private Respawner? _respawner;
 
+    private ServiceProvider? _probeServices;
+
     public ServiceProvider Services { get; private set; } = null!;
+
+    /// <summary>
+    /// A separate container, built only on first use, where AppDbContext resolves to the SAME instance as
+    /// TenantProbeDbContext. That lets probe tests (Day 20/21) go through the real IUnitOfWork — whose
+    /// constructor asks for AppDbContext — instead of touching TenantProbeDbContext directly and skipping
+    /// UnitOfWork.BeginAsync (and, since Day 21, the app.current_centre setting row-level security depends on).
+    /// Kept separate from <see cref="Services"/> so every other test's AppDbContext resolution is unaffected.
+    /// </summary>
+    internal ServiceProvider ProbeServices => _probeServices ??=
+        CreateServiceProvider(services => services.AddScoped<AppDbContext>(provider => provider.GetRequiredService<TenantProbeDbContext>()));
 
     /// <summary>The container's own default role: a superuser. Used only to bootstrap roles and reset between tests.</summary>
     public string SuperuserConnectionString => _container.GetConnectionString();
@@ -70,7 +83,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     {
         await using var connection = new NpgsqlConnection(OwnerConnectionString);
         await connection.OpenAsync();
-        await using var command = new NpgsqlCommand(
+        await using (var command = new NpgsqlCommand(
             """
             create schema if not exists probe;
             create table if not exists probe.tenant_probes (
@@ -81,12 +94,27 @@ public sealed class PostgresFixture : IAsyncLifetime
             grant usage on schema probe to tutoring_app;
             grant select, insert, update, delete on probe.tenant_probes to tutoring_app;
             """,
-            connection);
-        await command.ExecuteNonQueryAsync();
+            connection))
+        {
+            await command.ExecuteNonQueryAsync();
+        }
+
+        // Task 21.3: the exact SQL a real migration would run (TenantRowLevelSecurity.BuildEnableStatements),
+        // reused rather than duplicated, so the probe table proves the production helper, not a stand-in for it.
+        foreach (var statement in TenantRowLevelSecurity.BuildEnableStatements("probe", "tenant_probes"))
+        {
+            await using var command = new NpgsqlCommand(statement, connection);
+            await command.ExecuteNonQueryAsync();
+        }
     }
 
     public async Task DisposeAsync()
     {
+        if (_probeServices is not null)
+        {
+            await _probeServices.DisposeAsync();
+        }
+
         await Services.DisposeAsync();
         await _container.DisposeAsync();
     }
