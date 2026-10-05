@@ -67,8 +67,10 @@ public static class DependencyInjection
                 tags: ReadinessTags);
         }
 
-        // Persistence. The interceptor is stateless (it only needs the singleton clock), so one instance is enough.
+        // Persistence. Both interceptors are stateless (the guard reads AppDbContext.CurrentCentreId off the
+        // context being saved rather than holding a dependency of its own), so one instance each is enough.
         services.AddSingleton<TimestampInterceptor>();
+        services.AddSingleton<TenantWriteGuardInterceptor>();
 
         services
             .AddOptions<DatabaseOptions>()
@@ -87,8 +89,9 @@ public static class DependencyInjection
         {
             AppDbContextOptionsConfigurator.Configure(
                 options,
-                serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString);
-            options.AddInterceptors(serviceProvider.GetRequiredService<TimestampInterceptor>());
+                serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString,
+                serviceProvider.GetRequiredService<TimestampInterceptor>(),
+                serviceProvider.GetRequiredService<TenantWriteGuardInterceptor>());
         });
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.

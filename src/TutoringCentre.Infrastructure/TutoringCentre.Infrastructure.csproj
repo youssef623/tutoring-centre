@@ -14,5 +14,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
+    <InternalsVisibleTo Include="TutoringCentre.Infrastructure.Tests" />
   </ItemGroup>
 </Project>
