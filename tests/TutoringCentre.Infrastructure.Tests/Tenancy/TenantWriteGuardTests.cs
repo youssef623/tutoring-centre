@@ -45,15 +45,18 @@ public sealed class TenantWriteGuardTests(PostgresFixture fixture) : TenantProbe
     }
 
     [Fact]
-    public async Task Modify_TrackedNileProbeCentreChangedToMaadi_ThrowsAndLeavesRowUnchanged()
+    public async Task Modify_TrackedNileProbeCentreChangedToMaadi_EfItselfRefusesBeforeTheGuardEverRuns()
     {
+        // Task 21.6: ConfigureTenantOwned makes (CentreId, Id) an alternate key, so EF's own change tracker now
+        // refuses to mark CentreId as modified at all — the guard's rule (c) is unreachable for this entity, a
+        // stronger guarantee than before (Day 20), not a weaker one. Still asserted directly against EF, not
+        // against TenantWriteGuardInterceptor, since the interceptor never gets the chance to run here.
         var probeId = await Fixture.SeedProbeAsync(NileCentreId, "nile-1");
 
         await using var probe = await CreateProbeScope(StaffActorIn(NileCentreId));
         var entry = probe.Context.Attach(new TenantProbe { Id = probeId, CentreId = NileCentreId, Label = "nile-1" });
-        entry.Property(nameof(TenantProbe.CentreId)).CurrentValue = MaadiCentreId;
 
-        await Assert.ThrowsAsync<TenantViolationException>(() => probe.Context.SaveChangesAsync());
+        Assert.Throws<InvalidOperationException>(() => entry.Property(nameof(TenantProbe.CentreId)).CurrentValue = MaadiCentreId);
 
         Assert.Equal(NileCentreId, await Fixture.ScalarAsync<Guid>($"select centre_id from probe.tenant_probes where id = '{probeId}'"));
     }

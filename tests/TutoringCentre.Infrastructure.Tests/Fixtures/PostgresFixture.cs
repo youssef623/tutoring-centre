@@ -90,10 +90,22 @@ public sealed class PostgresFixture : IAsyncLifetime
             create table if not exists probe.tenant_probes (
                 id uuid primary key,
                 centre_id uuid not null references platform.centres(id),
-                label varchar(50) not null
+                label varchar(50) not null,
+                unique (centre_id, id)
             );
             grant usage on schema probe to tutoring_app;
             grant select, insert, update, delete on probe.tenant_probes to tutoring_app;
+
+            -- Task 21.6: a composite foreign key (centre_id, probe_id) to tenant_probes(centre_id, id), so a row
+            -- naming a real probe in a different centre is impossible to store, not just filtered out at read time.
+            create table if not exists probe.tenant_probe_children (
+                id uuid primary key,
+                centre_id uuid not null references platform.centres(id),
+                probe_id uuid not null,
+                label varchar(50) not null,
+                foreign key (centre_id, probe_id) references probe.tenant_probes (centre_id, id)
+            );
+            grant select, insert, update, delete on probe.tenant_probe_children to tutoring_app;
             """,
             connection))
         {

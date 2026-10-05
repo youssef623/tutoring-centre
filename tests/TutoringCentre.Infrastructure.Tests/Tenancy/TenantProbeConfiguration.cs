@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TutoringCentre.Infrastructure.Persistence.Configurations;
 
 namespace TutoringCentre.Infrastructure.Tests.Tenancy;
 
@@ -17,8 +18,10 @@ internal sealed class TenantProbeConfiguration : IEntityTypeConfiguration<Tenant
         builder.HasKey(probe => probe.Id);
         builder.Property(probe => probe.Id).ValueGeneratedNever();
 
-        builder.Property(probe => probe.CentreId).IsRequired();
-
         builder.Property(probe => probe.Label).IsRequired().HasMaxLength(LabelMaxLength);
+
+        // Task 21.6: centre_id required, restrict FK to platform.centres, unique (centre_id, id) — what the child
+        // probe's own composite foreign key targets.
+        builder.ConfigureTenantOwned("tenant_probes");
     }
 }

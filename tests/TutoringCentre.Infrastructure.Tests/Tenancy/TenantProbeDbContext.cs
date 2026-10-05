@@ -18,5 +18,9 @@ internal sealed class TenantProbeDbContext : AppDbContext
     {
     }
 
-    protected override void ExtendModel(ModelBuilder builder) => builder.ApplyConfiguration(new TenantProbeConfiguration());
+    protected override void ExtendModel(ModelBuilder builder)
+    {
+        builder.ApplyConfiguration(new TenantProbeConfiguration());
+        builder.ApplyConfiguration(new TenantProbeChildConfiguration());
+    }
 }
