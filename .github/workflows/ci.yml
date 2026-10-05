@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up .NET from global.json
         uses: actions/setup-dotnet@v5
@@ -62,7 +62,7 @@ jobs:
         working-directory: frontend
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node.js (LTS) with npm cache
         uses: actions/setup-node@v6
@@ -125,7 +125,7 @@ jobs:
       SEED_PASSWORD: ci-only-throwaway-seed-password
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up .NET from global.json
         uses: actions/setup-dotnet@v5
