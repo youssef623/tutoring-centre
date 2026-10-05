@@ -39,9 +39,12 @@ jobs:
         run: dotnet tool restore
 
       - name: Check for model changes without a migration
-        # Design-time model comparison needs a valid-looking connection string but never connects.
+        # Design-time model comparison needs valid-looking connection strings but never connects.
+        # The design-time factory (Api/Cli) reads the migrations one; the runtime one is unused here but still
+        # required by startup validation.
         env:
           ConnectionStrings__Postgres: Host=localhost;Database=ci;Username=ci;Password=ci
+          ConnectionStrings__PostgresMigrations: Host=localhost;Database=ci;Username=ci;Password=ci
         run: >
           dotnet ef migrations has-pending-model-changes
           --project src/TutoringCentre.Infrastructure
@@ -112,7 +115,10 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      ConnectionStrings__Postgres: Host=localhost;Port=5432;Database=tutoring;Username=tutoring_dev;Password=ci-only-throwaway-password
+      # tutoring_app (runtime) and tutoring_owner (migrations) — created by db/bootstrap-roles.sh below, not by
+      # the postgres service itself: a GitHub Actions service container has no docker-entrypoint-initdb.d folder.
+      ConnectionStrings__Postgres: Host=localhost;Port=5432;Database=tutoring;Username=tutoring_app;Password=ci-only-throwaway-app-password
+      ConnectionStrings__PostgresMigrations: Host=localhost;Port=5432;Database=tutoring;Username=tutoring_owner;Password=ci-only-throwaway-owner-password
       # CI-only throwaway seed password, not a real credential: both names are read by different
       # layers (.NET config via Seed__Password, the Playwright spec directly via SEED_PASSWORD).
       Seed__Password: ci-only-throwaway-seed-password
@@ -135,6 +141,20 @@ jobs:
 
       - name: Tool restore
         run: dotnet tool restore
+
+      # The service container's own bootstrap has already run by the time steps start (health-checked above),
+      # but it only ever creates tutoring_dev — db/bootstrap-roles.sh is what creates the least-privilege roles
+      # the two connection strings above actually point at.
+      - name: Bootstrap least-privilege database roles
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: tutoring_dev
+          PGPASSWORD: ci-only-throwaway-password
+          PGDATABASE: tutoring
+          TUTORING_OWNER_PASSWORD: ci-only-throwaway-owner-password
+          TUTORING_APP_PASSWORD: ci-only-throwaway-app-password
+        run: bash db/bootstrap-roles.sh
 
       # Kestrel auto-generates a development certificate on first HTTPS use, but generating it up
       # front avoids any first-run race with the webServer Playwright starts below. No --trust: that
