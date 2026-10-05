@@ -6,6 +6,7 @@ using Respawn;
 using Respawn.Graph;
 using Testcontainers.PostgreSql;
 using TutoringCentre.Application;
+using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
@@ -119,13 +120,17 @@ public sealed class PostgresFixture : IAsyncLifetime
         await _container.DisposeAsync();
     }
 
-    /// <summary>Builds a container identical to production's, optionally with extra test-only registrations (handlers).</summary>
-    public ServiceProvider CreateServiceProvider(Action<IServiceCollection>? configure = null)
+    /// <summary>
+    /// Builds a container identical to production's, optionally with extra test-only registrations (handlers) or
+    /// a non-default app connection string (Task 21.2's single-connection pool tests).
+    /// </summary>
+    public ServiceProvider CreateServiceProvider(Action<IServiceCollection>? configure = null, string? appConnectionString = null)
     {
+        var connectionString = appConnectionString ?? AppConnectionString;
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Postgres"] = AppConnectionString,
+                ["ConnectionStrings:Postgres"] = connectionString,
                 ["ConnectionStrings:PostgresMigrations"] = OwnerConnectionString,
             })
             .Build();
@@ -145,11 +150,21 @@ public sealed class PostgresFixture : IAsyncLifetime
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
             AppDbContextOptionsConfigurator.Configure(
                 optionsBuilder,
-                AppConnectionString,
+                connectionString,
                 provider.GetRequiredService<TimestampInterceptor>(),
                 provider.GetRequiredService<TenantWriteGuardInterceptor>());
             return new TenantProbeDbContext(optionsBuilder.Options, provider.GetRequiredService<ICurrentActor>());
         });
+
+        // Task 21.2: lifetime probes for app.current_centre, dispatched like any real request.
+        services.AddScoped<IQueryHandler<ReadCurrentCentreSettingQuery, string>, ReadCurrentCentreSettingQueryHandler>();
+        services.AddScoped<ICommandHandler<ReadCurrentCentreSettingCommand, string>, ReadCurrentCentreSettingCommandHandler>();
+        services.AddScoped<ICommandHandler<AlwaysFailingCommand, string>, AlwaysFailingCommandHandler>();
+
+        // Task 21.5: each depends on exactly one isolation layer (the EF filter or row-level security), never both.
+        services.AddScoped<IQueryHandler<ListProbeCentresIgnoringEfFilterQuery, List<Guid>>, ListProbeCentresIgnoringEfFilterQueryHandler>();
+        services.AddScoped<IQueryHandler<ListProbeCentresQuery, List<Guid>>, ListProbeCentresQueryHandler>();
+        services.AddScoped<IQueryHandler<ListProbeCentresByRawSqlQuery, List<Guid>>, ListProbeCentresByRawSqlQueryHandler>();
 
         configure?.Invoke(services);
 
