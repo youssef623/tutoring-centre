@@ -24,7 +24,12 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    cd tutoring-centre
    ```
 
-2. **Start PostgreSQL.** Create your local `.env` and set `POSTGRES_PASSWORD` in it (no `;` or spaces).
+2. **Start PostgreSQL.** Create your local `.env` and set all three passwords in it — `POSTGRES_PASSWORD`,
+   `TUTORING_OWNER_PASSWORD` and `TUTORING_APP_PASSWORD` (no `;` or spaces in any of them). On first start,
+   `db/bootstrap-roles.sh` uses the latter two to create `tutoring_owner` (migrates) and `tutoring_app`
+   (the app's own runtime login) — but only against an **empty** database volume. If you already have a
+   `tutoring-centre_pgdata` volume from before this step existed, remove it first: `docker compose down -v`
+   (see "To reset the database completely" below).
 
    ```powershell
    Copy-Item .env.example .env      # PowerShell
@@ -39,10 +44,13 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    docker compose ps                # wait for (healthy)
    ```
 
-3. **Give the API its connection string** (once per machine; stored outside the repository with user-secrets). Use the same password as in `.env`.
+3. **Give the API its two connection strings** (once per machine; stored outside the repository with
+   user-secrets). `Postgres` is the runtime login the app always connects as; `PostgresMigrations` is the
+   owner login, used only to apply migrations. Use the passwords you chose in `.env`.
 
    ```bash
-   dotnet user-secrets set "ConnectionStrings:Postgres" "Host=localhost;Port=5432;Database=tutoring;Username=tutoring_dev;Password=<your password>" --project src/TutoringCentre.Api
+   dotnet user-secrets set "ConnectionStrings:Postgres" "Host=localhost;Port=5432;Database=tutoring;Username=tutoring_app;Password=<TUTORING_APP_PASSWORD>" --project src/TutoringCentre.Api
+   dotnet user-secrets set "ConnectionStrings:PostgresMigrations" "Host=localhost;Port=5432;Database=tutoring;Username=tutoring_owner;Password=<TUTORING_OWNER_PASSWORD>" --project src/TutoringCentre.Api
    ```
 
 4. **Run the API** on https://localhost:7197 (HTTPS: the session and antiforgery cookies are `Secure` + `__Host-`,
@@ -129,7 +137,9 @@ flowchart TD
 - [ADR 0001 — Clean Architecture with four projects](docs/adr/0001-clean-architecture.md)
 - [ADR 0002 — .NET backend and React frontend](docs/adr/0002-dotnet-react.md)
 - [ADR 0005 — Encrypted cookie authentication over JWT](docs/adr/0005-cookie-authentication.md)
+- [ADR 0006 — Tenant isolation as defense in depth (draft)](docs/adr/0006-tenant-isolation.md)
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
+- [Tenant isolation: the role model, and layers 1–4 as they land](docs/architecture/tenancy.md)
 - [Frontend decisions and conventions](frontend/README.md)
 
 ## Quality gates

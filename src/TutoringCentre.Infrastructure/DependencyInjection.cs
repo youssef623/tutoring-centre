@@ -22,7 +22,9 @@ namespace TutoringCentre.Infrastructure;
 public static class DependencyInjection
 {
     private const string PostgresConnectionStringName = "Postgres";
+    private const string PostgresMigrationsConnectionStringName = "PostgresMigrations";
     private const string PostgresHealthCheckName = "postgres";
+    private const string PostgresRolePrivilegeHealthCheckName = "postgres-runtime-role";
 
     // A static array avoids allocating a new one per call (analyzer CA1861 under latest-recommended).
     private static readonly string[] ReadinessTags = ["ready"];
@@ -42,6 +44,7 @@ public static class DependencyInjection
         services.AddSingleton<IClock, SystemClock>();
 
         var connectionString = configuration.GetConnectionString(PostgresConnectionStringName);
+        var migrationsConnectionString = configuration.GetConnectionString(PostgresMigrationsConnectionStringName);
         var healthChecks = services.AddHealthChecks();
 
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -55,6 +58,13 @@ public static class DependencyInjection
         else
         {
             healthChecks.AddNpgSql(connectionString, name: PostgresHealthCheckName, tags: ReadinessTags);
+
+            // A tripwire, not a connectivity check: fails readiness if the runtime connection ever turns out to
+            // be a superuser, BYPASSRLS, or the owner role, any of which would make RLS unenforceable.
+            healthChecks.AddCheck(
+                PostgresRolePrivilegeHealthCheckName,
+                new RuntimeRolePrivilegeHealthCheck(connectionString),
+                tags: ReadinessTags);
         }
 
         // Persistence. The interceptor is stateless (it only needs the singleton clock), so one instance is enough.
@@ -62,16 +72,24 @@ public static class DependencyInjection
 
         services
             .AddOptions<DatabaseOptions>()
-            .Configure(options => options.ConnectionString = connectionString ?? string.Empty)
+            .Configure(options =>
+            {
+                options.ConnectionString = connectionString ?? string.Empty;
+                options.MigrationsConnectionString = migrationsConnectionString;
+            })
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddDbContext<AppDbContext>((serviceProvider, options) => options
-            .UseNpgsql(
-                serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString,
-                npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", Schemas.Platform))
-            .UseSnakeCaseNamingConvention()
-            .AddInterceptors(serviceProvider.GetRequiredService<TimestampInterceptor>()));
+        // Runtime registration: every request resolves AppDbContext through this, on the tutoring_app connection
+        // only. MigrationRunner and the design-time factory build their own short-lived context on the owner
+        // connection instead of resolving this one, so the owner connection is never available through DI.
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+        {
+            AppDbContextOptionsConfigurator.Configure(
+                options,
+                serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString);
+            options.AddInterceptors(serviceProvider.GetRequiredService<TimestampInterceptor>());
+        });
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
