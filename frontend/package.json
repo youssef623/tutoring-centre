@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:ci": "vitest --run",
     "generate:api": "orval --config ./orval.config.ts",
-    "i18n:check": "node scripts/check-i18n-keys.mjs"
+    "i18n:check": "node scripts/check-i18n-keys.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@tanstack/router-plugin": "^1.168.42",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",

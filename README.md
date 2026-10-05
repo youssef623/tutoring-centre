@@ -55,7 +55,26 @@ Run commands from the repository root unless a step says otherwise. Each step sh
 
    Check: https://localhost:7197/health → `Healthy`; https://localhost:7197/health/ready → `Healthy` when the database is up.
 
-5. **Run the frontend** in a second terminal, then open http://localhost:5173
+5. **Seed the development database** (once per database; safe to run again — it skips what already exists).
+   Choose your own password and set it with user-secrets; it is never written to this repository.
+
+   ```bash
+   dotnet user-secrets set "Seed:Password" "<your choice>" --project src/TutoringCentre.Api
+   dotnet run --project src/TutoringCentre.Api -- seed
+   ```
+
+   This creates two centres and five staff accounts, all sharing the password you just set:
+
+   | Email | Role | Centre(s) |
+   |---|---|---|
+   | `owner@nile.test` | Owner | Nile Tutoring Centre |
+   | `owner@maadi.test` | Owner | Maadi Learning Hub |
+   | `teacher@both.test` | Teacher | Nile Tutoring Centre, Maadi Learning Hub |
+   | `secretary@nile.test` | Secretary | Nile Tutoring Centre |
+   | `inactive@nile.test` | Secretary (inactive membership) | Nile Tutoring Centre |
+
+6. **Run the frontend** in a second terminal, then open http://localhost:5173 — signed out, this redirects to
+   `/login`; sign in with any seeded email above and the password you chose in step 5.
 
    ```bash
    cd frontend
@@ -63,12 +82,28 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    npm run dev
    ```
 
-6. **Run the tests**
+7. **Run the tests**
 
    ```bash
    dotnet test
    cd frontend
    npm run test:ci
+   ```
+
+   End-to-end journeys (real API, real PostgreSQL, a real Chromium browser) are separate: they start their
+   own copies of the API and the frontend, so stop the ones from steps 4/6 first (or leave them running —
+   Playwright reuses an already-running server locally). Supply the seed password from step 5 as
+   `SEED_PASSWORD`:
+
+   ```powershell
+   cd frontend
+   $env:SEED_PASSWORD = "<the password you chose in step 5>"
+   npm run test:e2e
+   ```
+
+   ```bash
+   cd frontend
+   SEED_PASSWORD="<the password you chose in step 5>" npm run test:e2e
    ```
 
 To reset the database completely: `docker compose down -v` (deletes the `pgdata` volume).
@@ -93,8 +128,10 @@ flowchart TD
 
 - [ADR 0001 — Clean Architecture with four projects](docs/adr/0001-clean-architecture.md)
 - [ADR 0002 — .NET backend and React frontend](docs/adr/0002-dotnet-react.md)
+- [ADR 0005 — Encrypted cookie authentication over JWT](docs/adr/0005-cookie-authentication.md)
+- [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Frontend decisions and conventions](frontend/README.md)
 
 ## Quality gates
 
-Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests and production build, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
+Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, three Playwright end-to-end journeys against a real API and PostgreSQL, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
