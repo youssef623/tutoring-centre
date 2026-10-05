@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
   // Build output, coverage and the router's generated file are not linted.
-  globalIgnores(["dist", "coverage", "src/routeTree.gen.ts"]),
+  globalIgnores(["dist", "coverage", "src/routeTree.gen.ts", "src/api/generated/**"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [

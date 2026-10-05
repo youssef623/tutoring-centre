@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,7 +6,10 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Identity;
 using TutoringCentre.Application.Platform;
+using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.ReadServices;
@@ -27,6 +31,11 @@ public static class DependencyInjection
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        // The host (WebApplicationBuilder) already registers this in production; registering it here too means
+        // services that need IConfiguration directly (the development seeder's Seed:Password lookup) also resolve
+        // in test harnesses that build a plain ServiceCollection instead of a full host.
+        services.AddSingleton(configuration);
 
         // Time: stateless and thread-safe, so one instance for the app.
         services.AddSingleton(TimeProvider.System);
@@ -70,6 +79,28 @@ public static class DependencyInjection
         services.AddScoped<ICentreRepository, CentreRepository>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
+        services.AddScoped<IMembershipReadService, MembershipReadService>();
+
+        // Identity core only: no SignInManager, no Identity UI, no role services (there are no role tables —
+        // a role belongs to a user in a centre, not globally). Cookie/sign-in wiring is Day 15.
+        services.AddIdentityCore<ApplicationUser>(options =>
+            {
+                // Modern guidance favours password length over composition rules.
+                options.Password.RequiredLength = 10;
+                options.Password.RequireDigit = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.AllowedForNewUsers = true;
+
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<AppDbContext>();
+        services.AddScoped<DevelopmentIdentitySeeder>();
+        services.AddScoped<IAuthenticationService, IdentityAuthenticationService>();
 
         return services;
     }

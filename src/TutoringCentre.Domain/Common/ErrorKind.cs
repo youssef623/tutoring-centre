@@ -11,4 +11,5 @@ public enum ErrorKind
     Conflict,
     Rule,
     Forbidden,
+    Unauthenticated,
 }

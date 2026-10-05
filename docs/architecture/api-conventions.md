@@ -24,6 +24,7 @@ Validation failures also carry `errors`: a field name (camelCase) → message li
 | `Conflict` | 409 | duplicate slug |
 | `Rule` | 422 | business rule says no |
 | `Forbidden` | 403 | caller not allowed |
+| `Unauthenticated` | 401 | caller's identity is unknown (Day 14) |
 
 A successful `Result` (non-generic) maps to `204 No Content`; a successful `Result<T>` is handed to the caller-supplied `onSuccess` function (usually `Results.Ok(value)`).
 
@@ -56,4 +57,23 @@ All product HTTP endpoints live under the `/api` group (`app.MapGroup("/api")`).
 
 ## `GET /api/system/info`
 
-The first JSON endpoint, added to prove the conventions above end-to-end. Returns `applicationVersion`, `latestMigration` and `databaseUpToDate`. No authentication (Month 2 adds it); anonymous access is explicit via `.AllowAnonymous()`, not an oversight.
+The first JSON endpoint, added to prove the conventions above end-to-end. Returns `applicationVersion`, `latestMigration` and `databaseUpToDate`. Anonymous access is explicit via `.AllowAnonymous()` (see Authentication and authorization below), not an oversight.
+
+## Authentication and authorization (Day 16)
+
+**Rule.** The authorization fallback policy requires an authenticated user. A new endpoint is protected the moment it is mapped, with no attribute needed — forgetting one fails closed (401) instead of silently exposing the endpoint.
+
+Exactly six routes are explicitly anonymous, each with its own `.AllowAnonymous()` (or equivalent) call, never by omission:
+
+| Route | Why |
+| --- | --- |
+| `GET /health` | Liveness probe; no caller is signed in yet when checking the process is up. |
+| `GET /health/ready` | Readiness probe; same reason. |
+| `GET /api/system/info` | Public version/migration status, proven anonymous since Day 11. |
+| `GET /api/auth/antiforgery` | Bootstraps the CSRF token pair before any session exists. |
+| `POST /api/auth/login` | The one way to start a session; can't require being already signed in. |
+| `/api/{**path}` fallback | The uniform 404 for an unknown route must not leak whether a route exists behind a login wall. |
+
+A second, pattern-less `app.MapFallback(...)` is also anonymous, for a subtler reason: ASP.NET Core's authorization fallback policy applies not only to mapped endpoints without `.AllowAnonymous()`, but also to requests that match *no* endpoint at all — without a catch-all, an unknown route outside `/api` (today just `/does-not-exist`-style probes; from Month 2, the SPA shell's own routes) would 401 instead of 404. This fallback stays anonymous because the SPA shell it will eventually serve is itself public; auth-gating happens client-side within the app, same as any other static asset.
+
+Every other endpoint — `/api/auth/logout`, `/api/me`, `/api/session/centre`, and anything added later — relies on the fallback policy rather than its own `.RequireAuthorization()` call. That redundant call was removed where it previously existed: once the default is "authenticated," repeating it per endpoint reads as if it might mean something stricter than the default, when it does not. The Development-only `/openapi/v1.json` document (`app.MapOpenApi()`) is also marked `.AllowAnonymous()` so it stays reachable for local tooling; it never exists outside Development.

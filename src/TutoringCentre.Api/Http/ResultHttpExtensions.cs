@@ -5,8 +5,8 @@ namespace TutoringCentre.Api.Http;
 
 /// <summary>
 /// The only place domain outcomes become HTTP responses. Endpoints never write their own switch.
-/// 400 = your input is malformed; 404 = doesn't exist (for you); 409 = conflicts with current state;
-/// 422 = well-formed but breaks a business rule; 403 = you may not.
+/// 400 = your input is malformed; 401 = we don't know who you are; 403 = we know, and you may not;
+/// 404 = doesn't exist (for you); 409 = conflicts with current state; 422 = well-formed but breaks a business rule.
 /// </summary>
 public static class ResultHttpExtensions
 {
@@ -31,6 +31,7 @@ public static class ResultHttpExtensions
             ErrorKind.Conflict => (StatusCodes.Status409Conflict, "The request conflicts with the current state."),
             ErrorKind.Rule => (StatusCodes.Status422UnprocessableEntity, "The request breaks a business rule."),
             ErrorKind.Forbidden => (StatusCodes.Status403Forbidden, "You are not allowed to perform this action."),
+            ErrorKind.Unauthenticated => (StatusCodes.Status401Unauthorized, "Authentication is required."),
             _ => throw new ArgumentOutOfRangeException(nameof(error), error.Kind, "Unmapped error kind."),
         };
 

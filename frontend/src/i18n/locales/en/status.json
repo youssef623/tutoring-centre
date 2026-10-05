@@ -1,0 +1,23 @@
+{
+  "readiness": {
+    "checking": "Checking API status",
+    "unreachableTitle": "Cannot reach the API",
+    "unreachableBody": "The API did not respond. Check that it is running, then try again.",
+    "databaseUnavailableTitle": "API is running but the database is unavailable",
+    "databaseUnavailableBody": "Start PostgreSQL, then try again.",
+    "healthyTitle": "Healthy",
+    "healthyDescription": "API and database are reachable",
+    "lastCheckedAt": "Last checked at {time}"
+  },
+  "systemInfo": {
+    "loading": "Loading system information",
+    "unavailableTitle": "System information is unavailable",
+    "reference": "Reference: {id}",
+    "title": "System information",
+    "schemaUpToDate": "Database schema up to date",
+    "migrationsPending": "Migrations pending",
+    "applicationVersion": "Application version",
+    "latestMigration": "Latest migration",
+    "none": "none"
+  }
+}

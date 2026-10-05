@@ -46,6 +46,17 @@ public sealed class DependencyRuleTests
     public void Infrastructure_DoesNotDependOnApi() =>
         AssertNoDependencies(InfrastructureAssembly, ForbiddenForInfrastructure);
 
+    [Fact]
+    public void Application_DoesNotDependOnSerilogHangfireOrHttpClient()
+    {
+        var result = Types.InAssembly(SourceAssemblies.Application)
+            .ShouldNot()
+            .HaveDependencyOnAny("Serilog", "Hangfire", "System.Net.Http")
+            .GetResult();
+
+        Assert.True(result.IsSuccessful, ArchitectureSupport.Describe(result));
+    }
+
     private static void AssertNoDependencies(Assembly assembly, string[] forbidden)
     {
         var types = Types.InAssembly(assembly);

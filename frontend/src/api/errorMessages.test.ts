@@ -13,7 +13,7 @@ describe("messageFor", () => {
     };
 
     // Act
-    const message = messageFor(error, "en");
+    const message = messageFor(error);
 
     // Assert
     expect(message).toBe(
@@ -31,7 +31,7 @@ describe("messageFor", () => {
     };
 
     // Act
-    const message = messageFor(error, "en");
+    const message = messageFor(error);
 
     // Assert
     expect(message).toBe("This conflicts with existing data.");
@@ -47,7 +47,7 @@ describe("messageFor", () => {
     };
 
     // Act
-    const message = messageFor(error, "en");
+    const message = messageFor(error);
 
     // Assert
     expect(message).toBe("Something went wrong. Please try again.");

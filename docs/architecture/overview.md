@@ -22,19 +22,40 @@
 
 **Safety.** Codes and messages never contain internals: no stack traces, SQL, file paths or secrets.
 
-## Dispatcher design (implemented on Day 7)
-
-Two pipelines, one per CQRS interface. Tenant and permission checks (Month 2) plug in **after validation, before BEGIN**, in both pipelines.
+## Request pipeline (end of Week 3)
 
 ```
-Send(command):  validate ─fail→ return failure (no transaction)
-                └ok→ BEGIN (read-write) → handler.HandleAsync
-                     ├ failure result → ROLLBACK → return failure
-                     ├ exception      → ROLLBACK → rethrow (global handler → 500)
-                     └ success        → SaveChanges → COMMIT → return success
+Every HTTP request:
+  client
+    → Api: CorrelationIdMiddleware → request logging → exception handler → status code pages
+    → UseAuthentication (session cookie decrypted; OnValidatePrincipal revalidates against the
+      database, 60 s cache — docs/architecture/authentication.md)
+    → ActorMiddleware (claims → StaffActor; the one place claims become an actor)
+    → UseAuthorization (authenticated by default; six routes opt out with .AllowAnonymous())
+    → UseRateLimiter (the "login" policy only — POST /api/auth/login)
+    → endpoint routing
+    → AntiforgeryEndpointFilter (whole /api group; unsafe methods only — rejects before the
+      handler runs, no side effects)
 
-Query(query):   validate ─fail→ return failure
-                └ok→ BEGIN READ ONLY → handler.HandleAsync → COMMIT → return result (never SaveChanges)
+Command (HTTP POST/PUT/DELETE, CLI, jobs):
+    → endpoint (bind only)
+    → Dispatcher.SendAsync<TCommand, TResponse>
+        1. validate (FluentValidation: shape only)            failure → Result.Failure(validation), nothing opened
+        2. [Month 2: tenant resolution + permission checks plug in here, before the transaction]
+        3. IUnitOfWork.BeginAsync(readOnly: false)
+        4. handler: authorize → Domain rules → repository tracks changes (no SaveChanges)
+        5. failure result → Rollback;  success → SaveChanges once → Commit
+           exception → Rollback (CancellationToken.None) → rethrow → global exception handler (generic 500, logged once)
+    → Result → ResultHttpExtensions → JSON or Problem Details
+
+Query (HTTP GET, reads):
+    → Dispatcher.QueryAsync<TQuery, TResponse>
+        1. validate
+        2. [Month 2: tenant + permission steps]
+        3. IUnitOfWork.BeginAsync(readOnly: true)             PostgreSQL: SET TRANSACTION READ ONLY
+        4. handler: read service → DTOs (no entities, no repositories)
+        5. Commit (never SaveChanges)
+    → Result → ResultHttpExtensions
 ```
 
 **Why validation runs before BEGIN.** Invalid input needs no database work, so no transaction (and no connection) is opened for it.
@@ -64,3 +85,25 @@ Query(query):   validate ─fail→ return failure
 | 11 | Commit; `Result<CreateCentreResult>` returns to the CLI | `UnitOfWork.cs` |
 
 There is no HTTP endpoint for this command — on purpose.
+
+## Request path: `GET /api/system/info` (HTTP → table)
+
+| Step | What happens | File |
+| --- | --- | --- |
+| 1 | Correlation ID resolved or generated; response header and log context set | `src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs` |
+| 2 | Endpoint binds nothing, dispatches the query, maps the result | `src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs` |
+| 3 | Query pipeline: validation, read-only transaction | `src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`, `src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs` |
+| 4 | Handler reads version and calls the read service | `src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs` |
+| 5 | Read service asks EF for applied and pending migrations | `src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs` |
+| 6 | `Result<SystemInfoDto>` becomes 200 JSON (or Problem Details) | `src/TutoringCentre.Api/Http/ResultHttpExtensions.cs` |
+| 7 | Frontend: generated hook → `apiFetch` → `SystemInfoCard` | `frontend/src/api/generated/tutoring-centre.ts`, `frontend/src/api/apiFetch.ts`, `frontend/src/features/status/SystemInfoCard.tsx` |
+
+## Decisions and conventions
+
+- [ADR 0001 — Clean Architecture](../adr/0001-clean-architecture.md)
+- [ADR 0002 — .NET and React](../adr/0002-dotnet-react.md)
+- [ADR 0003 — Hand-written CQRS dispatcher](../adr/0003-custom-cqrs-dispatcher.md)
+- [ADR 0004 — Unit-of-work port](../adr/0004-unit-of-work-port.md)
+- [ADR 0005 — Encrypted cookie authentication over JWT](../adr/0005-cookie-authentication.md)
+- [API conventions](api-conventions.md)
+- [Authentication: login, sessions, CSRF, revocation](authentication.md)

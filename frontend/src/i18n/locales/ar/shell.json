@@ -1,0 +1,19 @@
+{
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة"
+  },
+  "header": {
+    "activeCentre": "المركز النشط"
+  },
+  "userMenu": {
+    "switchCentre": "تبديل المركز",
+    "logout": "تسجيل الخروج"
+  },
+  "dashboard": {
+    "welcome": "مرحبًا، {name}",
+    "activeCentre": "أنت تعمل في {centreName}.",
+    "placeholder": "المزيد من أدوات إدارة مركزك قريبًا."
+  }
+}

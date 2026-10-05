@@ -14,6 +14,7 @@ public sealed class ResultHttpExtensionsTests
     [InlineData(ErrorKind.Rule, 422, "test.rule")]
     [InlineData(ErrorKind.Forbidden, 403, "test.forbidden")]
     [InlineData(ErrorKind.Validation, 400, "test.validation")]
+    [InlineData(ErrorKind.Unauthenticated, 401, "test.unauthenticated")]
     public async Task ToHttpResult_FailureKind_MapsStatusAndCode(ErrorKind kind, int expectedStatus, string code)
     {
         var result = Result<string>.Failure(new Error(code, "Authored message.", kind));

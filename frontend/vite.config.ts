@@ -1,17 +1,21 @@
-/// <reference types="vitest/config" />
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { configDefaults, defineConfig } from "vitest/config";
 
 // The API's fixed development URL (Task 3.1). The browser itself only talks to the Vite origin.
-const apiTarget = "http://localhost:5080";
+// HTTPS (Day 16): the session and antiforgery cookies are Secure + __Host-, which a real browser only
+// stores from an HTTPS origin, so the dev API must run on its "https" launch profile.
+// Overridable (Day 18): Playwright starts the API on its plain-http profile instead — localhost is a
+// trustworthy origin even without TLS — and passes its URL here so the dev-server proxy matches it.
+const apiTarget = process.env.API_TARGET ?? "https://localhost:7197";
 
 export default defineConfig({
   plugins: [
     // Must come before the React plugin (TanStack Router docs).
-    tanstackRouter({ target: "react", autoCodeSplitting: true }),
+    // Component tests live beside the routes they cover (e.g. routes/login.test.tsx); they are not routes.
+    tanstackRouter({ target: "react", autoCodeSplitting: true, routeFileIgnorePattern: "\\.test\\.tsx$" }),
     react(),
     tailwindcss(),
   ],
@@ -22,12 +26,16 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": { target: apiTarget },
-      "/health": { target: apiTarget },
+      // secure: false — Node's TLS stack doesn't read the OS trust store, so it doesn't trust the
+      // `dotnet dev-certs` self-signed certificate the way the OS (and browsers) do.
+      "/api": { target: apiTarget, secure: false },
+      "/health": { target: apiTarget, secure: false },
     },
   },
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    // Playwright specs (frontend/e2e/) are not unit tests; Vitest must not try to run them.
+    exclude: [...configDefaults.exclude, "e2e/**"],
   },
 });
