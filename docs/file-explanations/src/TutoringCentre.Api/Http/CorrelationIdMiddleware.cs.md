@@ -6,7 +6,7 @@ Gives every request a validated correlation ID, exposes it in the response heade
 
 ## Where It Fits
 
-Api/Http, `internal`. Registered first in `Program.cs:61`. Provides the value `ProblemResult` reads from `HttpContext.Items`.
+Api/Http, `internal`. Registered first in `Program.cs:86`. Provides the value `ProblemResult` reads from `HttpContext.Items`.
 
 ## Walkthrough
 
@@ -20,7 +20,7 @@ Convention-based middleware: constructor `(RequestDelegate next)`, method `Invok
 
 Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW.md#8-routing-and-middleware).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Property is scoped to the request's downstream work.
 
 Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW.md#613-structured-logging-correlation-ids-and-redaction).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
 
 #### Where it appears in this file
 
@@ -60,7 +60,7 @@ Every log event carries `CorrelationId`.
 
 `async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
 
 #### Where it appears in this file
 

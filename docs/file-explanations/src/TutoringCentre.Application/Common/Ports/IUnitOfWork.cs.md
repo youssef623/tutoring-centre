@@ -20,7 +20,7 @@ Four methods. `BeginAsync(bool readOnly, CancellationToken)` (parameter name sup
 
 A *transaction* makes several database operations all-or-nothing and isolated from concurrent work. A *unit of work* groups the changes of one business operation and commits them together. EF Core's `DbContext` already tracks changes and is a unit of work; the repository adds a small port so the dispatcher can control the transaction without referencing EF.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#67-unit-of-work-and-transactions](../../../../../PROJECT_OVERVIEW.md#67-unit-of-work-and-transactions).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions](../../../../../PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Dispatcher can control transactions while Application stays free of EF.
 
 A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../../../PROJECT_OVERVIEW.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
 
 #### Where it appears in this file
 

@@ -10,7 +10,7 @@ Api.Tests/Fixtures. Never part of the product or its OpenAPI document.
 
 ## Walkthrough
 
-`Map(IEndpointRouteBuilder)`: group `/api/test`; `GET /{kind}` dispatches `ConventionCommand(kind)` and returns `.ToHttpResult(Results.Ok)`; `POST /name` binds `TestNameBody` and dispatches `TestNameCommand`; `GET /log-sensitive` logs `"Login attempt {@Request}"` with a `SensitiveProbe("sara@example.test","hunter2","+201001234567")` to prove masking (the endpoint exists; the tests that call it are not present in the suite I read - no test hits `/api/test/log-sensitive`). Uses the same `ToHttpResult` path as real endpoints, so conventions are tested for real.
+`Map(IEndpointRouteBuilder)`: group `/api/test` created with `.AllowAnonymous()` (comment: these endpoints test HTTP/Problem Details conventions unrelated to authentication); `GET /{kind}` dispatches `ConventionCommand(kind)` and returns `.ToHttpResult(Results.Ok)`; `POST /name` binds `TestNameBody` and dispatches `TestNameCommand`; `GET /log-sensitive` logs `"Login attempt {@Request}"` with a `SensitiveProbe("sara@example.test","hunter2","+201001234567")` to prove masking (the endpoint exists; the tests that call it are not present in the suite I read - no test hits `/api/test/log-sensitive`). Two additions: `GET /api/test/actor` dispatches `CurrentActorQuery` and returns the `CurrentActorDto` (kind, user id, centre id, role) so `SecurityTests` can prove the actor reaches Application; and `GET /api/test-default-protection`, mapped on `endpoints` *outside* the anonymous group with no authorization metadata at all, to prove the fallback policy protects a forgotten endpoint (expects 401). Uses the same `ToHttpResult` path as real endpoints, so conventions are tested for real.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Api.Tests/Fixtures. Never part of the product or its OpenAPI document.
 
 Minimal APIs map a URL pattern and HTTP verb straight to a delegate (`MapGet("/x", handler)`). The framework binds delegate parameters from DI (services), the route, query, body or `CancellationToken`. A *route group* shares a prefix and metadata across endpoints.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 

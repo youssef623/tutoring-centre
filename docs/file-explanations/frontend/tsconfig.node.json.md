@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TypeScript settings for Node-side config (only `vite.config.ts`).
+TypeScript settings for Node-side config (`vite.config.ts`, `orval.config.ts`, `playwright.config.ts` and the `e2e` folder).
 
 ## Where It Fits
 
@@ -10,7 +10,7 @@ Frontend config.
 
 ## Walkthrough
 
-`target es2023`, `lib [ES2023]`, `types ["node"]` (for `node:url`), `module nodenext`, same strictness subset (`noUnusedLocals`, `erasableSyntaxOnly`...), `include: ["vite.config.ts"]`.
+`target es2023`, `lib [ES2023]`, `types ["node"]` (for `node:url`), `module nodenext`, same strictness subset (`noUnusedLocals`, `erasableSyntaxOnly`...), `include: ["vite.config.ts", "orval.config.ts", "playwright.config.ts", "e2e"]` - the tool configs and the Playwright specs are Node-side code, type-checked with these settings (`types ["node"]`).
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Frontend config.
 
 TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
@@ -50,3 +50,6 @@ No bugs or surprises found while reading this file.
 
 - [`frontend/tsconfig.json`](tsconfig.json.md)
 - [`frontend/vite.config.ts`](vite.config.ts.md)
+- [`frontend/orval.config.ts`](orval.config.ts.md)
+- [`frontend/playwright.config.ts`](playwright.config.ts.md)
+- [`frontend/e2e/auth.spec.ts`](e2e/auth.spec.ts.md)

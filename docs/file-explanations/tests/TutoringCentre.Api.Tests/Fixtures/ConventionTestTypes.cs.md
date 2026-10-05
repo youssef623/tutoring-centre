@@ -10,7 +10,7 @@ Api.Tests/Fixtures. Used by `ConventionEndpoints` and registered by `Conventions
 
 ## Walkthrough
 
-Records `ConventionCommand(Kind)`, `TestNameCommand(Name)`, `TestNameBody(Name)`, `SensitiveProbe(Email, Password, PhoneNumber)`. `ConventionCommandHandler`: switch on `Kind`: `ok` -> success; `validation` -> `Error.Validation(code,msg,fields{name:[...]})`; `notfound`/`conflict`/`rule`/`forbidden` -> matching errors; `throws` -> throws `InvalidOperationException("Secret internal detail: Host=db;Password=hunter2")` (a planted secret to prove it never reaches the response); anything else -> `ArgumentOutOfRangeException`. `TestNameHandler` returns `"Hello {Name}"`; `TestNameValidator` requires non-empty name.
+Records `ConventionCommand(Kind)`, `TestNameCommand(Name)`, `TestNameBody(Name)`, `SensitiveProbe(Email, Password, PhoneNumber)`. `ConventionCommandHandler`: switch on `Kind`: `ok` -> success; `validation` -> `Error.Validation(code,msg,fields{name:[...]})`; `notfound`/`conflict`/`rule`/`forbidden` -> matching errors; `throws` -> throws `InvalidOperationException("Secret internal detail: Host=db;Password=hunter2")` (a planted secret to prove it never reaches the response); anything else -> `ArgumentOutOfRangeException`. `TestNameHandler` returns `"Hello {Name}"`; `TestNameValidator` requires non-empty name. New: query `CurrentActorQuery`, DTO `CurrentActorDto(string Kind, Guid? UserId, Guid? CentreId, StaffRole? Role)` and `CurrentActorQueryHandler(ICurrentActor)`, which switches on the actor (`StaffActor` -> `Staff`, `SystemActor` -> `System`, otherwise `Anonymous`) and returns the fields; it carries `[SuppressMessage CA1812]` because only DI instantiates it.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Records `ConventionCommand(Kind)`, `TestNameCommand(Name)`, `TestNameBody(Name)`
 
 Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW.md#64-the-result-pattern-failures-as-values).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Parametrises the HTTP mapping tests.
 
 Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#65-validation-two-tiers](../../../../PROJECT_OVERVIEW.md#65-validation-two-tiers).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
 
 #### Where it appears in this file
 

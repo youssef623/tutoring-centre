@@ -24,7 +24,7 @@ If the tool and the EF packages drift apart, `migrations add` can generate a sna
 
 A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here](../../PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
 
 #### Where it appears in this file
 

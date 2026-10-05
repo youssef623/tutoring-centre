@@ -20,7 +20,7 @@ Describes: purpose (Clean Architecture portfolio backend), getting started, high
 
 An ADR records a decision, its context, alternatives and consequences, so the *why* survives the people who made it. Docs kept in the repo are versioned with the code.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../PROJECT_OVERVIEW.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
 
 #### Where it appears in this file
 

@@ -25,7 +25,7 @@ Doc: shape only; business rules (slug format, time-zone existence) live in `Cent
 
 Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#65-validation-two-tiers](../../../../../../PROJECT_OVERVIEW.md#65-validation-two-tiers).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
 
 #### Where it appears in this file
 

@@ -20,7 +20,7 @@ Infrastructure.Tests/Time (no database).
 
 Reading `DateTime.UtcNow` directly makes code untestable. A clock *port* (`IClock`) supplies time; tests substitute a fake. IANA zone ids (`Africa/Cairo`) resolve through the OS time-zone database and handle daylight saving.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning](../../../../PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
 
 #### Where it appears in this file
 

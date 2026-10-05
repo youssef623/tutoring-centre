@@ -26,7 +26,7 @@ Column names come from the snake_case convention (`default_locale`, `time_zone_i
 
 An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
 
 #### Where it appears in this file
 
@@ -46,7 +46,7 @@ Persistence concerns stay out of Domain.
 
 An *interceptor* hooks into EF operations (here, just before `SaveChanges`). A *shadow property* is a column that exists in the EF model but not as a C# member, so persistence metadata (timestamps) never pollutes domain classes.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
 
 #### Where it appears in this file
 
@@ -66,7 +66,7 @@ Lines 43-44.
 
 Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#65-validation-two-tiers](../../../../../../PROJECT_OVERVIEW.md#65-validation-two-tiers).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
 
 #### Where it appears in this file
 
@@ -86,7 +86,7 @@ Protects against writes that bypass the app.
 
 A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW.md#69-ef-core-how-the-orm-actually-works-here).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
 
 #### Where it appears in this file
 

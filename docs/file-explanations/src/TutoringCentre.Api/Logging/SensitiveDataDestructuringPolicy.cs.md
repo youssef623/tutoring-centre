@@ -6,7 +6,7 @@ Serilog safety net that masks properties named like Password/Token/Secret/Connec
 
 ## Where It Fits
 
-Api/Logging, `public sealed`. Installed in `Program.cs:23`. Tested by `SensitiveDataDestructuringPolicyTests`.
+Api/Logging, `public sealed`. Installed in `Program.cs:37`. Tested by `SensitiveDataDestructuringPolicyTests`.
 
 ## Walkthrough
 
@@ -20,7 +20,7 @@ Api/Logging, `public sealed`. Installed in `Program.cs:23`. Tested by `Sensitive
 
 Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW.md#613-structured-logging-correlation-ids-and-redaction).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Limits damage if someone logs a command object.
 
 Generics let one definition work for many types (`Result<T>`, `ICommandHandler<TCommand,TResponse>`). Constraints (`where TCommand : ICommand<TResponse>`) restrict which types are legal so the compiler can check them; the `in` modifier (contravariance) lets a handler of a base type satisfy a derived one.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
 
 #### Where it appears in this file
 

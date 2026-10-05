@@ -20,7 +20,7 @@ Referenced by Infrastructure, Api and `Application.Tests`/`Architecture.Tests`.
 
 A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Ports are defined here and implemented outward.
 
 MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#5-startup--bootstrapping](../../../PROJECT_OVERVIEW.md#5-startup--bootstrapping).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../../../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
 
 #### Where it appears in this file
 

@@ -2,15 +2,15 @@
 
 ## Purpose
 
-Maps `GET /api/system/info`, the only product endpoint, as bind -> dispatch -> map with no logic.
+Maps `GET /api/system/info`, the only non-authentication product endpoint, as bind -> dispatch -> map with no logic.
 
 ## Where It Fits
 
-Api/Endpoints. Called by `Program.cs:85` on the `/api` route group. Depends on `Dispatcher`, `GetSystemInfoQuery`, `SystemInfoDto`, `ResultHttpExtensions`.
+Api/Endpoints. Called by `Program.cs:121` on the `/api` route group (which carries the CSRF endpoint filter). Depends on `Dispatcher`, `GetSystemInfoQuery`, `SystemInfoDto`, `ResultHttpExtensions`.
 
 ## Walkthrough
 
-`MapPlatformEndpoints(this RouteGroupBuilder api)` (15-19): `api.MapGet("/system/info", GetSystemInfoAsync).WithName("GetSystemInfo").Produces<SystemInfoDto>().ProducesProblem(500).AllowAnonymous()`. Handler `GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct)` (24): `await dispatcher.QueryAsync<GetSystemInfoQuery,SystemInfoDto>(new GetSystemInfoQuery(), ct)` then `result.ToHttpResult(dto => Results.Ok(dto))`. The framework injects `dispatcher` from the request scope and binds `ct` to `HttpContext.RequestAborted`. `.Produces` metadata feeds API descriptions; `.AllowAnonymous()` records intent but, with no authorization middleware, has no runtime effect.
+`MapPlatformEndpoints(this RouteGroupBuilder api)` (15-19): `api.MapGet("/system/info", GetSystemInfoAsync).WithName("GetSystemInfo").Produces<SystemInfoDto>().ProducesProblem(500).AllowAnonymous()`. Handler `GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct)` (24): `await dispatcher.QueryAsync<GetSystemInfoQuery,SystemInfoDto>(new GetSystemInfoQuery(), ct)` then `result.ToHttpResult(dto => Results.Ok(dto))`. The framework injects `dispatcher` from the request scope and binds `ct` to `HttpContext.RequestAborted`. `.Produces` metadata feeds API descriptions; `.AllowAnonymous()` is effective: it exempts the endpoint from the fail-closed authorization fallback policy (`AuthenticationSetup`), so the status page works signed out.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Api/Endpoints. Called by `Program.cs:85` on the `/api` route group. Depends on `
 
 Minimal APIs map a URL pattern and HTTP verb straight to a delegate (`MapGet("/x", handler)`). The framework binds delegate parameters from DI (services), the route, query, body or `CancellationToken`. A *route group* shares a prefix and metadata across endpoints.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Endpoint shape.
 
 CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
 
 #### Where it appears in this file
 
@@ -60,7 +60,7 @@ Thin edge.
 
 Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
@@ -80,7 +80,7 @@ Uniform success/failure mapping.
 
 `async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
 
 #### Where it appears in this file
 
@@ -113,7 +113,7 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-No frontend code calls this endpoint yet (only an MSW mock).
+The frontend calls it through the generated client (`useGetSystemInfo` in `SystemInfoCard`). Being a GET it is not subject to the CSRF filter's token check.
 
 ## Related Files
 

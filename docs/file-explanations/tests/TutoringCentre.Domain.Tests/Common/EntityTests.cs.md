@@ -20,7 +20,7 @@ Private nested `TestEntity : Entity` (a concrete subclass because `Entity` is ab
 
 A UUID is a 128-bit identifier. Version 7 puts a timestamp in the leading bits, so ids sort roughly by creation time. This repo assigns ids in code at construction instead of letting the database generate them.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW.md#66-entities-encapsulation-and-factory-methods).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
 
 #### Where it appears in this file
 

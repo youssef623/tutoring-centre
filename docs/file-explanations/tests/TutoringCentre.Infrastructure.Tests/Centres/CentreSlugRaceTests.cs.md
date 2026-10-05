@@ -20,7 +20,7 @@ Arrange: command for `race-centre`; `TaskCompletionSource gate` and local `Attem
 
 TOCTOU (time of check to time of use): code checks a condition then acts, but another request can change the condition in between. Only the database can make "no two rows share a slug" true, via a unique index; application checks just produce friendlier errors in the common case.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee](../../../../PROJECT_OVERVIEW.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee](../../../../PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Documents a real concurrency hazard and its guarantee.
 
 `async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
 
 #### Where it appears in this file
 

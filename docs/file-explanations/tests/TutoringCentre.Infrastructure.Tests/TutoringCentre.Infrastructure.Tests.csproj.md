@@ -20,7 +20,7 @@ Every test project sets `IsPackable=false` (never published as a NuGet package),
 
 Testcontainers starts a disposable Docker container (here PostgreSQL 17) for the test run. Respawn deletes rows between tests, which is much faster than recreating the database.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
 
 #### Where it appears in this file
 

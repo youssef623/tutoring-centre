@@ -20,7 +20,7 @@ Arrange: `Fixture.CreateServiceProvider(services => services.AddScoped<IQueryHan
 
 A *transaction* makes several database operations all-or-nothing and isolated from concurrent work. A *unit of work* groups the changes of one business operation and commits them together. EF Core's `DbContext` already tracks changes and is a unit of work; the repository adds a small port so the dispatcher can control the transaction without referencing EF.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#67-unit-of-work-and-transactions](../../../../PROJECT_OVERVIEW.md#67-unit-of-work-and-transactions).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions](../../../../PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions).)
 
 #### Where it appears in this file
 

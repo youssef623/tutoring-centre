@@ -6,7 +6,7 @@ Sample Problem Details body for an unknown API route (`route.not_found`).
 
 ## Where It Fits
 
-frontend/src/api/fixtures. Unused by code.
+frontend/src/api/fixtures. Imported by `apiFetch.test.ts` to test the 404 mapping.
 
 ## Walkthrough
 
@@ -20,7 +20,7 @@ frontend/src/api/fixtures. Unused by code.
 
 Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
@@ -44,7 +44,7 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Unused.
+Used by one test.
 
 ## Related Files
 

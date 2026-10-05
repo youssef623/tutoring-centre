@@ -10,7 +10,7 @@ Application.Tests/Security.
 
 ## Walkthrough
 
-`Actor_ByDefault_IsAnonymous` (`Assert.IsType<AnonymousActor>`); `Set_ThenActor_ReturnsTheSetActor` (`Assert.Same`); `Set_CalledTwice_ThrowsInvalidOperationException`. Not tested: `Set(null)`.
+`Actor_ByDefault_IsAnonymous` (`Assert.IsType<AnonymousActor>`); `Set_ThenActor_ReturnsTheSetActor` (`Assert.Same`); `Set_CalledTwice_ThrowsInvalidOperationException`; new `Reauthenticate_AfterSet_ReplacesTheActor` (set an owner actor, `Reauthenticate` with a staff actor, `Assert.Same`) and `Reauthenticate_ThenSet_ThrowsInvalidOperationException` (the scope still counts as set). Not tested: `Set(null)` and `Reauthenticate(null)`.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Application.Tests/Security.
 
 An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../PROJECT_OVERVIEW.md#611-the-actor-model-and-the-tenancy-groundwork).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
 
 #### Where it appears in this file
 

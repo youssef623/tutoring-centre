@@ -2,15 +2,15 @@
 
 ## Purpose
 
-TypeScript types for the single error shape the UI will use: `ErrorKind` and `ApiError`.
+TypeScript types for the single error shape the UI uses: `ErrorKind` and `ApiError`.
 
 ## Where It Fits
 
-frontend/src/api. Imported by `errorMessages.ts` and its test. **No screen produces or consumes `ApiError` yet.** Mirrors `src/TutoringCentre.Domain/Common/ErrorKind.cs`.
+frontend/src/api. Produced by `apiFetch.ts` (`toApiError`, `ApiRequestError`) and consumed by `errorMessages.ts`, `showApiError.ts`, `queryClient.ts` and routes. Mirrors `src/TutoringCentre.Domain/Common/ErrorKind.cs`.
 
 ## Walkthrough
 
-`ErrorKind = "validation" | "notFound" | "conflict" | "rule" | "forbidden" | "unexpected"` (the first five are the backend enum in camelCase; `unexpected` is for 500s/network errors/unparseable bodies). `interface ApiError { kind; code; message; status; fieldErrors?; correlationId? }` - `code` is the stable key the UI translates; `message` is developer-facing, never shown verbatim; `correlationId` is for support. A comment says the fetch wrapper that produces it arrives 'from Day 12' (not present).
+`ErrorKind = "validation" | "notFound" | "conflict" | "rule" | "forbidden" | "unauthenticated" | "unexpected"` (5-12): the first six are the backend enum in camelCase (the backend gained `Unauthenticated` for 401); `unexpected` is for 500s, network errors and unparseable bodies. `interface ApiError { kind; code; message; status; fieldErrors?; correlationId? }` (15-27): `code` is the stable key the UI translates; `message` is developer-facing and never shown verbatim; `fieldErrors` are validation messages per field name; `correlationId` is for support. The comment says the fetch wrapper is produced 'from Day 12'; it is `apiFetch.ts`.
 
 ## Concepts Used
 
@@ -20,19 +20,19 @@ frontend/src/api. Imported by `errorMessages.ts` and its test. **No screen produ
 
 TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
-Union type.
+String-literal union types.
 
 #### How it works here
 
-`ErrorKind`.
+Lines 5-12.
 
 #### Why it matters here
 
-Exhaustive handling is checked by the compiler.
+A `switch` over `kind` is checked for exhaustiveness by the compiler.
 
 ### Problem Details (RFC 9457) and centralised error handling
 
@@ -40,19 +40,19 @@ Exhaustive handling is checked by the compiler.
 
 Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
-Frontend side of the contract.
+Shape of the client-side error.
 
 #### How it works here
 
-`ApiError`.
+Lines 15-27.
 
 #### Why it matters here
 
-Backend `code`/`kind`/`correlationId` map onto fields.
+Fields mirror Problem Details (`code`, `errors`, `correlationId`) so `toApiError` is a direct mapping.
 
 ## Data and Control Flow
 
@@ -64,10 +64,11 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Hand-maintained mirror of the C# enum; drift is possible until the planned generated client exists.
+Hand-maintained mirror of the C# enum (the generated client does not include `ErrorKind`, it only describes endpoints), so a new backend kind needs a manual change here and in `kindFromStatus`.
 
 ## Related Files
 
+- [`frontend/src/api/apiFetch.ts`](apiFetch.ts.md)
 - [`frontend/src/api/errorMessages.ts`](errorMessages.ts.md)
 - [`frontend/src/api/problemDetails.ts`](problemDetails.ts.md)
 - [`src/TutoringCentre.Domain/Common/ErrorKind.cs`](../../../src/TutoringCentre.Domain/Common/ErrorKind.cs.md)

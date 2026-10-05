@@ -10,7 +10,7 @@ Infrastructure.Tests/Platform.
 
 ## Walkthrough
 
-`QueryAsAsync<GetSystemInfoQuery,SystemInfoDto>(new AnonymousActor(), new GetSystemInfoQuery())`; asserts success, `LatestMigration` ends with `_InitialPlatform`, `DatabaseUpToDate` true, version non-blank. Uses an anonymous actor, confirming the query needs no authorization.
+`QueryAsAsync<GetSystemInfoQuery,SystemInfoDto>(new AnonymousActor(), new GetSystemInfoQuery())`; asserts success, `LatestMigration` ends with `_AddIdentityAndMemberships` (the test was renamed `QueryAsync_MigratedDatabase_ReportsLatestMigrationAsUpToDate`), `DatabaseUpToDate` true, version non-blank. Uses an anonymous actor, confirming the query needs no authorization.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Infrastructure.Tests/Platform.
 
 A *repository* looks like a collection of aggregates (`Add`, `ExistsBy...`) and hides how they are stored. A *read service* is a separate query-side abstraction that returns DTOs directly, so reads need not load and map domain entities.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#68-repository-pattern-and-read-services](../../../../PROJECT_OVERVIEW.md#68-repository-pattern-and-read-services).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services](../../../../PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services).)
 
 #### Where it appears in this file
 

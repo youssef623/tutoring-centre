@@ -2,15 +2,15 @@
 
 ## Purpose
 
-Root route: the layout wrapping every page, plus the global toast container.
+Root route: the layout wrapping every page, the typed router context, and the global toast container.
 
 ## Where It Fits
 
-frontend/src/routes. TanStack Router file convention: `__root` is the parent of all routes. Registered in generated `routeTree.gen.ts`.
+frontend/src/routes. TanStack Router file convention: `__root` is the parent of all routes. Registered in generated `routeTree.gen.ts`. Children: `login`, `select-centre`, `status`, `_authenticated` (and its index).
 
 ## Walkthrough
 
-`export const Route = createRootRoute({ component: RootLayout })`. `RootLayout` returns a full-height div with `bg-background text-foreground`, a centered `<main className="mx-auto w-full max-w-3xl p-6">` containing `<Outlet />` (where the matched child route renders), and one `<Toaster richColors />` (comment: one toaster for the whole app; future API-error utilities will show failures there). Nothing triggers a toast yet.
+`RouterContext { queryClient: QueryClient }` (6-8) - available to every route's `beforeLoad`/`loader` (the guard reads the session through it). `Route = createRootRouteWithContext<RouterContext>()({ component: RootLayout })` (10-12). `RootLayout` (14-22): a full-height div with `bg-background text-foreground`, an `<Outlet />` (where the matched child renders) and one `<Toaster richColors />` (comment: one toaster for the whole app; API-error utilities show failures there). Pages now bring their own `main` element (the earlier shared centred `<main>` wrapper is gone), so the login page can be full-width.
 
 ## Concepts Used
 
@@ -20,19 +20,19 @@ frontend/src/routes. TanStack Router file convention: `__root` is the parent of 
 
 A router maps URLs to components. In file-based routing a Vite plugin scans `src/routes/` and generates a route tree file, so adding a file adds a route with type-safe links.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
-Root route and `Outlet`.
+Root route with typed context.
 
 #### How it works here
 
-`createRootRoute`, `<Outlet />`.
+Lines 6-12.
 
 #### Why it matters here
 
-Shared layout without repeating it per page.
+`createRootRouteWithContext` makes `context.queryClient` type-safe in every route.
 
 ### React components, props, state and re-rendering
 
@@ -40,11 +40,11 @@ Shared layout without repeating it per page.
 
 A component is a function returning UI from props and state. When state a component depends on changes, React calls the function again (a re-render) and updates only the DOM that differs.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
-Layout component.
+One shared layout.
 
 #### How it works here
 
@@ -52,7 +52,7 @@ Layout component.
 
 #### Why it matters here
 
-Pure function of its (absent) props.
+The toaster lives once at the top, so any component can call `toast` and it appears.
 
 ## Data and Control Flow
 
@@ -64,10 +64,12 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Lint warns that a file exporting `Route` and a component breaks fast refresh (2 warnings overall).
+Lint warns that a file exporting `Route` and a component breaks fast refresh (a project-wide pattern for route files).
 
 ## Related Files
 
-- [`frontend/src/routes/index.tsx`](index.tsx.md)
+- [`frontend/src/routes/_authenticated.tsx`](_authenticated.tsx.md)
+- [`frontend/src/routes/login.tsx`](login.tsx.md)
 - `frontend/src/routeTree.gen.ts` (generated / lockfile / media: no separate explanation, see INDEX)
 - [`frontend/src/components/ui/sonner.tsx`](../components/ui/sonner.tsx.md)
+- [`frontend/src/main.tsx`](../main.tsx.md)

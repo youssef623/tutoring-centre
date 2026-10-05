@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Proves the seed command is idempotent and creates exactly the two demo centres.
+Proves the seed command is idempotent and creates exactly the two demo centres and the development staff set.
 
 ## Where It Fits
 
@@ -10,7 +10,7 @@ Api.Tests/Cli; collection `api`. Calls `SeedCommand.RunAsync(factory.Services)` 
 
 ## Walkthrough
 
-Reset DB in `InitializeAsync`. Act: run twice. Assert: both exit codes 0; `select count(*) from platform.centres` = 2; `string_agg(slug, ',' order by slug)` = `maadi-hub,nile-centre`. The second run hits `centre.slug_taken`, which the command treats as success. Not tested: failure exit code 1.
+Reset DB in `InitializeAsync`. Act: run twice. Assert: both exit codes 0; `select count(*) from platform.centres` = 2; `string_agg(slug, ',' order by slug)` = `maadi-hub,nile-centre`. The second run hits `centre.slug_taken`, which the command treats as success. Second test `RunAsync_CalledTwice_CreatesExactlyTheStaffSetIdempotently`: runs the seed twice (both exit codes 0) and asserts `count(*) from identity.users` = 5, `count(*) from identity.memberships` = 6 and exactly 1 membership with `status = 'inactive'`. Not tested: failure exit code 1.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Reset DB in `InitializeAsync`. Act: run twice. Assert: both exit codes 0; `selec
 
 CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
 
 #### Where it appears in this file
 

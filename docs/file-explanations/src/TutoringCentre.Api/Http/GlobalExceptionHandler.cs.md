@@ -6,7 +6,7 @@ The single place unexpected exceptions are logged and converted into Problem Det
 
 ## Where It Fits
 
-Api/Http, `internal sealed partial`. Registered in `ProblemDetailsSetup`; invoked by `UseExceptionHandler()` in `Program.cs:71`. Writes through `ProblemResult`.
+Api/Http, `internal sealed partial`. Registered in `ProblemDetailsSetup`; invoked by `UseExceptionHandler()` in `Program.cs:96`. Writes through `ProblemResult`.
 
 ## Walkthrough
 
@@ -20,7 +20,7 @@ Api/Http, `internal sealed partial`. Registered in `ProblemDetailsSetup`; invoke
 
 Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Uniform errors and no information leakage.
 
 Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW.md#613-structured-logging-correlation-ids-and-redaction).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
 
 #### Where it appears in this file
 
@@ -60,7 +60,7 @@ Compile-time log delegates.
 
 Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW.md#8-routing-and-middleware).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
 
 #### Where it appears in this file
 

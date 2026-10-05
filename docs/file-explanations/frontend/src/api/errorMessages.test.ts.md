@@ -2,37 +2,37 @@
 
 ## Purpose
 
-Unit tests of `messageFor` fallback behaviour.
+Unit tests of `messageFor` fallback behaviour (English resources).
 
 ## Where It Fits
 
-frontend/src/api; run by Vitest.
+frontend/src/api; run by Vitest. `src/test/setup.ts` imports `@/i18n`, so i18next is initialised in English before these tests run.
 
 ## Walkthrough
 
-Three tests with Arrange/Act/Assert comments: known code `centre.slug_invalid` in `en` -> the specific sentence; unknown code `centre.something_new` with kind `conflict` -> 'This conflicts with existing data.'; unknown code and unknown kind (`"bogus" as ErrorKind`) -> generic message. Not tested: Arabic output, `unexpected` kind.
+Three tests with Arrange/Act/Assert comments: known code `centre.slug_invalid` -> 'The web address may only contain lowercase letters, digits and single hyphens.'; unknown code `centre.something_new` with kind `conflict` -> 'This conflicts with existing data.'; unknown code and unknown kind (`"bogus" as ErrorKind`) -> 'Something went wrong. Please try again.' Not tested: Arabic output, the `unexpected` and `unauthenticated` kinds.
 
 ## Concepts Used
 
-### Strict TypeScript and type-aware linting
+### Internationalisation (i18next) and RTL layout
 
 #### What it means
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
 
 #### Where it appears in this file
 
-Cast to simulate invalid input.
+Real resources in tests.
 
 #### How it works here
 
-`"bogus" as ErrorKind`.
+Lines 19-21, 37, 53.
 
 #### Why it matters here
 
-Tests runtime fallback beyond the type system.
+The tests assert on the actual English strings from `errors.json`, so changing the JSON wording updates the expectation.
 
 ## Data and Control Flow
 
@@ -50,3 +50,4 @@ No bugs or surprises found while reading this file.
 
 - [`frontend/src/api/errorMessages.ts`](errorMessages.ts.md)
 - [`frontend/src/api/errors.ts`](errors.ts.md)
+- [`frontend/src/test/setup.ts`](../test/setup.ts.md)

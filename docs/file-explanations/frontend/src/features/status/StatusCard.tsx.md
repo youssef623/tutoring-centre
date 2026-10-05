@@ -6,12 +6,12 @@ Renders the API status in four states: loading, cannot reach API, database unava
 
 ## Where It Fits
 
-frontend/src/features/status. Used by `routes/index.tsx`. Depends on `useReadiness` and the shadcn `Alert`, `Button`, `Card`, `Skeleton` components.
+frontend/src/features/status. Used by `routes/status.tsx`. Strings come from the `status` and `common` i18n namespaces. Depends on `useReadiness` and the shadcn `Alert`, `Button`, `Card`, `Skeleton` components.
 
 ## Walkthrough
 
 `readiness = useReadiness()`; `retry = () => { void readiness.refetch(); }` (`void` marks the promise as intentionally unawaited - a lint rule requirement). Branches in order:
-1. `isPending` (14) -> `<div role="status" aria-label="Checking API status">` with two `Skeleton`s.
+`useTranslation("status")` and `useTranslation("common")` provide `t` and `tCommon`. 1. `isPending` -> `<div role="status" aria-label={t("readiness.checking")}>` (`Checking API status`) with two `Skeleton`s.
 2. `isError` (23) -> destructive `Alert` 'Cannot reach the API' with a Retry `Button`.
 3. `readiness.data.state === "unavailable"` (37) -> amber `Alert` 'API is running but the database is unavailable', 'Start PostgreSQL, then try again.', Retry.
 4. otherwise -> `Card` with a green dot, 'Healthy', 'API and database are reachable', and 'Last checked at {checkedAt.toLocaleTimeString()}'.
@@ -25,7 +25,7 @@ After the first two early returns TypeScript narrows `readiness.data` to defined
 
 A component is a function returning UI from props and state. When state a component depends on changes, React calls the function again (a re-render) and updates only the DOM that differs.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
@@ -45,7 +45,7 @@ Every query state renders something (README rule).
 
 Server state (data owned by the API) needs caching, refetching, retry and loading/error flags. `useQuery` subscribes a component to a cache entry addressed by a *query key*, runs the `queryFn`, and re-renders the component when the entry changes.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
@@ -65,7 +65,7 @@ UI is a pure function of query state.
 
 Tailwind composes styles from small utility classes. shadcn/ui copies component source into your repo; `cva` (class-variance-authority) maps variant props like `variant="outline"` to class strings.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
@@ -98,7 +98,7 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Accessible: `role="status"`, `aria-hidden` on the decorative dot. Text is English-only and hard-coded (i18n planned).
+Accessible: `role="status"`, `aria-hidden` on the decorative dot. Text now comes from `readiness.*` keys in `status.json` (English and Arabic); the time is still formatted with `toLocaleTimeString()` in the browser's locale.
 
 ## Related Files
 
@@ -108,3 +108,5 @@ Accessible: `role="status"`, `aria-hidden` on the decorative dot. Text is Englis
 - [`frontend/src/components/ui/card.tsx`](../../components/ui/card.tsx.md)
 - [`frontend/src/components/ui/button.tsx`](../../components/ui/button.tsx.md)
 - [`frontend/src/components/ui/skeleton.tsx`](../../components/ui/skeleton.tsx.md)
+- [`frontend/src/i18n/locales/en/status.json`](../../i18n/locales/en/status.json.md)
+- [`frontend/src/routes/status.tsx`](../../routes/status.tsx.md)

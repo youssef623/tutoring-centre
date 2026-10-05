@@ -6,11 +6,11 @@ Toast container wrapper (Sonner) themed from `next-themes` and CSS variables.
 
 ## Where It Fits
 
-frontend/src/components/ui. Rendered once in `routes/__root.tsx`. No code currently triggers a toast.
+frontend/src/components/ui. Rendered once in `routes/__root.tsx`. Toasts are triggered by `showApiError` (used by the centre picker).
 
 ## Walkthrough
 
-`Toaster` calls `useTheme()` from `next-themes` with default `"system"` (no `ThemeProvider` exists in the app, so the default applies), passes `theme`, per-type icons from `lucide-react`, CSS-variable styles (`--normal-bg` etc.) and `toastOptions.classNames.toast = "cn-toast"`.
+`Toaster` calls `useTheme()` from `next-themes` with default `"system"` (no `ThemeProvider` exists in the app, so the default applies), also calls `useTranslation()` and passes `dir={i18n.dir()}` so toasts follow the document direction; passes `theme`, per-type icons from `lucide-react`, CSS-variable styles (`--normal-bg` etc.) and `toastOptions.classNames.toast = "cn-toast"`.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ frontend/src/components/ui. Rendered once in `routes/__root.tsx`. No code curren
 
 A component is a function returning UI from props and state. When state a component depends on changes, React calls the function again (a re-render) and updates only the DOM that differs.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
@@ -44,7 +44,7 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Dead feature until toasts are used; `next-themes` without provider.
+`next-themes` is used without a provider (default `system`).
 
 ## Related Files
 

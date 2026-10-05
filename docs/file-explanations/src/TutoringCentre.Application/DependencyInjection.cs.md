@@ -6,7 +6,7 @@ The Application layer's registration entry point: `AddApplication`, called once 
 
 ## Where It Fits
 
-Application root. Called by `src/TutoringCentre.Api/Program.cs:31` and `tests/.../PostgresFixture.CreateServiceProvider`. Depends on `CurrentActorContext`, `ICurrentActor`, `HandlerRegistration.AddCqrsHandlers`, `Dispatcher`.
+Application root. Called by `src/TutoringCentre.Api/Program.cs:45` and `tests/.../PostgresFixture.CreateServiceProvider`. Depends on `CurrentActorContext`, `ICurrentActor`, `HandlerRegistration.AddCqrsHandlers`, `Dispatcher`.
 
 ## Walkthrough
 
@@ -16,7 +16,7 @@ Application root. Called by `src/TutoringCentre.Api/Program.cs:31` and `tests/..
 3. `services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly)` (18) - reflection scan for handlers + validators.
 4. `services.AddScoped<Dispatcher>()` (19) - concrete class, scoped.
 Returns `services` for chaining (`AddApplication().AddInfrastructure(...)`).
-If step 2 were `AddScoped<ICurrentActor, CurrentActorContext>()`, handlers would get a *different* instance than the one the edge code had `Set`, always anonymous.
+If step 2 were `AddScoped<ICurrentActor, CurrentActorContext>()`, handlers would get a *different* instance than the one `ActorMiddleware` had `Set`, always anonymous.
 
 ## Concepts Used
 
@@ -26,7 +26,7 @@ If step 2 were `AddScoped<ICurrentActor, CurrentActorContext>()`, handlers would
 
 A class that needs a collaborator can create it itself (`new X()`), which hard-wires the choice, or it can *receive* it, usually as a constructor parameter. That second approach is dependency injection. A DI *container* stores *registrations* ("when asked for type A, build type B with lifetime L") and performs *resolution*: it picks a constructor, resolves each parameter recursively, builds the object and caches it according to the lifetime. This is inversion of control: the class no longer decides what it depends on.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
 
 #### Where it appears in this file
 
@@ -46,7 +46,7 @@ Defines what the container can build for the Application layer.
 
 Lifetime says how long a container-built instance lives. *Singleton*: one for the whole application. *Scoped*: one per scope; in ASP.NET one scope = one HTTP request, and code can create its own scope (as the seed command does). *Transient*: a new instance on every resolution. A longer-lived service must not hold a shorter-lived one (a "captive dependency"), which `ValidateScopes` detects.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
 
 #### Where it appears in this file
 
@@ -66,7 +66,7 @@ The actor and the shared scoped `AppDbContext` live and die with one request or 
 
 *Reflection* lets code inspect types at runtime (`assembly.GetTypes()`, `type.GetInterfaces()`). *Assembly scanning* uses it to find classes implementing a given interface and register them automatically, so adding a new handler needs no registration line.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
 
 #### Where it appears in this file
 

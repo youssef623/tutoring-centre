@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Vitest setup file: starts MSW, cleans the DOM and resets handlers around tests.
+Vitest setup file: loads i18n, stubs `matchMedia`, starts MSW and cleans the DOM and handlers around tests.
 
 ## Where It Fits
 
@@ -10,7 +10,7 @@ frontend/src/test. Referenced by `vite.config.ts` `test.setupFiles`.
 
 ## Walkthrough
 
-Imports `@testing-library/jest-dom/vitest` (adds matchers like `toBeInTheDocument`). `beforeAll`: `server.listen({ onUnhandledRequest: "error" })` - any request without a handler fails the test instead of reaching the network (line 8). `afterEach`: `cleanup()` (unmount; needed because Vitest globals are off so Testing Library cannot auto-register it) and `server.resetHandlers()` (drop per-test overrides). `afterAll`: `server.close()`.
+Imports `@testing-library/jest-dom/vitest` (matchers such as `toBeInTheDocument`) and `@/i18n` (so `t()` returns real English text in every test). `window.matchMedia` is stubbed (9-19) because jsdom has no `matchMedia` and Sonner's `Toaster` (rendered on every route by `__root.tsx`) reads it for `prefers-color-scheme`; the stub returns `matches: false`. `beforeAll`: `server.listen({ onUnhandledRequest: "error" })` - any request without a handler fails the test (22-24). `afterEach`: `cleanup()` (unmount; needed because Vitest globals are off) and `server.resetHandlers()` (26-29). `afterAll`: `server.close()` (31-33).
 
 ## Concepts Used
 
@@ -20,19 +20,39 @@ Imports `@testing-library/jest-dom/vitest` (adds matchers like `toBeInTheDocumen
 
 Mock Service Worker intercepts `fetch` at the network layer, so components and hooks run unchanged while the test decides what the 'server' answers.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
-MSW lifecycle.
+Strict unhandled-request policy.
 
 #### How it works here
 
-Lines 7-18.
+Line 23.
 
 #### Why it matters here
 
-Network isolation for every test.
+A forgotten handler fails loudly instead of reaching the network.
+
+### Internationalisation (i18next) and RTL layout
+
+#### What it means
+
+i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+
+#### Where it appears in this file
+
+Real translations in tests.
+
+#### How it works here
+
+Import of `@/i18n`.
+
+#### Why it matters here
+
+Assertions use real strings, so wording changes in JSON show up in tests.
 
 ## Data and Control Flow
 
@@ -44,10 +64,11 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-No bugs or surprises found while reading this file.
+The jsdom message 'Not implemented: Window's scrollTo() method' is printed repeatedly during the router tests (observed in the test run); it is noise, not a failure.
 
 ## Related Files
 
 - [`frontend/src/test/msw/server.ts`](msw/server.ts.md)
 - [`frontend/src/test/msw/handlers.ts`](msw/handlers.ts.md)
 - [`frontend/vite.config.ts`](../../vite.config.ts.md)
+- [`frontend/src/i18n/index.ts`](../i18n/index.ts.md)

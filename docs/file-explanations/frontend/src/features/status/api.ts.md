@@ -2,11 +2,11 @@
 
 ## Purpose
 
-The only network call in the frontend: asks `/health/ready` and maps the status code to a typed result.
+A hand-written network call kept for the readiness check (the rest of the app uses the generated client through `apiFetch`): asks `/health/ready` and maps the status code to a typed result.
 
 ## Where It Fits
 
-frontend/src/features/status. Called by `useReadiness.ts` as the `queryFn`. Hits the API through the Vite proxy (dev).
+frontend/src/features/status. Called by `useReadiness.ts` as the `queryFn`. It does *not* go through `apiFetch`, because `/health/ready` returns plain text and its 200/503 answers are data. Hits the API through the Vite proxy (dev).
 
 ## Walkthrough
 
@@ -20,7 +20,7 @@ frontend/src/features/status. Called by `useReadiness.ts` as the `queryFn`. Hits
 
 `async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../PROJECT_OVERVIEW.md#63-cqrs-and-the-hand-written-dispatcher).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Returns a Promise the query library awaits.
 
 Server state (data owned by the API) needs caching, refetching, retry and loading/error flags. `useQuery` subscribes a component to a cache entry addressed by a *query key*, runs the `queryFn`, and re-renders the component when the entry changes.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 

@@ -10,7 +10,7 @@ Frontend config. Read only by `npx shadcn ...` commands; not used at runtime or 
 
 ## Walkthrough
 
-`style: base-nova` (a shadcn style built on Base UI); `rsc: false`, `tsx: true`; `tailwind.config: ""` (Tailwind v4 has no config file), `tailwind.css: src/index.css`, `baseColor: neutral`, `cssVariables: true`, `prefix: ""`; `iconLibrary: lucide`; `rtl: false`; `aliases` for components/utils/ui/lib/hooks (`@/components`, `@/lib/utils`, ...); `menuColor`, `menuAccent`; empty `registries`. `rtl: false` is notable given Arabic support is planned.
+`style: base-nova` (a shadcn style built on Base UI); `rsc: false`, `tsx: true`; `tailwind.config: ""` (Tailwind v4 has no config file), `tailwind.css: src/index.css`, `baseColor: neutral`, `cssVariables: true`, `prefix: ""`; `iconLibrary: lucide`; `rtl: false`; `aliases` for components/utils/ui/lib/hooks (`@/components`, `@/lib/utils`, ...); `menuColor`, `menuAccent`; empty `registries`. `rtl: false` is notable now that Arabic RTL is implemented: the generated components do not use the CLI's RTL transformation; the project converted the few physical utilities by hand (for example in `alert.tsx`).
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Frontend config. Read only by `npx shadcn ...` commands; not used at runtime or 
 
 Tailwind composes styles from small utility classes. shadcn/ui copies component source into your repo; `cva` (class-variance-authority) maps variant props like `variant="outline"` to class strings.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 

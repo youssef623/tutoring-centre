@@ -6,7 +6,7 @@ Type for RFC 9457 Problem Details as the API returns them and a type guard to re
 
 ## Where It Fits
 
-frontend/src/api. Tested by `problemDetails.test.ts`; unused by screens yet. Mirrors `Api/Http/ProblemResult` output.
+frontend/src/api. Tested by `problemDetails.test.ts`; used by `apiFetch.ts` (`toApiError`). Mirrors `Api/Http/ProblemResult` output.
 
 ## Walkthrough
 
@@ -20,7 +20,7 @@ frontend/src/api. Tested by `problemDetails.test.ts`; unused by screens yet. Mir
 
 TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 

@@ -6,11 +6,11 @@ The only place domain `Result`/`Error` values become HTTP responses.
 
 ## Where It Fits
 
-Api/Http, `public static`. Used by `PlatformEndpoints`, `Program.cs` fallback, and test endpoints. Depends on `ProblemResult`, `Error`, `ErrorKind`.
+Api/Http, `public static`. Used by `PlatformEndpoints`, `AuthEndpoints`, `Program.cs` fallbacks, and test endpoints. Depends on `ProblemResult`, `Error`, `ErrorKind`.
 
 ## Walkthrough
 
-`ToHttpResult<T>(this Result<T>, Func<T,IResult> onSuccess)` (13): success -> `onSuccess(result.Value)`; failure -> `result.Error!.ToProblemResult()`. `ToHttpResult(this Result)` (20): success -> `Results.NoContent()` (204). `ToProblemResult(this Error)` (23-43): switch on `ErrorKind` (29-33): Validation 400, NotFound 404, Conflict 409, Rule 422, Forbidden 403, default throws `ArgumentOutOfRangeException`; when `Kind == Validation && Fields != null` builds `ValidationProblemDetails` (adds the `errors` object), else `ProblemDetails`; `Detail = error.Message`; `Extensions["code"] = error.Code`; returns `new ProblemResult(problem)`. Doc comment explains each status's meaning.
+`ToHttpResult<T>(this Result<T>, Func<T,IResult> onSuccess)` (13): success -> `onSuccess(result.Value)`; failure -> `result.Error!.ToProblemResult()`. `ToHttpResult(this Result)` (20): success -> `Results.NoContent()` (204). `ToProblemResult(this Error)` (23-44): switch on `ErrorKind` (29-34): Validation 400, NotFound 404, Conflict 409, Rule 422, Forbidden 403, Unauthenticated 401 (title 'Authentication is required.'), default throws `ArgumentOutOfRangeException`; when `Kind == Validation && Fields != null` builds `ValidationProblemDetails` (adds the `errors` object), else `ProblemDetails`; `Detail = error.Message`; `Extensions["code"] = error.Code`; returns `new ProblemResult(problem)`. The doc comment explains each status's meaning, including `401 = we don't know who you are; 403 = we know, and you may not`.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Api/Http, `public static`. Used by `PlatformEndpoints`, `Program.cs` fallback, a
 
 Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW.md#64-the-result-pattern-failures-as-values).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Endpoints never branch on outcome.
 
 Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
@@ -65,6 +65,8 @@ flowchart LR
     K --> S409["409"]
     K --> S422["422"]
     K --> S403["403"]
+    K --> S401["401"]
+    S401 --> PR
     S400 --> PR["ProblemResult (problem+json)"]
 ```
 

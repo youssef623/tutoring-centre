@@ -6,7 +6,7 @@ Sample Problem Details body for a malformed request (`request.malformed`), match
 
 ## Where It Fits
 
-frontend/src/api/fixtures. I found no import of this file anywhere in `src` (probably reserved for a future contract test).
+frontend/src/api/fixtures. Imported by `apiFetch.test.ts` (`import problem400 from "./fixtures/problem-400.json"`) to test the 400 mapping.
 
 ## Walkthrough
 
@@ -20,7 +20,7 @@ Fields: `title` 'The request could not be read.', `status` 400, `code` 'request.
 
 Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
@@ -44,7 +44,7 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Unused.
+Used by one test.
 
 ## Related Files
 

@@ -10,7 +10,7 @@ Frontend config used by `tsc -b` (`typecheck`, `build`) and the editor.
 
 ## Walkthrough
 
-`target es2023`, `lib [ES2023, DOM]`, `module esnext`, `moduleResolution bundler`, `types ["vite/client"]`, `allowImportingTsExtensions`, `verbatimModuleSyntax` (type-only imports must use `import type`), `moduleDetection force`, `noEmit` (Vite does the bundling), `jsx react-jsx`, `paths @/*`. Strictness: `strict`, `noUncheckedIndexedAccess` (indexing yields `T | undefined`, which is why `errorMessages.ts` uses `??`), `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly` (no enums/namespaces/parameter properties - code must be strippable), `noFallthroughCasesInSwitch`. `tsBuildInfoFile` under `node_modules/.tmp`. `include: ["src"]`.
+`target es2023`, `lib [ES2023, DOM]`, `module esnext`, `moduleResolution bundler`, `types ["vite/client"]`, `allowImportingTsExtensions`, `verbatimModuleSyntax` (type-only imports must use `import type`), `moduleDetection force`, `noEmit` (Vite does the bundling), `jsx react-jsx`, `paths @/*`. Strictness: `strict`, `noUncheckedIndexedAccess` (indexing yields `T | undefined`; for example `messages.at(0)` and array indexing in `showApiError.ts` must handle `undefined`), `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly` (no enums/namespaces/parameter properties - code must be strippable), `noFallthroughCasesInSwitch`. `tsBuildInfoFile` under `node_modules/.tmp`. `include: ["src"]`.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Frontend config used by `tsc -b` (`typecheck`, `build`) and the editor.
 
 TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 

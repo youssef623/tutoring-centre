@@ -2,37 +2,37 @@
 
 ## Purpose
 
-Turns an `ApiError` into user-facing text in English or Arabic using a three-level fallback.
+Turns an `ApiError` into user-facing text in the current language via i18next, with a three-level fallback.
 
 ## Where It Fits
 
-frontend/src/api. Tested by `errorMessages.test.ts`; **not called by any component yet**.
+frontend/src/api. Used by `showApiError.ts`, `SystemInfoCard.tsx` and `routes/login.tsx`; tested by `errorMessages.test.ts`. Reads the `errors` namespace from `src/i18n/locales/{en,ar}/errors.json`.
 
 ## Walkthrough
 
-Types `Lang = "en" | "ar"` and `Dictionary = Partial<Record<string,string>>`. Dictionaries: `byCode` (en/ar) for `validation.failed`, `centre.name_required`, `centre.name_too_long`, `centre.slug_invalid`, `centre.time_zone_invalid`, `centre.slug_taken`, `centre.create_forbidden` (matching backend codes); `byKind` for validation/notFound/conflict/rule/forbidden/unexpected; `generic`. `messageFor(error, lang)` = `byCode[lang][error.code] ?? byKind[lang][error.kind] ?? generic[lang]` - most specific wins (nullish coalescing). Comment: backend owns stable codes, frontend owns wording and language; Arabic strings are placeholders until i18n files (Day 17). `noUncheckedIndexedAccess` makes the lookups `string | undefined`, which is why `??` is required.
+`Namespace = "errors"` (4). `messageFor(error)` (7-19): (1) `i18next.t("byCode.<error.code>", { ns, defaultValue: "" })` - non-empty wins; (2) else `byKind.<error.kind>`; (3) else `t("generic")`. Because the key contains dots (`centre.slug_invalid`) and i18next uses dots as nested-key separators, the JSON is nested (`byCode.centre.slug_invalid`). The language is whatever i18next currently uses, so there is no `lang` parameter any more.
 
 ## Concepts Used
 
-### Strict TypeScript and type-aware linting
+### Internationalisation (i18next) and RTL layout
 
 #### What it means
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
 
 #### Where it appears in this file
 
-`Partial<Record<...>>` + `??`.
+Lookup by code, then kind, then generic.
 
 #### How it works here
 
-Dictionaries and `messageFor`.
+Lines 7-19.
 
 #### Why it matters here
 
-Type system forces handling missing keys.
+The backend owns stable codes; the frontend owns wording and language. A missing code degrades to a kind-level sentence, not a blank.
 
 ### Problem Details (RFC 9457) and centralised error handling
 
@@ -40,29 +40,29 @@ Type system forces handling missing keys.
 
 Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW.md#612-http-problem-details-and-error-handling).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
 
 #### Where it appears in this file
 
-Code-to-text translation.
+Stable `code` as the translation key.
 
 #### How it works here
 
-`byCode`.
+`byCode.${error.code}`.
 
 #### Why it matters here
 
-Backend never ships user-facing prose.
+Wording can change without touching the backend.
 
 ## Data and Control Flow
 
 ```mermaid
 flowchart LR
-    E["ApiError{code,kind}"] --> C{"byCode[lang][code]?"}
+    E["ApiError code and kind"] --> C{"byCode.code in errors.json?"}
     C -->|found| T["specific message"]
-    C -->|missing| K{"byKind[lang][kind]?"}
+    C -->|missing| K{"byKind.kind?"}
     K -->|found| T2["kind message"]
-    K -->|missing| G["generic[lang]"]
+    K -->|missing| G["generic"]
 ```
 
 ## Configuration and Environment
@@ -71,10 +71,12 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Dead code until a form/toast calls it. Codes are duplicated here and in the backend; a renamed backend code silently falls back to the kind message.
+The `errors.json` `byCode` list contains the validation and `centre.*` codes only; auth codes (`auth.invalid_credentials`, `auth.rate_limited`, `auth.csrf_invalid`, `tenant.no_membership`) have no `byCode` entry, so they fall back to `byKind` (the login page handles the first two itself with its own `auth` namespace strings).
 
 ## Related Files
 
 - [`frontend/src/api/errors.ts`](errors.ts.md)
 - [`frontend/src/api/errorMessages.test.ts`](errorMessages.test.ts.md)
-- [`src/TutoringCentre.Domain/Centres/Centre.cs`](../../../src/TutoringCentre.Domain/Centres/Centre.cs.md)
+- [`frontend/src/i18n/index.ts`](../i18n/index.ts.md)
+- [`frontend/src/i18n/locales/en/errors.json`](../i18n/locales/en/errors.json.md)
+- [`frontend/src/i18n/locales/ar/errors.json`](../i18n/locales/ar/errors.json.md)

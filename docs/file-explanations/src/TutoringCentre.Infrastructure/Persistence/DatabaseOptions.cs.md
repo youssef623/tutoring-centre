@@ -20,7 +20,7 @@ Infrastructure/Persistence. Configured and validated in `DependencyInjection.cs`
 
 The options pattern binds configuration into a typed class and can validate it. `ValidateOnStart` runs that validation when the host starts, so a bad configuration stops the app immediately instead of failing on first use.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW.md#614-options-validation-and-health-checks).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks).)
 
 #### Where it appears in this file
 

@@ -2,15 +2,15 @@
 
 ## Purpose
 
-Test helper that renders a component inside a fresh `QueryClientProvider`.
+Test helpers that render a component or a hook inside a fresh `QueryClientProvider`.
 
 ## Where It Fits
 
-frontend/src/test. Used by `StatusCard.test.tsx`.
+frontend/src/test. Used by `StatusCard.test.tsx`, `SystemInfoCard.test.tsx` and `useSession.test.ts`. Route-level tests use `renderRouter.tsx` instead.
 
 ## Walkthrough
 
-`renderWithQueryClient(ui)`: `new QueryClient({ defaultOptions: { queries: { retry: false } } })` then `render(<QueryClientProvider client={...}>{ui}</QueryClientProvider>)`. Fresh client per call = no shared cache between tests; `retry: false` so failures surface immediately.
+`newTestQueryClient()` (5-9): `new QueryClient({ defaultOptions: { queries: { retry: false } } })`. `renderWithQueryClient(ui)` (12-16): renders inside a provider with a fresh client. `renderHookWithQueryClient(hook)` (19-28): same for hooks via `renderHook` with a `wrapper` component, returning `RenderHookResult`. Fresh client per call = no shared cache between tests; `retry: false` so failures surface immediately.
 
 ## Concepts Used
 
@@ -20,19 +20,19 @@ frontend/src/test. Used by `StatusCard.test.tsx`.
 
 Server state (data owned by the API) needs caching, refetching, retry and loading/error flags. `useQuery` subscribes a component to a cache entry addressed by a *query key*, runs the `queryFn`, and re-renders the component when the entry changes.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW.md#617-frontend-concepts-react-server-state-and-routing).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
 
 #### Where it appears in this file
 
-Isolated client.
+Fresh client per test.
 
 #### How it works here
 
-Function body.
+Lines 5-9.
 
 #### Why it matters here
 
-Deterministic tests.
+Tests never share cached data and a failed request is reported at once instead of after a retry.
 
 ## Data and Control Flow
 
@@ -48,5 +48,7 @@ No bugs or surprises found while reading this file.
 
 ## Related Files
 
+- [`frontend/src/test/renderRouter.tsx`](renderRouter.tsx.md)
 - [`frontend/src/features/status/StatusCard.test.tsx`](../features/status/StatusCard.test.tsx.md)
+- [`frontend/src/features/session/useSession.test.ts`](../features/session/useSession.test.ts.md)
 - [`frontend/src/app/queryClient.ts`](../app/queryClient.ts.md)

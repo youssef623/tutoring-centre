@@ -20,7 +20,7 @@ Api.Tests/Health; collection `api`.
 
 *Liveness* answers "is the process alive?"; *readiness* answers "can it serve traffic (dependencies up)?". Orchestrators restart on liveness failure and stop routing on readiness failure, so the two must not be conflated.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW.md#614-options-validation-and-health-checks).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks).)
 
 #### Where it appears in this file
 

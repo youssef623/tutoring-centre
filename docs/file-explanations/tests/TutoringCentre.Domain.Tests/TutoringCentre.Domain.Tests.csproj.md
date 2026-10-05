@@ -20,7 +20,7 @@ Every test project sets `IsPackable=false` (never published as a NuGet package),
 
 `[Fact]` is a test; `[Theory]` + `[InlineData]` runs one test with several inputs. A *collection fixture* (`ICollectionFixture<T>` + `[Collection]`) shares one expensive object (a database container) across test classes and serialises them; `IAsyncLifetime` runs async setup/teardown.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Makes `dotnet test` discover `[Fact]`/`[Theory]`.
 
 MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#5-startup--bootstrapping](../../../PROJECT_OVERVIEW.md#5-startup--bootstrapping).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../../../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
 
 #### Where it appears in this file
 

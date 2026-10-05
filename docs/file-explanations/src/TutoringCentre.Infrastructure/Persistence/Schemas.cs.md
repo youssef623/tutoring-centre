@@ -6,11 +6,11 @@ Constants naming the PostgreSQL schemas used per feature module.
 
 ## Where It Fits
 
-Infrastructure/Persistence, `internal`. `Schemas.Platform` is used by `CentreConfiguration` and `DependencyInjection`. `Schemas.Identity` is unused (planned identity module).
+Infrastructure/Persistence, `internal`. `Schemas.Platform` is used by `CentreConfiguration` and `DependencyInjection`. `Schemas.Identity` is used by the Identity configurations (`ApplicationUserConfiguration`, `MembershipConfiguration`, ...).
 
 ## Walkthrough
 
-`Platform = "platform"`, `Identity = "identity"`. Doc: every entity configuration uses these in `ToTable(name, schema)`. Test fixtures list both schema names for Respawn although the `identity` schema does not exist yet.
+`Platform = "platform"`, `Identity = "identity"`. Doc: every entity configuration uses these in `ToTable(name, schema)`. Test fixtures list both schema names for Respawn; the `identity` schema now exists (created by the `AddIdentityAndMemberships` migration).
 
 ## Concepts Used
 
@@ -26,7 +26,7 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Unused constant `Identity`.
+No bugs found; `Identity` is used since the identity migration.
 
 ## Related Files
 

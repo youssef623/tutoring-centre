@@ -26,7 +26,7 @@ If changed incorrectly: removing `TreatWarningsAsErrors` silently lets analyzer 
 
 MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#5-startup--bootstrapping](../PROJECT_OVERVIEW.md#5-startup--bootstrapping).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
 
 #### Where it appears in this file
 

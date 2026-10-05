@@ -10,7 +10,7 @@ Api.Tests/Fixtures. Base class of `ConventionsFactory`; shared through `ApiColle
 
 ## Walkthrough
 
-`public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime`. `InitializeAsync`: start container; `await Services.ApplyMigrationsAsync()` (accessing `Services` builds the host, after `ConfigureWebHost` has the connection string); open connection; `Respawner` (schemas `platform`, `identity`; ignore history table). `ConfigureWebHost`: `UseEnvironment("Testing")` (no Development auto-migrate, no user-secrets), `UseSetting("ConnectionStrings:Postgres", ConnectionString)` (visible before build, as `AddInfrastructure` reads it during registration), `UseDefaultServiceProvider(ValidateOnBuild = true, ValidateScopes = true)` (comment: Development enables these by default, Testing does not; missing registrations must fail tests). `ResetAsync`, `ScalarAsync<T>`; `DisposeAsync` disposes host then container.
+`public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime`. `InitializeAsync`: start container; `await Services.ApplyMigrationsAsync()` (accessing `Services` builds the host, after `ConfigureWebHost` has the connection string); open connection; `Respawner` (schemas `platform`, `identity`; ignore history table). `ConfigureWebHost`: `UseEnvironment("Testing")` (no Development auto-migrate, no user-secrets), `UseSetting("ConnectionStrings:Postgres", ConnectionString)` (visible before build, as `AddInfrastructure` reads it during registration), `UseDefaultServiceProvider(ValidateOnBuild = true, ValidateScopes = true)` (comment: Development enables these by default, Testing does not; missing registrations must fail tests). `ResetAsync`, `ScalarAsync<T>`, new `ExecuteAsync(sql)` (runs a non-query statement directly, e.g. revoking a membership under a live session); `DisposeAsync` disposes host then container. Additions to `ConfigureWebHost`: `UseSetting("Seed:Password", TestSeedPassword)` where `internal const string TestSeedPassword` is a throwaway test value, and `UseSetting("SessionValidation:CacheDuration", "00:00:00")` so every test re-checks the session instead of racing the cache window.
 
 ## Concepts Used
 
@@ -20,7 +20,7 @@ Api.Tests/Fixtures. Base class of `ConventionsFactory`; shared through `ApiColle
 
 `WebApplicationFactory<Program>` starts the real application inside the test process with an in-memory test server, so real middleware, DI and routing run without opening a network port. Tests can override configuration and services before the host is built.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
 
 #### Where it appears in this file
 
@@ -40,7 +40,7 @@ Real DI/middleware/routing without a network port.
 
 Testcontainers starts a disposable Docker container (here PostgreSQL 17) for the test run. Respawn deletes rows between tests, which is much faster than recreating the database.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW.md#616-test-doubles-vs-real-database-tests).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
 
 #### Where it appears in this file
 
@@ -60,7 +60,7 @@ Real database.
 
 A class that needs a collaborator can create it itself (`new X()`), which hard-wires the choice, or it can *receive* it, usually as a constructor parameter. That second approach is dependency injection. A DI *container* stores *registrations* ("when asked for type A, build type B with lifetime L") and performs *resolution*: it picks a constructor, resolves each parameter recursively, builds the object and caches it according to the lifetime. This is inversion of control: the class no longer decides what it depends on.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning](../../../../PROJECT_OVERVIEW.md#62-dependency-injection-lifetimes-and-scanning).)
+(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
 
 #### Where it appears in this file
 
@@ -80,7 +80,7 @@ No runtime data flows through this file; it is consumed by tooling or readers, n
 
 ## Configuration and Environment
 
-Environment name `Testing`; sets `ConnectionStrings:Postgres` to the container string.
+Environment name `Testing`; sets `ConnectionStrings:Postgres` to the container string, `Seed:Password` to a throwaway test constant and `SessionValidation:CacheDuration` to zero.
 
 ## Gotchas and Issues
 

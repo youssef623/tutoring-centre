@@ -26,7 +26,7 @@ None. The file reads no environment variables and declares no configuration keys
 
 ## Gotchas and Issues
 
-Dead module (verified by search for `lib/utils` imports).
+Still a dead module after the merge (searched `src` for `lib/utils`: no importer).
 
 ## Related Files
 
