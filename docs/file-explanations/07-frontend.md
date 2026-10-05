@@ -1,36 +1,208 @@
 # `frontend/`
 
-Part of the [file index](INDEX.md). Vite + React 19 + TypeScript SPA. **Verified by running here:** `npm ci` OK; `vitest --run` 3 files / 9 tests pass; `npm run typecheck` clean; `npm run lint` 0 errors, 2 warnings. Concepts: overview §6.17 and §12.
+Folder map generated from the per-file explanations. Part of the [file index](INDEX.md); the teaching overview is [`../PROJECT_OVERVIEW2.md`](../PROJECT_OVERVIEW2.md). Each row links to the full explanation of that file (purpose, where it fits, walkthrough, concepts, flow, configuration, gotchas, related files). **85 files.**
 
-## Tooling/config files
-| File | Details |
-| --- | --- |
-| `package.json` | `"type": "module"` (ESM). Scripts: `dev` (vite), `build` (`tsc -b && vite build` — type-check then bundle), `lint`, `format`, `typecheck` (`tsc -b --noEmit`), `preview`, `test` (watch), `test:ci` (`vitest --run`). Unused-by-code dependencies worth knowing: `shadcn` (CLI, listed as a runtime dependency), `next-themes` (only `useTheme` in `sonner.tsx`). |
-| `package-lock.json` | lockfile v3; `npm ci` fails if it disagrees with `package.json`. Excluded from Prettier. |
-| `vite.config.ts` | `/// <reference types="vitest/config" />` adds the `test` key to Vite's config type. Plugins in order: `tanstackRouter({ target: "react", autoCodeSplitting: true })` (must precede React plugin), `react()`, `tailwindcss()`. Alias `@` → `./src` (mirrored in `tsconfig*.json` `paths` and `components.json`). `server.proxy` for `/api` and `/health` → `http://localhost:5080`. `test`: jsdom environment, `setupFiles ./src/test/setup.ts`. |
-| `tsconfig.json` / `.app.json` / `.node.json` | Project references. App config: target ES2023, bundler module resolution, `verbatimModuleSyntax` (type imports must use `import type`), `jsx: react-jsx`, `strict`, `noUncheckedIndexedAccess` (indexing returns `T \| undefined` — see `byCode[lang][error.code] ?? …`), `erasableSyntaxOnly` (no enums/namespaces/parameter properties), no unused locals/params. Node config only covers `vite.config.ts`. |
-| `eslint.config.js` | Flat config. `strictTypeChecked` (type-aware, needs `projectService`), `eslint-plugin-react-hooks` flat recommended, `react-refresh` (vite preset). Ignores `dist`, `coverage`, `src/routeTree.gen.ts`. Override for `src/routes/**` allows `Route` as an extra export — yet lint still reports the 2 warnings I saw. |
-| `.prettierrc`, `.prettierignore` | width 100, double quotes, semicolons, trailing commas; ignores generated tree and lockfile. Note: `components/ui/*.tsx` (shadcn output) use no semicolons — i.e., not Prettier-formatted. |
-| `components.json` | shadcn CLI settings: style `base-nova`, `tailwind.css: src/index.css`, `tailwind.config: ""` (v4), aliases `@/components`, `@/lib/utils`, `@/components/ui`, `@/hooks`; `iconLibrary: lucide`; `rtl: false`. |
-| `.gitignore` | Vite template. |
-| `index.html` | `<html lang="en">` (static, even though Arabic is planned), favicon link, `<div id="root">`, module script. `<title>frontend</title>` is the template default. |
-| `public/favicon.svg`, `public/icons.svg` | Served as-is at `/favicon.svg` and `/icons.svg`. `icons.svg` is an SVG sprite (symbols such as `bluesky-icon`); I found no reference to it in `src` or `index.html`. |
-| `README.md` | Conventions + stale/planned content (see overview §12). |
+## `frontend`
 
-## `src/` files
-- **`main.tsx`** — described in overview §6.17.
-- **`index.css`** — `@import "tailwindcss"`, `tw-animate-css`, `shadcn/tailwind.css`, `@fontsource-variable/geist`; `@custom-variant dark (&:is(.dark *))`; `@theme inline` maps CSS variables to Tailwind color/radius tokens; `:root` and `.dark` define oklch palettes; `@layer base` applies border/background/text defaults and the Geist font. Nothing toggles `.dark` yet.
-- **`app/queryClient.ts`** — exports the singleton `queryClient`: `retry: 1`, `staleTime: 30_000` (comments explain both).
-- **`api/errors.ts`** — `ErrorKind` (`"validation"|"notFound"|"conflict"|"rule"|"forbidden"|"unexpected"`; first five mirror the C# enum in camelCase, `unexpected` is frontend-only) and `ApiError` (`kind`, `code`, `message`, `status`, optional `fieldErrors`, `correlationId`).
-- **`api/problemDetails.ts`** — `ProblemDetails` interface (RFC 9457 + `code`, `traceId`, `correlationId`, `errors`) and the `isProblemDetails(value: unknown): value is ProblemDetails` **type guard** (`typeof object`, non-null, `"title" in value` + string, `"status" in value` + number). Type guards let TypeScript narrow `unknown` after a runtime check.
-- **`api/errorMessages.ts`** — `Lang = "en" | "ar"`, dictionaries `byCode`, `byKind`, `generic`, and `messageFor(error, lang)` = `byCode[lang][error.code] ?? byKind[lang][error.kind] ?? generic[lang]` (nullish coalescing chain: most specific wins). Codes listed match backend codes: `validation.failed`, `centre.name_required`, `centre.name_too_long`, `centre.slug_invalid`, `centre.time_zone_invalid`, `centre.slug_taken`, `centre.create_forbidden`. Comment: Arabic strings are placeholders until i18n files (Day 17). **No component calls `messageFor`.**
-- **`api/fixtures/problem-400.json`, `problem-404.json`** — sample backend bodies; not imported anywhere I found (probably intended for a future contract test).
-- **`features/status/api.ts`, `useReadiness.ts`, `StatusCard.tsx`** — overview §6.17.
-- **`routes/__root.tsx`, `routes/index.tsx`, `routeTree.gen.ts`** — overview §6.17. The generated file starts with `/* eslint-disable */`, `// @ts-nocheck` and a "do not edit" banner.
-- **`components/ui/*`** — shadcn "base-nova" style over `@base-ui/react` (`button.tsx` wraps `ButtonPrimitive`). Each element gets a `data-slot` attribute used by Tailwind selectors (e.g. `has-data-[slot=card-footer]`). `button-variants.ts` is separate from `button.tsx` (keeps `react-refresh` happy: component files should export only components). Variants via `cva`: `default|outline|secondary|ghost|destructive|link` × sizes `default|xs|sm|lg|icon*`. `sonner.tsx` reads `useTheme()` from `next-themes` (default `"system"`) and styles toasts from CSS variables.
-- **`lib/utils.ts`** — `export { cn } from "cn"`. The UI components themselves import `cn` straight from `"cn"`, so this file is unused.
-- **Test helpers** (`test/setup.ts`, `test/render.tsx`, `test/msw/handlers.ts`, `test/msw/server.ts`) — overview §6.17. Default handlers: healthy `/health/ready` and a sample `/api/system/info` (migration id there is a mock value, not the real one).
-- **Tests:** `errorMessages.test.ts` (3: code hit, kind fallback, generic fallback via `"bogus" as ErrorKind`), `problemDetails.test.ts` (3), `StatusCard.test.tsx` (3: healthy; 503 shows "API is running but the database is unavailable", a Retry button, and *not* "Cannot reach the API"; Retry refetch flips to healthy).
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `.gitignore` | Ignore rules for the frontend folder (Vite template). | [Explanation](./frontend/.gitignore.md) |
+| `.prettierignore` | Tells Prettier which files not to format. | [Explanation](./frontend/.prettierignore.md) |
+| `.prettierrc` | Prettier formatting options. | [Explanation](./frontend/.prettierrc.md) |
+| `README.md` | Frontend decisions, conventions and API contract, mixed with unedited Vite template notes. | [Explanation](./frontend/README.md.md) |
+| `components.json` | Configuration for the shadcn/ui CLI that generated the files in `src/components/ui`. | [Explanation](./frontend/components.json.md) |
+| `eslint.config.js` | ESLint flat configuration: strict, type-aware TypeScript rules plus React hooks and fast-refresh rules. | [Explanation](./frontend/eslint.config.js.md) |
+| `index.html` | The single HTML page of the SPA: mount point for React and the module entry script. | [Explanation](./frontend/index.html.md) |
+| `orval.config.ts` | Configuration of Orval, the tool that generates the typed React Query client from the API's OpenAPI document. | [Explanation](./frontend/orval.config.ts.md) |
+| `package-lock.json` | npm dependency lockfile (v3). | Skipped (generated / lockfile / media), see INDEX |
+| `package.json` | Declares the frontend's dependencies and npm scripts. | [Explanation](./frontend/package.json.md) |
+| `playwright.config.ts` | Playwright configuration: where the E2E specs are, which browser, and how to start the API and the Vite dev server before the tests. | [Explanation](./frontend/playwright.config.ts.md) |
+| `tsconfig.app.json` | TypeScript settings for the application source under `src/`. | [Explanation](./frontend/tsconfig.app.json.md) |
+| `tsconfig.json` | Solution-style TypeScript config that references the app and node configs. | [Explanation](./frontend/tsconfig.json.md) |
+| `tsconfig.node.json` | TypeScript settings for Node-side config (`vite.config.ts`, `orval.config.ts`, `playwright.config.ts` and the `e2e` folder). | [Explanation](./frontend/tsconfig.node.json.md) |
+| `vite.config.ts` | Vite configuration: plugins, path alias, dev proxy to the HTTPS API, and Vitest settings. | [Explanation](./frontend/vite.config.ts.md) |
 
-## Not present although documented/planned
-`i18next` + `src/i18n/`; generated OpenAPI client (`src/api/generated/`); `src/hooks/`; any feature other than `status`; any use of `/api/system/info`; theme toggle; RTL handling beyond the README convention.
+## `frontend/e2e`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `auth.spec.ts` | Playwright end-to-end tests of the three authentication journeys against the real API, real PostgreSQL and the Vite dev server. | [Explanation](./frontend/e2e/auth.spec.ts.md) |
+
+## `frontend/openapi`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `TutoringCentre.Api.json` | OpenAPI 3 document generated by the Api build (`Microsoft.Extensions.ApiDescription.Server`, settings in `TutoringCentre.Api.csproj`) and committed so CI can detect staleness. | Skipped (generated / lockfile / media), see INDEX |
+
+## `frontend/public`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `favicon.svg` | SVG image (the Hessa brand tab icon referenced by `index.html`. | Skipped (generated / lockfile / media), see INDEX |
+| `icons.svg` | SVG sprite of social icons from the Vite template. | Skipped (generated / lockfile / media), see INDEX |
+
+## `frontend/scripts`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `check-i18n-keys.mjs` | Node script that fails when the English and Arabic translation files do not have exactly the same namespaces and keys. | [Explanation](./frontend/scripts/check-i18n-keys.mjs.md) |
+
+## `frontend/src`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `index.css` | Global styles: Tailwind v4 imports, the Hessa brand theme tokens (light and dark), fonts and base layer rules. | [Explanation](./frontend/src/index.css.md) |
+| `main.tsx` | Frontend entry point: creates the router with the shared query client in its context, wires the session-expiry redirect, imports i18n and mounts the React tree. | [Explanation](./frontend/src/main.tsx.md) |
+| `routeTree.gen.ts` | Generated by the TanStack Router Vite plugin from `src/routes/`. | Skipped (generated / lockfile / media), see INDEX |
+
+## `frontend/src/api`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `apiFetch.test.ts` | Tests of `apiFetch` and `toApiError`: success and 204 handling, Problem Details mapping, network failure, non-JSON errors, CSRF header attachment and the single retry. | [Explanation](./frontend/src/api/apiFetch.test.ts.md) |
+| `apiFetch.ts` | The only function that talks to the API: wraps `fetch`, attaches the CSRF header to unsafe methods, retries once on a stale token, and turns every failure into a typed `ApiError`. | [Explanation](./frontend/src/api/apiFetch.ts.md) |
+| `csrf.ts` | In-memory cache of the antiforgery token, fetched through the generated client and refreshed on demand. | [Explanation](./frontend/src/api/csrf.ts.md) |
+| `errorMessages.test.ts` | Unit tests of `messageFor` fallback behaviour (English resources). | [Explanation](./frontend/src/api/errorMessages.test.ts.md) |
+| `errorMessages.ts` | Turns an `ApiError` into user-facing text in the current language via i18next, with a three-level fallback. | [Explanation](./frontend/src/api/errorMessages.ts.md) |
+| `errors.ts` | TypeScript types for the single error shape the UI uses: `ErrorKind` and `ApiError`. | [Explanation](./frontend/src/api/errors.ts.md) |
+| `problemDetails.test.ts` | Unit tests for `isProblemDetails`. | [Explanation](./frontend/src/api/problemDetails.test.ts.md) |
+| `problemDetails.ts` | Type for RFC 9457 Problem Details as the API returns them and a type guard to recognise them. | [Explanation](./frontend/src/api/problemDetails.ts.md) |
+| `showApiError.test.ts` | Tests of the toast helper and of `applyFieldErrors`. | [Explanation](./frontend/src/api/showApiError.test.ts.md) |
+| `showApiError.ts` | UI helpers for API failures: a toast with the translated message and correlation reference, and mapping server field errors onto form fields. | [Explanation](./frontend/src/api/showApiError.ts.md) |
+
+## `frontend/src/api/fixtures`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `problem-400.json` | Sample Problem Details body for a malformed request (`request.malformed`), matching what `GlobalExceptionHandler` returns. | [Explanation](./frontend/src/api/fixtures/problem-400.json.md) |
+| `problem-404.json` | Sample Problem Details body for an unknown API route (`route.not_found`). | [Explanation](./frontend/src/api/fixtures/problem-404.json.md) |
+
+## `frontend/src/api/generated`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `tutoring-centre.ts` | Orval-generated React Query client (types plus hooks such as `useLogin`, `useGetMe`, `useSelectCentre`, `useGetSystemInfo`, `getAntiforgeryToken`). | Skipped (generated / lockfile / media), see INDEX |
+
+## `frontend/src/app`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `queryClient.ts` | Creates the shared TanStack Query client with project-wide defaults and global handling of expired sessions. | [Explanation](./frontend/src/app/queryClient.ts.md) |
+
+## `frontend/src/components/brand`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `HessaLogo.tsx` | The Hessa brand mark and wordmark as React components (inline SVG). | [Explanation](./frontend/src/components/brand/HessaLogo.tsx.md) |
+
+## `frontend/src/components/ui`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `alert.tsx` | shadcn Alert components: `Alert`, `AlertTitle`, `AlertDescription`, `AlertAction`. | [Explanation](./frontend/src/components/ui/alert.tsx.md) |
+| `badge-variants.ts` | The `cva` variant table (class names) for the Badge component, kept in its own file. | [Explanation](./frontend/src/components/ui/badge-variants.ts.md) |
+| `badge.tsx` | shadcn Badge component: a small pill used to show roles (owner, teacher, assistant) and status text. | [Explanation](./frontend/src/components/ui/badge.tsx.md) |
+| `button-variants.ts` | The `cva` definition of Button variants and sizes, kept separate from the component. | [Explanation](./frontend/src/components/ui/button-variants.ts.md) |
+| `button.tsx` | Button component: Base UI's button primitive with project variants. | [Explanation](./frontend/src/components/ui/button.tsx.md) |
+| `card.tsx` | shadcn Card components (`Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardAction`, `CardContent`, `CardFooter`). | [Explanation](./frontend/src/components/ui/card.tsx.md) |
+| `skeleton.tsx` | Pulsing placeholder used while loading. | [Explanation](./frontend/src/components/ui/skeleton.tsx.md) |
+| `sonner.tsx` | Toast container wrapper (Sonner) themed from `next-themes` and CSS variables. | [Explanation](./frontend/src/components/ui/sonner.tsx.md) |
+
+## `frontend/src/features/language`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `LanguageSwitcher.test.tsx` | Tests that switching language sets the document direction, `lang` attribute and the stored preference. | [Explanation](./frontend/src/features/language/LanguageSwitcher.test.tsx.md) |
+| `LanguageSwitcher.tsx` | A button that toggles the UI language between Arabic and English. | [Explanation](./frontend/src/features/language/LanguageSwitcher.tsx.md) |
+
+## `frontend/src/features/session`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `meQueryOptions.ts` | TanStack Query options for `GET /api/me` that treat 'signed out' as data (`null`), not as an error. | [Explanation](./frontend/src/features/session/meQueryOptions.ts.md) |
+| `useSession.test.ts` | Tests that `useSession` resolves to `null` on 401, to the profile on success, and reports a real error on a 500. | [Explanation](./frontend/src/features/session/useSession.test.ts.md) |
+| `useSession.ts` | Hook returning the signed-in session: `me` (profile or `null`), loading and error flags. | [Explanation](./frontend/src/features/session/useSession.ts.md) |
+| `useSignOut.ts` | Hook returning a function that logs out, refreshes the CSRF token, clears all cached queries and navigates to `/login`. | [Explanation](./frontend/src/features/session/useSignOut.ts.md) |
+
+## `frontend/src/features/shell`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `AppShell.tsx` | The authenticated page frame: desktop sidebar, mobile slide-in navigation, header with active centre and role, and the user menu (switch centre, language, log out). | [Explanation](./frontend/src/features/shell/AppShell.tsx.md) |
+
+## `frontend/src/features/status`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `StatusCard.test.tsx` | Component tests for `StatusCard` against a mocked network. | [Explanation](./frontend/src/features/status/StatusCard.test.tsx.md) |
+| `StatusCard.tsx` | Renders the API status in four states: loading, cannot reach API, database unavailable, healthy. | [Explanation](./frontend/src/features/status/StatusCard.tsx.md) |
+| `SystemInfoCard.test.tsx` | Tests the system-information card on success and on a 500 Problem Details response. | [Explanation](./frontend/src/features/status/SystemInfoCard.test.tsx.md) |
+| `SystemInfoCard.tsx` | Card showing application version, latest migration and whether the schema is up to date, via the generated client's `useGetSystemInfo`. | [Explanation](./frontend/src/features/status/SystemInfoCard.tsx.md) |
+| `api.ts` | A hand-written network call kept for the readiness check (the rest of the app uses the generated client through `apiFetch`): asks `/health/ready` and maps the status code to a typed result. | [Explanation](./frontend/src/features/status/api.ts.md) |
+| `useReadiness.ts` | TanStack Query hook providing the API readiness state, cached and polled. | [Explanation](./frontend/src/features/status/useReadiness.ts.md) |
+
+## `frontend/src/i18n`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `index.ts` | Initialises i18next: bundled English and Arabic resources, ICU message format, language detection, and synchronisation of `<html lang dir>` and `localStorage`. | [Explanation](./frontend/src/i18n/index.ts.md) |
+
+## `frontend/src/i18n/locales/ar`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `auth.json` | Arabic strings for the login page, the centre picker and role names (namespace `auth`). | [Explanation](./frontend/src/i18n/locales/ar/auth.json.md) |
+| `common.json` | Arabic strings shared across screens (namespace `common`, the default). | [Explanation](./frontend/src/i18n/locales/ar/common.json.md) |
+| `errors.json` | Arabic error messages keyed by backend error `code` and `kind` (namespace `errors`). | [Explanation](./frontend/src/i18n/locales/ar/errors.json.md) |
+| `shell.json` | Arabic strings for the authenticated app shell and dashboard (namespace `shell`). | [Explanation](./frontend/src/i18n/locales/ar/shell.json.md) |
+| `status.json` | Arabic strings for the API status card and the system-information card (namespace `status`). | [Explanation](./frontend/src/i18n/locales/ar/status.json.md) |
+
+## `frontend/src/i18n/locales/en`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `auth.json` | English strings for the login page, the centre picker and role names (namespace `auth`). | [Explanation](./frontend/src/i18n/locales/en/auth.json.md) |
+| `common.json` | English strings shared across screens (namespace `common`, the default). | [Explanation](./frontend/src/i18n/locales/en/common.json.md) |
+| `errors.json` | English error messages keyed by backend error `code` and `kind` (namespace `errors`). | [Explanation](./frontend/src/i18n/locales/en/errors.json.md) |
+| `shell.json` | English strings for the authenticated app shell and dashboard (namespace `shell`). | [Explanation](./frontend/src/i18n/locales/en/shell.json.md) |
+| `status.json` | English strings for the API status card and the system-information card (namespace `status`). | [Explanation](./frontend/src/i18n/locales/en/status.json.md) |
+
+## `frontend/src/lib`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `utils.ts` | Re-exports the `cn` class-name helper under the conventional shadcn path. | [Explanation](./frontend/src/lib/utils.ts.md) |
+
+## `frontend/src/routes`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `__root.tsx` | Root route: the layout wrapping every page, the typed router context, and the global toast container. | [Explanation](./frontend/src/routes/__root.tsx.md) |
+| `_authenticated.test.tsx` | Component-level tests of the protected layout guard and of global 401 / logout handling, using the real route tree. | [Explanation](./frontend/src/routes/_authenticated.test.tsx.md) |
+| `_authenticated.tsx` | The pathless protected layout route: the session guard (`beforeLoad`) and the `AppShell` frame for every page below it. | [Explanation](./frontend/src/routes/_authenticated.tsx.md) |
+| `login.test.tsx` | Tests of the login page: empty submit, generic 401 message, 429 message, successful redirect and rejection of an external redirect. | [Explanation](./frontend/src/routes/login.test.tsx.md) |
+| `login.tsx` | The `/login` page: a validated email/password form, error handling for credentials and rate limiting, a safe return-URL redirect, and the Hessa brand panel. | [Explanation](./frontend/src/routes/login.tsx.md) |
+| `select-centre.test.tsx` | Tests of the centre picker: listing, choosing a centre, and the empty state. | [Explanation](./frontend/src/routes/select-centre.test.tsx.md) |
+| `select-centre.tsx` | The `/select-centre` page: lists the user's active centres with their role, posts the choice, or shows an empty state with a log-out button. | [Explanation](./frontend/src/routes/select-centre.tsx.md) |
+| `status.tsx` | The `/status` page: the former status screen (API readiness card and system-information card) moved to its own public route. | [Explanation](./frontend/src/routes/status.tsx.md) |
+
+## `frontend/src/routes/_authenticated`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `index.tsx` | The dashboard page at `/` (inside the protected layout): a welcome heading, the active centre name and a placeholder card. | [Explanation](./frontend/src/routes/_authenticated/index.tsx.md) |
+
+## `frontend/src/test`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `render.tsx` | Test helpers that render a component or a hook inside a fresh `QueryClientProvider`. | [Explanation](./frontend/src/test/render.tsx.md) |
+| `renderRouter.tsx` | Test helper that renders the app's real route tree in memory with a fresh query client wired like production, including the session-expiry redirect. | [Explanation](./frontend/src/test/renderRouter.tsx.md) |
+| `setup.ts` | Vitest setup file: loads i18n, stubs `matchMedia`, starts MSW and cleans the DOM and handlers around tests. | [Explanation](./frontend/src/test/setup.ts.md) |
+
+## `frontend/src/test/msw`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `handlers.ts` | Default network behaviour for tests: a healthy API, a signed-out session and a fixed CSRF token. | [Explanation](./frontend/src/test/msw/handlers.ts.md) |
+| `server.ts` | Creates the MSW Node server from the default handlers. | [Explanation](./frontend/src/test/msw/server.ts.md) |

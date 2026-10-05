@@ -1,49 +1,96 @@
 # `src/TutoringCentre.Application`
 
-Part of the [file index](INDEX.md). References: Domain; packages FluentValidation (+DI extensions), `Microsoft.Extensions.DependencyInjection.Abstractions`, `Microsoft.Extensions.Logging.Abstractions`. Contains **no** EF, ASP.NET or Npgsql (enforced by `DependencyRuleTests`). Concepts: overview §6.1–6.5, 6.7, 6.11.
+Folder map generated from the per-file explanations. Part of the [file index](INDEX.md); the teaching overview is [`../PROJECT_OVERVIEW2.md`](../PROJECT_OVERVIEW2.md). Each row links to the full explanation of that file (purpose, where it fits, walkthrough, concepts, flow, configuration, gotchas, related files). **33 files.**
 
-## `DependencyInjection.cs`
-`AddApplication(this IServiceCollection)`:
-1. `AddScoped<CurrentActorContext>()`
-2. `AddScoped<ICurrentActor>(p => p.GetRequiredService<CurrentActorContext>())` — alias to the same instance.
-3. `AddCqrsHandlers(typeof(AssemblyMarker).Assembly)` — scan.
-4. `AddScoped<Dispatcher>()`.
-Called from `Program.cs` and `PostgresFixture.CreateServiceProvider`. `Dispatcher` is registered as a concrete class (no interface); the Api and tests depend on the concrete type.
+## `src/TutoringCentre.Application`
 
-## `Common/Cqrs/`
-| File | Contents / notes |
-| --- | --- |
-| `ICommand.cs`, `IQuery.cs` | Empty marker interfaces carrying the response type as a generic parameter, so `SendAsync<TCommand,TResponse>` can constrain `TCommand : ICommand<TResponse>`. |
-| `ICommandHandler.cs`, `IQueryHandler.cs` | `Task<Result<TResponse>> HandleAsync(TRequest, CancellationToken)`; `in` on the request type parameter (contravariant). |
-| `Unit.cs` | `readonly record struct Unit` with `static readonly Unit Value` — the "no data" response. **Unused so far.** |
-| `HandlerRegistration.cs` | `internal static` extension `AddCqrsHandlers`. `assembly.GetTypes().Where(type is { IsClass: true, IsAbstract: false, IsGenericTypeDefinition: false })`; for each implemented interface passing `IsHandlerInterface` (closed generic of `ICommandHandler<,>`/`IQueryHandler<,>`) → `services.AddScoped(interface, implementation)`. Then `AddValidatorsFromAssembly(assembly, includeInternalTypes: true)` (needed because validators are `internal`). A class implementing two handler interfaces would be registered for both. |
-| `Dispatcher.cs` | See overview §6.3. Notable members: constructor null-guards; `private const string CommandKind/QueryKind` for log fields; `SendAsync` / `QueryAsync`; `ValidateAsync` (runs *all* validators sequentially, concatenates failures, groups by camelCased path, `Distinct` messages per field); `ToCamelCase`; `LogOutcome` (suppressions CA1848/CA1873 with written justification). Stopwatch uses `Stopwatch.GetTimestamp/GetElapsedTime` (no allocation). |
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `AssemblyMarker.cs` | Assembly handle used by handler scanning and by architecture tests. | [Explanation](./src/TutoringCentre.Application/AssemblyMarker.cs.md) |
+| `DependencyInjection.cs` | The Application layer's registration entry point: `AddApplication`, called once from `Program.cs`. | [Explanation](./src/TutoringCentre.Application/DependencyInjection.cs.md) |
+| `TutoringCentre.Application.csproj` | Project file for the use-case layer: references Domain only, plus validation and DI/logging *abstractions*. | [Explanation](./src/TutoringCentre.Application/TutoringCentre.Application.csproj.md) |
 
-**Behaviours worth remembering:** validation failure returns *before* the handler is even resolved; the handler is resolved *before* the transaction starts; exceptions in `CommitAsync` are also caught by the `catch` → rollback no-op (the `UnitOfWork` already nulled the transaction) → rethrow; the `Result` returned to callers is the handler's own object, unchanged.
+## `src/TutoringCentre.Application/Centres`
 
-## `Common/Ports/`
-- `IClock`: `UtcNow`; `ToLocal(DateTimeOffset, tzId)` → `DateTime` (Kind Unspecified); `FromLocal(DateTime, tzId)` → `DateTimeOffset` with zero offset. The only way product code may obtain "now" (comment). Implemented by `SystemClock`; `ToLocal/FromLocal` have no product callers yet.
-- `IUnitOfWork`: four methods; `[SuppressMessage CA1716]` for the `readOnly` parameter name.
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `ICentreRepository.cs` | Write-side persistence port for the Centre aggregate. | [Explanation](./src/TutoringCentre.Application/Centres/ICentreRepository.cs.md) |
 
-## `Common/Security/`
-`Actor.cs` (abstract record + `SystemActor` + `AnonymousActor`), `ICurrentActor.cs` (read-only), `CurrentActorContext.cs` (private `_isSet` flag; `Set` null-guard + once-only). See overview §6.11 and §7.
+## `src/TutoringCentre.Application/Centres/Commands/CreateCentre`
 
-## `Centres/`
-- `ICentreRepository.cs` — `Task<bool> ExistsBySlugAsync(string, CancellationToken)`, `void Add(Centre)`.
-- `Commands/CreateCentre/`
-  - `CreateCentreCommand.cs` — `sealed record (Name, Slug, TimeZoneId, DefaultLocale) : ICommand<CreateCentreResult>`; comment: "Carries exactly the four fields a caller may provide" (no actor, no id — those come from context/domain).
-  - `CreateCentreValidator.cs` — `AbstractValidator<CreateCentreCommand>`: `Name` NotEmpty+MaximumLength(120); `Slug` NotEmpty+Max(60); `TimeZoneId` NotEmpty+Max(64) (`TimeZoneIdMaxLength` const **duplicated** in `CentreConfiguration` — two constants of 64 that must be kept in sync by hand); `DefaultLocale.IsInEnum()`.
-  - `CreateCentreHandler.cs` — `internal sealed class … (ICurrentActor currentActor, ICentreRepository centres)` (primary constructor): steps 1 authorize → 2 uniqueness → 3 `Centre.Create` → 4 `centres.Add`; returns `CreateCentreResult(Id, Slug)`.
-  - `CreateCentreResult.cs` — `(Guid CentreId, string Slug)`.
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `CreateCentreCommand.cs` | The message representing the intent to create a centre. | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs.md) |
+| `CreateCentreHandler.cs` | The use case 'create a centre': authorise, check uniqueness, let the domain validate and build the entity, then track it. | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md) |
+| `CreateCentreResult.cs` | The success payload of `CreateCentreCommand`: the new centre's id and slug. | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs.md) |
+| `CreateCentreValidator.cs` | Shape validation of `CreateCentreCommand` (required fields, maximum lengths, defined enum). | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs.md) |
 
-## `Platform/`
-- `ISystemInfoReadService.cs` — `GetSchemaStatusAsync` + `record SchemaStatus(string? LatestAppliedMigration, int PendingMigrationCount)`.
-- `SystemInfoDto.cs` — `(string ApplicationVersion, string? LatestMigration, bool DatabaseUpToDate)`; comment lists what is deliberately excluded.
-- `Queries/GetSystemInfo/GetSystemInfoQuery.cs` — `sealed record GetSystemInfoQuery : IQuery<SystemInfoDto>` (no members).
-- `Queries/GetSystemInfo/GetSystemInfoHandler.cs` — maps status to DTO; `DatabaseUpToDate = PendingMigrationCount == 0`; `ReadApplicationVersion()` reads `AssemblyInformationalVersionAttribute` via reflection, returns `"unknown"` if missing, and **strips everything from `+`** (SourceLink build metadata such as a commit SHA). No authorization (documented as intentional).
+## `src/TutoringCentre.Application/Common/Cqrs`
 
-## `AssemblyMarker.cs`
-Used by `AddApplication` (`typeof(AssemblyMarker).Assembly` is the scanned assembly) and by architecture tests. Because it is `internal`, `InternalsVisibleTo` for `TutoringCentre.Architecture.Tests` and `TutoringCentre.Application.Tests` appears in the `.csproj` (the Application.Tests need access to `internal` handlers/validators).
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `Dispatcher.cs` | The single entry point for every use case: validates, opens the right kind of transaction, runs the handler, saves once, commits or rolls back, and logs one outcome line. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md) |
+| `HandlerRegistration.cs` | Reflection scan that registers every command/query handler and validator in the Application assembly. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs.md) |
+| `ICommand.cs` | Marker interface for commands, carrying the response type as a generic parameter. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/ICommand.cs.md) |
+| `ICommandHandler.cs` | Contract for a class that executes one command and returns a `Result`. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/ICommandHandler.cs.md) |
+| `IQuery.cs` | Marker interface for read-only requests. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/IQuery.cs.md) |
+| `IQueryHandler.cs` | Contract for a class that answers one query inside a read-only transaction. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/IQueryHandler.cs.md) |
+| `Unit.cs` | Placeholder 'no data' response type for commands that only succeed or fail. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/Unit.cs.md) |
 
-## Tests that cover this layer
-`Application.Tests` (22): `CreateCentreHandlerTests` (4), `CreateCentreValidatorTests` (3), `DispatcherTests` (9), `GetSystemInfoHandlerTests` (3), `CurrentActorContextTests` (3); fakes `FakeCentreRepository`, `FakeUnitOfWork`; `TestRequests.cs` defines test-only command/query/handlers/validators driven by `HandlerBehaviour.Mode` (`Succeed`/`Fail`/`Throw`). Integration coverage in `Infrastructure.Tests`.
+## `src/TutoringCentre.Application/Common/Ports`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `IClock.cs` | Port for the current time and for converting between UTC instants and local wall-clock time in an IANA time zone. | [Explanation](./src/TutoringCentre.Application/Common/Ports/IClock.cs.md) |
+| `IUnitOfWork.cs` | Port over the persistence transaction: begin (read-only or read-write), save, commit, rollback. | [Explanation](./src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs.md) |
+
+## `src/TutoringCentre.Application/Common/Security`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `Actor.cs` | Defines who is executing a use case: the abstract `Actor` and its kinds `SystemActor`, `AnonymousActor` and `StaffActor`. | [Explanation](./src/TutoringCentre.Application/Common/Security/Actor.cs.md) |
+| `CurrentActorContext.cs` | Holds the actor for one scope; starts anonymous, may be set exactly once, and may be replaced only through `Reauthenticate` at login. | [Explanation](./src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs.md) |
+| `IAuthenticationService.cs` | Application's port for verifying staff credentials, plus the `AuthenticatedUser` result record. | [Explanation](./src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs.md) |
+| `ICurrentActor.cs` | Read-only view of the actor of the current scope. | [Explanation](./src/TutoringCentre.Application/Common/Security/ICurrentActor.cs.md) |
+
+## `src/TutoringCentre.Application/Identity`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `IMembershipReadService.cs` | Read-side port for a staff member's own profile, active memberships and session state, with its DTO records. | [Explanation](./src/TutoringCentre.Application/Identity/IMembershipReadService.cs.md) |
+
+## `src/TutoringCentre.Application/Identity/Queries/GetActiveMembership`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `GetActiveMembershipHandler.cs` | The tenant gate: the only way a centre id enters a session. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs.md) |
+| `GetActiveMembershipQuery.cs` | The tenant-gate question: may the signed-in staff member act in this centre?. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs.md) |
+
+## `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `GetMyMembershipsHandler.cs` | Builds the signed-in user's `MeDto` from a freshly read profile, dropping the actor's selected centre if it is no longer an active membership. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs.md) |
+| `GetMyMembershipsQuery.cs` | Asks for the signed-in staff member's own profile and active memberships. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs.md) |
+| `MeDto.cs` | The response shape of `GET /api/me` and login: profile, active centre/role and active memberships. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs.md) |
+
+## `src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `ValidateStaffSessionHandler.cs` | Decides if a session's security stamp and (when a centre is selected) membership are still current. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs.md) |
+| `ValidateStaffSessionQuery.cs` | Asks whether an existing session is still valid; internal to the authentication pipeline. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs.md) |
+
+## `src/TutoringCentre.Application/Platform`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `ISystemInfoReadService.cs` | Read-side port that returns database schema status as plain data, plus the `SchemaStatus` record. | [Explanation](./src/TutoringCentre.Application/Platform/ISystemInfoReadService.cs.md) |
+| `SystemInfoDto.cs` | The public response shape of `GET /api/system/info`: application version, latest migration, up-to-date flag. | [Explanation](./src/TutoringCentre.Application/Platform/SystemInfoDto.cs.md) |
+
+## `src/TutoringCentre.Application/Platform/Queries/GetSystemInfo`
+
+| File | Purpose | Explanation |
+| --- | --- | --- |
+| `GetSystemInfoHandler.cs` | Builds `SystemInfoDto` from the read service and from the assembly's informational version. | [Explanation](./src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs.md) |
+| `GetSystemInfoQuery.cs` | The parameterless query asking for application version and migration status. | [Explanation](./src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoQuery.cs.md) |
