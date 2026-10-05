@@ -22,12 +22,23 @@
 
 **Safety.** Codes and messages never contain internals: no stack traces, SQL, file paths or secrets.
 
-## Request pipeline (end of Week 2)
+## Request pipeline (end of Week 3)
 
 ```
-Command (HTTP POST/PUT/DELETE, CLI, jobs):
+Every HTTP request:
   client
-    → Api: CorrelationIdMiddleware → request logging → exception handler → endpoint (bind only)
+    → Api: CorrelationIdMiddleware → request logging → exception handler → status code pages
+    → UseAuthentication (session cookie decrypted; OnValidatePrincipal revalidates against the
+      database, 60 s cache — docs/architecture/authentication.md)
+    → ActorMiddleware (claims → StaffActor; the one place claims become an actor)
+    → UseAuthorization (authenticated by default; six routes opt out with .AllowAnonymous())
+    → UseRateLimiter (the "login" policy only — POST /api/auth/login)
+    → endpoint routing
+    → AntiforgeryEndpointFilter (whole /api group; unsafe methods only — rejects before the
+      handler runs, no side effects)
+
+Command (HTTP POST/PUT/DELETE, CLI, jobs):
+    → endpoint (bind only)
     → Dispatcher.SendAsync<TCommand, TResponse>
         1. validate (FluentValidation: shape only)            failure → Result.Failure(validation), nothing opened
         2. [Month 2: tenant resolution + permission checks plug in here, before the transaction]
@@ -93,4 +104,6 @@ There is no HTTP endpoint for this command — on purpose.
 - [ADR 0002 — .NET and React](../adr/0002-dotnet-react.md)
 - [ADR 0003 — Hand-written CQRS dispatcher](../adr/0003-custom-cqrs-dispatcher.md)
 - [ADR 0004 — Unit-of-work port](../adr/0004-unit-of-work-port.md)
+- [ADR 0005 — Encrypted cookie authentication over JWT](../adr/0005-cookie-authentication.md)
 - [API conventions](api-conventions.md)
+- [Authentication: login, sessions, CSRF, revocation](authentication.md)
