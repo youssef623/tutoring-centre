@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -5,8 +6,11 @@ using Respawn;
 using Respawn.Graph;
 using Testcontainers.PostgreSql;
 using TutoringCentre.Application;
+using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Persistence.Interceptors;
+using TutoringCentre.Infrastructure.Tests.Tenancy;
 
 namespace TutoringCentre.Infrastructure.Tests.Fixtures;
 
@@ -44,6 +48,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         // Accessing Services builds the host (ConfigureWebHost runs now that the container has a connection string).
         Services = CreateServiceProvider();
         await Services.ApplyMigrationsAsync();
+        await CreateProbeTableAsync();
 
         // Forced row-level security arrives Day 21, under which even tutoring_owner's delete without a tenant
         // setting removes nothing — so the reset between tests runs as the actual Postgres superuser instead.
@@ -52,9 +57,32 @@ public sealed class PostgresFixture : IAsyncLifetime
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity"],
+            SchemasToInclude = ["platform", "identity", "probe"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
+    }
+
+    /// <summary>
+    /// Creates probe.tenant_probes (Task 20.3) as tutoring_owner, outside any migration — it never ships to
+    /// production. Granted DML (not DDL) to tutoring_app, same as every real table the app writes through.
+    /// </summary>
+    private async Task CreateProbeTableAsync()
+    {
+        await using var connection = new NpgsqlConnection(OwnerConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            create schema if not exists probe;
+            create table if not exists probe.tenant_probes (
+                id uuid primary key,
+                centre_id uuid not null references platform.centres(id),
+                label varchar(50) not null
+            );
+            grant usage on schema probe to tutoring_app;
+            grant select, insert, update, delete on probe.tenant_probes to tutoring_app;
+            """,
+            connection);
+        await command.ExecuteNonQueryAsync();
     }
 
     public async Task DisposeAsync()
@@ -78,6 +106,23 @@ public sealed class PostgresFixture : IAsyncLifetime
             .AddLogging()
             .AddApplication()
             .AddInfrastructure(configuration);
+
+        // Task 20.3: same connection, same interceptors as AppDbContext, never pooled — the only difference is the
+        // extra test-only TenantProbe mapping (AppDbContext.ExtendModel). Built by hand rather than AddDbContext:
+        // EF's DI activation refuses a non-generic DbContextOptions constructor parameter (AppDbContext's own)
+        // once a second DbContext type is registered in the same container, so there's no AddDbContext<TOther> to
+        // reuse here — this context is scoped exactly like AppDbContext just without that helper.
+        services.AddScoped(provider =>
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            AppDbContextOptionsConfigurator.Configure(
+                optionsBuilder,
+                AppConnectionString,
+                provider.GetRequiredService<TimestampInterceptor>(),
+                provider.GetRequiredService<TenantWriteGuardInterceptor>());
+            return new TenantProbeDbContext(optionsBuilder.Options, provider.GetRequiredService<ICurrentActor>());
+        });
+
         configure?.Invoke(services);
 
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
@@ -106,6 +151,25 @@ public sealed class PostgresFixture : IAsyncLifetime
     }
 
     public Task<long> CountCentresAsync() => ScalarAsync<long>("select count(*) from platform.centres");
+
+    /// <summary>
+    /// Inserts one probe row for the given centre directly as the superuser — bypassing the filter, the guard and
+    /// EF entirely, on purpose, so filter/guard tests seed known rows that the layer under test cannot have biased.
+    /// Returns the generated id for tests that look a specific row up.
+    /// </summary>
+    public async Task<Guid> SeedProbeAsync(Guid centreId, string label)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            "insert into probe.tenant_probes (id, centre_id, label) values (@id, @centre_id, @label)", connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("label", label);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
 
     private string WithCredentials(string username, string password) =>
         new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Username = username, Password = password }.ConnectionString;

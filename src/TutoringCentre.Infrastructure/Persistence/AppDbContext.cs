@@ -19,7 +19,7 @@ public class AppDbContext : IdentityUserContext<ApplicationUser, Guid>
 {
     private readonly ICurrentActor _currentActor;
 
-    public AppDbContext(DbContextOptions options, ICurrentActor currentActor)
+    public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentActor currentActor)
         : base(options)
     {
         ArgumentNullException.ThrowIfNull(currentActor);
