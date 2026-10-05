@@ -5,6 +5,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Application.Common.Cqrs;
@@ -44,11 +45,18 @@ public sealed class Dispatcher
             return invalid;
         }
 
+        var tenantError = CheckTenantScope(command);
+        if (tenantError is not null)
+        {
+            var refused = Result<TResponse>.Failure(tenantError);
+            LogOutcome(CommandKind, typeof(TCommand).Name, refused, started);
+            return refused;
+        }
+
+        // Day 28's permission step goes HERE, directly after the tenant step and before BeginAsync, so a
+        // forbidden request never opens a transaction.
         var handler = _services.GetRequiredService<ICommandHandler<TCommand, TResponse>>();
 
-        // Month 2: tenant and permission steps go HERE — after validation, before BeginAsync, so a forbidden
-        // request never opens a transaction. Tenant step: tenant-scoped request + actor without centre →
-        // Forbidden(tenant.not_selected).
         await _unitOfWork.BeginAsync(readOnly: false, ct);
         try
         {
@@ -88,9 +96,18 @@ public sealed class Dispatcher
             return invalid;
         }
 
+        var tenantError = CheckTenantScope(query);
+        if (tenantError is not null)
+        {
+            var refused = Result<TResponse>.Failure(tenantError);
+            LogOutcome(QueryKind, typeof(TQuery).Name, refused, started);
+            return refused;
+        }
+
+        // Day 28's permission step goes HERE, directly after the tenant step and before BeginAsync (same
+        // rule as SendAsync).
         var handler = _services.GetRequiredService<IQueryHandler<TQuery, TResponse>>();
 
-        // Month 2: tenant and permission steps go HERE, before BeginAsync (same rule as SendAsync).
         await _unitOfWork.BeginAsync(readOnly: true, ct);
         try
         {
@@ -104,6 +121,27 @@ public sealed class Dispatcher
             await _unitOfWork.RollbackAsync(CancellationToken.None);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Isolation layer 1. A request that does not implement <see cref="ITenantScoped"/> is unaffected. Otherwise:
+    /// an anonymous actor is refused as unauthenticated; any actor with no centre is refused as forbidden.
+    /// Resolves <see cref="ICurrentActor"/> only for a tenant-scoped request, so no other pipeline needs it registered.
+    /// </summary>
+    private Error? CheckTenantScope<TRequest>(TRequest request)
+    {
+        if (request is not ITenantScoped)
+        {
+            return null;
+        }
+
+        var actor = _services.GetRequiredService<ICurrentActor>().Actor;
+        return actor switch
+        {
+            AnonymousActor => Error.Unauthenticated("auth.not_authenticated", "Authentication is required."),
+            _ when actor.CentreId is null => Error.Forbidden("tenant.not_selected", "A centre must be selected."),
+            _ => null,
+        };
     }
 
     private async Task<Error?> ValidateAsync<TRequest>(TRequest request, CancellationToken ct)
