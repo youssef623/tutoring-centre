@@ -17,7 +17,7 @@ public sealed class MembershipConstraintTests(PostgresFixture fixture) : Postgre
     [Fact]
     public async Task Migrations_AppliedToEmptyDatabase_CreateExactlyTheFiveIdentityTablesAndNoRoleTables()
     {
-        await using var connection = new NpgsqlConnection(Fixture.ConnectionString);
+        await using var connection = new NpgsqlConnection(Fixture.SuperuserConnectionString);
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand(
             "select table_name from information_schema.tables where table_schema = 'identity' order by table_name",
@@ -75,7 +75,7 @@ public sealed class MembershipConstraintTests(PostgresFixture fixture) : Postgre
         context.Add(Membership.Create(userId, centreId, StaffRole.Owner).Value);
         await context.SaveChangesAsync();
 
-        await using var connection = new NpgsqlConnection(Fixture.ConnectionString);
+        await using var connection = new NpgsqlConnection(Fixture.SuperuserConnectionString);
         await connection.OpenAsync();
         await using var deleteCommand = new NpgsqlCommand("delete from platform.centres where id = @id", connection);
         deleteCommand.Parameters.AddWithValue("id", centreId);
