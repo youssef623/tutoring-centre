@@ -1,7 +1,7 @@
 # ADR 0006: Tenant isolation as defense in depth
 
-- **Status:** Accepted — Layers 0, 2, 3 and 4 implemented and proven (Days 19–21); Layer 1 (request-level
-  tenant scoping) lands Day 22, tracked in `docs/architecture/tenancy.md`.
+- **Status:** Accepted — all four layers (0, 1, 2, 3 and 4) implemented and proven (Days 19–22), tracked in
+  `docs/architecture/tenancy.md`.
 - **Date:** 2026-10-05
 
 ## Context
@@ -53,8 +53,9 @@ every later isolation guarantee would be provable in tests and false in producti
 as the wrong role. A readiness check (Day 19) fails the instance closed if that assumption is ever violated
 at runtime.
 
-**Layer 1 — request-level tenant scoping *(Day 22)*.** Not yet implemented; tracked in
-`docs/architecture/tenancy.md`.
+**Layer 1 — request-level tenant scoping (Day 22).** The dispatcher refuses any `ITenantScoped` command or
+query from an actor without a centre, before a transaction opens — a cheap, uniform rejection rather than
+reaching layers 2–4 and coming back empty or failing deep inside a save. See `docs/architecture/tenancy.md`.
 
 **Layer 2 — EF Core query filter and write guard (Day 20).** Every entity implementing `ITenantOwned` is
 automatically filtered to the acting actor's centre on every read, and refused on every write that does not
@@ -75,8 +76,10 @@ bypasses row-level security entirely — a guarantee Layer 3 alone cannot give. 
 
 ## Consequences
 
-Layers 0, 2, 3 and 4 are implemented and proven against real PostgreSQL, each independently (removing any
-one layer in isolation fails only the tests that depend on it) — see `docs/architecture/tenancy.md` for the
-tests, the exemption list, and what each layer still does not cover on its own. No production table uses
-Layer 2, 3 or 4 yet: Month 2 has not added a tenant-owned table (Subject, Day 23, is first), so all four are
-proven on test-only probe tables today, not on production data. Layer 1 remains open, due Day 22.
+All four layers are implemented and proven, each independently (removing any one layer in isolation fails
+only the tests that depend on it) — see `docs/architecture/tenancy.md` for the tests, the exemption list, and
+what each layer still does not cover on its own. Layers 2, 3 and 4 are proven against real PostgreSQL on
+test-only probe tables, not production data yet: Month 2 has not added a tenant-owned table to the schema
+(Subject, Day 23, is first). Layer 1 is proven against the dispatcher directly and, unlike the others, is
+already exercised by every request the pipeline handles — it does not wait for a tenant-owned table to mean
+something.

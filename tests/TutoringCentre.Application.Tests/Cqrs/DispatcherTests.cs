@@ -2,8 +2,10 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Tests.Fakes;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Application.Tests.Cqrs;
 
@@ -123,17 +125,146 @@ public sealed class DispatcherTests
         Assert.Equal(["Slug is too long."], fields["slug"]);
     }
 
-    private static Fixture CreateSut(HandlerMode mode = HandlerMode.Succeed)
+    [Fact]
+    public async Task SendAsync_TenantScopedCommandStaffActorWithoutCentre_ReturnsTenantNotSelected()
+    {
+        // C10
+        var actor = new StaffActor(Guid.NewGuid(), CentreId: null, Role: null);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<TenantScopedTestCommand, string>(
+            new TenantScopedTestCommand("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("tenant.not_selected", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task QueryAsync_TenantScopedQueryStaffActorWithoutCentre_ReturnsTenantNotSelected()
+    {
+        // C11
+        var actor = new StaffActor(Guid.NewGuid(), CentreId: null, Role: null);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.QueryAsync<TenantScopedTestQuery, string>(
+            new TenantScopedTestQuery("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("tenant.not_selected", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_TenantScopedCommandAnonymousActor_ReturnsNotAuthenticated()
+    {
+        // C12 (command)
+        using var fixture = CreateSut(actor: new AnonymousActor());
+
+        var result = await fixture.Dispatcher.SendAsync<TenantScopedTestCommand, string>(
+            new TenantScopedTestCommand("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.not_authenticated", result.Error!.Code);
+        Assert.Equal(ErrorKind.Unauthenticated, result.Error.Kind);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task QueryAsync_TenantScopedQueryAnonymousActor_ReturnsNotAuthenticated()
+    {
+        // C12 (query)
+        using var fixture = CreateSut(actor: new AnonymousActor());
+
+        var result = await fixture.Dispatcher.QueryAsync<TenantScopedTestQuery, string>(
+            new TenantScopedTestQuery("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.not_authenticated", result.Error!.Code);
+        Assert.Equal(ErrorKind.Unauthenticated, result.Error.Kind);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_TenantScopedCommandActorWithCentre_InvokesHandler()
+    {
+        // C13 (tenant-scoped request with a centre)
+        var actor = new StaffActor(Guid.NewGuid(), Guid.NewGuid(), StaffRole.Owner);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<TenantScopedTestCommand, string>(
+            new TenantScopedTestCommand("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["Begin(rw)", "Handle", "Save", "Commit"], fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task QueryAsync_TenantScopedQueryActorWithCentre_InvokesHandler()
+    {
+        // C13 (tenant-scoped request with a centre)
+        var actor = new StaffActor(Guid.NewGuid(), Guid.NewGuid(), StaffRole.Owner);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.QueryAsync<TenantScopedTestQuery, string>(
+            new TenantScopedTestQuery("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["Begin(ro)", "Handle", "Commit"], fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_NonScopedRequestActorWithoutCentre_InvokesHandler()
+    {
+        // C13 (non-scoped request without a centre is unaffected)
+        var actor = new StaffActor(Guid.NewGuid(), CentreId: null, Role: null);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<TestCommand, string>(ValidCommand, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["Begin(rw)", "Handle", "Save", "Commit"], fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_TenantScopedCommandInvalidAndActorWithoutCentre_ValidationWinsOverTenantStep()
+    {
+        // Ordering: validation runs before the tenant step, even when both would fail.
+        var actor = new StaffActor(Guid.NewGuid(), CentreId: null, Role: null);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<TenantScopedTestCommand, string>(
+            new TenantScopedTestCommand(""), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("validation.failed", result.Error!.Code);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    private static Fixture CreateSut(HandlerMode mode = HandlerMode.Succeed, Actor? actor = null)
     {
         var unitOfWork = new FakeUnitOfWork();
         var behaviour = new HandlerBehaviour { Mode = mode };
+        var currentActor = new FakeCurrentActor();
+        if (actor is not null)
+        {
+            currentActor.Actor = actor;
+        }
+
         var provider = new ServiceCollection()
             .AddSingleton(unitOfWork)
             .AddSingleton(behaviour)
+            .AddSingleton<ICurrentActor>(currentActor)
             .AddScoped<ICommandHandler<TestCommand, string>, TestCommandHandler>()
             .AddScoped<IQueryHandler<TestQuery, string>, TestQueryHandler>()
             .AddScoped<IValidator<TestCommand>, TestCommandValidator>()
             .AddScoped<IValidator<TestQuery>, TestQueryValidator>()
+            .AddScoped<ICommandHandler<TenantScopedTestCommand, string>, TenantScopedTestCommandHandler>()
+            .AddScoped<IQueryHandler<TenantScopedTestQuery, string>, TenantScopedTestQueryHandler>()
+            .AddScoped<IValidator<TenantScopedTestCommand>, TenantScopedTestCommandValidator>()
+            .AddScoped<IValidator<TenantScopedTestQuery>, TenantScopedTestQueryValidator>()
             .BuildServiceProvider();
 
         return new Fixture(new Dispatcher(provider, unitOfWork, NullLogger<Dispatcher>.Instance), unitOfWork, provider);

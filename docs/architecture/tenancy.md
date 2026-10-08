@@ -1,8 +1,8 @@
 # Tenant isolation
 
 How the platform keeps one centre's data from leaking into another's. Defense in depth across four layers
-(ADR 0006), of which layers 2–4 exist — layer 1 is filled in as Day 22 builds it. Written from the
-implementation; every name and file below is checked against the code, not the plan that produced it.
+(ADR 0006), all four of which now exist. Written from the implementation; every name and file below is
+checked against the code, not the plan that produced it.
 
 ## The role model (Day 19)
 
@@ -32,7 +32,51 @@ restricted by it.
 
 ## Layer 1 *(Day 22)*
 
-*To be written.*
+Every tenant-scoped request is refused, cheaply and uniformly, before a transaction ever opens — rather than
+reaching layers 2–4 and coming back empty (a query) or failing deep inside a save (a command). This is
+isolation in the sense of *scope*, not row filtering: it never looks at a row, only at whether the acting
+actor has a centre at all.
+
+**The marker.** `ITenantScoped` (`TutoringCentre.Application.Common.Cqrs`) is a memberless interface a
+command or query implements to declare that it operates on one centre's data. A request that runs before or
+outside a tenant — login, centre selection, a platform-wide query — does not implement it; no Month 1
+request does.
+
+**The step.** `Dispatcher.CheckTenantScope` runs in both `SendAsync` and `QueryAsync`, after validation and
+before `IUnitOfWork.BeginAsync` — the dispatcher is the one place every caller passes through, the seed CLI
+and any future client included, so the rule cannot be bypassed by calling a handler some other way. It is a
+no-op for a request that does not implement `ITenantScoped`. For one that does:
+
+- an anonymous actor is refused with `Error.Unauthenticated("auth.not_authenticated", …)` (401) — the
+  session itself is the problem, never a 404;
+- any actor with no centre (`Actor.CentreId` is null) is refused with
+  `Error.Forbidden("tenant.not_selected", …)` (403);
+- an actor with a centre passes through unaffected.
+
+A refused request never calls `GetRequiredService<ICommandHandler<…>>`/`IQueryHandler<…>`, never begins a
+transaction, and its outcome is logged through the dispatcher's existing structured log line like any other
+result. `ICurrentActor` is resolved lazily, only for a tenant-scoped request, so every other pipeline — most
+of Month 1 — never needs it registered at all.
+
+**Why here, not HTTP middleware.** The dispatcher gains no EF, HTTP or role logic: it only asks
+`ICurrentActor` whether a centre is set. Placing the check in middleware would miss the seed CLI and any
+future non-HTTP caller; placing it in each handler would mean one more thing to remember per use case. The
+dispatcher is the layer every request already passes through for validation and the transaction boundary, so
+it is also where this policy lives.
+
+**What it does not check.** Only that a centre is present — not that the actor is still an active member of
+it. Membership was already established by Month 1's centre selection and session revalidation; this step
+does not re-derive it.
+
+**The architecture guarantee.** `TenantScopeRuleTests` (`TutoringCentre.Architecture.Tests`) keeps a list of
+tenant-module Application namespaces (today: `TutoringCentre.Application.Academics`) and asserts every
+command or query inside one of them implements `ITenantScoped`, by implemented interface rather than
+class-name suffix; the inverse guard asserts the real Month 1 namespaces (Identity, Centres, Platform) never
+do. It is vacuously true until Day 24, when Subject's first use case either keeps the marker or breaks the
+build.
+
+**Where Day 28 fits.** The permission step (role-based authorization) is marked directly after this one, in
+both pipelines, still before `BeginAsync` — a forbidden request must never open a transaction either way.
 
 ## Layer 2 *(Day 20)*
 

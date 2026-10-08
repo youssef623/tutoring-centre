@@ -10,6 +10,9 @@
       "time_zone_invalid": "The time zone is not recognised.",
       "slug_taken": "A centre with this web address already exists.",
       "create_forbidden": "Only the platform can create centres."
+    },
+    "tenant": {
+      "not_selected": "Please select a centre to continue."
     }
   },
   "byKind": {
