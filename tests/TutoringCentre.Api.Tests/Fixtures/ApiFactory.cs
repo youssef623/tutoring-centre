@@ -49,7 +49,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity"],
+            SchemasToInclude = ["platform", "identity", "academics"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
     }
