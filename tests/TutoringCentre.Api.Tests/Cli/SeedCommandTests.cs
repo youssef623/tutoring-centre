@@ -38,4 +38,31 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
             1,
             await factory.ScalarAsync<long>("select count(*) from identity.memberships where status = 'inactive'"));
     }
+
+    [Fact]
+    public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoSubjectsIdempotently()
+    {
+        var firstExitCode = await SeedCommand.RunAsync(factory.Services);
+        var secondExitCode = await SeedCommand.RunAsync(factory.Services);
+
+        Assert.Equal(0, firstExitCode);
+        Assert.Equal(0, secondExitCode);
+        Assert.Equal(5, await factory.ScalarAsync<long>("select count(*) from academics.subjects"));
+        Assert.Equal(
+            3,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.subjects s
+                join platform.centres c on c.id = s.centre_id
+                where c.slug = 'nile-centre'
+                """));
+        Assert.Equal(
+            2,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.subjects s
+                join platform.centres c on c.id = s.centre_id
+                where c.slug = 'maadi-hub'
+                """));
+    }
 }
