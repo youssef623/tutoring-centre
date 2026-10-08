@@ -182,7 +182,7 @@ line a mutation check (flipping that argument) catches by failing that same test
 
 **The policy.** `TenantRowLevelSecurity.EnableTenantRowLevelSecurity(schema, table)`
 (`TutoringCentre.Infrastructure.Persistence.Migrations`) — a migration helper beside Task 19.4's
-`RuntimeAccessGrants`, not yet called by any production migration (Day 23 is first) — issues, for one table:
+`RuntimeAccessGrants`, first called by the `AddSubjects` migration (Day 23) — issues, for one table:
 
 ```sql
 alter table <schema>.<table> enable row level security;
@@ -217,6 +217,18 @@ also sees zero rows (proving `FORCE`); `SET row_security = off` as `tutoring_app
 returning unfiltered rows; the setting from a committed transaction is gone on the next one. Catalogue
 queries (`ProbeRowLevelSecurityCatalogueTests`) confirm `pg_class.relrowsecurity` and `relforcerowsecurity`
 are both true and `pg_policies` shows exactly the one policy described above.
+
+**Proven on a production table since Day 23.** The same eight checks are repeated directly against
+`academics.subjects` (`SubjectRawSqlRowLevelSecurityTests`), with one addition specific to that table: a
+`DELETE` is refused with SQLSTATE `42501` before row-level security ever gets a chance to run, because
+`tutoring_app` has no `DELETE` privilege on it at all (Task 23.3). A catalogue-driven test
+(`RowLevelSecurityCoverageTests`) discovers every table with a `centre_id` column from PostgreSQL's own
+catalogue and fails, naming the table, if any of them lacks forced row-level security and a complete policy —
+so a future tenant table that forgets this layer fails the build rather than shipping unnoticed; its one
+documented exemption is `identity.memberships`, for the reason in the Exemptions table below. The schedule's
+Week 4 demo (`database/demos/week4-rls.sql`) reproduces the same four results with no application code
+involved at all: `psql`, as the real runtime role, inside a transaction seeded and rolled back by the
+superuser.
 
 **Independence from Layer 2.** `TenantIsolationIndependenceTests` proves the two layers are each a complete
 control, not a pair that only works together: a query that explicitly bypasses the EF filter

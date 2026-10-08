@@ -12,6 +12,7 @@ using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.Persistence.Migrations;
+using TutoringCentre.Infrastructure.Tests.Academics;
 using TutoringCentre.Infrastructure.Tests.Tenancy;
 
 namespace TutoringCentre.Infrastructure.Tests.Fixtures;
@@ -178,6 +179,12 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<IQueryHandler<ListProbeCentresQuery, List<Guid>>, ListProbeCentresQueryHandler>();
         services.AddScoped<IQueryHandler<ListProbeCentresByRawSqlQuery, List<Guid>>, ListProbeCentresByRawSqlQueryHandler>();
 
+        // Task 23.6: test-only requests exercising Subject through the real context, standing in for the
+        // repository and read service that arrive on Day 25.
+        services.AddScoped<ICommandHandler<AddSubjectCommand, Guid>, AddSubjectCommandHandler>();
+        services.AddScoped<IQueryHandler<ListSubjectNamesQuery, List<string>>, ListSubjectNamesQueryHandler>();
+        services.AddScoped<ICommandHandler<RenameSubjectCommand, Unit>, RenameSubjectCommandHandler>();
+
         configure?.Invoke(services);
 
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
@@ -222,6 +229,30 @@ public sealed class PostgresFixture : IAsyncLifetime
         command.Parameters.AddWithValue("id", id);
         command.Parameters.AddWithValue("centre_id", centreId);
         command.Parameters.AddWithValue("label", label);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one subject row for the given centre directly as the superuser — bypassing row-level security,
+    /// the write guard and EF entirely, on purpose, so RLS tests (Task 23.4) seed rows for both centres that the
+    /// policy under test cannot have biased. Returns the generated id for tests that target a specific row.
+    /// </summary>
+    public async Task<Guid> SeedSubjectAsync(Guid centreId, string name)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.subjects (id, centre_id, name, normalized_name, status, created_at)
+            values (@id, @centre_id, @name, @normalized_name, 'active', now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("name", name);
+        command.Parameters.AddWithValue("normalized_name", name.ToUpperInvariant());
         await command.ExecuteNonQueryAsync();
         return id;
     }
