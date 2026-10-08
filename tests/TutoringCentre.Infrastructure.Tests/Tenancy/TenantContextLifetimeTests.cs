@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Identity;
@@ -81,7 +82,7 @@ public sealed class TenantContextLifetimeTests(PostgresFixture fixture) : Tenant
 
         await using (var db = OpenAppDbContext(connection, StaffActorIn(NileCentreId)))
         {
-            var unitOfWork = new UnitOfWork(db);
+            var unitOfWork = new UnitOfWork(db, NullLogger<UnitOfWork>.Instance);
             await unitOfWork.BeginAsync(readOnly: false, CancellationToken.None);
             var result = await new AlwaysFailingCommandHandler().HandleAsync(new AlwaysFailingCommand(), CancellationToken.None);
             Assert.True(result.IsFailure);
@@ -112,7 +113,7 @@ public sealed class TenantContextLifetimeTests(PostgresFixture fixture) : Tenant
     private static async Task<string> ReadSettingThroughUnitOfWorkAsync(NpgsqlConnection connection, Actor actor)
     {
         await using var db = OpenAppDbContext(connection, actor);
-        var unitOfWork = new UnitOfWork(db);
+        var unitOfWork = new UnitOfWork(db, NullLogger<UnitOfWork>.Instance);
         await unitOfWork.BeginAsync(readOnly: true, CancellationToken.None);
         var value = await TenantSettingReader.ReadAsync(db, CancellationToken.None);
         await unitOfWork.CommitAsync(CancellationToken.None);

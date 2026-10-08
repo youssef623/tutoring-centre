@@ -68,7 +68,15 @@ public sealed class Dispatcher
                 return result;
             }
 
-            await _unitOfWork.SaveChangesAsync(ct);
+            var saveResult = await _unitOfWork.SaveChangesAsync(ct);
+            if (saveResult.IsFailure)
+            {
+                await _unitOfWork.RollbackAsync(ct);
+                var failedSave = Result<TResponse>.Failure(saveResult.Error!);
+                LogOutcome(CommandKind, typeof(TCommand).Name, failedSave, started);
+                return failedSave;
+            }
+
             await _unitOfWork.CommitAsync(ct);
             LogOutcome(CommandKind, typeof(TCommand).Name, result, started);
             return result;

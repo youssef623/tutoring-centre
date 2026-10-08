@@ -5,6 +5,7 @@ using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Academics;
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Domain.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Tests.Fixtures;
@@ -47,17 +48,17 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     }
 
     [Fact]
-    public async Task NileActorAddsWhitespaceVariantOfMathematics_SurfacesUniqueViolation23505()
+    public async Task NileActorAddsWhitespaceVariantOfMathematics_TranslatedToNameTakenConflict()
     {
         await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
 
-        // Surfaces as an exception today (not a translated conflict result) — translation is Day 25.
-        var exception = await Assert.ThrowsAsync<DbUpdateException>(() =>
-            Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, " mathematics ")));
+        // Day 25: the save-time unique violation is now translated to a Result, not an exception.
+        var result = await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, " mathematics "));
 
-        var postgresException = Assert.IsType<PostgresException>(exception.InnerException);
-        Assert.Equal("23505", postgresException.SqlState);
-        Assert.Equal("ux_subjects_centre_normalized_name", postgresException.ConstraintName);
+        Assert.True(result.IsFailure);
+        Assert.Equal("subject.name_taken", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
+        Assert.Equal(1, await Fixture.ScalarAsync<long>("select count(*) from academics.subjects"));
     }
 
     [Fact]

@@ -21,6 +21,12 @@
       "already_archived": "This subject is already archived.",
       "not_archived": "This subject is not archived.",
       "archived_read_only": "An archived subject cannot be renamed until it is restored."
+    },
+    "concurrency": {
+      "stale": "This record was changed by someone else. Reload and try again."
+    },
+    "conflict": {
+      "duplicate": "This conflicts with existing data."
     }
   },
   "byKind": {

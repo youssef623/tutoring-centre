@@ -100,9 +100,6 @@ public static class DependencyInjection
 
         services.AddScoped<ICentreRepository, CentreRepository>();
 
-        // Day 24: the Subject command/query handlers depend on these ports, so they must resolve for container
-        // validation to pass. Both registrations are placeholders (throw NotImplementedException) until the real
-        // EF implementation arrives on Day 25 — nothing calls them today; no endpoint exists until Day 26.
         services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<ISubjectReadService, SubjectReadService>();
 

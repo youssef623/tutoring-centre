@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Application.Common.Ports;
 
@@ -15,8 +16,13 @@ public interface IUnitOfWork
         Justification = "C#-only solution; 'readOnly' is the documented parameter name (ReadOnly is reserved only in Visual Basic).")]
     Task BeginAsync(bool readOnly, CancellationToken ct);
 
-    /// <summary>Writes tracked changes inside the current transaction (commands only).</summary>
-    Task SaveChangesAsync(CancellationToken ct);
+    /// <summary>
+    /// Writes tracked changes inside the current transaction (commands only). A failure a database constraint
+    /// alone can detect — a lost uniqueness race, a stale optimistic-concurrency version — comes back as a
+    /// failed <see cref="Result"/>, the same as any other business outcome, rather than an exception; anything
+    /// else still throws.
+    /// </summary>
+    Task<Result> SaveChangesAsync(CancellationToken ct);
 
     /// <summary>Commits the current transaction.</summary>
     Task CommitAsync(CancellationToken ct);

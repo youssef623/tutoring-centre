@@ -1,23 +1,40 @@
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 using TutoringCentre.Application.Academics.Subjects;
 using TutoringCentre.Domain.Academics;
+using TutoringCentre.Infrastructure.Persistence;
 
 namespace TutoringCentre.Infrastructure.Repositories;
 
 /// <summary>
-/// Day 24 placeholder, registered only so the Subject command handlers (every one depends on
-/// <see cref="ISubjectRepository"/>) resolve at container-validation time. Nothing calls it today: no endpoint
-/// exposes a Subject use case until Day 26, and Day 24's own handler tests use a fake, not this registration.
-/// The real EF implementation, backed by the AppDbContext added on Day 23, arrives Day 25.
+/// EF Core implementation of the Subject write-side port. It tracks entities; the unit of work saves them. No
+/// centre predicate anywhere: the EF query filter and row-level security (Week 1, Days 20-21) already scope
+/// every query to the acting actor's centre.
 /// </summary>
-internal sealed class SubjectRepository : ISubjectRepository
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class SubjectRepository(AppDbContext db) : ISubjectRepository
 {
-    private const string NotImplementedMessage = "The Subject repository is not implemented until Day 25.";
+    public async Task<Subject?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct)
+    {
+        var subject = await db.Set<Subject>().SingleOrDefaultAsync(subject => subject.Id == id, ct);
+        if (subject is null)
+        {
+            return null;
+        }
 
-    public Task<Subject?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct) =>
-        throw new NotImplementedException(NotImplementedMessage);
+        // The caller's expected version becomes the row version EF compares at UPDATE time (Task 23.2's shadow
+        // "Version" property, mapped to xmin): a stale client is refused by zero rows affected, not by a
+        // comparison here.
+        db.Entry(subject).Property("Version").OriginalValue = expectedVersion;
+        return subject;
+    }
 
     public Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct) =>
-        throw new NotImplementedException(NotImplementedMessage);
+        db.Set<Subject>().AnyAsync(subject => subject.NormalizedName == normalizedName && subject.Id != excludingId, ct);
 
-    public void Add(Subject subject) => throw new NotImplementedException(NotImplementedMessage);
+    public void Add(Subject subject)
+    {
+        ArgumentNullException.ThrowIfNull(subject);
+        db.Set<Subject>().Add(subject);
+    }
 }
