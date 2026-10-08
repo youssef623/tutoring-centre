@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using TutoringCentre.Application.Academics.Subjects;
 using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
@@ -98,6 +99,12 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<ICentreRepository, CentreRepository>();
+
+        // Day 24: the Subject command/query handlers depend on these ports, so they must resolve for container
+        // validation to pass. Both registrations are placeholders (throw NotImplementedException) until the real
+        // EF implementation arrives on Day 25 — nothing calls them today; no endpoint exists until Day 26.
+        services.AddScoped<ISubjectRepository, SubjectRepository>();
+        services.AddScoped<ISubjectReadService, SubjectReadService>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
