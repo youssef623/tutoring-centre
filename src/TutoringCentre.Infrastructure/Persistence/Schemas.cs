@@ -5,4 +5,5 @@ internal static class Schemas
 {
     public const string Platform = "platform";
     public const string Identity = "identity";
+    public const string Academics = "academics";
 }
