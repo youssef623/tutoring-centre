@@ -6,11 +6,13 @@ import commonAr from "./locales/ar/common.json";
 import errorsAr from "./locales/ar/errors.json";
 import shellAr from "./locales/ar/shell.json";
 import statusAr from "./locales/ar/status.json";
+import subjectsAr from "./locales/ar/subjects.json";
 import authEn from "./locales/en/auth.json";
 import commonEn from "./locales/en/common.json";
 import errorsEn from "./locales/en/errors.json";
 import shellEn from "./locales/en/shell.json";
 import statusEn from "./locales/en/status.json";
+import subjectsEn from "./locales/en/subjects.json";
 
 const StorageKey = "tcm.lang";
 type SupportedLanguage = "ar" | "en";
@@ -57,12 +59,12 @@ void i18next
   .use(initReactI18next)
   .init({
     resources: {
-      en: { common: commonEn, status: statusEn, errors: errorsEn, auth: authEn, shell: shellEn },
-      ar: { common: commonAr, status: statusAr, errors: errorsAr, auth: authAr, shell: shellAr },
+      en: { common: commonEn, status: statusEn, errors: errorsEn, auth: authEn, shell: shellEn, subjects: subjectsEn },
+      ar: { common: commonAr, status: statusAr, errors: errorsAr, auth: authAr, shell: shellAr, subjects: subjectsAr },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

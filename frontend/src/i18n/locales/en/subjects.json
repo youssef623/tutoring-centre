@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "Subjects"
+  },
+  "columns": {
+    "name": "Name",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Active",
+    "archived": "Archived"
+  },
+  "actions": {
+    "create": "Add subject",
+    "rename": "Rename",
+    "archive": "Archive",
+    "restore": "Restore"
+  },
+  "dialogs": {
+    "createTitle": "Add subject",
+    "renameTitle": "Rename subject"
+  },
+  "form": {
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Mathematics",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "emptyState": {
+    "title": "No subjects yet",
+    "description": "Add your first subject to get started."
+  },
+  "confirmations": {
+    "archiveTitle": "Archive this subject?",
+    "archiveBody": "It will no longer appear in subject pickers until it is restored.",
+    "restoreTitle": "Restore this subject?",
+    "restoreBody": "It will appear in subject pickers again."
+  },
+  "validation": {
+    "nameRequired": "Subject name is required.",
+    "nameTooLong": "Subject name must be at most 80 characters."
+  }
+}
