@@ -13,6 +13,14 @@
     },
     "tenant": {
       "not_selected": "Please select a centre to continue."
+    },
+    "subject": {
+      "not_found": "This subject could not be found.",
+      "name_taken": "A subject with this name already exists.",
+      "name_invalid": "Subject name must be 1-80 characters.",
+      "already_archived": "This subject is already archived.",
+      "not_archived": "This subject is not archived.",
+      "archived_read_only": "An archived subject cannot be renamed until it is restored."
     }
   },
   "byKind": {

@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "المواد"
+  },
+  "columns": {
+    "name": "الاسم",
+    "status": "الحالة"
+  },
+  "status": {
+    "active": "نشطة",
+    "archived": "مؤرشفة"
+  },
+  "actions": {
+    "create": "إضافة مادة",
+    "rename": "إعادة التسمية",
+    "archive": "أرشفة",
+    "restore": "استعادة"
+  },
+  "dialogs": {
+    "createTitle": "إضافة مادة",
+    "renameTitle": "إعادة تسمية المادة"
+  },
+  "form": {
+    "nameLabel": "الاسم",
+    "namePlaceholder": "مثال: الرياضيات",
+    "save": "حفظ",
+    "cancel": "إلغاء"
+  },
+  "emptyState": {
+    "title": "لا توجد مواد بعد",
+    "description": "أضف أول مادة للبدء."
+  },
+  "confirmations": {
+    "archiveTitle": "أرشفة هذه المادة؟",
+    "archiveBody": "لن تظهر في قوائم اختيار المواد حتى تتم استعادتها.",
+    "restoreTitle": "استعادة هذه المادة؟",
+    "restoreBody": "ستظهر مرة أخرى في قوائم اختيار المواد."
+  },
+  "validation": {
+    "nameRequired": "اسم المادة مطلوب.",
+    "nameTooLong": "يجب ألا يزيد اسم المادة عن 80 حرفًا."
+  }
+}
