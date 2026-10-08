@@ -28,6 +28,8 @@ Validation failures also carry `errors`: a field name (camelCase) → message li
 
 A successful `Result` (non-generic) maps to `204 No Content`; a successful `Result<T>` is handed to the caller-supplied `onSuccess` function (usually `Results.Ok(value)`).
 
+**201 + Location (Day 26).** `ToCreatedHttpResult` is the one place a successful creation becomes `201 Created`. The endpoint supplies a function from the result's value to `(Location, Body)`; both are built only from server-generated values (the created resource's own ID), never from caller-supplied input. Failure still goes through the exact same `Error.ToProblemResult()` the other mapping uses — there is no second status switch to keep in sync.
+
 ## Exceptions
 
 **Rule.** Exceptions never reach the client as-is. `GlobalExceptionHandler` (`src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs`) is the one place that logs an exception and turns it into Problem Details.
