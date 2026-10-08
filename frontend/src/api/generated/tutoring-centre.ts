@@ -28,6 +28,14 @@ export interface AntiforgeryTokenResponse {
   token: string;
 }
 
+export interface CreateSubjectRequest {
+  name: string;
+}
+
+export interface CreateSubjectResponse {
+  id: string;
+}
+
 export type HttpValidationProblemDetailsErrors = {[key: string]: string[]};
 
 export interface HttpValidationProblemDetails {
@@ -95,8 +103,39 @@ export interface ProblemDetails {
   instance?: string | null;
 }
 
+export interface RenameSubjectRequest {
+  name: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
 export interface SelectCentreRequest {
   centreId: string;
+}
+
+export type SubjectStatus = typeof SubjectStatus[keyof typeof SubjectStatus];
+
+
+export const SubjectStatus = {
+  active: 'active',
+  archived: 'archived',
+} as const;
+
+export interface SubjectDto {
+  id: string;
+  name: string;
+  status: SubjectStatus;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface SubjectListResponse {
+  items: SubjectDto[];
+}
+
+export interface SubjectVersionRequest {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
 }
 
 export interface SystemInfoDto {
@@ -105,6 +144,10 @@ export interface SystemInfoDto {
   latestMigration: string | null;
   databaseUpToDate: boolean;
 }
+
+export type ListSubjectsParams = {
+includeArchived?: boolean;
+};
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -640,4 +683,532 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSelectCentreMutationOptions(options), queryClient);
+    }
+
+export const getListSubjectsUrl = (params?: ListSubjectsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/subjects?${stringifiedParams}` : `/api/subjects`
+}
+
+export const listSubjects = async (params?: ListSubjectsParams, options?: Parameters<typeof apiFetch>[1]): Promise<SubjectListResponse> => {
+
+  return apiFetch<SubjectListResponse>(getListSubjectsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSubjectsQueryKey = (params?: ListSubjectsParams,) => {
+    return [
+    `/api/subjects`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSubjectsQueryOptions = <TData = Awaited<ReturnType<typeof listSubjects>>, TError = ProblemDetails>(params?: ListSubjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSubjectsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSubjects>>> = ({ signal }) => listSubjects(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSubjectsQueryResult = NonNullable<Awaited<ReturnType<typeof listSubjects>>>
+export type ListSubjectsQueryError = ProblemDetails
+
+
+export function useListSubjects<TData = Awaited<ReturnType<typeof listSubjects>>, TError = ProblemDetails>(
+ params: undefined |  ListSubjectsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSubjects>>,
+          TError,
+          Awaited<ReturnType<typeof listSubjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSubjects<TData = Awaited<ReturnType<typeof listSubjects>>, TError = ProblemDetails>(
+ params?: ListSubjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSubjects>>,
+          TError,
+          Awaited<ReturnType<typeof listSubjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSubjects<TData = Awaited<ReturnType<typeof listSubjects>>, TError = ProblemDetails>(
+ params?: ListSubjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSubjects<TData = Awaited<ReturnType<typeof listSubjects>>, TError = ProblemDetails>(
+ params?: ListSubjectsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSubjectsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateSubjectUrl = () => {
+
+
+
+
+  return `/api/subjects`
+}
+
+export const createSubject = async (createSubjectRequest: CreateSubjectRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CreateSubjectResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CreateSubjectResponse>(getCreateSubjectUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createSubjectRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateSubjectMutationKey = () => ['createSubject'] as const;
+
+export const getCreateSubjectMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSubject>>, TError,CreateSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSubject>>, TError,CreateSubjectMutationVariables, TContext> => {
+
+const mutationKey = getCreateSubjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSubject>>, CreateSubjectMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSubject(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSubjectMutationResult = NonNullable<Awaited<ReturnType<typeof createSubject>>>
+    export type CreateSubjectMutationBody = CreateSubjectRequest
+    export type CreateSubjectMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateSubjectMutationVariables = {data: CreateSubjectRequest}
+
+    export const useCreateSubject = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSubject>>, TError,CreateSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createSubject>>,
+        TError,
+        CreateSubjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateSubjectMutationOptions(options), queryClient);
+    }
+
+export const getGetSubjectUrl = (id: string,) => {
+
+
+
+
+  return `/api/subjects/${id}`
+}
+
+export const getSubject = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<SubjectDto> => {
+
+  return apiFetch<SubjectDto>(getGetSubjectUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSubjectQueryKey = (id: string,) => {
+    return [
+    `/api/subjects/${id}`
+    ] as const;
+    }
+
+
+export const getGetSubjectQueryOptions = <TData = Awaited<ReturnType<typeof getSubject>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubject>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSubjectQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSubject>>> = ({ signal }) => getSubject(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSubject>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSubjectQueryResult = NonNullable<Awaited<ReturnType<typeof getSubject>>>
+export type GetSubjectQueryError = ProblemDetails
+
+
+export function useGetSubject<TData = Awaited<ReturnType<typeof getSubject>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubject>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSubject>>,
+          TError,
+          Awaited<ReturnType<typeof getSubject>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSubject<TData = Awaited<ReturnType<typeof getSubject>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubject>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSubject>>,
+          TError,
+          Awaited<ReturnType<typeof getSubject>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSubject<TData = Awaited<ReturnType<typeof getSubject>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubject>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSubject<TData = Awaited<ReturnType<typeof getSubject>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSubject>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSubjectQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRenameSubjectUrl = (id: string,) => {
+
+
+
+
+  return `/api/subjects/${id}`
+}
+
+export const renameSubject = async (id: string,
+    renameSubjectRequest: RenameSubjectRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getRenameSubjectUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(renameSubjectRequest)
+  }
+);}
+
+
+
+
+
+export const getRenameSubjectMutationKey = () => ['renameSubject'] as const;
+
+export const getRenameSubjectMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameSubject>>, TError,RenameSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof renameSubject>>, TError,RenameSubjectMutationVariables, TContext> => {
+
+const mutationKey = getRenameSubjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameSubject>>, RenameSubjectMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  renameSubject(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameSubjectMutationResult = NonNullable<Awaited<ReturnType<typeof renameSubject>>>
+    export type RenameSubjectMutationBody = RenameSubjectRequest
+    export type RenameSubjectMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type RenameSubjectMutationVariables = {id: string;data: RenameSubjectRequest}
+
+    export const useRenameSubject = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameSubject>>, TError,RenameSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof renameSubject>>,
+        TError,
+        RenameSubjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRenameSubjectMutationOptions(options), queryClient);
+    }
+
+export const getArchiveSubjectUrl = (id: string,) => {
+
+
+
+
+  return `/api/subjects/${id}/archive`
+}
+
+export const archiveSubject = async (id: string,
+    subjectVersionRequest: SubjectVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getArchiveSubjectUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(subjectVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getArchiveSubjectMutationKey = () => ['archiveSubject'] as const;
+
+export const getArchiveSubjectMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveSubject>>, TError,ArchiveSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof archiveSubject>>, TError,ArchiveSubjectMutationVariables, TContext> => {
+
+const mutationKey = getArchiveSubjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof archiveSubject>>, ArchiveSubjectMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  archiveSubject(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ArchiveSubjectMutationResult = NonNullable<Awaited<ReturnType<typeof archiveSubject>>>
+    export type ArchiveSubjectMutationBody = SubjectVersionRequest
+    export type ArchiveSubjectMutationError = ProblemDetails
+    export type ArchiveSubjectMutationVariables = {id: string;data: SubjectVersionRequest}
+
+    export const useArchiveSubject = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveSubject>>, TError,ArchiveSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof archiveSubject>>,
+        TError,
+        ArchiveSubjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getArchiveSubjectMutationOptions(options), queryClient);
+    }
+
+export const getRestoreSubjectUrl = (id: string,) => {
+
+
+
+
+  return `/api/subjects/${id}/restore`
+}
+
+export const restoreSubject = async (id: string,
+    subjectVersionRequest: SubjectVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getRestoreSubjectUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(subjectVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getRestoreSubjectMutationKey = () => ['restoreSubject'] as const;
+
+export const getRestoreSubjectMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restoreSubject>>, TError,RestoreSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof restoreSubject>>, TError,RestoreSubjectMutationVariables, TContext> => {
+
+const mutationKey = getRestoreSubjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof restoreSubject>>, RestoreSubjectMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  restoreSubject(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RestoreSubjectMutationResult = NonNullable<Awaited<ReturnType<typeof restoreSubject>>>
+    export type RestoreSubjectMutationBody = SubjectVersionRequest
+    export type RestoreSubjectMutationError = ProblemDetails
+    export type RestoreSubjectMutationVariables = {id: string;data: SubjectVersionRequest}
+
+    export const useRestoreSubject = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restoreSubject>>, TError,RestoreSubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof restoreSubject>>,
+        TError,
+        RestoreSubjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRestoreSubjectMutationOptions(options), queryClient);
     }

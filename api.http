@@ -79,3 +79,66 @@ X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
 
 ### 10. GET /api/me — expect 401
 GET {{baseUrl}}/api/me
+
+### Manual walkthrough of the subjects API (Day 26): the six Subject endpoints against a real session.
+
+### 11. Fetch a fresh CSRF token (the session from step 9 ended) — expect 200
+# @name antiforgerySubjects
+GET {{baseUrl}}/api/auth/antiforgery
+
+### 12. Log in as owner@nile.test — expect 200, active centre nile-centre
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "email": "owner@nile.test",
+  "password": "{{$dotenv password}}"
+}
+
+### 13. List subjects — expect 200, { "items": [ { "id", "name", "status", "version" } ] } for Nile only
+GET {{baseUrl}}/api/subjects
+
+### 14. Create a subject — expect 201, Location: /api/subjects/{newId}, body { "id" }
+# @name createSubject
+POST {{baseUrl}}/api/subjects
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "Geography"
+}
+
+### 15. GET the created subject via the Location header — expect 200, name "Geography", status "active"
+GET {{baseUrl}}{{createSubject.response.headers.Location}}
+
+### 16. Rename it — copy the "id" from step 14 and the "version" from step 15 below first — expect 204
+@subjectId = replace-with-the-id-from-step-14
+@subjectVersion = replace-with-the-version-from-step-15
+PUT {{baseUrl}}/api/subjects/{{subjectId}}
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "World Geography",
+  "version": {{subjectVersion}}
+}
+
+### 17. Archive it with the now-stale @subjectVersion from step 16 — expect 409 concurrency.stale.
+### Re-run step 15 to read the current version, update @subjectVersion, then re-run this request — expect 204.
+POST {{baseUrl}}/api/subjects/{{subjectId}}/archive
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{subjectVersion}}
+}
+
+### 18. Restore it — re-run step 15 first to refresh @subjectVersion to the archived row's current version — expect 204
+POST {{baseUrl}}/api/subjects/{{subjectId}}/restore
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{subjectVersion}}
+}

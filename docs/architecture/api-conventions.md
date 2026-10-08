@@ -28,6 +28,14 @@ Validation failures also carry `errors`: a field name (camelCase) → message li
 
 A successful `Result` (non-generic) maps to `204 No Content`; a successful `Result<T>` is handed to the caller-supplied `onSuccess` function (usually `Results.Ok(value)`).
 
+**201 + Location (Day 26).** `ToCreatedHttpResult` is the one place a successful creation becomes `201 Created`. The endpoint supplies a function from the result's value to `(Location, Body)`; both are built only from server-generated values (the created resource's own ID), never from caller-supplied input. Failure still goes through the exact same `Error.ToProblemResult()` the other mapping uses — there is no second status switch to keep in sync.
+
+**Collection responses wrap in `items` (Day 26).** A list endpoint never returns a bare JSON array; the body is `{ "items": [...] }`. This leaves room to add pagination metadata beside `items` later without a breaking shape change.
+
+**Optimistic concurrency via `version` (Day 26).** A mutable resource's read shape includes a `version` (its row's Postgres `xmin`, exposed as an opaque number — never interpreted or compared by the client, just round-tripped). Every state-changing request on that resource — rename, archive, restore, and so on — includes the `version` it read back, and a stale value maps through `ErrorKind.Conflict` to `409` with `code: "concurrency.stale"`, distinct from a `409` duplicate/name conflict by `code` alone (both are `Conflict`-kind; the HTTP status does not distinguish them, the `code` does).
+
+**Action endpoints for state transitions (Day 26).** A transition that is not a plain field update (`archive`, `restore`) is its own `POST /api/{resource}/{id}/{action}` endpoint rather than an overload of `PUT`, and still takes `{ "version" }` to enforce the same concurrency check. A transition attempted from the wrong state (archiving an already-archived resource, restoring one that isn't archived) is a business rule, not a concurrency failure or a validation failure — it maps through `ErrorKind.Rule` to `422`, with a `code` specific to the violated rule (e.g. `subject.already_archived`).
+
 ## Exceptions
 
 **Rule.** Exceptions never reach the client as-is. `GlobalExceptionHandler` (`src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs`) is the one place that logs an exception and turns it into Problem Details.
