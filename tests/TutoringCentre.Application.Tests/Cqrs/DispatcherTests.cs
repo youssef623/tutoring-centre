@@ -78,6 +78,21 @@ public sealed class DispatcherTests
     }
 
     [Fact]
+    public async Task SendAsync_SaveFails_RollsBackWithoutCommittingAndReturnsTheSaveError()
+    {
+        // C14
+        using var fixture = CreateSut();
+        var saveError = Error.Conflict("test.save_conflict", "Someone else changed this first.");
+        fixture.UnitOfWork.SaveFailure = saveError;
+
+        var result = await fixture.Dispatcher.SendAsync<TestCommand, string>(ValidCommand, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(saveError, result.Error);
+        Assert.Equal(["Begin(rw)", "Handle", "Save", "Rollback"], fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
     public async Task QueryAsync_ValidQuery_BeginsReadOnlyHandlesAndCommitsWithoutSaving()
     {
         using var fixture = CreateSut();

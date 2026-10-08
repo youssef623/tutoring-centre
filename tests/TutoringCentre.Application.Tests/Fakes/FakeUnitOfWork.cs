@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Application.Tests.Fakes;
 
@@ -11,6 +12,9 @@ public sealed class FakeUnitOfWork : IUnitOfWork
     /// <summary>When true, <see cref="SaveChangesAsync"/> records "Save" and then throws (case C5).</summary>
     public bool ThrowOnSave { get; set; }
 
+    /// <summary>When set, <see cref="SaveChangesAsync"/> records "Save" and returns this as a failed Result instead of succeeding (case C14).</summary>
+    public Error? SaveFailure { get; set; }
+
     [SuppressMessage(
         "Naming",
         "CA1716:Identifiers should not match keywords",
@@ -21,7 +25,7 @@ public sealed class FakeUnitOfWork : IUnitOfWork
         return Task.CompletedTask;
     }
 
-    public Task SaveChangesAsync(CancellationToken ct)
+    public Task<Result> SaveChangesAsync(CancellationToken ct)
     {
         Calls.Add("Save");
         if (ThrowOnSave)
@@ -29,7 +33,7 @@ public sealed class FakeUnitOfWork : IUnitOfWork
             throw new InvalidOperationException("Simulated SaveChanges failure.");
         }
 
-        return Task.CompletedTask;
+        return Task.FromResult(SaveFailure is null ? Result.Success() : Result.Failure(SaveFailure));
     }
 
     public Task CommitAsync(CancellationToken ct)

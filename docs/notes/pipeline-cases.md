@@ -18,3 +18,4 @@ Call names recorded by the fake unit of work: `Begin(rw)`, `Begin(ro)`, `Save`, 
 | C12 | Tenant-scoped request (command or query), anonymous actor | (none) | failure `auth.not_authenticated` (Unauthenticated) |
 | C13 | Tenant-scoped request with a centre; non-scoped request without a centre | `Handle` runs either way | success |
 | — | Ordering: tenant-scoped command, invalid input, actor without a centre | (none) | failure `validation.failed` — validation wins over the tenant step |
+| C14 | Handler succeeds, `SaveChangesAsync` returns a failed Result | `Begin(rw)`, `Handle`, `Save`, `Rollback` (no `Commit`) | the save's own error (Task 25.3) |

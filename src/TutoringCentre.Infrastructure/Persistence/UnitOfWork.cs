@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Infrastructure.Persistence;
 
@@ -11,12 +13,15 @@ namespace TutoringCentre.Infrastructure.Persistence;
 internal sealed class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _db;
+    private readonly ILogger<UnitOfWork> _logger;
     private IDbContextTransaction? _transaction;
 
-    public UnitOfWork(AppDbContext db)
+    public UnitOfWork(AppDbContext db, ILogger<UnitOfWork> logger)
     {
         ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(logger);
         _db = db;
+        _logger = logger;
     }
 
     public async Task BeginAsync(bool readOnly, CancellationToken ct)
@@ -57,7 +62,26 @@ internal sealed class UnitOfWork : IUnitOfWork
             ct);
     }
 
-    public async Task SaveChangesAsync(CancellationToken ct) => await _db.SaveChangesAsync(ct);
+    public async Task<Result> SaveChangesAsync(CancellationToken ct)
+    {
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+            return Result.Success();
+        }
+        catch (Exception exception) when (exception is DbUpdateConcurrencyException or DbUpdateException)
+        {
+            // The dispatcher rolls back (and clears the change tracker, same as any other failure) once it
+            // sees this Result; an untranslated failure (FK, check, anything else) is rethrown unchanged.
+            var translated = PersistenceErrorTranslator.TryTranslate(exception, _logger);
+            if (translated is null)
+            {
+                throw;
+            }
+
+            return translated;
+        }
+    }
 
     public async Task CommitAsync(CancellationToken ct)
     {
