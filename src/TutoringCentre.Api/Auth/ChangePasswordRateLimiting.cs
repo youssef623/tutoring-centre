@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace TutoringCentre.Api.Auth;
 
@@ -41,6 +43,21 @@ public static class ChangePasswordRateLimiting
         return services;
     }
 
-    private static string GetPartitionKey(HttpContext httpContext) =>
-        httpContext.User.FindFirst(SessionClaimNames.UserId)?.Value ?? "anonymous";
+    private static string GetPartitionKey(HttpContext httpContext)
+    {
+        // Same escape hatch as LoginRateLimiting, honoured only in the "Testing" host environment: lets
+        // AntiforgeryTestHelper give every ordinary test call its own window, so unrelated tests for the same
+        // signed-in user never share one, without weakening the real per-user limit.
+        var environment = httpContext.RequestServices.GetRequiredService<IHostEnvironment>();
+        if (environment.IsEnvironment("Testing"))
+        {
+            var testPartition = httpContext.Request.Headers[LoginRateLimiting.TestPartitionHeaderName].FirstOrDefault();
+            if (testPartition is not null)
+            {
+                return testPartition;
+            }
+        }
+
+        return httpContext.User.FindFirst(SessionClaimNames.UserId)?.Value ?? "anonymous";
+    }
 }
