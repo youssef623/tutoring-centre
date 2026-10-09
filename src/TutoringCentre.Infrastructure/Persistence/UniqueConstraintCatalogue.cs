@@ -17,6 +17,11 @@ internal static class UniqueConstraintCatalogue
             ErrorKind.Conflict,
             new Dictionary<string, string[]> { ["name"] = ["A subject with this name already exists."] }),
         ["ux_centres_slug"] = () => Error.Conflict("centre.slug_taken", "A centre with this slug already exists."),
+        ["ux_memberships_centre_user"] = () => new Error(
+            "staff.already_member",
+            "This person already has a membership in this centre.",
+            ErrorKind.Conflict,
+            new Dictionary<string, string[]> { ["email"] = ["This person already has a membership in this centre."] }),
     };
 
     /// <summary>The mapped error for a registered constraint, or null when the constraint is not in the catalogue.</summary>

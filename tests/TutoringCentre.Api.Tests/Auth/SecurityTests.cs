@@ -2,8 +2,15 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using TutoringCentre.Api.Cli;
 using TutoringCentre.Api.Tests.Fixtures;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Staff;
+using TutoringCentre.Application.Staff.Commands.ChangeStaffRole;
+using TutoringCentre.Application.Staff.Queries.ListStaff;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Api.Tests.Auth;
 
@@ -182,6 +189,42 @@ public sealed class SecurityTests(ConventionsFactory factory) : IAsyncLifetime
 
         using var response = await client.GetAsync(MeUri);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RoleChangedByTheOwner_NextRequestForThatUser_Returns401()
+    {
+        // Task 29.10: no endpoint exists yet for ChangeStaffRoleCommand, so it is dispatched directly —
+        // the same way an owner's real request will reach it once Day 30 adds the endpoint.
+        using var client = CreateSessionClient();
+        using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "secretary@nile.test", password = ApiFactory.TestSeedPassword }))
+        {
+            Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        }
+        using (var before = await client.GetAsync(MeUri))
+        {
+            Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+        }
+
+        var ownerId = await factory.ScalarAsync<Guid>("select id from identity.users where email = 'owner@nile.test'");
+        var nileCentreId = await factory.ScalarAsync<Guid>("select id from platform.centres where slug = 'nile-centre'");
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(new StaffActor(ownerId, nileCentreId, StaffRole.Owner));
+        var dispatcher = scope.ServiceProvider.GetRequiredService<Dispatcher>();
+
+        var listResult = await dispatcher.QueryAsync<ListStaffQuery, IReadOnlyList<StaffMemberDto>>(new ListStaffQuery(), CancellationToken.None);
+        Assert.True(listResult.IsSuccess);
+        var secretary = listResult.Value.Single(member => member.Email == "secretary@nile.test");
+
+        var changeResult = await dispatcher.SendAsync<ChangeStaffRoleCommand, Unit>(
+            new ChangeStaffRoleCommand(secretary.MembershipId, StaffRole.Teacher, secretary.Version), CancellationToken.None);
+        Assert.True(changeResult.IsSuccess);
+
+        // SessionValidation:CacheDuration is zero in tests (ApiFactory), so the very next request re-checks.
+        using var after = await client.GetAsync(MeUri);
+        Assert.Equal(HttpStatusCode.Unauthorized, after.StatusCode);
     }
 
     [Fact]

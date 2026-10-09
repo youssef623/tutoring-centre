@@ -10,6 +10,7 @@ using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Identity;
 using TutoringCentre.Application.Platform;
+using TutoringCentre.Application.Staff;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
@@ -103,6 +104,9 @@ public static class DependencyInjection
         services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<ISubjectReadService, SubjectReadService>();
 
+        services.AddScoped<IMembershipRepository, MembershipRepository>();
+        services.AddScoped<IStaffReadService, StaffReadService>();
+
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
 
@@ -126,6 +130,7 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<AppDbContext>();
         services.AddScoped<DevelopmentIdentitySeeder>();
         services.AddScoped<IAuthenticationService, IdentityAuthenticationService>();
+        services.AddScoped<IStaffAccountService, StaffAccountService>();
 
         return services;
     }

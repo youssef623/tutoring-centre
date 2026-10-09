@@ -64,6 +64,8 @@ internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Members
             .IsUnique()
             .HasDatabaseName("ux_memberships_centre_user");
 
+        builder.HasRowVersion();
+
         // Persistence metadata: shadow properties set by TimestampInterceptor, invisible to the Domain.
         builder.Property<DateTimeOffset>("CreatedAt").IsRequired();
         builder.Property<DateTimeOffset?>("UpdatedAt");

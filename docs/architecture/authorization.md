@@ -97,6 +97,18 @@ Three questions, three places they're answered, one example each:
   this question; it is deferred, not solved by coincidence, because no Month 2 use case needs a check finer
   than centre and role together.
 
+## Accepted disclosure: CreateStaffCommand reveals whether an email already has an account
+
+`CreateStaffCommand` (Day 29) ensures a login account for the email it is given, then returns whether that
+account was newly created or already existed (no temporary password in the latter case). An owner who tries
+to add someone already registered elsewhere therefore learns, indirectly, that the email has a Hessa account
+somewhere — not which centre, not under which name. This is accepted, not overlooked: the caller must already
+be an authenticated owner with `staff.manage` in a real centre (nothing here is reachable anonymously or by a
+lower role), and every call goes through the dispatcher's existing structured outcome log like any other
+command. The alternative — always claiming to create a new account, then silently discarding a second
+password — would mean an owner occasionally sees no temporary password for a person who is, in fact, brand
+new, with no way to tell that apart from a typo; this trade was judged worse than the narrow disclosure above.
+
 Confusing these is how access bugs start: a check written as "is this an owner" instead of "does this role
 hold X" silently stops working the moment a fourth role exists; a check that stops at tenancy without also
 checking permission lets any signed-in member of a centre do anything in it.

@@ -59,10 +59,18 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
             return null;
         }
 
-        var membershipActive = centreId is null || await db.Set<Membership>()
-            .AsNoTracking()
-            .AnyAsync(m => m.UserId == userId && m.CentreId == centreId && m.Status == MembershipStatus.Active, ct);
+        if (centreId is null)
+        {
+            return new SessionStateDto(stamp, MembershipActive: true, CurrentRole: null);
+        }
 
-        return new SessionStateDto(stamp, membershipActive);
+        var membership = await db.Set<Membership>()
+            .AsNoTracking()
+            .Where(m => m.UserId == userId && m.CentreId == centreId)
+            .Select(m => new { m.Status, m.Role })
+            .SingleOrDefaultAsync(ct);
+
+        var membershipActive = membership is not null && membership.Status == MembershipStatus.Active;
+        return new SessionStateDto(stamp, membershipActive, membership?.Role);
     }
 }

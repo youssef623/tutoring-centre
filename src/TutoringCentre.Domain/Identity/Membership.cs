@@ -45,6 +45,22 @@ public sealed class Membership : Entity
         return Result<Membership>.Success(new Membership(userId, centreId, role));
     }
 
+    public Result ChangeRole(StaffRole role)
+    {
+        if (Status == MembershipStatus.Inactive)
+        {
+            return Result.Failure(Error.Rule("membership.inactive", "This membership is inactive."));
+        }
+
+        if (Role == role)
+        {
+            return Result.Failure(Error.Rule("membership.role_unchanged", "The role is already this value."));
+        }
+
+        Role = role;
+        return Result.Success();
+    }
+
     public Result Deactivate()
     {
         if (Status == MembershipStatus.Inactive)

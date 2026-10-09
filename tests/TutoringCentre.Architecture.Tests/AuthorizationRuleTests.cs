@@ -13,9 +13,14 @@ namespace TutoringCentre.Architecture.Tests;
 /// </summary>
 public sealed class AuthorizationRuleTests
 {
-    // Reserved for Day 29's staff-management handlers, which handle roles as data rather than as an
-    // authorization decision. Empty today: no such handler exists yet.
-    private static readonly string[] RoleReferenceAllowList = [];
+    // Day 29's staff-management handlers handle roles as data (the last-owner guard, the entity's own
+    // role-change rule), not as an authorization decision — that distinction is what this allow-list exists
+    // to keep narrow and explicit, one named file at a time.
+    private static readonly string[] RoleReferenceAllowList =
+    [
+        "src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleHandler.cs",
+        "src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffHandler.cs",
+    ];
 
     private static readonly Regex StaffRoleMemberPattern = new(@"\bStaffRole\.(Owner|Secretary|Teacher)\b", RegexOptions.Compiled);
 

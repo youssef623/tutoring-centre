@@ -13,6 +13,7 @@ using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.Persistence.Migrations;
 using TutoringCentre.Infrastructure.Tests.Academics;
+using TutoringCentre.Infrastructure.Tests.Identity;
 using TutoringCentre.Infrastructure.Tests.Tenancy;
 
 namespace TutoringCentre.Infrastructure.Tests.Fixtures;
@@ -184,6 +185,10 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<ICommandHandler<AddSubjectCommand, Guid>, AddSubjectCommandHandler>();
         services.AddScoped<IQueryHandler<ListSubjectNamesQuery, List<string>>, ListSubjectNamesQueryHandler>();
         services.AddScoped<ICommandHandler<RenameSubjectCommand, Unit>, RenameSubjectCommandHandler>();
+
+        // Task 29.4: a test-only command standing in for CreateStaffCommand (Day 29.5), so the account-service
+        // rollback test can dispatch through the real transaction before that command exists.
+        services.AddScoped<ICommandHandler<EnsureAccountThenFailCommand, Unit>, EnsureAccountThenFailCommandHandler>();
 
         configure?.Invoke(services);
 
