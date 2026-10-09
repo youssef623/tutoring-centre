@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using TutoringCentre.Application.Staff;
 using TutoringCentre.Domain.Identity;
 using TutoringCentre.Infrastructure.Persistence;
@@ -41,22 +42,47 @@ internal sealed class MembershipRepository(AppDbContext db) : IMembershipReposit
     public async Task<int> LockActiveOwnersAsync(Guid centreId, CancellationToken ct)
     {
         // Allow-listed raw SQL (QueryFilterBypassTests): PostgreSQL's locking clauses cannot be combined with
-        // an aggregate (COUNT(*)) in the same SELECT, so the rows are locked and materialised here, and counted
-        // in memory — the lock itself is what matters, held for the rest of this transaction. Fully
-        // parameterised: centreId never touches the SQL text.
-        var lockedIds = await db.Database
-            .SqlQueryRaw<Guid>(
-                """
-                SELECT id FROM identity.memberships
-                WHERE centre_id = {0} AND role = {1} AND status = {2}
-                FOR UPDATE
-                """,
-                centreId,
-                OwnerRoleValue,
-                ActiveStatusValue)
-            .ToListAsync(ct);
+        // an aggregate (COUNT(*)) in the same SELECT, so the rows are locked and counted by reading them here.
+        // A plain ADO.NET command, not EF's SqlQueryRaw, so there is no question of EF wrapping the locking
+        // query in a subquery of its own — it runs exactly as written, enlisted in the dispatcher's already-open
+        // transaction (UnitOfWork.BeginAsync), on the same connection every other call in this scope uses.
+        // Fully parameterised: centreId never touches the SQL text.
+        var connection = db.Database.GetDbConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            await connection.OpenAsync(ct);
+        }
 
-        return lockedIds.Count;
+        await using var command = connection.CreateCommand();
+        command.Transaction = db.Database.CurrentTransaction is { } transaction
+            ? ((IInfrastructure<System.Data.Common.DbTransaction>)transaction).Instance
+            : null;
+        command.CommandText =
+            """
+            SELECT id FROM identity.memberships
+            WHERE centre_id = @centreId AND role = @role AND status = @status
+            FOR UPDATE
+            """;
+        AddParameter(command, "centreId", centreId);
+        AddParameter(command, "role", OwnerRoleValue);
+        AddParameter(command, "status", ActiveStatusValue);
+
+        var count = 0;
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        while (await reader.ReadAsync(ct))
+        {
+            count++;
+        }
+
+        return count;
+    }
+
+    private static void AddParameter(System.Data.Common.DbCommand command, string name, object value)
+    {
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.Value = value;
+        command.Parameters.Add(parameter);
     }
 
     public void Add(Membership membership)
