@@ -1,6 +1,7 @@
 {
   "nav": {
     "dashboard": "لوحة التحكم",
+    "subjects": "المواد",
     "openMenu": "فتح القائمة",
     "closeMenu": "إغلاق القائمة"
   },

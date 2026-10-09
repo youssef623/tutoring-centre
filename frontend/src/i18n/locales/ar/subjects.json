@@ -1,10 +1,12 @@
 {
   "page": {
-    "title": "المواد"
+    "title": "المواد",
+    "showArchived": "إظهار المؤرشفة"
   },
   "columns": {
     "name": "الاسم",
-    "status": "الحالة"
+    "status": "الحالة",
+    "actions": "الإجراءات"
   },
   "status": {
     "active": "نشطة",
@@ -14,7 +16,8 @@
     "create": "إضافة مادة",
     "rename": "إعادة التسمية",
     "archive": "أرشفة",
-    "restore": "استعادة"
+    "restore": "استعادة",
+    "openMenu": "فتح قائمة الإجراءات"
   },
   "dialogs": {
     "createTitle": "إضافة مادة",
@@ -26,15 +29,27 @@
     "save": "حفظ",
     "cancel": "إلغاء"
   },
+  "loading": {
+    "label": "جارٍ تحميل المواد"
+  },
+  "error": {
+    "title": "تعذر تحميل المواد",
+    "reference": "المرجع: {correlationId}"
+  },
   "emptyState": {
     "title": "لا توجد مواد بعد",
     "description": "أضف أول مادة للبدء."
   },
   "confirmations": {
-    "archiveTitle": "أرشفة هذه المادة؟",
+    "archiveTitle": "أرشفة \"{name}\"؟",
     "archiveBody": "لن تظهر في قوائم اختيار المواد حتى تتم استعادتها.",
-    "restoreTitle": "استعادة هذه المادة؟",
-    "restoreBody": "ستظهر مرة أخرى في قوائم اختيار المواد."
+    "archiveConfirm": "أرشفة المادة"
+  },
+  "toasts": {
+    "created": "تمت إضافة المادة.",
+    "renamed": "تمت إعادة تسمية المادة.",
+    "archived": "تمت أرشفة المادة.",
+    "restored": "تمت استعادة المادة."
   },
   "validation": {
     "nameRequired": "اسم المادة مطلوب.",
