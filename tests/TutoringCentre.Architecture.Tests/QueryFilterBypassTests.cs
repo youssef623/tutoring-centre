@@ -27,12 +27,15 @@ public sealed class QueryFilterBypassTests
         RegexOptions.Compiled);
 
     // Exactly: the unit of work (the one place SET TRANSACTION READ ONLY runs), the runtime-role health check,
-    // every migration (generated, never hand-reviewed line by line), and the code that supports running them.
+    // every migration (generated, never hand-reviewed line by line), the code that supports running them, and
+    // the membership repository (Task 29.3: locks identity.memberships' active-owner rows with SELECT ... FOR
+    // UPDATE — a locking clause PostgreSQL does not allow EF's LINQ translation to express).
     private static readonly string[] AllowListedFiles =
     [
         "src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs",
         "src/TutoringCentre.Infrastructure/Persistence/RuntimeRolePrivilegeHealthCheck.cs",
         "src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs",
+        "src/TutoringCentre.Infrastructure/Repositories/MembershipRepository.cs",
     ];
 
     private const string MigrationsDirectoryPrefix = "src/TutoringCentre.Infrastructure/Persistence/Migrations/";
