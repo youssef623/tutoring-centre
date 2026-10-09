@@ -16,6 +16,7 @@ const nileOwnerMe = {
   activeCentreId: "c-nile",
   activeRole: "owner",
   memberships: [{ centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "owner" }],
+  permissions: ["subjects.manage", "subjects.view"],
 };
 
 function subject(overrides: Record<string, unknown> = {}) {
@@ -273,5 +274,56 @@ describe("SubjectsPage", () => {
     expect(await screen.findByRole("heading", { name: "المواد" })).toBeInTheDocument();
     expect(screen.getByText("إظهار المؤرشفة")).toBeInTheDocument();
     expect(document.documentElement.dir).toBe("rtl");
+  });
+
+  it("with only subjects.view, the Add button and row menus are absent", async () => {
+    server.use(
+      http.get(meUrl, () => HttpResponse.json({ ...nileOwnerMe, permissions: ["subjects.view"] })),
+      http.get(subjectsUrl, () => HttpResponse.json({ items: [subject()] })),
+    );
+
+    renderRouter("/subjects");
+
+    await screen.findByText("Mathematics");
+    expect(screen.queryByRole("button", { name: "Add subject" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open actions menu" })).not.toBeInTheDocument();
+  });
+
+  it("with subjects.manage, the Add button and row menus are present", async () => {
+    // The default nileOwnerMe mock already holds both subjects.manage and subjects.view.
+    server.use(http.get(subjectsUrl, () => HttpResponse.json({ items: [subject()] })));
+
+    renderRouter("/subjects");
+
+    await screen.findByText("Mathematics");
+    expect(screen.getByRole("button", { name: "Add subject" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open actions menu" })).toBeInTheDocument();
+  });
+
+  it("a 403 auth.permission_denied on archive shows the toast and refetches /api/me", async () => {
+    server.use(http.get(subjectsUrl, () => HttpResponse.json({ items: [subject({ name: "Mathematics" })] })));
+    let meCalls = 0;
+    server.use(
+      http.get(meUrl, () => {
+        meCalls += 1;
+        return HttpResponse.json(nileOwnerMe);
+      }),
+    );
+    server.use(
+      http.post(`${subjectsUrl}/s-1/archive`, () =>
+        problem(403, "auth.permission_denied", "You do not have permission to do this."),
+      ),
+    );
+
+    renderRouter("/subjects");
+    fireEvent.click(await screen.findByRole("button", { name: "Open actions menu" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Archive" }));
+    const callsBeforeConfirm = meCalls;
+    fireEvent.click(await screen.findByRole("button", { name: "Archive subject" }));
+
+    expect(await screen.findByText("You do not have permission to do this.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(meCalls).toBeGreaterThan(callsBeforeConfirm);
+    });
   });
 });

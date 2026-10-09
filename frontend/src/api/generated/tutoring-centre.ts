@@ -85,6 +85,7 @@ export interface MeDto {
   activeCentreId: string | null;
   activeRole: null | StaffRole;
   memberships: MembershipDto[];
+  permissions: string[];
 }
 
 export interface ProblemDetails {

@@ -33,6 +33,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Permissions } from "@/features/session/permissions";
+import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
+import { useCan } from "@/features/session/useCan";
 
 export function SubjectsList({
   includeArchived,
@@ -44,6 +47,7 @@ export function SubjectsList({
   const { t } = useTranslation("subjects");
   const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
+  const canManage = useCan(Permissions.SubjectsManage);
   const { data, error, isPending, refetch } = useListSubjects({ includeArchived });
   const archiveMutation = useArchiveSubject();
   const restoreMutation = useRestoreSubject();
@@ -63,8 +67,10 @@ export function SubjectsList({
       toast.success(t("toasts.archived"));
       setArchiveTarget(null);
     } catch (thrown) {
+      const apiError = asApiError(thrown);
       await invalidate();
-      showApiError(asApiError(thrown));
+      showApiError(apiError);
+      refetchMeOnPermissionDenied(apiError, queryClient);
       setArchiveTarget(null);
     }
   };
@@ -76,8 +82,10 @@ export function SubjectsList({
       await invalidate();
       toast.success(t("toasts.restored"));
     } catch (thrown) {
+      const apiError = asApiError(thrown);
       await invalidate();
-      showApiError(asApiError(thrown));
+      showApiError(apiError);
+      refetchMeOnPermissionDenied(apiError, queryClient);
     } finally {
       setRestoringId(null);
     }
@@ -137,9 +145,11 @@ export function SubjectsList({
             <tr>
               <th className="px-4 py-2 text-start font-medium">{t("columns.name")}</th>
               <th className="px-4 py-2 text-start font-medium">{t("columns.status")}</th>
-              <th className="px-4 py-2 text-start font-medium">
-                <span className="sr-only">{t("columns.actions")}</span>
-              </th>
+              {canManage && (
+                <th className="px-4 py-2 text-start font-medium">
+                  <span className="sr-only">{t("columns.actions")}</span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -156,47 +166,49 @@ export function SubjectsList({
                       {t(isArchived ? "status.archived" : "status.active")}
                     </Badge>
                   </td>
-                  <td className="px-4 py-2 text-end">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.openMenu")} />
-                        }
-                      >
-                        <MoreVertical className="size-4" aria-hidden="true" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {!isArchived && (
-                          <DropdownMenuItem
-                            onClick={() => {
-                              onRename(subject);
-                            }}
-                          >
-                            {t("actions.rename")}
-                          </DropdownMenuItem>
-                        )}
-                        {!isArchived && (
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setArchiveTarget(subject);
-                            }}
-                          >
-                            {t("actions.archive")}
-                          </DropdownMenuItem>
-                        )}
-                        {isArchived && (
-                          <DropdownMenuItem
-                            disabled={restoringId === subject.id}
-                            onClick={() => {
-                              void handleRestore(subject);
-                            }}
-                          >
-                            {t("actions.restore")}
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
+                  {canManage && (
+                    <td className="px-4 py-2 text-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.openMenu")} />
+                          }
+                        >
+                          <MoreVertical className="size-4" aria-hidden="true" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {!isArchived && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                onRename(subject);
+                              }}
+                            >
+                              {t("actions.rename")}
+                            </DropdownMenuItem>
+                          )}
+                          {!isArchived && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setArchiveTarget(subject);
+                              }}
+                            >
+                              {t("actions.archive")}
+                            </DropdownMenuItem>
+                          )}
+                          {isArchived && (
+                            <DropdownMenuItem
+                              disabled={restoringId === subject.id}
+                              onClick={() => {
+                                void handleRestore(subject);
+                              }}
+                            >
+                              {t("actions.restore")}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  )}
                 </tr>
               );
             })}

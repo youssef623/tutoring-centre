@@ -14,6 +14,9 @@
     "tenant": {
       "not_selected": "Please select a centre to continue."
     },
+    "auth": {
+      "permission_denied": "You do not have permission to do this."
+    },
     "subject": {
       "not_found": "This subject could not be found.",
       "name_taken": "A subject with this name already exists.",

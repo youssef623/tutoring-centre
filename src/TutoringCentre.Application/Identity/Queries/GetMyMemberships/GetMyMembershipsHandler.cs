@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Application.Identity.Queries.GetMyMemberships;
 
@@ -31,6 +32,10 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
             ? profile.Memberships.FirstOrDefault(membership => membership.CentreId == centreId)
             : null;
 
+        var permissions = activeMembership is null
+            ? Array.Empty<string>()
+            : RolePermissions.For(activeMembership.Role).Order(StringComparer.Ordinal).ToArray();
+
         var dto = new MeDto(
             profile.UserId,
             profile.DisplayName,
@@ -38,7 +43,8 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
             profile.PreferredLocale,
             activeMembership?.CentreId,
             activeMembership?.Role,
-            profile.Memberships);
+            profile.Memberships,
+            permissions);
 
         return Result<MeDto>.Success(dto);
     }

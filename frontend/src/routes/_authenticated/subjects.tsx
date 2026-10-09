@@ -7,6 +7,8 @@ import { SubjectsList } from "@/features/subjects/SubjectsList";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Can } from "@/features/session/Can";
+import { Permissions } from "@/features/session/permissions";
 
 export interface SubjectsSearch {
   archived: boolean;
@@ -38,15 +40,17 @@ function SubjectsPage() {
             <Switch id="show-archived" checked={archived} onCheckedChange={setArchived} />
             <Label htmlFor="show-archived">{t("page.showArchived")}</Label>
           </div>
-          <Button
-            type="button"
-            onClick={() => {
-              setDialogState({ mode: "create" });
-            }}
-          >
-            <Plus className="size-4" aria-hidden="true" />
-            {t("actions.create")}
-          </Button>
+          <Can permission={Permissions.SubjectsManage}>
+            <Button
+              type="button"
+              onClick={() => {
+                setDialogState({ mode: "create" });
+              }}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              {t("actions.create")}
+            </Button>
+          </Can>
         </div>
       </div>
 

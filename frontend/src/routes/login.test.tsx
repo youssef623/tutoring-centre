@@ -61,6 +61,7 @@ describe("LoginPage", () => {
       memberships: [
         { centreId: "01a0febd-0000-0000-0000-00000000c001", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "owner" },
       ],
+      permissions: [],
     };
     server.use(
       http.post(loginUrl, () => HttpResponse.json(me)),
@@ -88,6 +89,7 @@ describe("LoginPage", () => {
       memberships: [
         { centreId: "01a0febd-0000-0000-0000-00000000c001", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "owner" },
       ],
+      permissions: [],
     };
     server.use(
       http.post(loginUrl, () => HttpResponse.json(me)),

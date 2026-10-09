@@ -8,6 +8,7 @@ using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Identity;
 using TutoringCentre.Application.Identity.Queries.GetActiveMembership;
 using TutoringCentre.Application.Identity.Queries.GetMyMemberships;
+using TutoringCentre.Domain.Identity;
 using AuthService = TutoringCentre.Application.Common.Security.IAuthenticationService;
 
 namespace TutoringCentre.Api.Auth;
@@ -113,7 +114,13 @@ public static class AuthEndpoints
             autoSelected?.Role);
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-        var response = me with { ActiveCentreId = autoSelected?.CentreId, ActiveRole = autoSelected?.Role };
+        // me.Permissions was computed before the centre above was auto-selected (the actor had no centre yet),
+        // so it is stale here the same way ActiveCentreId/ActiveRole are — recompute it for the selected role.
+        var permissions = autoSelected is null
+            ? Array.Empty<string>()
+            : RolePermissions.For(autoSelected.Role).Order(StringComparer.Ordinal).ToArray();
+
+        var response = me with { ActiveCentreId = autoSelected?.CentreId, ActiveRole = autoSelected?.Role, Permissions = permissions };
         return Results.Ok(response);
     }
 

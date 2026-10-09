@@ -662,7 +662,8 @@
           "preferredLocale",
           "activeCentreId",
           "activeRole",
-          "memberships"
+          "memberships",
+          "permissions"
         ],
         "type": "object",
         "properties": {
@@ -700,6 +701,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MembershipDto"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         },

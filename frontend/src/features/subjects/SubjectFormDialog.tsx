@@ -14,6 +14,7 @@ import {
   type SubjectDto,
 } from "@/api/generated/tutoring-centre";
 import { subjectFormSchema, type SubjectFormValues } from "@/features/subjects/subjectSchema";
+import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -90,6 +91,7 @@ export function SubjectFormDialog({
       }
 
       showApiError(apiError);
+      refetchMeOnPermissionDenied(apiError, queryClient);
 
       if (state.mode === "rename" && (apiError.code === "concurrency.stale" || apiError.code === "subject.not_found")) {
         await invalidate();
