@@ -21,6 +21,14 @@ internal sealed class GetActiveMembershipHandler(ICurrentActor currentActor, IMe
             return Result<ActiveMembershipDto>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
         }
 
+        // The first-login gate (Day 30): a pending password change blocks entry to any centre, so every
+        // tenant-scoped request downstream already fails with tenant.not_selected — no second pipeline step.
+        if (await readService.MustChangePasswordAsync(staffActor.UserId, cancellationToken))
+        {
+            return Result<ActiveMembershipDto>.Failure(
+                Error.Forbidden("auth.password_change_required", "You must change your password before selecting a centre."));
+        }
+
         var membership = await readService.GetActiveMembershipAsync(staffActor.UserId, query.CentreId, cancellationToken);
         if (membership is null)
         {

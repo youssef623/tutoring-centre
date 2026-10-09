@@ -92,13 +92,77 @@ public sealed class IdentityAuthenticationServiceTests(PostgresFixture fixture) 
         AssertNoEmailLogged(log);
     }
 
+    [Fact]
+    public async Task ChangePasswordAsync_CorrectCurrentAndValidNew_RotatesStampClearsFlagAndAppliesPolicy()
+    {
+        using var scope = CreateScope(new CapturingLoggerProvider());
+        var userId = await CreateUserAsync(scope, Email, Password, mustChangePassword: true);
+        var stampBefore = await StampAsync(userId);
+
+        var result = await AuthServiceFor(scope).ChangePasswordAsync(userId, Password, "a-brand-new-password", CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(userId, result.Value.UserId);
+        Assert.NotEqual(stampBefore, result.Value.SecurityStamp);
+        Assert.Equal(result.Value.SecurityStamp, await StampAsync(userId));
+        Assert.False(await MustChangePasswordAsync(userId));
+
+        // The policy was genuinely applied, not skipped: the new password now signs in, the old one no longer does.
+        var signInWithNewPassword = await AuthServiceFor(scope).VerifyCredentialsAsync(Email, "a-brand-new-password", CancellationToken.None);
+        Assert.True(signInWithNewPassword.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WrongCurrentPassword_FailsWithoutRotatingTheStampOrClearingTheFlag()
+    {
+        using var scope = CreateScope(new CapturingLoggerProvider());
+        var userId = await CreateUserAsync(scope, Email, Password, mustChangePassword: true);
+        var stampBefore = await StampAsync(userId);
+
+        var result = await AuthServiceFor(scope).ChangePasswordAsync(userId, "totally-wrong", "a-brand-new-password", CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.current_password_invalid", result.Error!.Code);
+        Assert.Equal(stampBefore, await StampAsync(userId));
+        Assert.True(await MustChangePasswordAsync(userId));
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_NewPasswordFailsThePolicy_FailsWithFieldError()
+    {
+        using var scope = CreateScope(new CapturingLoggerProvider());
+        var userId = await CreateUserAsync(scope, Email, Password, mustChangePassword: true);
+
+        var result = await AuthServiceFor(scope).ChangePasswordAsync(userId, Password, "short", CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.password_too_weak", result.Error!.Code);
+        Assert.NotEmpty(result.Error.Fields!["newPassword"]);
+        Assert.True(await MustChangePasswordAsync(userId));
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_NewPasswordSameAsCurrent_FailsAsTooWeak()
+    {
+        using var scope = CreateScope(new CapturingLoggerProvider());
+        var userId = await CreateUserAsync(scope, Email, Password, mustChangePassword: true);
+
+        var result = await AuthServiceFor(scope).ChangePasswordAsync(userId, Password, Password, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.password_too_weak", result.Error!.Code);
+    }
+
     private IServiceScope CreateScope(CapturingLoggerProvider log) =>
         Fixture.CreateServiceProvider(services => services.AddLogging(builder => builder.AddProvider(log))).CreateScope();
 
     private static IAuthenticationService AuthServiceFor(IServiceScope scope) =>
         scope.ServiceProvider.GetRequiredService<IAuthenticationService>();
 
-    private static async Task<Guid> CreateUserAsync(IServiceScope scope, string email, string password)
+    private static Task<Guid> CreateUserAsync(IServiceScope scope, string email, string password) =>
+        CreateUserAsync(scope, email, password, mustChangePassword: false);
+
+    private static async Task<Guid> CreateUserAsync(IServiceScope scope, string email, string password, bool mustChangePassword)
     {
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var user = new ApplicationUser
@@ -108,6 +172,7 @@ public sealed class IdentityAuthenticationServiceTests(PostgresFixture fixture) 
             EmailConfirmed = true,
             DisplayName = "Staff Member",
             PreferredLocale = "en",
+            MustChangePassword = mustChangePassword,
         };
         var result = await userManager.CreateAsync(user, password);
         Assert.True(result.Succeeded, string.Join(", ", result.Errors.Select(e => e.Description)));
@@ -116,6 +181,12 @@ public sealed class IdentityAuthenticationServiceTests(PostgresFixture fixture) 
 
     private Task<int> FailedAttemptCountAsync(Guid userId) =>
         Fixture.ScalarAsync<int>($"select access_failed_count from identity.users where id = '{userId}'");
+
+    private Task<string> StampAsync(Guid userId) =>
+        Fixture.ScalarAsync<string>($"select security_stamp from identity.users where id = '{userId}'");
+
+    private Task<bool> MustChangePasswordAsync(Guid userId) =>
+        Fixture.ScalarAsync<bool>($"select must_change_password from identity.users where id = '{userId}'");
 
     private static void AssertNoEmailLogged(CapturingLoggerProvider log) =>
         Assert.DoesNotContain(log.Lines, line => line.Contains("@nile.test", StringComparison.OrdinalIgnoreCase));

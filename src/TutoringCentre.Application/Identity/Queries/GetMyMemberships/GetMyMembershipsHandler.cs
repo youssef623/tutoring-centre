@@ -41,6 +41,7 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
             profile.DisplayName,
             profile.Email,
             profile.PreferredLocale,
+            profile.MustChangePassword,
             activeMembership?.CentreId,
             activeMembership?.Role,
             profile.Memberships,

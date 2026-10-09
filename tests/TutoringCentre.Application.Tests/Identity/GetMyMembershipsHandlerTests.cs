@@ -54,7 +54,7 @@ public sealed class GetMyMembershipsHandlerTests
         var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Teacher);
         var readService = new FakeMembershipReadService
         {
-            Profile = new StaffProfileDto(userId, "Teacher", "teacher@both.test", "en", [membership]),
+            Profile = new StaffProfileDto(userId, "Teacher", "teacher@both.test", "en", [membership], MustChangePassword: false),
         };
         var handler = new GetMyMembershipsHandler(actorContext, readService);
 
@@ -80,7 +80,7 @@ public sealed class GetMyMembershipsHandlerTests
         var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Secretary);
         var readService = new FakeMembershipReadService
         {
-            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [membership]),
+            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [membership], MustChangePassword: false),
         };
         var handler = new GetMyMembershipsHandler(actorContext, readService);
 
@@ -103,7 +103,7 @@ public sealed class GetMyMembershipsHandlerTests
         var readService = new FakeMembershipReadService
         {
             // The actor still claims staleCentreId, but the freshly read profile no longer lists it as active.
-            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", []),
+            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [], MustChangePassword: false),
         };
         var handler = new GetMyMembershipsHandler(actorContext, readService);
 

@@ -1,9 +1,6 @@
-using System.Globalization;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
-using TutoringCentre.Api.Http;
 
 namespace TutoringCentre.Api.Auth;
 
@@ -42,25 +39,7 @@ public static class LoginRateLimiting
                     QueueLimit = 0,
                 }));
 
-            options.OnRejected = async (context, cancellationToken) =>
-            {
-                var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var metadataRetryAfter)
-                    ? metadataRetryAfter
-                    : Window;
-
-                context.HttpContext.Response.Headers.RetryAfter =
-                    ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
-
-                var problem = new ProblemDetails
-                {
-                    Status = StatusCodes.Status429TooManyRequests,
-                    Title = "Too many requests.",
-                    Detail = "Too many login attempts. Try again later.",
-                };
-                problem.Extensions["code"] = "auth.rate_limited";
-
-                await new ProblemResult(problem).ExecuteAsync(context.HttpContext);
-            };
+            options.OnRejected = RateLimitRejection.HandleAsync;
         });
 
         return services;

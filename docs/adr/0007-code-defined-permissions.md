@@ -1,7 +1,6 @@
 # ADR 0007: Code-defined permissions
 
-- **Status:** Draft — the matrix is small and fixed through Month 2 (Days 28, 29, 32); revisit once Day
-  29–32's staff, audit and settings permissions are in use and Task 30.10 reviews the accepted disclosures.
+- **Status:** Accepted
 - **Date:** 2026-10-09
 
 ## Context
@@ -39,7 +38,9 @@ Adding a permission or changing what a role holds requires a code change, not an
 while the matrix is small and shared across every centre, and arguably safer than making it editable before
 there is a real need to. No centre can define its own roles or reassign permissions; if that becomes a real
 requirement, migrating to database-defined roles later remains possible; it does not have to be decided now.
-This ADR stays in draft because the matrix is still growing (Days 29 and 32 add the staff, audit and settings
-permissions this document already lists but leaves unused) and because Task 30.10 is where the project
-revisits accepted disclosures about the authorization model — this decision should be reviewed once that
-later picture is complete, not accepted prematurely on three days of evidence.
+
+The `staff.view`/`staff.manage` rows this document already listed are live as of Day 30 (`GET`/`POST
+/api/staff` and the role-change, deactivate and reactivate endpoints), proven by the 33-case permission
+matrix (`PermissionMatrixTests`) over real HTTP, not just `RolePermissionsTests`' table. `audit.view` and
+`centre.settings.manage` remain declared but unused until Day 32 — accepted ahead of time the same way the
+staff rows were, not a reason to keep this decision in draft any longer.

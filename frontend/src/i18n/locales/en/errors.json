@@ -15,7 +15,10 @@
       "not_selected": "Please select a centre to continue."
     },
     "auth": {
-      "permission_denied": "You do not have permission to do this."
+      "permission_denied": "You do not have permission to do this.",
+      "password_change_required": "Please change your password before continuing.",
+      "current_password_invalid": "The current password you entered is incorrect.",
+      "password_too_weak": "This password does not meet the requirements."
     },
     "subject": {
       "not_found": "This subject could not be found.",

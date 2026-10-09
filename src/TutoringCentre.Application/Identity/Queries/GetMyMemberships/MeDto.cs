@@ -13,6 +13,7 @@ public sealed record MeDto(
     string DisplayName,
     string Email,
     string PreferredLocale,
+    bool MustChangePassword,
     Guid? ActiveCentreId,
     StaffRole? ActiveRole,
     IReadOnlyList<MembershipDto> Memberships,

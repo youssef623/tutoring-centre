@@ -20,7 +20,7 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
         var user = await db.Set<ApplicationUser>()
             .AsNoTracking()
             .Where(u => u.Id == userId)
-            .Select(u => new { u.Id, u.DisplayName, u.Email, u.PreferredLocale })
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.PreferredLocale, u.MustChangePassword })
             .SingleOrDefaultAsync(ct);
 
         if (user is null)
@@ -35,7 +35,7 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
             select new MembershipDto(centre.Id, centre.Name, centre.Slug, membership.Role))
             .ToListAsync(ct);
 
-        return new StaffProfileDto(user.Id, user.DisplayName, user.Email ?? string.Empty, user.PreferredLocale, memberships);
+        return new StaffProfileDto(user.Id, user.DisplayName, user.Email ?? string.Empty, user.PreferredLocale, memberships, user.MustChangePassword);
     }
 
     public async Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct) =>
@@ -73,4 +73,7 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
         var membershipActive = membership is not null && membership.Status == MembershipStatus.Active;
         return new SessionStateDto(stamp, membershipActive, membership?.Role);
     }
+
+    public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) =>
+        db.Set<ApplicationUser>().AsNoTracking().Where(u => u.Id == userId).Select(u => u.MustChangePassword).SingleOrDefaultAsync(ct);
 }

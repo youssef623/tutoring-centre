@@ -58,6 +58,15 @@ public static class AuthEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
+        api.MapPost("/auth/change-password", ChangePasswordAsync)
+            .WithName("ChangePassword")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting(ChangePasswordRateLimiting.PolicyName);
+
         return api;
     }
 
@@ -104,7 +113,9 @@ public static class AuthEndpoints
         }
 
         var me = meResult.Value;
-        var autoSelected = me.Memberships.Count == 1 ? me.Memberships[0] : null;
+        // Day 30 first-login gate: a pending password change blocks auto-selection even for a single-centre
+        // user — the session carries no centre until the password is replaced.
+        var autoSelected = !me.MustChangePassword && me.Memberships.Count == 1 ? me.Memberships[0] : null;
 
         // The cookie is never issued before this membership read.
         var principal = SessionPrincipalFactory.Create(
@@ -157,6 +168,34 @@ public static class AuthEndpoints
         var stamp = httpContext.User.FindFirstValue(SessionClaimNames.SecurityStamp) ?? string.Empty;
 
         var principal = SessionPrincipalFactory.Create(staffActor.UserId, stamp, result.Value.CentreId, result.Value.Role);
+        await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ChangePasswordAsync(
+        ChangePasswordRequest request,
+        HttpContext httpContext,
+        AuthService authenticationService,
+        ICurrentActor currentActor,
+        CancellationToken ct)
+    {
+        var validationError = RequestValidation.ToValidationError(await new ChangePasswordRequestValidator().ValidateAsync(request, ct));
+        if (validationError is not null)
+        {
+            return validationError.ToProblemResult();
+        }
+
+        var staffActor = (StaffActor)currentActor.Actor;
+        var result = await authenticationService.ChangePasswordAsync(staffActor.UserId, request.CurrentPassword, request.NewPassword, ct);
+        if (result.IsFailure)
+        {
+            return result.Error!.ToProblemResult();
+        }
+
+        // No centre, same as a fresh login: other sessions of this user fail their next revalidation on the
+        // stamp mismatch; this session must select a centre again too, even if one was selected before.
+        var principal = SessionPrincipalFactory.Create(result.Value.UserId, result.Value.SecurityStamp, null, null);
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
         return Results.NoContent();

@@ -24,8 +24,10 @@ code and number below is checked against that code, not against the plan that pr
    (`CurrentActorContext.Reauthenticate`, not `Set` — see "A request that already carries a session" below).
 4. `GetMyMembershipsQuery` is dispatched (through the normal read pipeline, not the Identity write path) to
    read the user's active memberships.
-5. If the user has exactly one active membership, it is auto-selected; otherwise no centre is selected and
-   the frontend sends the user to the centre picker.
+5. If the user has exactly one active membership **and** their password change is not pending
+   (`MeDto.MustChangePassword` is `false`), it is auto-selected; otherwise no centre is selected and the
+   frontend sends the user to the centre picker (or, while a change is pending, must change the password
+   first — see "Password change and the first-login gate" below).
 6. The session cookie is issued (`SessionPrincipalFactory.Create` → `HttpContext.SignInAsync`) **after** the
    membership read, not before — a login that fails partway through never leaves a cookie behind.
 7. The response is the same `MeDto` shape as `GET /api/me`, with `activeCentreId`/`activeRole` filled in from
@@ -54,6 +56,41 @@ centre ID enters a session.
 3. On success, the cookie is re-issued with the **same** user ID and security stamp (carried over from the
    current session, never taken from the request) and the newly selected centre and role. 204, no body.
 
+## Password change and the first-login gate
+
+`POST /api/auth/change-password` (`AuthEndpoints.ChangePasswordAsync`), any signed-in user, no centre
+required, CSRF-protected, rate-limited per user (`ChangePasswordRateLimiting`).
+
+1. The request body is validated (`ChangePasswordRequestValidator`, shape only); a validation failure
+   returns 400 before any credential check runs.
+2. The change itself goes through the same kind of port as login, not a CQRS command, for the reason ADR
+   0005 gives: `IAuthenticationService.ChangePasswordAsync` (extended for Day 30), implemented by
+   `IdentityAuthenticationService`, which verifies the current password, rejects a new password identical to
+   the current one, applies the password policy to the new one through `UserManager`, and — on success —
+   rotates the security stamp and clears `ApplicationUser.MustChangePassword` together (one tracked entity,
+   one save).
+3. On success the session is re-signed-in with the new stamp and **no centre**, even if one was selected
+   before — the same shape a fresh login without an auto-selected membership produces. Every other session
+   for that user fails its next revalidation on the stamp mismatch (see "Revalidation and revocation" below).
+4. Failures: wrong current password is `auth.current_password_invalid` (422, a business rule, not a 401 —
+   the caller is already authenticated); a new password that fails the policy, or matches the current one,
+   is `auth.password_too_weak` (400) with `errors.newPassword`.
+
+**The first-login gate.** A new staff account (`StaffAccountService.EnsureAccountAsync`, Day 29) is created
+with `MustChangePassword = true` and a random temporary password. The gate that forces its replacement
+before the account can do anything tenant-scoped is built from two existing checks, not a new pipeline step:
+
+- **At login** (step 5 above): the flag blocks auto-selecting a centre, even for a user with exactly one
+  membership. The session is issued with no centre either way.
+- **At centre selection**: `GetActiveMembershipHandler` — already "the only way a centre ID enters a
+  session" — checks `IMembershipReadService.MustChangePasswordAsync` first and refuses with
+  `auth.password_change_required` (403) before it ever looks at the membership. Every tenant-scoped request
+  downstream therefore already fails with `tenant.not_selected`, because no centre was ever selected.
+
+`GET /api/me` exposes the flag as `mustChangePassword`, read from the same profile query that already backs
+the response, so the frontend can route a gated user straight to a forced-change screen (Day 33) without a
+separate call.
+
 ## Every authenticated request
 
 In pipeline order (`Program.cs`):
@@ -66,8 +103,8 @@ In pipeline order (`Program.cs`):
 3. **`UseAuthorization`** — the fallback policy requires an authenticated user by default; an endpoint is
    anonymous only if it explicitly opts out with `.AllowAnonymous()`. A forgotten attribute protects by
    default instead of exposing.
-4. **`UseRateLimiter`** — only the `login` policy is attached to anything (the login endpoint); every other
-   route is unaffected.
+4. **`UseRateLimiter`** — only two policies are attached to anything: `login` (the login endpoint) and
+   `change-password` (the password-change endpoint, Day 30); every other route is unaffected.
 5. **`AntiforgeryEndpointFilter`** — applied once to the whole `/api` route group as an endpoint filter (so
    it runs as part of endpoint execution, after routing/authorization/rate limiting, immediately before the
    handler): every request whose method is not GET, HEAD or OPTIONS must carry a valid antiforgery token,
@@ -181,6 +218,12 @@ Two different defenses against two different attacks:
   - The test suite varies the partition key via an `X-Test-RateLimit-Partition` header, honoured only when
     `IHostEnvironment.IsEnvironment("Testing")` — Production and Development never read it, so a real caller
     cannot use this header to dodge the limit.
+- **Password-change rate limiting** (`ChangePasswordRateLimiting`, Day 30) protects the same account against
+  repeated guesses at its *current* password, once already signed in: 5 attempts per minute, keyed by user
+  ID rather than IP — unlike login, this request always carries a session, so who is acting is the natural
+  key, not where from. Both rate limiters share one `OnRejected` handler (`RateLimitRejection`) — the
+  options type's `OnRejected` is a single delegate, not a per-policy list, so a second registration would
+  otherwise silently overwrite the first.
 
 ## Error codes
 
@@ -191,8 +234,11 @@ Every code this flow can produce, and the status it comes with:
 | `auth.invalid_credentials` | 401 | Unknown email, wrong password, or a locked-out account — identical for all three |
 | `auth.not_authenticated` | 401 | Defensive: a query that needs a `StaffActor` finds none. In normal operation the authorization fallback policy already returns 401 before a handler is reached, so this is a safety net, not the common path |
 | `auth.csrf_invalid` | 403 | Missing or invalid antiforgery token on an unsafe `/api` request |
-| `auth.rate_limited` | 429 | 11th+ login attempt from one IP within the current one-minute window |
+| `auth.rate_limited` | 429 | 11th+ login attempt from one IP, or 6th+ password-change attempt from one user, within the current one-minute window |
 | `tenant.no_membership` | 403 | `POST /api/session/centre` for a centre the user has no active membership in (or that does not exist) |
+| `auth.password_change_required` | 403 | `POST /api/session/centre` while a password change is still pending |
+| `auth.current_password_invalid` | 422 | `POST /api/auth/change-password` with the wrong current password |
+| `auth.password_too_weak` | 400 | `POST /api/auth/change-password` with a new password that fails the policy, or matches the current one |
 | `route.not_found` | 404 | Any unmatched route, `/api` or not, anonymous |
 
 ## What Month 2 adds
