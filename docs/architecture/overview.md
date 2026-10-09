@@ -140,7 +140,7 @@ an acceptable fix for a real violation.
 - [ADR 0004 — Unit-of-work port](../adr/0004-unit-of-work-port.md)
 - [ADR 0005 — Encrypted cookie authentication over JWT](../adr/0005-cookie-authentication.md)
 - [ADR 0006 — Tenant isolation as defense in depth (draft)](../adr/0006-tenant-isolation.md)
-- [ADR 0007 — Code-defined permissions (draft)](../adr/0007-code-defined-permissions.md)
+- [ADR 0007 — Code-defined permissions](../adr/0007-code-defined-permissions.md)
 - [API conventions](api-conventions.md)
 - [Authentication: login, sessions, CSRF, revocation](authentication.md)
 - [Tenant isolation: the role model, and layers 1–4 as they land](tenancy.md)

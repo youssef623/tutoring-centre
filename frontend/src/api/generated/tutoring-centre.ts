@@ -28,6 +28,40 @@ export interface AntiforgeryTokenResponse {
   token: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type StaffRole = typeof StaffRole[keyof typeof StaffRole] | null;
+
+
+export const StaffRole = {
+  owner: 'owner',
+  teacher: 'teacher',
+  secretary: 'secretary',
+} as const;
+
+export interface ChangeStaffRoleRequest {
+  role: StaffRole;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface CreateStaffRequest {
+  email: string;
+  displayName: string;
+  role: StaffRole;
+  preferredLocale: string;
+}
+
+export interface CreateStaffResponse {
+  membershipId: string;
+  userId: string;
+  /** @nullable */
+  temporaryPassword: string | null;
+}
+
 export interface CreateSubjectRequest {
   name: string;
 }
@@ -60,15 +94,6 @@ export interface LoginRequest {
   password: string;
 }
 
-export type StaffRole = typeof StaffRole[keyof typeof StaffRole] | null;
-
-
-export const StaffRole = {
-  owner: 'owner',
-  teacher: 'teacher',
-  secretary: 'secretary',
-} as const;
-
 export interface MembershipDto {
   centreId: string;
   centreName: string;
@@ -81,12 +106,21 @@ export interface MeDto {
   displayName: string;
   email: string;
   preferredLocale: string;
+  mustChangePassword: boolean;
   /** @nullable */
   activeCentreId: string | null;
   activeRole: null | StaffRole;
   memberships: MembershipDto[];
   permissions: string[];
 }
+
+export type MembershipStatus = typeof MembershipStatus[keyof typeof MembershipStatus];
+
+
+export const MembershipStatus = {
+  active: 'active',
+  inactive: 'inactive',
+} as const;
 
 export interface ProblemDetails {
   /** @nullable */
@@ -112,6 +146,27 @@ export interface RenameSubjectRequest {
 
 export interface SelectCentreRequest {
   centreId: string;
+}
+
+export interface StaffMemberDto {
+  membershipId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  role: StaffRole;
+  status: MembershipStatus;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+  isCurrentUser: boolean;
+}
+
+export interface StaffListResponse {
+  items: StaffMemberDto[];
+}
+
+export interface StaffVersionRequest {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
 }
 
 export type SubjectStatus = typeof SubjectStatus[keyof typeof SubjectStatus];
@@ -686,6 +741,88 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getSelectCentreMutationOptions(options), queryClient);
     }
 
+export const getChangePasswordUrl = () => {
+
+
+
+
+  return `/api/auth/change-password`
+}
+
+export const changePassword = async (changePasswordRequest: ChangePasswordRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getChangePasswordUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(changePasswordRequest)
+  }
+);}
+
+
+
+
+
+export const getChangePasswordMutationKey = () => ['changePassword'] as const;
+
+export const getChangePasswordMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError,ChangePasswordMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError,ChangePasswordMutationVariables, TContext> => {
+
+const mutationKey = getChangePasswordMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changePassword>>, ChangePasswordMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  changePassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangePasswordMutationResult = NonNullable<Awaited<ReturnType<typeof changePassword>>>
+    export type ChangePasswordMutationBody = ChangePasswordRequest
+    export type ChangePasswordMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type ChangePasswordMutationVariables = {data: ChangePasswordRequest}
+
+    export const useChangePassword = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError,ChangePasswordMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changePassword>>,
+        TError,
+        ChangePasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangePasswordMutationOptions(options), queryClient);
+    }
+
 export const getListSubjectsUrl = (params?: ListSubjectsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -1212,4 +1349,430 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRestoreSubjectMutationOptions(options), queryClient);
+    }
+
+export const getListStaffUrl = () => {
+
+
+
+
+  return `/api/staff`
+}
+
+export const listStaff = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StaffListResponse> => {
+
+  return apiFetch<StaffListResponse>(getListStaffUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStaffQueryKey = () => {
+    return [
+    `/api/staff`
+    ] as const;
+    }
+
+
+export const getListStaffQueryOptions = <TData = Awaited<ReturnType<typeof listStaff>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaff>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStaffQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStaff>>> = ({ signal }) => listStaff({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStaff>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStaffQueryResult = NonNullable<Awaited<ReturnType<typeof listStaff>>>
+export type ListStaffQueryError = ProblemDetails
+
+
+export function useListStaff<TData = Awaited<ReturnType<typeof listStaff>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaff>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStaff>>,
+          TError,
+          Awaited<ReturnType<typeof listStaff>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStaff<TData = Awaited<ReturnType<typeof listStaff>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaff>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStaff>>,
+          TError,
+          Awaited<ReturnType<typeof listStaff>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStaff<TData = Awaited<ReturnType<typeof listStaff>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaff>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStaff<TData = Awaited<ReturnType<typeof listStaff>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaff>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStaffQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStaffUrl = () => {
+
+
+
+
+  return `/api/staff`
+}
+
+export const createStaff = async (createStaffRequest: CreateStaffRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CreateStaffResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CreateStaffResponse>(getCreateStaffUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createStaffRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateStaffMutationKey = () => ['createStaff'] as const;
+
+export const getCreateStaffMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStaff>>, TError,CreateStaffMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStaff>>, TError,CreateStaffMutationVariables, TContext> => {
+
+const mutationKey = getCreateStaffMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStaff>>, CreateStaffMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStaff(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStaffMutationResult = NonNullable<Awaited<ReturnType<typeof createStaff>>>
+    export type CreateStaffMutationBody = CreateStaffRequest
+    export type CreateStaffMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateStaffMutationVariables = {data: CreateStaffRequest}
+
+    export const useCreateStaff = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStaff>>, TError,CreateStaffMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createStaff>>,
+        TError,
+        CreateStaffMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStaffMutationOptions(options), queryClient);
+    }
+
+export const getChangeStaffRoleUrl = (membershipId: string,) => {
+
+
+
+
+  return `/api/staff/${membershipId}/role`
+}
+
+export const changeStaffRole = async (membershipId: string,
+    changeStaffRoleRequest: ChangeStaffRoleRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getChangeStaffRoleUrl(membershipId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(changeStaffRoleRequest)
+  }
+);}
+
+
+
+
+
+export const getChangeStaffRoleMutationKey = () => ['changeStaffRole'] as const;
+
+export const getChangeStaffRoleMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeStaffRole>>, TError,ChangeStaffRoleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeStaffRole>>, TError,ChangeStaffRoleMutationVariables, TContext> => {
+
+const mutationKey = getChangeStaffRoleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeStaffRole>>, ChangeStaffRoleMutationVariables> = (props) => {
+          const {membershipId,data} = props ?? {};
+
+          return  changeStaffRole(membershipId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeStaffRoleMutationResult = NonNullable<Awaited<ReturnType<typeof changeStaffRole>>>
+    export type ChangeStaffRoleMutationBody = ChangeStaffRoleRequest
+    export type ChangeStaffRoleMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type ChangeStaffRoleMutationVariables = {membershipId: string;data: ChangeStaffRoleRequest}
+
+    export const useChangeStaffRole = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeStaffRole>>, TError,ChangeStaffRoleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeStaffRole>>,
+        TError,
+        ChangeStaffRoleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangeStaffRoleMutationOptions(options), queryClient);
+    }
+
+export const getDeactivateStaffUrl = (membershipId: string,) => {
+
+
+
+
+  return `/api/staff/${membershipId}/deactivate`
+}
+
+export const deactivateStaff = async (membershipId: string,
+    staffVersionRequest: StaffVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getDeactivateStaffUrl(membershipId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(staffVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getDeactivateStaffMutationKey = () => ['deactivateStaff'] as const;
+
+export const getDeactivateStaffMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateStaff>>, TError,DeactivateStaffMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateStaff>>, TError,DeactivateStaffMutationVariables, TContext> => {
+
+const mutationKey = getDeactivateStaffMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateStaff>>, DeactivateStaffMutationVariables> = (props) => {
+          const {membershipId,data} = props ?? {};
+
+          return  deactivateStaff(membershipId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivateStaffMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateStaff>>>
+    export type DeactivateStaffMutationBody = StaffVersionRequest
+    export type DeactivateStaffMutationError = ProblemDetails
+    export type DeactivateStaffMutationVariables = {membershipId: string;data: StaffVersionRequest}
+
+    export const useDeactivateStaff = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateStaff>>, TError,DeactivateStaffMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deactivateStaff>>,
+        TError,
+        DeactivateStaffMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeactivateStaffMutationOptions(options), queryClient);
+    }
+
+export const getReactivateStaffUrl = (membershipId: string,) => {
+
+
+
+
+  return `/api/staff/${membershipId}/reactivate`
+}
+
+export const reactivateStaff = async (membershipId: string,
+    staffVersionRequest: StaffVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getReactivateStaffUrl(membershipId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(staffVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getReactivateStaffMutationKey = () => ['reactivateStaff'] as const;
+
+export const getReactivateStaffMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateStaff>>, TError,ReactivateStaffMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateStaff>>, TError,ReactivateStaffMutationVariables, TContext> => {
+
+const mutationKey = getReactivateStaffMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateStaff>>, ReactivateStaffMutationVariables> = (props) => {
+          const {membershipId,data} = props ?? {};
+
+          return  reactivateStaff(membershipId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateStaffMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateStaff>>>
+    export type ReactivateStaffMutationBody = StaffVersionRequest
+    export type ReactivateStaffMutationError = ProblemDetails
+    export type ReactivateStaffMutationVariables = {membershipId: string;data: StaffVersionRequest}
+
+    export const useReactivateStaff = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateStaff>>, TError,ReactivateStaffMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateStaff>>,
+        TError,
+        ReactivateStaffMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateStaffMutationOptions(options), queryClient);
     }

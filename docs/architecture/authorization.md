@@ -15,8 +15,8 @@ overrides.
 | --- | --- | --- | --- | --- |
 | `subjects.view` | yes | yes | yes | list and get subjects |
 | `subjects.manage` | yes | yes | no | create, rename, archive, restore subjects |
-| `staff.view` | yes | no | no | list staff (Day 29) |
-| `staff.manage` | yes | no | no | create staff, change role, deactivate, reactivate (Day 29) |
+| `staff.view` | yes | no | no | `GET /api/staff` (Day 30) |
+| `staff.manage` | yes | no | no | `POST /api/staff`, change role, deactivate, reactivate (Day 30) |
 | `audit.view` | yes | no | no | read the audit log (Day 32) |
 | `centre.settings.manage` | yes | no | no | read and update centre settings (Day 32) |
 
@@ -112,3 +112,13 @@ new, with no way to tell that apart from a typo; this trade was judged worse tha
 Confusing these is how access bugs start: a check written as "is this an owner" instead of "does this role
 hold X" silently stops working the moment a fourth role exists; a check that stops at tenancy without also
 checking permission lets any signed-in member of a centre do anything in it.
+
+## The first-login gate is not a fourth check
+
+A pending password change (`ApplicationUser.MustChangePassword`, Day 30) is not a permission, a tenancy
+question or an ownership question — it is a precondition on *having* a centre at all. It is enforced where
+a centre ID enters a session in the first place: login never auto-selects one while the flag is set, and
+`GetActiveMembershipQuery` (`docs/architecture/authentication.md`) refuses centre selection outright with
+`auth.password_change_required` before it even looks at membership. Every permission check downstream is
+therefore moot for a gated user — there is no centre, so every tenant-scoped request already fails with
+`tenant.not_selected` on its own. No pipeline step, no new error kind, no change to `RolePermissions`.

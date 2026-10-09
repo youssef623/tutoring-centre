@@ -142,3 +142,63 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 {
   "version": {{subjectVersion}}
 }
+
+### Manual walkthrough of the staff API and password change (Day 30), continuing owner@nile.test's session from step 12.
+
+### 19. List staff — expect 200, { "items": [ { "membershipId", "userId", "displayName", "email", "role", "status", "version", "isCurrentUser" } ] }
+GET {{baseUrl}}/api/staff
+
+### 20. Create a staff member — expect 201, Cache-Control: no-store, body { "membershipId", "userId", "temporaryPassword" }
+# @name createStaff
+POST {{baseUrl}}/api/staff
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "email": "new-teacher@nile.test",
+  "displayName": "New Teacher",
+  "role": "teacher",
+  "preferredLocale": "en"
+}
+
+### 21. Change their role — copy "membershipId" from step 20 and the new member's "version" from step 19 (re-run it) first — expect 204
+@staffMembershipId = replace-with-the-membershipId-from-step-20
+@staffVersion = replace-with-the-version-from-step-19-rerun
+PUT {{baseUrl}}/api/staff/{{staffMembershipId}}/role
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "role": "secretary",
+  "version": {{staffVersion}}
+}
+
+### 22. Deactivate them — re-run step 19 first to refresh @staffVersion — expect 204
+POST {{baseUrl}}/api/staff/{{staffMembershipId}}/deactivate
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{staffVersion}}
+}
+
+### 23. Reactivate them — re-run step 19 first to refresh @staffVersion to the deactivated row's current version — expect 204
+POST {{baseUrl}}/api/staff/{{staffMembershipId}}/reactivate
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{staffVersion}}
+}
+
+### 24. Change the current user's own password — expect 204, Set-Cookie __Host-tcm.session with a new stamp and no
+### centre selected. Use the created staff member's "temporaryPassword" from step 20 as the current password if
+### you log in as them instead; here the owner changes their own seeded password.
+POST {{baseUrl}}/api/auth/change-password
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "currentPassword": "{{$dotenv password}}",
+  "newPassword": "a-new-password-that-is-long-enough"
+}
