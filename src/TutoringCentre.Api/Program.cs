@@ -121,6 +121,7 @@ var api = app.MapGroup("/api").AddEndpointFilter<AntiforgeryEndpointFilter>();
 api.MapPlatformEndpoints();
 api.MapAuthEndpoints();
 api.MapSubjectEndpoints();
+api.MapStaffEndpoints();
 
 // Unknown /api/* routes answer with the uniform Problem Details 404. Non-API paths stay free for the SPA (Month 2).
 // Anonymous: a signed-out caller probing an unknown route must see the same 404 as anyone else, not a 401.

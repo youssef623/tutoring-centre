@@ -35,6 +35,19 @@ public static class ResultHttpExtensions
         return Results.Created(location, body);
     }
 
+    /// <summary>
+    /// A 201 variant for a created resource with no single-resource read endpoint to point a Location header
+    /// at (Day 30: staff creation). Same failure mapping as <see cref="ToHttpResult{T}"/>.
+    /// </summary>
+    public static IResult ToCreatedHttpResult<T>(this Result<T> result, Func<T, object> onSuccess)
+    {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+
+        return result.IsSuccess
+            ? Results.Json(onSuccess(result.Value), statusCode: StatusCodes.Status201Created)
+            : result.Error!.ToProblemResult();
+    }
+
     public static IResult ToHttpResult(this Result result) =>
         result.IsSuccess ? Results.NoContent() : result.Error!.ToProblemResult();
 

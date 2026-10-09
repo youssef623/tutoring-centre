@@ -133,6 +133,38 @@ public sealed class ResultHttpExtensionsTests
         Assert.Equal(code, body.RootElement.GetProperty("code").GetString());
     }
 
+    [Fact]
+    public async Task ToCreatedHttpResult_NoLocationVariant_Returns201WithBodyAndNoLocationHeader()
+    {
+        var result = Result<Guid>.Success(Guid.Parse("22222222-2222-2222-2222-222222222222"));
+
+        var response = await ExecuteAsync(result.ToCreatedHttpResult(id => (object)new { id }));
+
+        using var body = JsonDocument.Parse(response.Body);
+        Assert.Equal(201, response.Status);
+        Assert.Null(response.Location);
+        Assert.Equal("22222222-2222-2222-2222-222222222222", body.RootElement.GetProperty("id").GetString());
+    }
+
+    [Theory]
+    [InlineData(ErrorKind.NotFound, 404, "test.not_found")]
+    [InlineData(ErrorKind.Conflict, 409, "test.conflict")]
+    [InlineData(ErrorKind.Rule, 422, "test.rule")]
+    [InlineData(ErrorKind.Forbidden, 403, "test.forbidden")]
+    [InlineData(ErrorKind.Validation, 400, "test.validation")]
+    [InlineData(ErrorKind.Unauthenticated, 401, "test.unauthenticated")]
+    public async Task ToCreatedHttpResult_NoLocationVariant_FailureKind_MapsToTheSameStatusAsTheExistingMapping(
+        ErrorKind kind, int expectedStatus, string code)
+    {
+        var result = Result<Guid>.Failure(new Error(code, "Authored message.", kind));
+
+        var response = await ExecuteAsync(result.ToCreatedHttpResult(id => (object)new { id }));
+
+        using var body = JsonDocument.Parse(response.Body);
+        Assert.Equal(expectedStatus, response.Status);
+        Assert.Equal(code, body.RootElement.GetProperty("code").GetString());
+    }
+
     private static async Task<(int Status, string? ContentType, string Body, string? Location)> ExecuteAsync(IResult result)
     {
         await using var services = new ServiceCollection().AddLogging().AddOptions().BuildServiceProvider();
