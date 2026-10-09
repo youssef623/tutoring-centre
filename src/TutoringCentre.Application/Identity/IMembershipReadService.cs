@@ -13,6 +13,9 @@ public interface IMembershipReadService
     Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct);
 
     Task<SessionStateDto?> GetSessionStateAsync(Guid userId, Guid? centreId, CancellationToken ct);
+
+    /// <summary>The first-login gate's own question (Day 30): a single column, read without the rest of the profile, since every centre selection asks it.</summary>
+    Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct);
 }
 
 /// <summary>A staff member's profile and their active memberships only.</summary>
@@ -21,7 +24,8 @@ public sealed record StaffProfileDto(
     string DisplayName,
     string Email,
     string PreferredLocale,
-    IReadOnlyList<MembershipDto> Memberships);
+    IReadOnlyList<MembershipDto> Memberships,
+    bool MustChangePassword);
 
 /// <summary>One active membership, as seen from the owning user's profile.</summary>
 public sealed record MembershipDto(Guid CentreId, string CentreName, string CentreSlug, StaffRole Role);

@@ -47,8 +47,47 @@ internal sealed partial class IdentityAuthenticationService(UserManager<Applicat
         return Result<AuthenticatedUser>.Success(new AuthenticatedUser(user.Id, user.SecurityStamp ?? string.Empty));
     }
 
+    public async Task<Result<AuthenticatedUser>> ChangePasswordAsync(
+        Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result<AuthenticatedUser>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
+        }
+
+        if (string.Equals(currentPassword, newPassword, StringComparison.Ordinal))
+        {
+            return PasswordTooWeak("The new password must be different from the current password.");
+        }
+
+        var changeResult = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (!changeResult.Succeeded)
+        {
+            if (changeResult.Errors.Any(error => error.Code == "PasswordMismatch"))
+            {
+                return Result<AuthenticatedUser>.Failure(Error.Rule("auth.current_password_invalid", "The current password is incorrect."));
+            }
+
+            return PasswordTooWeak(changeResult.Errors.Select(error => error.Description).ToArray());
+        }
+
+        // Cleared and rotated together: UpdateSecurityStampAsync saves the whole tracked entity, not just the stamp.
+        user.MustChangePassword = false;
+        await userManager.UpdateSecurityStampAsync(user);
+
+        return Result<AuthenticatedUser>.Success(new AuthenticatedUser(user.Id, user.SecurityStamp ?? string.Empty));
+    }
+
     private static Result<AuthenticatedUser> InvalidCredentials() =>
         Result<AuthenticatedUser>.Failure(Error.Unauthenticated("auth.invalid_credentials", "Incorrect email or password."));
+
+    private static Result<AuthenticatedUser> PasswordTooWeak(params string[] messages) =>
+        Result<AuthenticatedUser>.Failure(new Error(
+            "auth.password_too_weak",
+            "This password does not meet the policy.",
+            ErrorKind.Validation,
+            new Dictionary<string, string[]> { ["newPassword"] = messages }));
 
     private static ApplicationUser CreateDummyUser()
     {

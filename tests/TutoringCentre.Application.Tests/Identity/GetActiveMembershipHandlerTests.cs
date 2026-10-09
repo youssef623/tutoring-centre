@@ -44,6 +44,29 @@ public sealed class GetActiveMembershipHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_MustChangePasswordPending_ReturnsPasswordChangeRequiredWithoutCheckingMembership()
+    {
+        // Arrange
+        var centreId = Guid.CreateVersion7();
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new StaffActor(Guid.CreateVersion7(), null, null));
+        var readService = new FakeMembershipReadService
+        {
+            MustChangePassword = true,
+            ActiveMembership = new ActiveMembershipDto(centreId, "Nile Centre", StaffRole.Owner),
+        };
+        var handler = new GetActiveMembershipHandler(actorContext, readService);
+
+        // Act
+        var result = await handler.HandleAsync(new GetActiveMembershipQuery(centreId), CancellationToken.None);
+
+        // Assert — the gate fires even though an active membership exists: the flag is checked first.
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.password_change_required", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+    }
+
+    [Fact]
     public async Task HandleAsync_ActiveMembershipInCentre_Succeeds()
     {
         // Arrange

@@ -10,6 +10,14 @@ namespace TutoringCentre.Application.Common.Security;
 public interface IAuthenticationService
 {
     Task<Result<AuthenticatedUser>> VerifyCredentialsAsync(string email, string password, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Verifies the current password, applies the password policy to the new one, and rotates the security
+    /// stamp and the must-change flag together. Like <see cref="VerifyCredentialsAsync"/>, a call straight to
+    /// this port, not a CQRS command (ADR 0005): it writes through Identity's own <c>UserManager</c>, with no
+    /// use-case transaction boundary of its own.
+    /// </summary>
+    Task<Result<AuthenticatedUser>> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
 }
 
 /// <summary>The only facts a successful verification yields: who, and the stamp to compare on later requests.</summary>

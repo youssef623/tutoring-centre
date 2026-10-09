@@ -47,6 +47,7 @@ builder.Services.AddApiProblemDetails();
 builder.Services.AddApiAuthentication();
 builder.Services.AddApiAntiforgery();
 builder.Services.AddLoginRateLimiting();
+builder.Services.AddChangePasswordRateLimiting();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {

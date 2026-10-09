@@ -17,3 +17,18 @@ internal sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
         RuleFor(request => request.Password).NotEmpty().MaximumLength(PasswordMaxLength);
     }
 }
+
+/// <summary>Change-password is not a CQRS command either (ADR 0005), for the same reason login is not.</summary>
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
+/// <summary>Shape checks only; the password policy itself is enforced by Identity inside the authentication port.</summary>
+internal sealed class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
+{
+    private const int PasswordMaxLength = 128;
+
+    public ChangePasswordRequestValidator()
+    {
+        RuleFor(request => request.CurrentPassword).NotEmpty().MaximumLength(PasswordMaxLength);
+        RuleFor(request => request.NewPassword).NotEmpty().MaximumLength(PasswordMaxLength);
+    }
+}
