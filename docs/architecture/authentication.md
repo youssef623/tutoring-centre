@@ -144,19 +144,25 @@ behind them has been revoked or the password has been changed. `SessionRevalidat
 (wired as `OnValidatePrincipal`) closes that gap by re-checking the claims against the database on
 (approximately) every request:
 
-1. `ValidateStaffSessionQuery` is dispatched with the user ID, security stamp and centre ID the cookie
-   claims. It is valid only if the stamp still matches **and** (when a centre is set) that membership is
-   still active.
-2. A **valid** result is cached in memory, keyed by `(user, stamp, centre)`, for `SessionValidation:CacheDuration`
-   — 60 seconds by default (`SessionValidationOptions.DefaultCacheDuration`), configurable, zero disables
-   caching entirely (used by the test suite, so revocation tests see the effect on the very next request).
+1. `ValidateStaffSessionQuery` is dispatched with the user ID, security stamp, centre ID **and role** the
+   cookie claims (Day 29). It is valid only if the stamp still matches, (when a centre is set) that
+   membership is still active, **and** the membership's current role still equals the role the cookie
+   claims — a changed role is rejected exactly like a deactivated membership, never silently re-issued
+   with the new one. A session with no centre selected carries no role claim either
+   (`SessionPrincipalFactory`), so this check compares `null` to `null` and never fires for it.
+2. A **valid** result is cached in memory, keyed by `(user, stamp, centre, role)`, for
+   `SessionValidation:CacheDuration` — 60 seconds by default (`SessionValidationOptions.DefaultCacheDuration`),
+   configurable, zero disables caching entirely (used by the test suite, so revocation and role-change tests
+   see the effect on the very next request).
 3. An **invalid** result is never cached — revocation is never masked by a stale cache hit — and the request
    is rejected and signed out immediately (`RejectPrincipal` plus `SignOutAsync`, so a rejected session does
    not keep presenting the same now-useless cookie).
 
-In practice: a revoked membership or a changed security stamp ends the session within the cache window — at
-most 60 seconds, and instantly for any request after the first one that triggers the re-check (since that
-failure is never cached and signs the cookie out).
+In practice: a revoked membership, a changed role, or a changed security stamp ends the session within the
+cache window — at most 60 seconds, and instantly for any request after the first one that triggers the
+re-check (since that failure is never cached and signs the cookie out). The demoted or promoted user's next
+request is a plain 401; the frontend's existing handling for that (Day 17) returns them to `/login` — nothing
+about role changes needed a frontend change.
 
 ## Lockout and rate limiting
 
