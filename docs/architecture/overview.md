@@ -41,32 +41,42 @@ Command (HTTP POST/PUT/DELETE, CLI, jobs):
     → endpoint (bind only)
     → Dispatcher.SendAsync<TCommand, TResponse>
         1. validate (FluentValidation: shape only)            failure → Result.Failure(validation), nothing opened
-        2. [Month 2: tenant resolution + permission checks plug in here, before the transaction]
-        3. IUnitOfWork.BeginAsync(readOnly: false)
+        2. CheckTenantScope — only for an ITenantScoped command (tenancy.md, Layer 1):
+             no actor            → Error.Unauthenticated("auth.not_authenticated")   401, nothing opened
+             actor has no centre → Error.Forbidden("tenant.not_selected")            403, nothing opened
+             [Day 28: permission check plugs in here too, still before BeginAsync]
+        3. IUnitOfWork.BeginAsync(readOnly: false)             sets app.current_centre inside the transaction (tenancy.md, Layer 3)
         4. handler: authorize → Domain rules → repository tracks changes (no SaveChanges)
         5. failure result → Rollback;  success → SaveChanges once → Commit
            exception → Rollback (CancellationToken.None) → rethrow → global exception handler (generic 500, logged once)
+           — this is also the failed-save path for a tenant violation that reaches SaveChanges: EF's
+             own composite-key immutability (tenancy.md, Layer 4) or, failing that,
+             TenantWriteGuardInterceptor throwing TenantViolationException (tenancy.md, Layer 2) —
+             neither is expected to fire given step 2 and the query filter, but both are a last-resort
+             exception, not a Result failure, because a request should never have reached them at all
     → Result → ResultHttpExtensions → JSON or Problem Details
 
 Query (HTTP GET, reads):
     → Dispatcher.QueryAsync<TQuery, TResponse>
         1. validate
-        2. [Month 2: tenant + permission steps]
-        3. IUnitOfWork.BeginAsync(readOnly: true)             PostgreSQL: SET TRANSACTION READ ONLY
-        4. handler: read service → DTOs (no entities, no repositories)
+        2. CheckTenantScope — same rule and errors as the command pipeline's step 2
+        3. IUnitOfWork.BeginAsync(readOnly: true)             PostgreSQL: SET TRANSACTION READ ONLY, then app.current_centre
+        4. handler: read service → DTOs (no entities, no repositories) — rows outside the actor's
+             centre are already invisible, filtered by EF's global query filter (tenancy.md, Layer 2)
+             and, independently, by PostgreSQL row-level security (tenancy.md, Layer 3)
         5. Commit (never SaveChanges)
     → Result → ResultHttpExtensions
 ```
 
 **Why validation runs before BEGIN.** Invalid input needs no database work, so no transaction (and no connection) is opened for it.
 
-**Why the transaction starts before the handler, not just around SaveChanges.** Repositories will take row locks (`FOR UPDATE`) while the handler reads, and Month 2 sets the PostgreSQL row-level-security tenant inside the transaction; both must cover the whole handler, not just the save.
+**Why the transaction starts before the handler, not just around SaveChanges.** Repositories will take row locks (`FOR UPDATE`) while the handler reads, and `UnitOfWork.BeginAsync` sets the PostgreSQL row-level-security tenant inside the transaction (tenancy.md, Layer 3); both must cover the whole handler, not just the save.
 
 **What happens when a query handler throws.** End the read-only transaction (roll back) and rethrow; the global handler returns 500.
 
 **Who calls SaveChanges.** Only the command pipeline, exactly once, after a successful handler; queries never call it.
 
-**Where tenant and permission checks go.** After validation, before BEGIN, in both pipelines (Month 2). Idempotency for marked commands comes later (Month 6).
+**Where tenant and permission checks go.** `Dispatcher.CheckTenantScope`, after validation and before `BeginAsync`, in both pipelines (Day 22 — see tenancy.md, Layer 1). It is a no-op for a request that does not implement `ITenantScoped`; Month 1's requests never do. The permission step (role-based authorization) is marked directly after it, in the same place, from Day 28. Idempotency for marked commands comes later (Month 6).
 
 ## Request path: `CreateCentreCommand` (CLI → table)
 

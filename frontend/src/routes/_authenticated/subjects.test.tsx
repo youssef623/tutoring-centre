@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import { delay, http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import i18n from "@/i18n";
 import { server } from "@/test/msw/server";
@@ -42,9 +42,15 @@ describe("SubjectsPage", () => {
   });
 
   it("shows a loading skeleton, then the rows", async () => {
+    // A manually-released gate, not a fixed delay: the request is guaranteed to still be pending when
+    // the skeleton assertion runs, however fast or slow the machine running the test is.
+    let releaseList: (() => void) | undefined;
+    const listGate = new Promise<void>((resolve) => {
+      releaseList = resolve;
+    });
     server.use(
       http.get(subjectsUrl, async () => {
-        await delay(30);
+        await listGate;
         return HttpResponse.json({ items: [subject()] });
       }),
     );
@@ -52,6 +58,8 @@ describe("SubjectsPage", () => {
     renderRouter("/subjects");
 
     expect(await screen.findByRole("status", { name: "Loading subjects" })).toBeInTheDocument();
+    releaseList?.();
+
     expect(await screen.findByText("Mathematics")).toBeInTheDocument();
   });
 
