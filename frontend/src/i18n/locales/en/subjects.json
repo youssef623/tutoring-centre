@@ -1,10 +1,12 @@
 {
   "page": {
-    "title": "Subjects"
+    "title": "Subjects",
+    "showArchived": "Show archived"
   },
   "columns": {
     "name": "Name",
-    "status": "Status"
+    "status": "Status",
+    "actions": "Actions"
   },
   "status": {
     "active": "Active",
@@ -14,7 +16,8 @@
     "create": "Add subject",
     "rename": "Rename",
     "archive": "Archive",
-    "restore": "Restore"
+    "restore": "Restore",
+    "openMenu": "Open actions menu"
   },
   "dialogs": {
     "createTitle": "Add subject",
@@ -26,15 +29,27 @@
     "save": "Save",
     "cancel": "Cancel"
   },
+  "loading": {
+    "label": "Loading subjects"
+  },
+  "error": {
+    "title": "Subjects could not be loaded",
+    "reference": "Reference: {correlationId}"
+  },
   "emptyState": {
     "title": "No subjects yet",
     "description": "Add your first subject to get started."
   },
   "confirmations": {
-    "archiveTitle": "Archive this subject?",
+    "archiveTitle": "Archive \"{name}\"?",
     "archiveBody": "It will no longer appear in subject pickers until it is restored.",
-    "restoreTitle": "Restore this subject?",
-    "restoreBody": "It will appear in subject pickers again."
+    "archiveConfirm": "Archive subject"
+  },
+  "toasts": {
+    "created": "Subject added.",
+    "renamed": "Subject renamed.",
+    "archived": "Subject archived.",
+    "restored": "Subject restored."
   },
   "validation": {
     "nameRequired": "Subject name is required.",

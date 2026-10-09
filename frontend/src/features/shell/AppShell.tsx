@@ -1,7 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
 import { Link } from "@tanstack/react-router";
-import { Menu as MenuIcon, X } from "lucide-react";
+import { BookOpen, LayoutDashboard, Menu as MenuIcon, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -86,15 +86,18 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation("shell");
 
+  const linkClassName =
+    "flex items-center gap-2.5 rounded-md border-s-2 border-s-transparent px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:border-s-sidebar-primary data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
+
   return (
     <nav className="space-y-1">
-      <Link
-        to="/"
-        className="block rounded-md border-s-2 border-s-transparent px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:border-s-sidebar-primary data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground"
-        activeOptions={{ exact: true }}
-        onClick={onNavigate}
-      >
+      <Link to="/" className={linkClassName} activeOptions={{ exact: true }} onClick={onNavigate}>
+        <LayoutDashboard className="size-4" aria-hidden="true" />
         {t("nav.dashboard")}
+      </Link>
+      <Link to="/subjects" search={{ archived: false }} className={linkClassName} onClick={onNavigate}>
+        <BookOpen className="size-4" aria-hidden="true" />
+        {t("nav.subjects")}
       </Link>
     </nav>
   );
