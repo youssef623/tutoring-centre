@@ -112,6 +112,26 @@ There is no HTTP endpoint for this command — on purpose.
 | 6 | `Result<SystemInfoDto>` becomes 200 JSON (or Problem Details) | `src/TutoringCentre.Api/Http/ResultHttpExtensions.cs` |
 | 7 | Frontend: generated hook → `apiFetch` → `SystemInfoCard` | `frontend/src/api/generated/tutoring-centre.ts`, `frontend/src/api/apiFetch.ts`, `frontend/src/features/status/SystemInfoCard.tsx` |
 
+## Modules (Day 30)
+
+Three modules exist today, by namespace:
+
+| Module | Application namespaces | Domain namespace |
+| --- | --- | --- |
+| Platform | `TutoringCentre.Application.Platform`, `TutoringCentre.Application.Centres` | `TutoringCentre.Domain.Centres` |
+| Identity | `TutoringCentre.Application.Identity`, `TutoringCentre.Application.Staff` | `TutoringCentre.Domain.Identity` |
+| Academics | `TutoringCentre.Application.Academics` | `TutoringCentre.Domain.Academics` |
+
+**Rule.** A module reaches another only through its requests (commands, queries and their DTOs — always
+allowed) or an explicit Application interface it is handed; it may never reach into another module's
+repository, read service, handler or validator, nor reference another module's Domain types directly.
+Enforced by two architecture tests (`ModuleBoundaryRuleTests`), without separate assemblies.
+
+**Shared kernel**, available to every module without counting as "another module's": the Domain and
+Application `Common` namespaces, plus exactly four cross-cutting types — `SupportedLocale`, `StaffRole`,
+`Permissions`, `RolePermissions`. The list is deliberately short; growing it to make a test pass is not
+an acceptable fix for a real violation.
+
 ## Decisions and conventions
 
 - [ADR 0001 — Clean Architecture](../adr/0001-clean-architecture.md)
