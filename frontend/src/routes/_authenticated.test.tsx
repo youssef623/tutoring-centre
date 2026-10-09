@@ -23,6 +23,7 @@ function me(overrides: Partial<{ activeCentreId: string | null; memberships: unk
     activeCentreId,
     activeRole: activeCentreId === null ? null : "teacher",
     memberships,
+    permissions: [],
   };
 }
 

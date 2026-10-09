@@ -258,6 +258,96 @@ public sealed class DispatcherTests
         Assert.Empty(fixture.UnitOfWork.Calls);
     }
 
+    [Fact]
+    public async Task SendAsync_StaffActorWithThePermission_InvokesHandler()
+    {
+        // C15
+        var actor = new StaffActor(Guid.NewGuid(), Guid.NewGuid(), StaffRole.Secretary);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<PermissionRequiringTestCommand, string>(
+            new PermissionRequiringTestCommand("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["Begin(rw)", "Handle", "Save", "Commit"], fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_StaffActorWithoutThePermission_ReturnsPermissionDenied()
+    {
+        // C16 (command)
+        var actor = new StaffActor(Guid.NewGuid(), Guid.NewGuid(), StaffRole.Teacher);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<PermissionRequiringTestCommand, string>(
+            new PermissionRequiringTestCommand("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.permission_denied", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task QueryAsync_StaffActorWithoutThePermission_ReturnsPermissionDenied()
+    {
+        // C16 (query variant)
+        var actor = new StaffActor(Guid.NewGuid(), Guid.NewGuid(), StaffRole.Teacher);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.QueryAsync<PermissionRequiringTestQuery, string>(
+            new PermissionRequiringTestQuery("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.permission_denied", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_SystemActor_IsAllowedRegardlessOfPermission()
+    {
+        // C17
+        var actor = new SystemActor(Guid.NewGuid());
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<PermissionRequiringTestCommand, string>(
+            new PermissionRequiringTestCommand("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["Begin(rw)", "Handle", "Save", "Commit"], fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_PermissionRequiringCommandActorWithoutCentre_TenantStepWins()
+    {
+        // C18
+        var actor = new StaffActor(Guid.NewGuid(), CentreId: null, Role: null);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.SendAsync<PermissionRequiringTestCommand, string>(
+            new PermissionRequiringTestCommand("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("tenant.not_selected", result.Error!.Code);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task QueryAsync_PermissionRequiringQueryActorWithoutCentre_TenantStepWins()
+    {
+        // C19
+        var actor = new StaffActor(Guid.NewGuid(), CentreId: null, Role: null);
+        using var fixture = CreateSut(actor: actor);
+
+        var result = await fixture.Dispatcher.QueryAsync<PermissionRequiringTestQuery, string>(
+            new PermissionRequiringTestQuery("Nile"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("tenant.not_selected", result.Error!.Code);
+        Assert.Empty(fixture.UnitOfWork.Calls);
+    }
+
     private static Fixture CreateSut(HandlerMode mode = HandlerMode.Succeed, Actor? actor = null)
     {
         var unitOfWork = new FakeUnitOfWork();
@@ -280,6 +370,10 @@ public sealed class DispatcherTests
             .AddScoped<IQueryHandler<TenantScopedTestQuery, string>, TenantScopedTestQueryHandler>()
             .AddScoped<IValidator<TenantScopedTestCommand>, TenantScopedTestCommandValidator>()
             .AddScoped<IValidator<TenantScopedTestQuery>, TenantScopedTestQueryValidator>()
+            .AddScoped<ICommandHandler<PermissionRequiringTestCommand, string>, PermissionRequiringTestCommandHandler>()
+            .AddScoped<IQueryHandler<PermissionRequiringTestQuery, string>, PermissionRequiringTestQueryHandler>()
+            .AddScoped<IValidator<PermissionRequiringTestCommand>, PermissionRequiringTestCommandValidator>()
+            .AddScoped<IValidator<PermissionRequiringTestQuery>, PermissionRequiringTestQueryValidator>()
             .BuildServiceProvider();
 
         return new Fixture(new Dispatcher(provider, unitOfWork, NullLogger<Dispatcher>.Instance), unitOfWork, provider);

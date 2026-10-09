@@ -193,9 +193,8 @@ Every code this flow can produce, and the status it comes with:
 
 Deliberately out of scope today, called out at the point in the code where each one will land:
 
-- **Permissions.** Roles are stored (`StaffRole` on `Membership`) and carried in the session (`role` claim),
-  but nothing enforces them yet — no tenant filters, no permission step in the dispatcher, no staff
-  management commands.
+- **Permissions.** Roles are stored (`StaffRole` on `Membership`) and carried in the session (`role` claim).
+  What each role may do with it is now enforced — see `docs/architecture/authorization.md`.
 - **Persisted Data Protection keys.** `AddDataProtection()` uses the framework's local key ring today
   (`AuthenticationSetup`, "the framework default" — fine for one Development process, but a restart or a
   second instance cannot decrypt cookies the first one issued). Month 2 persists the key ring.

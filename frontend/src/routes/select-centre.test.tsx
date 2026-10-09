@@ -20,6 +20,7 @@ function meWithMemberships(memberships: unknown[], activeCentreId: string | null
     activeCentreId,
     activeRole: activeCentreId === null ? null : "teacher",
     memberships,
+    permissions: [],
   };
 }
 

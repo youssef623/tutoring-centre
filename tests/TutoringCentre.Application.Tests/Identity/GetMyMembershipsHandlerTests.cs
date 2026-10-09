@@ -66,6 +66,30 @@ public sealed class GetMyMembershipsHandlerTests
         Assert.Equal(centreId, result.Value.ActiveCentreId);
         Assert.Equal(StaffRole.Teacher, result.Value.ActiveRole);
         Assert.Single(result.Value.Memberships);
+        Assert.Equal(["subjects.view"], result.Value.Permissions);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SecretaryWithActiveCentre_ReportsSortedPermissions()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var centreId = Guid.CreateVersion7();
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new StaffActor(userId, centreId, StaffRole.Secretary));
+        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Secretary);
+        var readService = new FakeMembershipReadService
+        {
+            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [membership]),
+        };
+        var handler = new GetMyMembershipsHandler(actorContext, readService);
+
+        // Act
+        var result = await handler.HandleAsync(new GetMyMembershipsQuery(), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["subjects.manage", "subjects.view"], result.Value.Permissions);
     }
 
     [Fact]
@@ -90,5 +114,6 @@ public sealed class GetMyMembershipsHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Null(result.Value.ActiveCentreId);
         Assert.Null(result.Value.ActiveRole);
+        Assert.Empty(result.Value.Permissions);
     }
 }

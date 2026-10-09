@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import type { MeDto } from "@/api/generated/tutoring-centre";
+import { Can } from "@/features/session/Can";
+import { Permissions } from "@/features/session/permissions";
 import { useSignOut } from "@/features/session/useSignOut";
 
 /** First letter of up to the first two words, for the user-menu avatar. Falls back to "?" for an empty name. */
@@ -95,10 +97,12 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <LayoutDashboard className="size-4" aria-hidden="true" />
         {t("nav.dashboard")}
       </Link>
-      <Link to="/subjects" search={{ archived: false }} className={linkClassName} onClick={onNavigate}>
-        <BookOpen className="size-4" aria-hidden="true" />
-        {t("nav.subjects")}
-      </Link>
+      <Can permission={Permissions.SubjectsView}>
+        <Link to="/subjects" search={{ archived: false }} className={linkClassName} onClick={onNavigate}>
+          <BookOpen className="size-4" aria-hidden="true" />
+          {t("nav.subjects")}
+        </Link>
+      </Can>
     </nav>
   );
 }

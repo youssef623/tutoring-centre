@@ -19,3 +19,9 @@ Call names recorded by the fake unit of work: `Begin(rw)`, `Begin(ro)`, `Save`, 
 | C13 | Tenant-scoped request with a centre; non-scoped request without a centre | `Handle` runs either way | success |
 | — | Ordering: tenant-scoped command, invalid input, actor without a centre | (none) | failure `validation.failed` — validation wins over the tenant step |
 | C14 | Handler succeeds, `SaveChangesAsync` returns a failed Result | `Begin(rw)`, `Handle`, `Save`, `Rollback` (no `Commit`) | the save's own error (Task 25.3) |
+| C15 | Permission-requiring request, staff role holds the permission | `Begin(rw)`, `Handle`, `Save`, `Commit` | success |
+| C16 | Permission-requiring request, staff role does not hold it (command and query variants) | (none — handler not called, nothing begun) | failure `auth.permission_denied` (Forbidden) |
+| C17 | Permission-requiring request, system actor | `Begin(rw)`, `Handle`, `Save`, `Commit` | success, regardless of permission |
+| C18 | Tenant-scoped, permission-requiring command, centre-less actor | (none) | failure `tenant.not_selected` — the tenant step runs first and wins |
+| C19 | Tenant-scoped, permission-requiring query, centre-less actor | (none) | failure `tenant.not_selected` — same as C18 |
+| — | Request without `IRequirePermission` | unaffected (see C13) | success |

@@ -143,8 +143,10 @@ flowchart TD
 - [ADR 0002 — .NET backend and React frontend](docs/adr/0002-dotnet-react.md)
 - [ADR 0005 — Encrypted cookie authentication over JWT](docs/adr/0005-cookie-authentication.md)
 - [ADR 0006 — Tenant isolation as defense in depth (draft)](docs/adr/0006-tenant-isolation.md)
+- [ADR 0007 — Code-defined permissions (draft)](docs/adr/0007-code-defined-permissions.md)
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Tenant isolation: the role model, and layers 1–4 as they land](docs/architecture/tenancy.md)
+- [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)
 - [Frontend decisions and conventions](frontend/README.md)
 
 ## Quality gates

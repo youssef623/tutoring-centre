@@ -44,10 +44,13 @@ Command (HTTP POST/PUT/DELETE, CLI, jobs):
         2. CheckTenantScope — only for an ITenantScoped command (tenancy.md, Layer 1):
              no actor            → Error.Unauthenticated("auth.not_authenticated")   401, nothing opened
              actor has no centre → Error.Forbidden("tenant.not_selected")            403, nothing opened
-             [Day 28: permission check plugs in here too, still before BeginAsync]
-        3. IUnitOfWork.BeginAsync(readOnly: false)             sets app.current_centre inside the transaction (tenancy.md, Layer 3)
-        4. handler: authorize → Domain rules → repository tracks changes (no SaveChanges)
-        5. failure result → Rollback;  success → SaveChanges once → Commit
+        3. CheckPermission — only for an IRequirePermission command (authorization.md):
+             system actor                        → allowed
+             staff actor whose role holds it      → allowed
+             anything else                        → Error.Forbidden("auth.permission_denied")  403, nothing opened
+        4. IUnitOfWork.BeginAsync(readOnly: false)             sets app.current_centre inside the transaction (tenancy.md, Layer 3)
+        5. handler: authorize → Domain rules → repository tracks changes (no SaveChanges)
+        6. failure result → Rollback;  success → SaveChanges once → Commit
            exception → Rollback (CancellationToken.None) → rethrow → global exception handler (generic 500, logged once)
            — this is also the failed-save path for a tenant violation that reaches SaveChanges: EF's
              own composite-key immutability (tenancy.md, Layer 4) or, failing that,
@@ -60,11 +63,12 @@ Query (HTTP GET, reads):
     → Dispatcher.QueryAsync<TQuery, TResponse>
         1. validate
         2. CheckTenantScope — same rule and errors as the command pipeline's step 2
-        3. IUnitOfWork.BeginAsync(readOnly: true)             PostgreSQL: SET TRANSACTION READ ONLY, then app.current_centre
-        4. handler: read service → DTOs (no entities, no repositories) — rows outside the actor's
+        3. CheckPermission — same rule and errors as the command pipeline's step 3
+        4. IUnitOfWork.BeginAsync(readOnly: true)             PostgreSQL: SET TRANSACTION READ ONLY, then app.current_centre
+        5. handler: read service → DTOs (no entities, no repositories) — rows outside the actor's
              centre are already invisible, filtered by EF's global query filter (tenancy.md, Layer 2)
              and, independently, by PostgreSQL row-level security (tenancy.md, Layer 3)
-        5. Commit (never SaveChanges)
+        6. Commit (never SaveChanges)
     → Result → ResultHttpExtensions
 ```
 
@@ -76,7 +80,7 @@ Query (HTTP GET, reads):
 
 **Who calls SaveChanges.** Only the command pipeline, exactly once, after a successful handler; queries never call it.
 
-**Where tenant and permission checks go.** `Dispatcher.CheckTenantScope`, after validation and before `BeginAsync`, in both pipelines (Day 22 — see tenancy.md, Layer 1). It is a no-op for a request that does not implement `ITenantScoped`; Month 1's requests never do. The permission step (role-based authorization) is marked directly after it, in the same place, from Day 28. Idempotency for marked commands comes later (Month 6).
+**Where tenant and permission checks go.** `Dispatcher.CheckTenantScope`, after validation and before `BeginAsync`, in both pipelines (Day 22 — see tenancy.md, Layer 1). It is a no-op for a request that does not implement `ITenantScoped`; Month 1's requests never do. `Dispatcher.CheckPermission` runs directly after it, in the same place, in both pipelines (Day 28 — see authorization.md); it is a no-op for a request that does not implement `IRequirePermission`. Idempotency for marked commands comes later (Month 6).
 
 ## Request path: `CreateCentreCommand` (CLI → table)
 
@@ -116,6 +120,8 @@ There is no HTTP endpoint for this command — on purpose.
 - [ADR 0004 — Unit-of-work port](../adr/0004-unit-of-work-port.md)
 - [ADR 0005 — Encrypted cookie authentication over JWT](../adr/0005-cookie-authentication.md)
 - [ADR 0006 — Tenant isolation as defense in depth (draft)](../adr/0006-tenant-isolation.md)
+- [ADR 0007 — Code-defined permissions (draft)](../adr/0007-code-defined-permissions.md)
 - [API conventions](api-conventions.md)
 - [Authentication: login, sessions, CSRF, revocation](authentication.md)
 - [Tenant isolation: the role model, and layers 1–4 as they land](tenancy.md)
+- [Authorization: the permission matrix, the pipeline step, and what the UI does](authorization.md)

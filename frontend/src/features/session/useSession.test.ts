@@ -39,6 +39,14 @@ describe("useSession", () => {
               role: "owner",
             },
           ],
+          permissions: [
+            "audit.view",
+            "centre.settings.manage",
+            "staff.manage",
+            "staff.view",
+            "subjects.manage",
+            "subjects.view",
+          ],
         }),
       ),
     );
