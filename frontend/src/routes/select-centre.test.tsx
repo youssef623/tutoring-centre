@@ -62,12 +62,31 @@ describe("SelectCentrePage", () => {
     expect(postedCentreId).toBe("c-maadi");
   });
 
-  it("no active memberships shows the empty state", async () => {
+  it("no active memberships shows the no-active-centre state with the signed-in email and a single logout button", async () => {
     server.use(http.get(meUrl, () => HttpResponse.json(meWithMemberships([]))));
 
     renderRouter("/select-centre");
 
-    expect(await screen.findByText("Your account has no active centre. Contact your centre owner.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "No active centre" })).toBeInTheDocument();
+    expect(screen.getByText("teacher@both.test")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Check again/ })).toBeInTheDocument();
+    // The header's own logout button is hidden in this state, so exactly one "Log out" button exists (the body's).
+    expect(screen.getAllByRole("button", { name: "Log out" })).toHaveLength(1);
+  });
+
+  it("check again refetches /api/me and shows the list once a membership appears", async () => {
+    let callCount = 0;
+    server.use(
+      http.get(meUrl, () => {
+        callCount += 1;
+        return HttpResponse.json(callCount === 1 ? meWithMemberships([]) : meWithMemberships([nileMembership]));
+      }),
+    );
+
+    renderRouter("/select-centre");
+    fireEvent.click(await screen.findByRole("button", { name: /Check again/ }));
+
+    expect(await screen.findByRole("button", { name: /Nile Tutoring Centre/ })).toBeInTheDocument();
+    expect(callCount).toBe(2);
   });
 });

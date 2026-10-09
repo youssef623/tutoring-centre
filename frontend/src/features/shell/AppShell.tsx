@@ -11,18 +11,7 @@ import type { MeDto } from "@/api/generated/tutoring-centre";
 import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { useSignOut } from "@/features/session/useSignOut";
-
-/** First letter of up to the first two words, for the user-menu avatar. Falls back to "?" for an empty name. */
-function initialsOf(displayName: string): string {
-  const initials = displayName
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join("");
-
-  return initials === "" ? "?" : initials;
-}
+import { initialsOf } from "@/lib/initials";
 
 export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
   const { t: tShell } = useTranslation("shell");
