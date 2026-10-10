@@ -1,0 +1,78 @@
+{
+  "page": {
+    "title": "الموظفون"
+  },
+  "columns": {
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "role": "الدور",
+    "status": "الحالة",
+    "actions": "الإجراءات"
+  },
+  "status": {
+    "active": "نشط",
+    "inactive": "غير نشط"
+  },
+  "you": "أنت",
+  "loading": {
+    "label": "جاري تحميل الموظفين"
+  },
+  "error": {
+    "title": "تعذر تحميل بيانات الموظفين",
+    "reference": "المرجع: {correlationId}"
+  },
+  "emptyState": {
+    "title": "لا يوجد موظفون بعد",
+    "description": "أضف أول موظف لديك للبدء."
+  },
+  "actions": {
+    "create": "إضافة موظف",
+    "changeRole": "تغيير الدور",
+    "deactivate": "إلغاء التفعيل",
+    "reactivate": "إعادة التفعيل",
+    "openMenu": "فتح قائمة الإجراءات"
+  },
+  "dialogs": {
+    "createTitle": "إضافة موظف",
+    "changeRoleTitle": "تغيير دور {name}"
+  },
+  "form": {
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "مثال: teacher@example.com",
+    "displayNameLabel": "الاسم",
+    "displayNamePlaceholder": "مثال: سارة أحمد",
+    "roleLabel": "الدور",
+    "preferredLocaleLabel": "اللغة المفضلة",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "changeRoleConsequence": "سيتم تسجيل خروجه وسيحصل على الدور الجديد في المرة القادمة التي يسجل فيها الدخول."
+  },
+  "confirmations": {
+    "deactivateTitle": "إلغاء تفعيل {name}؟",
+    "deactivateBody": "سيفقد {name} الوصول إلى هذا المركز فقط. حسابه لن يُحذف أبدًا.",
+    "deactivateConfirm": "إلغاء التفعيل"
+  },
+  "password": {
+    "title": "كلمة مرور مؤقتة",
+    "description": "شارك كلمة المرور هذه مع {name}. لن تظهر مرة أخرى ويجب تغييرها عند أول تسجيل دخول.",
+    "copy": "نسخ",
+    "copied": "تم النسخ!",
+    "done": "تم"
+  },
+  "existingAccount": {
+    "title": "الحساب موجود بالفعل",
+    "description": "لدى {name} حساب بالفعل ويمكنه الآن اختيار هذا المركز لتسجيل الدخول."
+  },
+  "toasts": {
+    "created": "تمت إضافة الموظف.",
+    "roleChanged": "تم تغيير الدور.",
+    "deactivated": "تم إلغاء تفعيل الموظف.",
+    "reactivated": "تمت إعادة تفعيل الموظف."
+  },
+  "validation": {
+    "emailRequired": "البريد الإلكتروني مطلوب.",
+    "emailInvalid": "أدخل بريدًا إلكترونيًا صالحًا.",
+    "displayNameRequired": "الاسم مطلوب.",
+    "displayNameTooLong": "يجب ألا يزيد الاسم عن 120 حرفًا."
+  }
+}

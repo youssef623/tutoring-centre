@@ -1,7 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, LayoutDashboard, Menu as MenuIcon, X } from "lucide-react";
+import { BookOpen, History, LayoutDashboard, Menu as MenuIcon, Settings, Users, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,6 +90,24 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link to="/subjects" search={{ archived: false }} className={linkClassName} onClick={onNavigate}>
           <BookOpen className="size-4" aria-hidden="true" />
           {t("nav.subjects")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.StaffView}>
+        <Link to="/staff" className={linkClassName} onClick={onNavigate}>
+          <Users className="size-4" aria-hidden="true" />
+          {t("nav.staff")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.CentreSettingsManage}>
+        <Link to="/settings" className={linkClassName} onClick={onNavigate}>
+          <Settings className="size-4" aria-hidden="true" />
+          {t("nav.settings")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.AuditView}>
+        <Link to="/audit" className={linkClassName} onClick={onNavigate}>
+          <History className="size-4" aria-hidden="true" />
+          {t("nav.audit")}
         </Link>
       </Can>
     </nav>

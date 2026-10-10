@@ -14,6 +14,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as SelectCentreRouteImport } from './routes/select-centre'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -40,6 +43,21 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSubjectsRoute = AuthenticatedSubjectsRouteImport.update({
   id: '/subjects',
   path: '/subjects',
@@ -51,12 +69,18 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
+  '/audit': typeof AuthenticatedAuditRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/staff': typeof AuthenticatedStaffRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
+  '/audit': typeof AuthenticatedAuditRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/staff': typeof AuthenticatedStaffRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/': typeof AuthenticatedIndexRoute
 }
@@ -66,20 +90,42 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
+  '/_authenticated/audit': typeof AuthenticatedAuditRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/select-centre' | '/status' | '/subjects'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/select-centre'
+    | '/status'
+    | '/audit'
+    | '/settings'
+    | '/staff'
+    | '/subjects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/select-centre' | '/status' | '/subjects' | '/'
+  to:
+    | '/login'
+    | '/select-centre'
+    | '/status'
+    | '/audit'
+    | '/settings'
+    | '/staff'
+    | '/subjects'
+    | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/select-centre'
     | '/status'
+    | '/_authenticated/audit'
+    | '/_authenticated/settings'
+    | '/_authenticated/staff'
     | '/_authenticated/subjects'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
@@ -128,6 +174,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/audit': {
+      id: '/_authenticated/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuthenticatedAuditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/staff': {
+      id: '/_authenticated/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof AuthenticatedStaffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/subjects': {
       id: '/_authenticated/subjects'
       path: '/subjects'
@@ -139,11 +206,17 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAuditRoute: AuthenticatedAuditRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }

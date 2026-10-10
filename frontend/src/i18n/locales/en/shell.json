@@ -2,6 +2,9 @@
   "nav": {
     "dashboard": "Dashboard",
     "subjects": "Subjects",
+    "staff": "Staff",
+    "settings": "Settings",
+    "audit": "Audit log",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
@@ -10,7 +13,13 @@
   },
   "userMenu": {
     "switchCentre": "Switch centre",
+    "changePassword": "Change password",
     "logout": "Log out"
+  },
+  "noAccess": {
+    "title": "You don't have access to this page",
+    "description": "Your role doesn't include this permission. If you think this is a mistake, ask your centre's owner.",
+    "backToDashboard": "Back to dashboard"
   },
   "dashboard": {
     "welcome": "Welcome, {name}",
