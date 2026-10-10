@@ -287,6 +287,46 @@ public sealed class PostgresFixture : IAsyncLifetime
         return id;
     }
 
+    /// <summary>
+    /// Inserts one audit.audit_entries row directly as the superuser — bypassing row-level security, the
+    /// append-only grant and EF entirely, on purpose, so paging/filter/isolation tests (Task 32.2) seed exact,
+    /// known rows (including their timestamp) that the read side under test cannot have biased.
+    /// </summary>
+    public async Task<Guid> SeedAuditEntryAsync(
+        Guid centreId,
+        DateTimeOffset occurredAt,
+        string entityType = "subject",
+        Guid? entityId = null,
+        Guid? actorUserId = null,
+        string action = "updated",
+        string changes = """{"name":{"before":"Before","after":"After"}}""",
+        string? correlationId = null)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into audit.audit_entries (
+                id, centre_id, occurred_at, actor_type, actor_user_id, action, entity_type, entity_id, changes, correlation_id)
+            values (
+                @id, @centre_id, @occurred_at, @actor_type, @actor_user_id, @action, @entity_type, @entity_id, @changes::jsonb, @correlation_id)
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("occurred_at", occurredAt);
+        command.Parameters.AddWithValue("actor_type", actorUserId is null ? "system" : "staff");
+        command.Parameters.AddWithValue("actor_user_id", actorUserId.HasValue ? actorUserId.Value : DBNull.Value);
+        command.Parameters.AddWithValue("action", action);
+        command.Parameters.AddWithValue("entity_type", entityType);
+        command.Parameters.AddWithValue("entity_id", entityId ?? Guid.CreateVersion7());
+        command.Parameters.AddWithValue("changes", changes);
+        command.Parameters.AddWithValue("correlation_id", correlationId is null ? DBNull.Value : correlationId);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
     private string WithCredentials(string username, string password) =>
         new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Username = username, Password = password }.ConnectionString;
 }

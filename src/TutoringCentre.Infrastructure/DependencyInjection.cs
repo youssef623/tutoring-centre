@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Academics.Subjects;
+using TutoringCentre.Application.Audit;
 using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
@@ -112,6 +113,8 @@ public static class DependencyInjection
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
+
+        services.AddScoped<IAuditReadService, AuditReadService>();
 
         // Identity core only: no SignInManager, no Identity UI, no role services (there are no role tables —
         // a role belongs to a user in a centre, not globally). Cookie/sign-in wiring is Day 15.

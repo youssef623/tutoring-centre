@@ -202,3 +202,18 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
   "currentPassword": "{{$dotenv password}}",
   "newPassword": "a-new-password-that-is-long-enough"
 }
+
+### Manual walkthrough of the audit log API (Day 32), continuing owner@nile.test's session from step 12. Re-run
+### step 11/12 first if this session has ended (e.g. after step 24's password change).
+
+### 25. List the audit log, filtered to membership changes — expect 200, { "items": [...], "nextCursor" }.
+### The role change from step 21 should be the first item, with changes: [ { "field": "role", "before": "teacher", "after": "secretary" } ].
+GET {{baseUrl}}/api/audit?entityType=membership
+
+### 26. Page through the log one row at a time — expect 200 with exactly one item and a non-null "nextCursor".
+# @name auditPage1
+GET {{baseUrl}}/api/audit?pageSize=1
+
+### 27. Fetch the next page — copy "nextCursor" from step 26 first — expect 200 with the next item.
+@auditCursor = replace-with-the-nextCursor-from-step-26
+GET {{baseUrl}}/api/audit?pageSize=1&cursor={{auditCursor}}
