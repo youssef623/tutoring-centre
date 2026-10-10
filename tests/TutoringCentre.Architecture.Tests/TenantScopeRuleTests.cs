@@ -11,18 +11,21 @@ namespace TutoringCentre.Architecture.Tests;
 public sealed class TenantScopeRuleTests
 {
     // The tenant-module Application namespaces this rule polices; add one line as each later module (Month 3+)
-    // is created. This rule passes vacuously today: Academics has no requests yet (Subject's use cases land
-    // Day 24), so the loop below runs zero times until then.
+    // is created. Centre settings (Day 32) is tenant-scoped even though its sibling CreateCentre is not, so it
+    // is named precisely here rather than by the whole "...Centres" prefix, which stays in NonTenantNamespaces
+    // for CreateCentre alone.
     private static readonly string[] TenantModuleNamespaces =
     [
         "TutoringCentre.Application.Academics",
         "TutoringCentre.Application.Staff",
+        "TutoringCentre.Application.Centres.Queries.GetCentreSettings",
+        "TutoringCentre.Application.Centres.Commands.UpdateCentreSettings",
     ];
 
     private static readonly string[] NonTenantNamespaces =
     [
         "TutoringCentre.Application.Identity",
-        "TutoringCentre.Application.Centres",
+        "TutoringCentre.Application.Centres.Commands.CreateCentre",
         "TutoringCentre.Application.Platform",
     ];
 

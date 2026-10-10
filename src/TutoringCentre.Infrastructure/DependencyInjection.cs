@@ -104,6 +104,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<ICentreRepository, CentreRepository>();
+        services.AddScoped<ICentreReadService, CentreReadService>();
 
         services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<ISubjectReadService, SubjectReadService>();

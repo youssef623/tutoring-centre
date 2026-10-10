@@ -39,6 +39,8 @@ internal sealed class CentreConfiguration : IEntityTypeConfiguration<Centre>
             .IsRequired()
             .HasMaxLength(LocaleMaxLength);
 
+        builder.HasRowVersion();
+
         // Persistence metadata: shadow properties set by TimestampInterceptor, invisible to the Domain.
         builder.Property<DateTimeOffset>("CreatedAt").IsRequired();
         builder.Property<DateTimeOffset?>("UpdatedAt");
