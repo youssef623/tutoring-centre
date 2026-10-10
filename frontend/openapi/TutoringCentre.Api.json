@@ -912,6 +912,208 @@
           }
         }
       }
+    },
+    "/api/audit": {
+      "get": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "operationId": "GetAuditLog",
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actorUserId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/centre/settings": {
+      "get": {
+        "tags": [
+          "CentreSettingsEndpoints"
+        ],
+        "operationId": "GetCentreSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CentreSettingsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CentreSettingsEndpoints"
+        ],
+        "operationId": "UpdateCentreSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCentreSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -924,6 +1126,151 @@
         "properties": {
           "token": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuditChangeDto": {
+        "required": [
+          "field",
+          "before",
+          "after"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "before": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "after": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuditEntryDto": {
+        "required": [
+          "id",
+          "occurredAt",
+          "actorType",
+          "actorUserId",
+          "actorDisplayName",
+          "action",
+          "entityType",
+          "entityId",
+          "changes",
+          "correlationId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actorType": {
+            "type": "string"
+          },
+          "actorUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "actorDisplayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditChangeDto"
+            }
+          },
+          "correlationId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuditPageDto": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEntryDto"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CentreSettingsDto": {
+        "required": [
+          "name",
+          "slug",
+          "timeZoneId",
+          "defaultLocale",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "timeZoneId": {
+            "type": "string"
+          },
+          "defaultLocale": {
+            "$ref": "#/components/schemas/SupportedLocale"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "uint32"
           }
         },
         "additionalProperties": false
@@ -1424,6 +1771,12 @@
         },
         "additionalProperties": false
       },
+      "SupportedLocale": {
+        "enum": [
+          "ar",
+          "en"
+        ]
+      },
       "SystemInfoDto": {
         "required": [
           "applicationVersion",
@@ -1446,6 +1799,31 @@
           }
         },
         "additionalProperties": false
+      },
+      "UpdateCentreSettingsRequest": {
+        "required": [
+          "name",
+          "defaultLocale",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "defaultLocale": {
+            "$ref": "#/components/schemas/SupportedLocale"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       }
     }
   },
@@ -1464,6 +1842,12 @@
     },
     {
       "name": "StaffEndpoints"
+    },
+    {
+      "name": "AuditEndpoints"
+    },
+    {
+      "name": "CentreSettingsEndpoints"
     }
   ]
 }

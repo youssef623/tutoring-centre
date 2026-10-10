@@ -20,6 +20,7 @@ public sealed class TenantScopeRuleTests
         "TutoringCentre.Application.Staff",
         "TutoringCentre.Application.Centres.Queries.GetCentreSettings",
         "TutoringCentre.Application.Centres.Commands.UpdateCentreSettings",
+        "TutoringCentre.Application.Audit",
     ];
 
     private static readonly string[] NonTenantNamespaces =

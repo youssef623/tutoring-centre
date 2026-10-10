@@ -17,14 +17,16 @@ public sealed class ModuleBoundaryRuleTests
         ["Platform"] = ["TutoringCentre.Application.Platform", "TutoringCentre.Application.Centres"],
         ["Identity"] = ["TutoringCentre.Application.Identity", "TutoringCentre.Application.Staff"],
         ["Academics"] = ["TutoringCentre.Application.Academics"],
+        ["Audit"] = ["TutoringCentre.Application.Audit"],
     };
 
-    /// <summary>The same three modules, by Domain namespace.</summary>
+    /// <summary>The same modules, by Domain namespace. Audit has no Domain types of its own (Task 31: it is read-only from the application's point of view), so its entry names a namespace nothing occupies.</summary>
     private static readonly Dictionary<string, string[]> DomainModuleNamespaces = new()
     {
         ["Platform"] = ["TutoringCentre.Domain.Centres"],
         ["Identity"] = ["TutoringCentre.Domain.Identity"],
         ["Academics"] = ["TutoringCentre.Domain.Academics"],
+        ["Audit"] = ["TutoringCentre.Domain.Audit"],
     };
 
     /// <summary>Domain and Application common namespaces: available to every module, never counted as "another module's".</summary>

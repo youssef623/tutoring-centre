@@ -6,17 +6,18 @@ using TutoringCentre.Api.Tests.Fixtures;
 namespace TutoringCentre.Api.Tests.Authorization;
 
 /// <summary>
-/// Task 30.8: one table of role x endpoint -> expected status, executed over real HTTP against Nile's three
-/// roles. 33 literal cases (six subject endpoints, five staff endpoints, three roles). Allowed cases assert a
-/// non-403 success status; denied cases assert 403 auth.permission_denied and an unchanged database, compared
-/// against the exact pre-request state, not a snapshot taken after the request already ran. Values are written
-/// literally here, never derived from <c>RolePermissions</c> — that would prove the matrix agrees with itself,
-/// not with the contract.
+/// Task 30.8 (extended Task 32.11): one table of role x endpoint -> expected status, executed over real HTTP
+/// against Nile's three roles. 42 literal cases (six subject endpoints, five staff endpoints, one audit
+/// endpoint, two centre-settings endpoints, three roles). Allowed cases assert a non-403 success status;
+/// denied cases assert 403 auth.permission_denied and an unchanged database, compared against the exact
+/// pre-request state, not a snapshot taken after the request already ran. Values are written literally here,
+/// never derived from <c>RolePermissions</c> — that would prove the matrix agrees with itself, not with the
+/// contract.
 /// </summary>
 [Collection(ApiCollection.Name)]
 public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
 {
-    /// <summary>The eleven routes this matrix classifies, in the exact raw pattern <see cref="EndpointInventoryTests"/> reads off the running app.</summary>
+    /// <summary>The fourteen routes this matrix classifies, in the exact raw pattern <see cref="EndpointInventoryTests"/> reads off the running app.</summary>
     internal static readonly string[] MatrixRoutes =
     [
         "GET /api/subjects",
@@ -30,6 +31,9 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "PUT /api/staff/{membershipId:guid}/role",
         "POST /api/staff/{membershipId:guid}/deactivate",
         "POST /api/staff/{membershipId:guid}/reactivate",
+        "GET /api/audit",
+        "GET /api/centre/settings",
+        "PUT /api/centre/settings",
     ];
 
     public async Task InitializeAsync()
@@ -245,6 +249,73 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
             await AssertPermissionDeniedAsync(response);
             Assert.Equal($"teacher|inactive|{deactivatedVersion}", await SnapshotMembershipAsync(membershipId));
         }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task AuditList(string role, HttpStatusCode expected)
+    {
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri("/api/audit", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task CentreSettingsGet(string role, HttpStatusCode expected)
+    {
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri("/api/centre/settings", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task CentreSettingsUpdate(string role, HttpStatusCode expected)
+    {
+        var before = await SnapshotNileCentreAsync();
+        var version = await GetNileCentreVersionAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Put, new Uri("/api/centre/settings", UriKind.Relative),
+            new { name = "Matrix Attempt", defaultLocale = "en", version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(before, await SnapshotNileCentreAsync());
+        }
+    }
+
+    private Task<string> SnapshotNileCentreAsync() =>
+        factory.ScalarAsync<string>("select name || '|' || default_locale || '|' || xmin from platform.centres where slug = 'nile-centre'");
+
+    private async Task<uint> GetNileCentreVersionAsync()
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var response = await owner.Client.GetAsync(new Uri("/api/centre/settings", UriKind.Relative));
+        var body = await ReadJsonAsync(response);
+        return body.RootElement.GetProperty("version").GetUInt32();
     }
 
     private Task<SignedInClient> SignInAsync(string role) =>
