@@ -23,7 +23,7 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     [Fact]
     public async Task NileActorAddsMathematics_PersistsWithNileCentreCreatedAtNoUpdatedAtActiveStatus()
     {
-        var result = await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
+        var result = await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(
@@ -39,9 +39,9 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     [Fact]
     public async Task MaadiActorListsSubjects_DoesNotContainNilesSubject()
     {
-        await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
+        await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
 
-        var result = await Fixture.QueryAsAsync<ListSubjectNamesQuery, List<string>>(StaffActorIn(MaadiCentreId), new ListSubjectNamesQuery());
+        var result = await Fixture.QueryAsAsync<ListSubjectNamesQuery, List<string>>(await StaffActorInAsync(MaadiCentreId), new ListSubjectNamesQuery());
 
         Assert.True(result.IsSuccess);
         Assert.DoesNotContain("Mathematics", result.Value);
@@ -50,10 +50,10 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     [Fact]
     public async Task NileActorAddsWhitespaceVariantOfMathematics_TranslatedToNameTakenConflict()
     {
-        await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
+        await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
 
         // Day 25: the save-time unique violation is now translated to a Result, not an exception.
-        var result = await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, " mathematics "));
+        var result = await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(NileCentreId), new AddSubjectCommand(NileCentreId, " mathematics "));
 
         Assert.True(result.IsFailure);
         Assert.Equal("subject.name_taken", result.Error!.Code);
@@ -64,9 +64,9 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     [Fact]
     public async Task MaadiActorAddsMathematics_Succeeds()
     {
-        await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
+        await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"));
 
-        var result = await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(MaadiCentreId), new AddSubjectCommand(MaadiCentreId, "Mathematics"));
+        var result = await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(MaadiCentreId), new AddSubjectCommand(MaadiCentreId, "Mathematics"));
 
         Assert.True(result.IsSuccess);
     }
@@ -93,11 +93,11 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     [Fact]
     public async Task Rename_SetsUpdatedAtAndChangesVersion()
     {
-        var subjectId = (await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"))).Value;
+        var subjectId = (await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"))).Value;
         var versionBeforeRename = await Fixture.ScalarAsync<string>($"select xmin::text from academics.subjects where id = '{subjectId}'");
 
         var result = await Fixture.SendAsAsync<RenameSubjectCommand, Unit>(
-            StaffActorIn(NileCentreId), new RenameSubjectCommand(subjectId, "Applied Mathematics"));
+            await StaffActorInAsync(NileCentreId), new RenameSubjectCommand(subjectId, "Applied Mathematics"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(
@@ -110,13 +110,13 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     [Fact]
     public async Task ConcurrentRenameFromTwoContexts_SecondSaveThrowsConcurrencyException()
     {
-        var subjectId = (await Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"))).Value;
+        var subjectId = (await Fixture.SendAsAsync<AddSubjectCommand, Guid>(await StaffActorInAsync(NileCentreId), new AddSubjectCommand(NileCentreId, "Mathematics"))).Value;
 
         await using var scope1 = Fixture.Services.CreateAsyncScope();
         await using var scope2 = Fixture.Services.CreateAsyncScope();
 
-        var (unitOfWork1, db1) = await BeginScopeAsync(scope1, StaffActorIn(NileCentreId));
-        var (unitOfWork2, db2) = await BeginScopeAsync(scope2, StaffActorIn(NileCentreId));
+        var (unitOfWork1, db1) = await BeginScopeAsync(scope1, await StaffActorInAsync(NileCentreId));
+        var (unitOfWork2, db2) = await BeginScopeAsync(scope2, await StaffActorInAsync(NileCentreId));
 
         var subject1 = await db1.Set<Subject>().SingleAsync(s => s.Id == subjectId);
         var subject2 = await db2.Set<Subject>().SingleAsync(s => s.Id == subjectId);
@@ -134,13 +134,14 @@ public sealed class SubjectPersistenceTests(PostgresFixture fixture) : TenantPro
     [Fact]
     public async Task NileActorAddsSubjectConstructedWithMaadiCentre_TenantViolationAndNothingStored()
     {
+        var actor = await StaffActorInAsync(NileCentreId);
         await Assert.ThrowsAsync<TenantViolationException>(() =>
-            Fixture.SendAsAsync<AddSubjectCommand, Guid>(StaffActorIn(NileCentreId), new AddSubjectCommand(MaadiCentreId, "Chemistry")));
+            Fixture.SendAsAsync<AddSubjectCommand, Guid>(actor, new AddSubjectCommand(MaadiCentreId, "Chemistry")));
 
         Assert.Equal(0, await Fixture.ScalarAsync<long>("select count(*) from academics.subjects"));
     }
 
-    private static StaffActor StaffActorIn(Guid centreId) => new(Guid.CreateVersion7(), centreId, StaffRole.Teacher);
+    private async Task<StaffActor> StaffActorInAsync(Guid centreId) => new(await Fixture.SeedUserAsync(), centreId, StaffRole.Teacher);
 
     private static async Task<(IUnitOfWork UnitOfWork, AppDbContext Db)> BeginScopeAsync(AsyncServiceScope scope, Actor actor)
     {

@@ -24,11 +24,12 @@ public sealed class SubjectStaleVersionTests(PostgresFixture fixture) : TenantPr
     [Fact]
     public async Task Rename_WithTheVersionJustRead_Succeeds()
     {
-        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(NileOwner(), new CreateSubjectCommand("Mathematics"));
-        var v1 = await ReadVersionAsync(created.Value.SubjectId);
+        var actor = await NileOwnerAsync();
+        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(actor, new CreateSubjectCommand("Mathematics"));
+        var v1 = await ReadVersionAsync(actor, created.Value.SubjectId);
 
         var result = await Fixture.SendAsAsync<RealRenameSubjectCommand, Unit>(
-            NileOwner(), new RealRenameSubjectCommand(created.Value.SubjectId, "Applied Mathematics", v1));
+            actor, new RealRenameSubjectCommand(created.Value.SubjectId, "Applied Mathematics", v1));
 
         Assert.True(result.IsSuccess);
     }
@@ -36,31 +37,33 @@ public sealed class SubjectStaleVersionTests(PostgresFixture fixture) : TenantPr
     [Fact]
     public async Task Rename_AgainWithTheSameStaleVersion_ReturnsConcurrencyStaleAndKeepsTheFirstRename()
     {
-        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(NileOwner(), new CreateSubjectCommand("Mathematics"));
-        var v1 = await ReadVersionAsync(created.Value.SubjectId);
+        var actor = await NileOwnerAsync();
+        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(actor, new CreateSubjectCommand("Mathematics"));
+        var v1 = await ReadVersionAsync(actor, created.Value.SubjectId);
         var firstRename = await Fixture.SendAsAsync<RealRenameSubjectCommand, Unit>(
-            NileOwner(), new RealRenameSubjectCommand(created.Value.SubjectId, "Applied Mathematics", v1));
+            actor, new RealRenameSubjectCommand(created.Value.SubjectId, "Applied Mathematics", v1));
         Assert.True(firstRename.IsSuccess);
 
         // Still v1 — the version the client originally read, not a freshly re-read one.
         var secondRename = await Fixture.SendAsAsync<RealRenameSubjectCommand, Unit>(
-            NileOwner(), new RealRenameSubjectCommand(created.Value.SubjectId, "Pure Mathematics", v1));
+            actor, new RealRenameSubjectCommand(created.Value.SubjectId, "Pure Mathematics", v1));
 
         Assert.True(secondRename.IsFailure);
         Assert.Equal("concurrency.stale", secondRename.Error!.Code);
-        var current = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(NileOwner(), new GetSubjectQuery(created.Value.SubjectId));
+        var current = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(actor, new GetSubjectQuery(created.Value.SubjectId));
         Assert.Equal("Applied Mathematics", current.Value.Name);
     }
 
     [Fact]
     public async Task Archive_WithAStaleVersion_ReturnsConcurrencyStale()
     {
-        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(NileOwner(), new CreateSubjectCommand("Mathematics"));
-        var v1 = await ReadVersionAsync(created.Value.SubjectId);
+        var actor = await NileOwnerAsync();
+        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(actor, new CreateSubjectCommand("Mathematics"));
+        var v1 = await ReadVersionAsync(actor, created.Value.SubjectId);
         await Fixture.SendAsAsync<RealRenameSubjectCommand, Unit>(
-            NileOwner(), new RealRenameSubjectCommand(created.Value.SubjectId, "Applied Mathematics", v1));
+            actor, new RealRenameSubjectCommand(created.Value.SubjectId, "Applied Mathematics", v1));
 
-        var archived = await Fixture.SendAsAsync<ArchiveSubjectCommand, Unit>(NileOwner(), new ArchiveSubjectCommand(created.Value.SubjectId, v1));
+        var archived = await Fixture.SendAsAsync<ArchiveSubjectCommand, Unit>(actor, new ArchiveSubjectCommand(created.Value.SubjectId, v1));
 
         Assert.True(archived.IsFailure);
         Assert.Equal("concurrency.stale", archived.Error!.Code);
@@ -69,15 +72,16 @@ public sealed class SubjectStaleVersionTests(PostgresFixture fixture) : TenantPr
     [Fact]
     public async Task Rename_TwoParallelCarryingTheSameVersion_ExactlyOneSucceeds()
     {
-        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(NileOwner(), new CreateSubjectCommand("Mathematics"));
-        var v1 = await ReadVersionAsync(created.Value.SubjectId);
+        var actor = await NileOwnerAsync();
+        var created = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(actor, new CreateSubjectCommand("Mathematics"));
+        var v1 = await ReadVersionAsync(actor, created.Value.SubjectId);
         var gate = new TaskCompletionSource();
 
         async Task<Result<Unit>> AttemptAsync(string name)
         {
             await gate.Task;
             return await Fixture.SendAsAsync<RealRenameSubjectCommand, Unit>(
-                NileOwner(), new RealRenameSubjectCommand(created.Value.SubjectId, name, v1));
+                actor, new RealRenameSubjectCommand(created.Value.SubjectId, name, v1));
         }
 
         var first = Task.Run(() => AttemptAsync("Applied Mathematics"));
@@ -90,11 +94,11 @@ public sealed class SubjectStaleVersionTests(PostgresFixture fixture) : TenantPr
         Assert.Equal("concurrency.stale", loser.Error!.Code);
     }
 
-    private StaffActor NileOwner() => new(Guid.CreateVersion7(), NileCentreId, StaffRole.Owner);
+    private async Task<StaffActor> NileOwnerAsync() => new(await Fixture.SeedUserAsync(), NileCentreId, StaffRole.Owner);
 
-    private async Task<uint> ReadVersionAsync(Guid subjectId)
+    private async Task<uint> ReadVersionAsync(StaffActor actor, Guid subjectId)
     {
-        var dto = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(NileOwner(), new GetSubjectQuery(subjectId));
+        var dto = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(actor, new GetSubjectQuery(subjectId));
         return dto.Value.Version;
     }
 }

@@ -262,6 +262,30 @@ public sealed class PostgresFixture : IAsyncLifetime
         return id;
     }
 
+    /// <summary>
+    /// Inserts one minimal identity.users row directly as the superuser, so a synthetic test actor's user id is
+    /// real for <c>fk_audit_entries_users</c> (Task 31.6) — tests that only care about centre and role, not a
+    /// real sign-in, still need an actor that an audit row can reference. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedUserAsync(string displayName = "Test Actor")
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into identity.users (
+                id, display_name, preferred_locale, must_change_password,
+                email_confirmed, phone_number_confirmed, two_factor_enabled, lockout_enabled, access_failed_count)
+            values (@id, @display_name, 'en', false, false, false, false, false, 0)
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("display_name", displayName);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
     private string WithCredentials(string username, string password) =>
         new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Username = username, Password = password }.ConnectionString;
 }
