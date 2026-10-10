@@ -141,6 +141,12 @@ function UserMenu({ me }: { me: MeDto }) {
                 {t("userMenu.switchCentre")}
               </Menu.Item>
             )}
+            <Menu.Item
+              className="cursor-pointer rounded-md px-3 py-1.5 text-sm outline-none data-[highlighted]:bg-muted"
+              render={<Link to="/change-password" />}
+            >
+              {t("userMenu.changePassword")}
+            </Menu.Item>
             <div className="px-3 py-1.5">
               <LanguageSwitcher />
             </div>

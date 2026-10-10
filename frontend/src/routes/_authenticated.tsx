@@ -19,6 +19,12 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/login", search: { redirect: location.href } });
     }
 
+    // The server-side gate (Day 30) is the real control; this only sends the user to the pleasant form for it
+    // instead of letting every other request 403 with auth.password_change_required.
+    if (me.mustChangePassword) {
+      throw redirect({ to: "/change-password" });
+    }
+
     if (me.activeCentreId === null) {
       throw redirect({ to: "/select-centre" });
     }

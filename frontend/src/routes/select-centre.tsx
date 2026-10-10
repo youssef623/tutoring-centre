@@ -36,6 +36,10 @@ export const Route = createFileRoute("/select-centre")({
     if (me === null) {
       throw redirect({ to: "/login" });
     }
+
+    if (me.mustChangePassword) {
+      throw redirect({ to: "/change-password" });
+    }
   },
   component: SelectCentrePage,
 });
