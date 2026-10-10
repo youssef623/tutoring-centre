@@ -87,7 +87,9 @@ Run commands from the repository root unless a step says otherwise. Each step sh
 6. **Run the frontend** in a second terminal, then open http://localhost:5173 — signed out, this redirects to
    `/login`; sign in with any seeded email above and the password you chose in step 5. From the sidebar,
    **Subjects** lists, adds, renames, archives and restores a centre's subjects, in Arabic or English, scoped
-   to whichever centre is currently selected.
+   to whichever centre is currently selected. An owner also sees **Staff** (add, change role, deactivate,
+   reactivate), **Settings** (centre name, default language) and **Audit log** (filterable, infinite-scroll
+   history of every change above); a new staff member is forced through a password change on first sign-in.
 
    ```bash
    cd frontend
@@ -151,4 +153,4 @@ flowchart TD
 
 ## Quality gates
 
-Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, five Playwright end-to-end journeys against a real API and PostgreSQL, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
+Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, eight Playwright end-to-end journeys against a real API and PostgreSQL, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
