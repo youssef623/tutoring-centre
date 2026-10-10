@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -22,10 +23,14 @@ var builder = WebApplication.CreateBuilder(args);
 var isDocumentGeneration = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
 if (isDocumentGeneration)
 {
-    // Satisfies fail-fast options validation without a real database; nothing connects during generation.
+    // Satisfies fail-fast options validation without a real database or proxy; nothing connects or listens
+    // during generation, and this entry point runs with no ASPNETCORE_ENVIRONMENT set — the framework's own
+    // default, Production — so Task 34.3's "Production needs a non-empty Proxy:KnownNetworks" check would
+    // otherwise fail the build itself.
     builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     {
         ["ConnectionStrings:Postgres"] = "Host=localhost;Database=openapi_generation",
+        ["Proxy:KnownNetworks:0"] = "127.0.0.1/32",
     });
 }
 
@@ -45,6 +50,12 @@ builder.Host.UseSerilog(
 // HSTS instructs the *browser* to remember "always HTTPS" for this host, which would break a plain-http
 // Development run for the length of the max-age.
 builder.Services.AddHsts(options => options.MaxAge = TimeSpan.FromMinutes(5));
+
+builder.Services.AddProxyOptions(builder.Configuration);
+
+// Bound and validated at start like every other option here, even though a bare bool has nothing to fail on:
+// a misconfigured container fails at start, not at first request, as a rule for every setting, not case by case.
+builder.Services.AddOptions<DemoOptions>().Bind(builder.Configuration.GetSection("Demo")).ValidateOnStart();
 
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
@@ -75,9 +86,26 @@ builder.Services.AddOpenApi(options =>
 
 var app = builder.Build();
 
-// CLI mode: `dotnet run --project src/TutoringCentre.Api -- seed`
+// CLI mode: `dotnet run --project src/TutoringCentre.Api -- migrate`. The deploy pipeline's own step — the
+// running web process never migrates itself in Production (see below).
+if (args is ["migrate"])
+{
+    return await MigrateCommand.RunAsync(app.Services);
+}
+
+// CLI mode: `dotnet run --project src/TutoringCentre.Api -- seed`. Gated (Task 34.7): Development and Testing
+// always allow it; Production only when Demo:Enabled opts a throwaway instance in. Seeding also still requires
+// Seed:Password (DevelopmentIdentitySeeder's own check, unchanged) even once the gate is passed.
 if (args is ["seed"])
 {
+    var demoOptions = app.Services.GetRequiredService<IOptions<DemoOptions>>().Value;
+    if (!SeedGate.IsAllowed(app.Environment, demoOptions))
+    {
+        await Console.Error.WriteLineAsync(
+            "Refused: seed only runs in Development, Testing, or when Demo:Enabled is true in configuration.");
+        return 1;
+    }
+
     await app.Services.ApplyMigrationsAsync();
     return await SeedCommand.RunAsync(app.Services);
 }
@@ -88,6 +116,10 @@ if (app.Environment.IsDevelopment() && !isDocumentGeneration)
 {
     await app.Services.ApplyMigrationsAsync();
 }
+
+// Absolutely first: every other middleware (security headers' HSTS/Production check, request logging's client
+// address, rate limiting's partition key) must see the real scheme and client address, not the proxy's own.
+app.UseTrustedForwardedHeaders();
 
 if (app.Environment.IsProduction())
 {
