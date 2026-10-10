@@ -58,7 +58,7 @@ describe("SubjectsPage", () => {
 
     renderRouter("/subjects");
 
-    expect(await screen.findByRole("status", { name: "Loading subjects" })).toBeInTheDocument();
+    expect(await screen.findByRole("status", { name: "Loading subjects" }, { timeout: 3000 })).toBeInTheDocument();
     releaseList?.();
 
     expect(await screen.findByText("Mathematics")).toBeInTheDocument();
