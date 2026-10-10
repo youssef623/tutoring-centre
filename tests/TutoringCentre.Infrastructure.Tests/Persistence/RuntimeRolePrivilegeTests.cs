@@ -79,6 +79,14 @@ public sealed class RuntimeRolePrivilegeTests(PostgresFixture fixture) : Postgre
     }
 
     [Fact]
+    public async Task Update_DataProtectionKeys_IsDenied() =>
+        await AssertDeniedAsync(Fixture.AppConnectionString, "update platform.data_protection_keys set xml = 'x'");
+
+    [Fact]
+    public async Task Delete_FromDataProtectionKeys_IsDenied() =>
+        await AssertDeniedAsync(Fixture.AppConnectionString, "delete from platform.data_protection_keys");
+
+    [Fact]
     public async Task AllPlatformAndIdentityTables_AreOwnedByTutoringOwner()
     {
         await using var connection = new NpgsqlConnection(Fixture.SuperuserConnectionString);

@@ -277,7 +277,7 @@ one fails the test, naming the exact relationship that is wrong.
 
 ## Exemptions
 
-Six production tables carry no centre-based policy, confirmed against the schema (no migration calls
+Seven production tables carry no centre-based policy, confirmed against the schema (no migration calls
 `EnableTenantRowLevelSecurity`; no configuration calls `ConfigureTenantOwned`) rather than assumed:
 
 | Table | Why it has none |
@@ -286,6 +286,7 @@ Six production tables carry no centre-based policy, confirmed against the schema
 | `identity.users` | A user can hold memberships in more than one centre (`identity.memberships`), so the user row itself cannot be scoped to a single centre. |
 | `identity.user_claims`, `identity.user_logins`, `identity.user_tokens` | ASP.NET Core Identity's own tables, each keyed by user id — they inherit `identity.users`' reasoning, not centre-scoped. |
 | `identity.memberships` | Deliberately not `ITenantOwned` (see the type itself): a membership is read at login, before `app.current_centre` is ever set, to show the user which centres they belong to and let them pick one. Forcing a centre-based policy on it would make centre selection impossible — reading your own memberships has to work before you have selected a centre. |
+| `platform.data_protection_keys` | The session/antiforgery cookie key ring (Task 34.6): platform-level, read before any centre (or any session) exists, and shared across every centre and every instance — there is no single tenant it could belong to. |
 
 If a future table needs centre scoping and is missing from both layers, that is the bug this list exists to
 catch — every exemption above has a reason checked against the code, not an assumption.

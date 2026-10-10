@@ -14,8 +14,10 @@ code and number below is checked against that code, not against the plan that pr
 2. Credentials are verified through a port, `IAuthenticationService.VerifyCredentialsAsync` — not a CQRS
    command, since signing in has no transaction boundary of its own. The one implementation,
    `IdentityAuthenticationService` (Infrastructure), calls ASP.NET Core Identity's `UserManager<ApplicationUser>`
-   directly: it is the one intentional write path outside the dispatcher pipeline, because `UserManager` saves
-   its own counters (failed-attempt count, lockout end, security stamp) as it goes.
+   directly: it is the first of two intentional write paths outside the dispatcher pipeline, because
+   `UserManager` saves its own counters (failed-attempt count, lockout end, security stamp) as it goes. The
+   second is the Data Protection key ring itself (Task 34.6, `platform.data_protection_keys`): the framework
+   writes a new key there on its own schedule, not through anything this document's request flow touches.
    - An unknown email still pays a real password-hash verification, against a fixed dummy user, so response
      time carries no signal about whether the account exists.
    - A locked-out user, a wrong password, and an unknown email all return the identical failure:
@@ -247,8 +249,9 @@ Deliberately out of scope today, called out at the point in the code where each 
 
 - **Permissions.** Roles are stored (`StaffRole` on `Membership`) and carried in the session (`role` claim).
   What each role may do with it is now enforced — see `docs/architecture/authorization.md`.
-- **Persisted Data Protection keys.** `AddDataProtection()` uses the framework's local key ring today
-  (`AuthenticationSetup`, "the framework default" — fine for one Development process, but a restart or a
-  second instance cannot decrypt cookies the first one issued). Month 2 persists the key ring.
+- **Persisted Data Protection keys.** Done (Task 34.6): the key ring is persisted to
+  `platform.data_protection_keys` (`DependencyInjection.AddInfrastructure`, not `AuthenticationSetup` — only
+  Program and the CLI may reference Infrastructure), so a restart or a second instance decrypts cookies the
+  others issued. See "Every authenticated request" above for the second write path this adds.
 - **Forwarded headers.** `LoginRateLimiting` reads the direct connection's remote IP; behind a real reverse
   proxy that is the proxy's own address, not the client's. Forwarded-header-aware client IPs are Month 2.
