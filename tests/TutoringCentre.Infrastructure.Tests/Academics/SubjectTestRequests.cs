@@ -18,6 +18,10 @@ internal sealed record ListSubjectNamesQuery : IQuery<List<string>>, ITenantScop
 
 internal sealed record RenameSubjectCommand(Guid SubjectId, string NewName) : ICommand<Unit>, ITenantScoped;
 
+/// <summary>Task 31.7: renames a subject, then always fails — proves a rolled-back change leaves no audit row,
+/// before a production command that fails after changing a subject exists to test instead.</summary>
+internal sealed record RenameSubjectThenFailCommand(Guid SubjectId, string NewName) : ICommand<Unit>, ITenantScoped;
+
 internal sealed class AddSubjectCommandHandler(AppDbContext db) : ICommandHandler<AddSubjectCommand, Guid>
 {
     public Task<Result<Guid>> HandleAsync(AddSubjectCommand command, CancellationToken cancellationToken)
@@ -49,5 +53,20 @@ internal sealed class RenameSubjectCommandHandler(AppDbContext db) : ICommandHan
         var subject = await db.Set<Subject>().SingleAsync(s => s.Id == command.SubjectId, cancellationToken);
         var renamed = subject.Rename(command.NewName);
         return renamed.IsFailure ? Result<Unit>.Failure(renamed.Error!) : Result<Unit>.Success(Unit.Value);
+    }
+}
+
+internal sealed class RenameSubjectThenFailCommandHandler(AppDbContext db) : ICommandHandler<RenameSubjectThenFailCommand, Unit>
+{
+    public async Task<Result<Unit>> HandleAsync(RenameSubjectThenFailCommand command, CancellationToken cancellationToken)
+    {
+        var subject = await db.Set<Subject>().SingleAsync(s => s.Id == command.SubjectId, cancellationToken);
+        var renamed = subject.Rename(command.NewName);
+        if (renamed.IsFailure)
+        {
+            return Result<Unit>.Failure(renamed.Error!);
+        }
+
+        return Result<Unit>.Failure(Error.Rule("test.deliberate_failure", "Always fails, after the subject was renamed."));
     }
 }

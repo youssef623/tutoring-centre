@@ -73,7 +73,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity", "academics", "probe"],
+            SchemasToInclude = ["platform", "identity", "academics", "probe", "audit"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
     }
@@ -185,6 +185,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<ICommandHandler<AddSubjectCommand, Guid>, AddSubjectCommandHandler>();
         services.AddScoped<IQueryHandler<ListSubjectNamesQuery, List<string>>, ListSubjectNamesQueryHandler>();
         services.AddScoped<ICommandHandler<RenameSubjectCommand, Unit>, RenameSubjectCommandHandler>();
+        services.AddScoped<ICommandHandler<RenameSubjectThenFailCommand, Unit>, RenameSubjectThenFailCommandHandler>();
 
         // Task 29.4: a test-only command standing in for CreateStaffCommand (Day 29.5), so the account-service
         // rollback test can dispatch through the real transaction before that command exists.
