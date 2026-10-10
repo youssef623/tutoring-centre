@@ -41,6 +41,11 @@ builder.Host.UseSerilog(
     // and without this the last host to start wins, silently dropping test-only sinks like InMemoryLogSink.
     preserveStaticLogger: true);
 
+// Short to start (raised once DNS/certificates are proven stable in Azure — Day 36); Production only, since
+// HSTS instructs the *browser* to remember "always HTTPS" for this host, which would break a plain-http
+// Development run for the length of the max-age.
+builder.Services.AddHsts(options => options.MaxAge = TimeSpan.FromMinutes(5));
+
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiProblemDetails();
@@ -84,6 +89,13 @@ if (app.Environment.IsDevelopment() && !isDocumentGeneration)
     await app.Services.ApplyMigrationsAsync();
 }
 
+if (app.Environment.IsProduction())
+{
+    app.UseHsts();
+}
+
+app.UseSecurityHeaders();
+
 app.UseMiddleware<CorrelationIdMiddleware>();
 
 // One line per HTTP request; health probes are noise at Information level.
@@ -96,6 +108,15 @@ app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exce
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+
+app.UseSpaStaticFiles();
+
+// Explicit, and positioned here rather than left to WebApplication's automatic insertion: routing must not
+// select an endpoint for a request before static files has had a chance to serve it. WebApplication's implicit
+// UseRouting() runs before any of this file's `Use*` calls (not "right before the first Map call" as the
+// no-explicit-call docs can read); without this explicit call, a fallback route can win against an existing
+// physical file, since endpoint SELECTION (routing) happens independently of whether a file exists on disk.
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseMiddleware<ActorMiddleware>();
@@ -126,16 +147,24 @@ api.MapStaffEndpoints();
 api.MapAuditEndpoints();
 api.MapCentreSettingsEndpoints();
 
-// Unknown /api/* routes answer with the uniform Problem Details 404. Non-API paths stay free for the SPA (Month 2).
+// Unknown /api/* routes answer with the uniform Problem Details 404, never the SPA's HTML shell.
 // Anonymous: a signed-out caller probing an unknown route must see the same 404 as anyone else, not a 401.
 app.MapFallback("/api/{**path}", () => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
     .ExcludeFromDescription()
     .AllowAnonymous();
 
-// Any other unmatched route (outside /api) gets the same anonymous 404 rather than first demanding a session —
-// the authorization fallback policy would otherwise turn "no endpoint matched" into 401. Replaced by the
-// SPA's static file serving (Month 2), which is anonymous for the same reason: the shell itself needs no session.
-app.MapFallback(() => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
+// Falls back to index.html for any other GET, so deep links work. A no-op when no build is present
+// (Development, where the Vite dev server serves the frontend).
+app.MapSpaFallback();
+
+// Whatever the above didn't handle (no build present, or a file-looking path — e.g. a missing /assets/*.js —
+// that the SPA fallback deliberately excludes via its own "nonfile" route constraint) gets the same anonymous
+// 404 rather than first demanding a session. The explicit unconstrained pattern matters here: the zero-arg
+// MapFallback overload defaults to that same "nonfile" constraint, under which a file-looking path matches no
+// endpoint at all — and the authorization fallback policy enforces RequireAuthenticatedUser() even then, so
+// an unmatched path would 401 instead of reaching this 404. Static files above still wins for any path that
+// is an actual existing file, because it runs before routing (and so before any endpoint is even selected).
+app.MapFallback("/{**path}", () => Error.NotFound("route.not_found", "The requested route does not exist.").ToProblemResult())
     .ExcludeFromDescription()
     .AllowAnonymous();
 
