@@ -1,5 +1,28 @@
 {
   "page": {
     "title": "إعدادات المركز"
+  },
+  "loading": {
+    "label": "جاري تحميل الإعدادات"
+  },
+  "error": {
+    "title": "تعذر تحميل الإعدادات",
+    "reference": "المرجع: {correlationId}"
+  },
+  "form": {
+    "nameLabel": "الاسم",
+    "defaultLocaleLabel": "اللغة الافتراضية",
+    "slugLabel": "العنوان الإلكتروني",
+    "slugHint": "لا يمكن تغيير العنوان الإلكتروني من هنا.",
+    "timeZoneLabel": "المنطقة الزمنية",
+    "timeZoneHint": "لا يمكن تغيير المنطقة الزمنية من هنا.",
+    "save": "حفظ"
+  },
+  "toasts": {
+    "saved": "تم حفظ الإعدادات."
+  },
+  "validation": {
+    "nameRequired": "اسم المركز مطلوب.",
+    "nameTooLong": "يجب ألا يزيد اسم المركز عن 120 حرفًا."
   }
 }

@@ -1,5 +1,28 @@
 {
   "page": {
     "title": "Centre settings"
+  },
+  "loading": {
+    "label": "Loading settings"
+  },
+  "error": {
+    "title": "Settings could not be loaded",
+    "reference": "Reference: {correlationId}"
+  },
+  "form": {
+    "nameLabel": "Name",
+    "defaultLocaleLabel": "Default language",
+    "slugLabel": "Web address",
+    "slugHint": "The web address cannot be changed here.",
+    "timeZoneLabel": "Time zone",
+    "timeZoneHint": "The time zone cannot be changed here.",
+    "save": "Save"
+  },
+  "toasts": {
+    "saved": "Settings saved."
+  },
+  "validation": {
+    "nameRequired": "Centre name is required.",
+    "nameTooLong": "Centre name must be at most 120 characters."
   }
 }
