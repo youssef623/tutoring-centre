@@ -69,9 +69,11 @@ public static class DependencyInjection
                 tags: ReadinessTags);
         }
 
-        // Persistence. Both interceptors are stateless (the guard reads AppDbContext.CurrentCentreId off the
-        // context being saved rather than holding a dependency of its own), so one instance each is enough.
+        // Persistence. Timestamps and the tenant guard are stateless (the guard reads AppDbContext.CurrentCentreId
+        // off the context being saved rather than holding a dependency of its own), so one instance each is enough.
+        // Audit depends on the per-scope actor and correlation context, so it is scoped, not singleton.
         services.AddSingleton<TimestampInterceptor>();
+        services.AddScoped<AuditInterceptor>();
         services.AddSingleton<TenantWriteGuardInterceptor>();
 
         services
@@ -93,6 +95,7 @@ public static class DependencyInjection
                 options,
                 serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString,
                 serviceProvider.GetRequiredService<TimestampInterceptor>(),
+                serviceProvider.GetRequiredService<AuditInterceptor>(),
                 serviceProvider.GetRequiredService<TenantWriteGuardInterceptor>());
         });
 

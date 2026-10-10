@@ -73,7 +73,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity", "academics", "probe"],
+            SchemasToInclude = ["platform", "identity", "academics", "probe", "audit"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
     }
@@ -185,6 +185,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<ICommandHandler<AddSubjectCommand, Guid>, AddSubjectCommandHandler>();
         services.AddScoped<IQueryHandler<ListSubjectNamesQuery, List<string>>, ListSubjectNamesQueryHandler>();
         services.AddScoped<ICommandHandler<RenameSubjectCommand, Unit>, RenameSubjectCommandHandler>();
+        services.AddScoped<ICommandHandler<RenameSubjectThenFailCommand, Unit>, RenameSubjectThenFailCommandHandler>();
 
         // Task 29.4: a test-only command standing in for CreateStaffCommand (Day 29.5), so the account-service
         // rollback test can dispatch through the real transaction before that command exists.
@@ -258,6 +259,30 @@ public sealed class PostgresFixture : IAsyncLifetime
         command.Parameters.AddWithValue("centre_id", centreId);
         command.Parameters.AddWithValue("name", name);
         command.Parameters.AddWithValue("normalized_name", name.ToUpperInvariant());
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one minimal identity.users row directly as the superuser, so a synthetic test actor's user id is
+    /// real for <c>fk_audit_entries_users</c> (Task 31.6) — tests that only care about centre and role, not a
+    /// real sign-in, still need an actor that an audit row can reference. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedUserAsync(string displayName = "Test Actor")
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into identity.users (
+                id, display_name, preferred_locale, must_change_password,
+                email_confirmed, phone_number_confirmed, two_factor_enabled, lockout_enabled, access_failed_count)
+            values (@id, @display_name, 'en', false, false, false, false, false, 0)
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("display_name", displayName);
         await command.ExecuteNonQueryAsync();
         return id;
     }

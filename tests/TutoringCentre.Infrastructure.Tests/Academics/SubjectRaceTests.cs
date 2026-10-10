@@ -23,8 +23,8 @@ public sealed class SubjectRaceTests(PostgresFixture fixture) : TenantProbeTestB
         async Task<Result<CreateSubjectResult>> AttemptAsync()
         {
             await gate.Task;
-            return await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(
-                new StaffActor(Guid.CreateVersion7(), NileCentreId, StaffRole.Owner), new CreateSubjectCommand("Mathematics"));
+            var actor = new StaffActor(await Fixture.SeedUserAsync(), NileCentreId, StaffRole.Owner);
+            return await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(actor, new CreateSubjectCommand("Mathematics"));
         }
 
         var tasks = Enumerable.Range(0, Attempts).Select(_ => Task.Run(AttemptAsync)).ToArray();

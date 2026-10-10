@@ -29,7 +29,7 @@ public sealed class SubjectCrossTenantTests(PostgresFixture fixture) : TenantPro
     {
         var subjectId = await CreateNileSubjectAsync("Mathematics");
 
-        var result = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(MaadiOwner(), new GetSubjectQuery(subjectId));
+        var result = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(await MaadiOwnerAsync(), new GetSubjectQuery(subjectId));
 
         Assert.True(result.IsFailure);
         Assert.Equal("subject.not_found", result.Error!.Code);
@@ -42,7 +42,7 @@ public sealed class SubjectCrossTenantTests(PostgresFixture fixture) : TenantPro
         var version = await ReadVersionAsNileAsync(subjectId);
 
         var result = await Fixture.SendAsAsync<RealRenameSubjectCommand, Unit>(
-            MaadiOwner(), new RealRenameSubjectCommand(subjectId, "Hacked", version));
+            await MaadiOwnerAsync(), new RealRenameSubjectCommand(subjectId, "Hacked", version));
 
         Assert.True(result.IsFailure);
         Assert.Equal("subject.not_found", result.Error!.Code);
@@ -56,7 +56,7 @@ public sealed class SubjectCrossTenantTests(PostgresFixture fixture) : TenantPro
         var subjectId = await CreateNileSubjectAsync("Mathematics");
         var version = await ReadVersionAsNileAsync(subjectId);
 
-        var result = await Fixture.SendAsAsync<ArchiveSubjectCommand, Unit>(MaadiOwner(), new ArchiveSubjectCommand(subjectId, version));
+        var result = await Fixture.SendAsAsync<ArchiveSubjectCommand, Unit>(await MaadiOwnerAsync(), new ArchiveSubjectCommand(subjectId, version));
 
         Assert.True(result.IsFailure);
         Assert.Equal("subject.not_found", result.Error!.Code);
@@ -70,7 +70,7 @@ public sealed class SubjectCrossTenantTests(PostgresFixture fixture) : TenantPro
         var subjectId = await CreateNileSubjectAsync("Mathematics");
         var version = await ReadVersionAsNileAsync(subjectId);
 
-        var result = await Fixture.SendAsAsync<RestoreSubjectCommand, Unit>(MaadiOwner(), new RestoreSubjectCommand(subjectId, version));
+        var result = await Fixture.SendAsAsync<RestoreSubjectCommand, Unit>(await MaadiOwnerAsync(), new RestoreSubjectCommand(subjectId, version));
 
         Assert.True(result.IsFailure);
         Assert.Equal("subject.not_found", result.Error!.Code);
@@ -83,7 +83,7 @@ public sealed class SubjectCrossTenantTests(PostgresFixture fixture) : TenantPro
     {
         await CreateNileSubjectAsync("Mathematics");
 
-        var result = await Fixture.QueryAsAsync<ListSubjectsQuery, IReadOnlyList<SubjectDto>>(MaadiOwner(), new ListSubjectsQuery(true));
+        var result = await Fixture.QueryAsAsync<ListSubjectsQuery, IReadOnlyList<SubjectDto>>(await MaadiOwnerAsync(), new ListSubjectsQuery(true));
 
         Assert.True(result.IsSuccess);
         Assert.DoesNotContain(result.Value, subject => subject.Name == "Mathematics");
@@ -94,7 +94,7 @@ public sealed class SubjectCrossTenantTests(PostgresFixture fixture) : TenantPro
     {
         await CreateNileSubjectAsync("Mathematics");
 
-        var result = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(MaadiOwner(), new CreateSubjectCommand("Mathematics"));
+        var result = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(await MaadiOwnerAsync(), new CreateSubjectCommand("Mathematics"));
 
         Assert.True(result.IsSuccess);
     }
@@ -120,19 +120,19 @@ public sealed class SubjectCrossTenantTests(PostgresFixture fixture) : TenantPro
         });
     }
 
-    private StaffActor NileOwner() => new(Guid.CreateVersion7(), NileCentreId, StaffRole.Owner);
+    private async Task<StaffActor> NileOwnerAsync() => new(await Fixture.SeedUserAsync(), NileCentreId, StaffRole.Owner);
 
-    private StaffActor MaadiOwner() => new(Guid.CreateVersion7(), MaadiCentreId, StaffRole.Owner);
+    private async Task<StaffActor> MaadiOwnerAsync() => new(await Fixture.SeedUserAsync(), MaadiCentreId, StaffRole.Owner);
 
     private async Task<Guid> CreateNileSubjectAsync(string name)
     {
-        var result = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(NileOwner(), new CreateSubjectCommand(name));
+        var result = await Fixture.SendAsAsync<CreateSubjectCommand, CreateSubjectResult>(await NileOwnerAsync(), new CreateSubjectCommand(name));
         return result.Value.SubjectId;
     }
 
     private async Task<uint> ReadVersionAsNileAsync(Guid subjectId)
     {
-        var dto = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(NileOwner(), new GetSubjectQuery(subjectId));
+        var dto = await Fixture.QueryAsAsync<GetSubjectQuery, SubjectDto>(await NileOwnerAsync(), new GetSubjectQuery(subjectId));
         return dto.Value.Version;
     }
 }
