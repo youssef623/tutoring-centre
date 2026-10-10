@@ -19,7 +19,25 @@
       "permission_denied": "You do not have permission to do this.",
       "password_change_required": "Please change your password before continuing.",
       "current_password_invalid": "The current password you entered is incorrect.",
-      "password_too_weak": "This password does not meet the requirements."
+      "password_too_weak": "This password does not meet the requirements.",
+      "rate_limited": "Too many attempts. Please wait a minute and try again.",
+      "invalid_credentials": "Incorrect email or password.",
+      "not_authenticated": "Please sign in to continue."
+    },
+    "staff": {
+      "already_member": "This person is already a member of this centre.",
+      "last_owner": "This centre must keep at least one owner.",
+      "cannot_change_self": "You cannot change your own role.",
+      "not_found": "This staff member could not be found.",
+      "email_invalid": "Enter a valid email address."
+    },
+    "membership": {
+      "role_unchanged": "The role is already this value.",
+      "inactive": "This membership is inactive.",
+      "already_active": "This membership is already active.",
+      "already_inactive": "This membership is already inactive.",
+      "centre_required": "A centre is required.",
+      "user_required": "A user is required."
     },
     "subject": {
       "not_found": "This subject could not be found.",

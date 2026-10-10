@@ -66,10 +66,19 @@ declares, never something a handler decides for itself by comparing roles.
 `GET /api/me` returns `permissions`: the active role's keys, sorted, computed fresh from `RolePermissions` on
 every call — empty when no centre is active. Nothing new in the cookie or the claims; the list is computed,
 never stored, and a client is never asked to derive it from a role name. The frontend reads it through one
-hook (`useCan`) and one wrapper (`Can`, both `frontend/src/features/session`), applied to the sidebar and the
-Subjects page: a nav item or an action that needs a permission the session lacks is not rendered. A 403
+hook (`useCan`) and one wrapper (`Can`, both `frontend/src/features/session`), applied to the sidebar and
+every permission-gated action (the Subjects page's write controls; the Staff page's Add button and row
+menus, Day 33): a nav item or an action that needs a permission the session lacks is not rendered. A 403
 `auth.permission_denied` from a mutation shows a translated toast and refetches `/api/me`, so a role changed
 mid-session (by another admin, in another tab) is reflected without a full reload.
+
+A whole page can need gating too, for a user who types the URL directly rather than following a hidden nav
+link: `RouteGuard` (Day 33, same module) wraps the Staff, Settings and Audit log routes, each tied to its
+`staff.view` / `centre.settings.manage` / `audit.view` permission. Unlike `Can`, which renders nothing, a
+denied `RouteGuard` renders a translated "you don't have access" state with a link back to the dashboard —
+and critically, the page's own data hooks live inside its children, so they never mount and no request for
+the guarded data is ever issued. Still not the security boundary: a hand-made request to `GET /api/staff` as
+a teacher returns 403 from the pipeline step regardless of what the route rendered.
 
 None of this is the security boundary. Hiding a control improves the experience; it protects nothing a
 hand-made request couldn't already reach, had the server allowed it — which is exactly what the pipeline

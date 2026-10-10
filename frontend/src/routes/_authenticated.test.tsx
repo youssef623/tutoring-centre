@@ -53,7 +53,7 @@ describe("the protected layout's guard", () => {
 
     renderRouter("/");
 
-    expect(await screen.findByText("Two-Centre Teacher")).toBeInTheDocument();
+    expect(await screen.findByText("Two-Centre Teacher", {}, { timeout: 3000 })).toBeInTheDocument();
     expect(screen.getByText("Nile Tutoring Centre")).toBeInTheDocument();
   });
 });

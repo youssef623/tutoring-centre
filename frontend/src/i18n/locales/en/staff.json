@@ -1,0 +1,78 @@
+{
+  "page": {
+    "title": "Staff"
+  },
+  "columns": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "you": "You",
+  "loading": {
+    "label": "Loading staff"
+  },
+  "error": {
+    "title": "Staff could not be loaded",
+    "reference": "Reference: {correlationId}"
+  },
+  "emptyState": {
+    "title": "No staff yet",
+    "description": "Add your first staff member to get started."
+  },
+  "actions": {
+    "create": "Add staff",
+    "changeRole": "Change role",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "openMenu": "Open actions menu"
+  },
+  "dialogs": {
+    "createTitle": "Add staff",
+    "changeRoleTitle": "Change role for {name}"
+  },
+  "form": {
+    "emailLabel": "Email",
+    "emailPlaceholder": "e.g. teacher@example.com",
+    "displayNameLabel": "Name",
+    "displayNamePlaceholder": "e.g. Sara Ahmed",
+    "roleLabel": "Role",
+    "preferredLocaleLabel": "Preferred language",
+    "save": "Save",
+    "cancel": "Cancel",
+    "changeRoleConsequence": "They will be signed out and will get the new role the next time they sign in."
+  },
+  "confirmations": {
+    "deactivateTitle": "Deactivate {name}?",
+    "deactivateBody": "{name} will lose access to this centre only. Their account is never deleted.",
+    "deactivateConfirm": "Deactivate"
+  },
+  "password": {
+    "title": "Temporary password",
+    "description": "Share this password with {name}. It will not be shown again and must be changed at first sign-in.",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "done": "Done"
+  },
+  "existingAccount": {
+    "title": "Account already exists",
+    "description": "{name} already has an account and can now select this centre to sign in."
+  },
+  "toasts": {
+    "created": "Staff member added.",
+    "roleChanged": "Role changed.",
+    "deactivated": "Staff member deactivated.",
+    "reactivated": "Staff member reactivated."
+  },
+  "validation": {
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "displayNameRequired": "Name is required.",
+    "displayNameTooLong": "Name must be at most 120 characters."
+  }
+}

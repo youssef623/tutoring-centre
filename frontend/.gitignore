@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# TanStack Router plugin's own cache
+.tanstack
+
 # Playwright (Day 18): reports, traces and the browser binaries it downloads
 playwright-report
 blob-report

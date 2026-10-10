@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "سجل النشاط"
+  },
+  "filters": {
+    "entityTypeLabel": "نوع العنصر",
+    "entityTypeAll": "الكل",
+    "fromLabel": "من",
+    "toLabel": "إلى"
+  },
+  "entityType": {
+    "subject": "مادة",
+    "membership": "عضوية موظف",
+    "centre": "المركز"
+  },
+  "action": {
+    "created": "تم الإنشاء",
+    "updated": "تم التحديث",
+    "deleted": "تم الحذف"
+  },
+  "field": {
+    "name": "الاسم",
+    "status": "الحالة",
+    "role": "الدور",
+    "userId": "المستخدم",
+    "defaultLocale": "اللغة الافتراضية"
+  },
+  "value": {
+    "status": {
+      "active": "نشط",
+      "archived": "مؤرشف",
+      "inactive": "غير نشط"
+    }
+  },
+  "system": "النظام",
+  "referenceLabel": "المرجع:",
+  "copyReference": "نسخ المرجع",
+  "copied": "تم النسخ!",
+  "loadMore": "تحميل المزيد",
+  "loading": {
+    "label": "جاري تحميل سجل النشاط"
+  },
+  "error": {
+    "title": "تعذر تحميل سجل النشاط",
+    "reference": "المرجع: {correlationId}"
+  },
+  "emptyState": {
+    "title": "لا يوجد نشاط لهذه الفلاتر."
+  },
+  "nullValue": "—"
+}

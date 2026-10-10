@@ -1,16 +1,22 @@
 import i18next from "i18next";
 import ICU from "i18next-icu";
 import { initReactI18next } from "react-i18next";
+import auditAr from "./locales/ar/audit.json";
 import authAr from "./locales/ar/auth.json";
 import commonAr from "./locales/ar/common.json";
 import errorsAr from "./locales/ar/errors.json";
+import settingsAr from "./locales/ar/settings.json";
 import shellAr from "./locales/ar/shell.json";
+import staffAr from "./locales/ar/staff.json";
 import statusAr from "./locales/ar/status.json";
 import subjectsAr from "./locales/ar/subjects.json";
+import auditEn from "./locales/en/audit.json";
 import authEn from "./locales/en/auth.json";
 import commonEn from "./locales/en/common.json";
 import errorsEn from "./locales/en/errors.json";
+import settingsEn from "./locales/en/settings.json";
 import shellEn from "./locales/en/shell.json";
+import staffEn from "./locales/en/staff.json";
 import statusEn from "./locales/en/status.json";
 import subjectsEn from "./locales/en/subjects.json";
 
@@ -59,12 +65,32 @@ void i18next
   .use(initReactI18next)
   .init({
     resources: {
-      en: { common: commonEn, status: statusEn, errors: errorsEn, auth: authEn, shell: shellEn, subjects: subjectsEn },
-      ar: { common: commonAr, status: statusAr, errors: errorsAr, auth: authAr, shell: shellAr, subjects: subjectsAr },
+      en: {
+        common: commonEn,
+        status: statusEn,
+        errors: errorsEn,
+        auth: authEn,
+        shell: shellEn,
+        subjects: subjectsEn,
+        staff: staffEn,
+        settings: settingsEn,
+        audit: auditEn,
+      },
+      ar: {
+        common: commonAr,
+        status: statusAr,
+        errors: errorsAr,
+        auth: authAr,
+        shell: shellAr,
+        subjects: subjectsAr,
+        staff: staffAr,
+        settings: settingsAr,
+        audit: auditAr,
+      },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "staff", "settings", "audit"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

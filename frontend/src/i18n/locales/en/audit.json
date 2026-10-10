@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Audit log"
+  },
+  "filters": {
+    "entityTypeLabel": "Entity type",
+    "entityTypeAll": "All",
+    "fromLabel": "From",
+    "toLabel": "To"
+  },
+  "entityType": {
+    "subject": "Subject",
+    "membership": "Staff membership",
+    "centre": "Centre"
+  },
+  "action": {
+    "created": "Created",
+    "updated": "Updated",
+    "deleted": "Deleted"
+  },
+  "field": {
+    "name": "Name",
+    "status": "Status",
+    "role": "Role",
+    "userId": "User",
+    "defaultLocale": "Default language"
+  },
+  "value": {
+    "status": {
+      "active": "Active",
+      "archived": "Archived",
+      "inactive": "Inactive"
+    }
+  },
+  "system": "System",
+  "referenceLabel": "Reference:",
+  "copyReference": "Copy reference",
+  "copied": "Copied!",
+  "loadMore": "Load more",
+  "loading": {
+    "label": "Loading audit log"
+  },
+  "error": {
+    "title": "Audit log could not be loaded",
+    "reference": "Reference: {correlationId}"
+  },
+  "emptyState": {
+    "title": "No activity for these filters."
+  },
+  "nullValue": "—"
+}
