@@ -28,6 +28,53 @@ export interface AntiforgeryTokenResponse {
   token: string;
 }
 
+export interface AuditChangeDto {
+  field: string;
+  /** @nullable */
+  before: string | null;
+  /** @nullable */
+  after: string | null;
+}
+
+export interface AuditEntryDto {
+  id: string;
+  occurredAt: string;
+  actorType: string;
+  /** @nullable */
+  actorUserId: string | null;
+  /** @nullable */
+  actorDisplayName: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  changes: AuditChangeDto[];
+  /** @nullable */
+  correlationId: string | null;
+}
+
+export interface AuditPageDto {
+  items: AuditEntryDto[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export type SupportedLocale = typeof SupportedLocale[keyof typeof SupportedLocale];
+
+
+export const SupportedLocale = {
+  ar: 'ar',
+  en: 'en',
+} as const;
+
+export interface CentreSettingsDto {
+  name: string;
+  slug: string;
+  timeZoneId: string;
+  defaultLocale: SupportedLocale;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
@@ -201,8 +248,28 @@ export interface SystemInfoDto {
   databaseUpToDate: boolean;
 }
 
+export interface UpdateCentreSettingsRequest {
+  name: string;
+  defaultLocale: SupportedLocale;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
 export type ListSubjectsParams = {
 includeArchived?: boolean;
+};
+
+export type GetAuditLogParams = {
+entityType?: string;
+entityId?: string;
+actorUserId?: string;
+from?: string;
+to?: string;
+cursor?: string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+pageSize?: number | string;
 };
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -1775,4 +1842,283 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReactivateStaffMutationOptions(options), queryClient);
+    }
+
+export const getGetAuditLogUrl = (params?: GetAuditLogParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/audit?${stringifiedParams}` : `/api/audit`
+}
+
+export const getAuditLog = async (params?: GetAuditLogParams, options?: Parameters<typeof apiFetch>[1]): Promise<AuditPageDto> => {
+
+  return apiFetch<AuditPageDto>(getGetAuditLogUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAuditLogQueryKey = (params?: GetAuditLogParams,) => {
+    return [
+    `/api/audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAuditLogQueryOptions = <TData = Awaited<ReturnType<typeof getAuditLog>>, TError = HttpValidationProblemDetails | ProblemDetails>(params?: GetAuditLogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuditLog>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAuditLogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuditLog>>> = ({ signal }) => getAuditLog(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAuditLog>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAuditLogQueryResult = NonNullable<Awaited<ReturnType<typeof getAuditLog>>>
+export type GetAuditLogQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetAuditLog<TData = Awaited<ReturnType<typeof getAuditLog>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params: undefined |  GetAuditLogParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuditLog>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuditLog>>,
+          TError,
+          Awaited<ReturnType<typeof getAuditLog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAuditLog<TData = Awaited<ReturnType<typeof getAuditLog>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAuditLogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuditLog>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuditLog>>,
+          TError,
+          Awaited<ReturnType<typeof getAuditLog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAuditLog<TData = Awaited<ReturnType<typeof getAuditLog>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAuditLogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuditLog>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAuditLog<TData = Awaited<ReturnType<typeof getAuditLog>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAuditLogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuditLog>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAuditLogQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCentreSettingsUrl = () => {
+
+
+
+
+  return `/api/centre/settings`
+}
+
+export const getCentreSettings = async ( options?: Parameters<typeof apiFetch>[1]): Promise<CentreSettingsDto> => {
+
+  return apiFetch<CentreSettingsDto>(getGetCentreSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCentreSettingsQueryKey = () => {
+    return [
+    `/api/centre/settings`
+    ] as const;
+    }
+
+
+export const getGetCentreSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getCentreSettings>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCentreSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCentreSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCentreSettings>>> = ({ signal }) => getCentreSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCentreSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCentreSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getCentreSettings>>>
+export type GetCentreSettingsQueryError = ProblemDetails
+
+
+export function useGetCentreSettings<TData = Awaited<ReturnType<typeof getCentreSettings>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCentreSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCentreSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getCentreSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCentreSettings<TData = Awaited<ReturnType<typeof getCentreSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCentreSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCentreSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getCentreSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCentreSettings<TData = Awaited<ReturnType<typeof getCentreSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCentreSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCentreSettings<TData = Awaited<ReturnType<typeof getCentreSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCentreSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCentreSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateCentreSettingsUrl = () => {
+
+
+
+
+  return `/api/centre/settings`
+}
+
+export const updateCentreSettings = async (updateCentreSettingsRequest: UpdateCentreSettingsRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getUpdateCentreSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateCentreSettingsRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateCentreSettingsMutationKey = () => ['updateCentreSettings'] as const;
+
+export const getUpdateCentreSettingsMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCentreSettings>>, TError,UpdateCentreSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCentreSettings>>, TError,UpdateCentreSettingsMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCentreSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCentreSettings>>, UpdateCentreSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateCentreSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCentreSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateCentreSettings>>>
+    export type UpdateCentreSettingsMutationBody = UpdateCentreSettingsRequest
+    export type UpdateCentreSettingsMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdateCentreSettingsMutationVariables = {data: UpdateCentreSettingsRequest}
+
+    export const useUpdateCentreSettings = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCentreSettings>>, TError,UpdateCentreSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateCentreSettings>>,
+        TError,
+        UpdateCentreSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCentreSettingsMutationOptions(options), queryClient);
     }

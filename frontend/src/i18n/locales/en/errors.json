@@ -6,6 +6,7 @@
     "centre": {
       "name_required": "Centre name is required.",
       "name_too_long": "Centre name must be at most 120 characters.",
+      "name_invalid": "Centre name must be 1-120 characters.",
       "slug_invalid": "The web address may only contain lowercase letters, digits and single hyphens.",
       "time_zone_invalid": "The time zone is not recognised.",
       "slug_taken": "A centre with this web address already exists.",

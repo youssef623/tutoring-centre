@@ -82,4 +82,58 @@ public sealed class CentreTests
         Assert.Equal(expectedCode, result.Error.Code);
         Assert.Equal(ErrorKind.Validation, result.Error.Kind);
     }
+
+    [Fact]
+    public void UpdateSettings_WithValidInput_SucceedsAndTrimsNameAndChangesLocale()
+    {
+        var centre = Centre.Create(ValidName, ValidSlug, Cairo, SupportedLocale.Ar).Value;
+
+        var result = centre.UpdateSettings("  Nile Learning Centre  ", SupportedLocale.En);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Nile Learning Centre", centre.Name);
+        Assert.Equal(SupportedLocale.En, centre.DefaultLocale);
+        Assert.Equal(ValidSlug, centre.Slug);
+        Assert.Equal(Cairo, centre.TimeZoneId);
+    }
+
+    [Fact]
+    public void UpdateSettings_WithEmptyName_ReturnsNameInvalidAndChangesNothing()
+    {
+        var centre = Centre.Create(ValidName, ValidSlug, Cairo, SupportedLocale.Ar).Value;
+
+        var result = centre.UpdateSettings("", SupportedLocale.En);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("centre.name_invalid", result.Error!.Code);
+        Assert.Equal(ErrorKind.Validation, result.Error.Kind);
+        Assert.Equal("Centre name must be 1-120 characters.", result.Error.Fields!["name"][0]);
+        Assert.Equal(ValidName, centre.Name);
+        Assert.Equal(SupportedLocale.Ar, centre.DefaultLocale);
+    }
+
+    [Fact]
+    public void UpdateSettings_With121CharacterName_ReturnsNameInvalidAndChangesNothing()
+    {
+        var centre = Centre.Create(ValidName, ValidSlug, Cairo, SupportedLocale.Ar).Value;
+
+        var result = centre.UpdateSettings(new string('a', 121), SupportedLocale.En);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("centre.name_invalid", result.Error!.Code);
+        Assert.Equal(ValidName, centre.Name);
+        Assert.Equal(SupportedLocale.Ar, centre.DefaultLocale);
+    }
+
+    [Fact]
+    public void UpdateSettings_WithBothValuesUnchanged_SucceedsAndChangesNothing()
+    {
+        var centre = Centre.Create(ValidName, ValidSlug, Cairo, SupportedLocale.Ar).Value;
+
+        var result = centre.UpdateSettings(ValidName, SupportedLocale.Ar);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ValidName, centre.Name);
+        Assert.Equal(SupportedLocale.Ar, centre.DefaultLocale);
+    }
 }

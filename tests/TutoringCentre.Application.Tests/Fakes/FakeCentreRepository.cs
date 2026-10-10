@@ -13,5 +13,8 @@ public sealed class FakeCentreRepository : ICentreRepository
     public Task<bool> ExistsBySlugAsync(string slug, CancellationToken ct) =>
         Task.FromResult(Existing.Concat(Added).Any(centre => centre.Slug == slug));
 
+    public Task<Centre?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct) =>
+        Task.FromResult(Existing.Concat(Added).SingleOrDefault(centre => centre.Id == id));
+
     public void Add(Centre centre) => Added.Add(centre);
 }
