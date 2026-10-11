@@ -1,0 +1,95 @@
+# Runs the real image (Task 34.2) behind a local HTTPS reverse proxy (Task 34.8), against the same Compose
+# database as everyday development — the production topology on a laptop, before any cloud resource exists.
+#
+#   docker compose -f compose.yaml -f compose.prod.yaml up --build
+#
+# Then open https://localhost:8443 (Caddy's own locally-trusted certificate; the browser may ask you to
+# accept it once). See the README for the full walkthrough.
+services:
+  # The base compose.yaml's postgres service is otherwise unchanged; it only needs to also be reachable
+  # from the fixed "prod" network below (it stays on its own default network too).
+  postgres:
+    networks:
+      - default
+      - prod
+
+  migrate:
+    build:
+      context: .
+      args:
+        COMMIT_SHA: ${COMMIT_SHA:-local}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Proxy__KnownNetworks__0: "172.28.0.0/16"
+      ConnectionStrings__PostgresMigrations: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=tutoring_owner;Password=${TUTORING_OWNER_PASSWORD}
+      # DatabaseOptions requires this to be non-empty even for the migrate command, which never actually
+      # connects with it (MigrationRunner only ever reads MigrationsConnectionString) — harmless either way.
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=tutoring_app;Password=${TUTORING_APP_PASSWORD}
+    command: ["dotnet", "TutoringCentre.Api.dll", "migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prod
+
+  seed:
+    build:
+      context: .
+      args:
+        COMMIT_SHA: ${COMMIT_SHA:-local}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Proxy__KnownNetworks__0: "172.28.0.0/16"
+      Demo__Enabled: "true"
+      ConnectionStrings__PostgresMigrations: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=tutoring_owner;Password=${TUTORING_OWNER_PASSWORD}
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=tutoring_app;Password=${TUTORING_APP_PASSWORD}
+      Seed__Password: ${DEMO_SEED_PASSWORD:?set DEMO_SEED_PASSWORD in .env}
+    command: ["dotnet", "TutoringCentre.Api.dll", "seed"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - prod
+
+  app:
+    build:
+      context: .
+      args:
+        COMMIT_SHA: ${COMMIT_SHA:-local}
+    image: tutoring-centre:local
+    # Only the runtime connection string, the proxy's own network, and the demo flag — never the owner
+    # connection or the seed password (Task 34.8's own constraint: the app never receives the owner connection).
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=tutoring_app;Password=${TUTORING_APP_PASSWORD}
+      Proxy__KnownNetworks__0: "172.28.0.0/16"
+      Demo__Enabled: "true"
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    networks:
+      - prod
+
+  caddy:
+    image: caddy:2.9-alpine
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - app
+    networks:
+      - prod
+
+networks:
+  # A fixed subnet, not Compose's default dynamic one: the app's Proxy:KnownNetworks above must name the
+  # network Caddy's traffic actually arrives from, which a dynamically-assigned subnet can't guarantee in
+  # advance.
+  prod:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  caddy_data:

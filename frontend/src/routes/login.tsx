@@ -173,18 +173,16 @@ function LoginPage() {
 
       {/* Brand panel */}
       <aside
-        className="relative hidden overflow-hidden text-white lg:flex lg:flex-col lg:justify-center"
-        style={{ backgroundImage: "linear-gradient(135deg, #0d9488 0%, #0f766e 55%, #115e59 100%)" }}
+        className="relative hidden overflow-hidden text-white lg:flex lg:flex-col lg:justify-center bg-[linear-gradient(135deg,#0d9488_0%,#0f766e_55%,#115e59_100%)]"
         aria-hidden="true"
       >
-        {/* decorative glows */}
+        {/* decorative glows. Tailwind arbitrary-value utilities, not a style attribute: the CSS lands in the
+            build's stylesheet rather than as an inline style, which a strict CSP (style-src 'self') blocks. */}
         <div
-          className="pointer-events-none absolute -top-24 -end-16 size-80 rounded-full opacity-40 blur-3xl"
-          style={{ background: "radial-gradient(circle, #5eead4 0%, transparent 70%)" }}
+          className="pointer-events-none absolute -top-24 -end-16 size-80 rounded-full opacity-40 blur-3xl bg-[radial-gradient(circle,#5eead4_0%,transparent_70%)]"
         />
         <div
-          className="pointer-events-none absolute -bottom-24 -start-10 size-72 rounded-full opacity-30 blur-3xl"
-          style={{ background: "radial-gradient(circle, #f59e0b 0%, transparent 70%)" }}
+          className="pointer-events-none absolute -bottom-24 -start-10 size-72 rounded-full opacity-30 blur-3xl bg-[radial-gradient(circle,#f59e0b_0%,transparent_70%)]"
         />
 
         <div className="relative z-10 mx-auto flex w-full max-w-md flex-col gap-10 px-12">

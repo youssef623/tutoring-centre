@@ -1,3 +1,5 @@
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using TutoringCentre.Api.Cli;
 using TutoringCentre.Api.Tests.Fixtures;
 
@@ -9,6 +11,30 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
     public Task InitializeAsync() => factory.ResetAsync();
 
     public Task DisposeAsync() => Task.CompletedTask;
+
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Testing")]
+    public void SeedGate_OutsideProduction_AlwaysAllowed(string environmentName) =>
+        Assert.True(SeedGate.IsAllowed(FakeEnvironment(environmentName), new DemoOptions { Enabled = false }));
+
+    [Fact]
+    public void SeedGate_Production_WithDemoDisabled_IsRefused() =>
+        Assert.False(SeedGate.IsAllowed(FakeEnvironment("Production"), new DemoOptions { Enabled = false }));
+
+    [Fact]
+    public void SeedGate_Production_WithDemoEnabled_IsAllowed() =>
+        Assert.True(SeedGate.IsAllowed(FakeEnvironment("Production"), new DemoOptions { Enabled = true }));
+
+    private static FakeHostEnvironment FakeEnvironment(string environmentName) => new(environmentName);
+
+    private sealed class FakeHostEnvironment(string environmentName) : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = environmentName;
+        public string ApplicationName { get; set; } = "TutoringCentre.Api.Tests";
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    }
 
     [Fact]
     public async Task RunAsync_CalledTwice_CreatesExactlyTheTwoDemoCentres()

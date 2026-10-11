@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -99,6 +100,14 @@ public static class DependencyInjection
                 serviceProvider.GetRequiredService<AuditInterceptor>(),
                 serviceProvider.GetRequiredService<TenantWriteGuardInterceptor>());
         });
+
+        // The key ring that encrypts the session and antiforgery cookies, persisted in the same database
+        // (Task 34.6) instead of the container's own file system, so every instance reads the same keys and a
+        // cookie survives a restart or a redeploy. Registered here, not in the Api's AuthenticationSetup,
+        // because only Program and the CLI may reference Infrastructure (ApiRuleTests) — AppDbContext is an
+        // Infrastructure type. The application name is unchanged from Month 1: changing it would invalidate
+        // every existing cookie.
+        services.AddDataProtection().SetApplicationName("TutoringCentre").PersistKeysToDbContext<AppDbContext>();
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
