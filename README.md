@@ -5,8 +5,11 @@
 A multi-tenant management platform for Egyptian tutoring centres: students and parents, groups and schedules, attendance (manual and QR), fees and payments, and a WhatsApp assistant that answers parents' questions in Egyptian Arabic and English through the same authorized use cases as the staff web app. Built with ASP.NET Core (.NET 10) using Clean Architecture and a hand-written CQRS pipeline, PostgreSQL, and a React + TypeScript frontend.
 
 **Live instance:** not yet deployed — no Azure subscription provisioned yet (see
-[Deployment](docs/architecture/deployment.md)). This link will point at the public URL once Day 36 closes out
-Slice 6.
+[Deployment](docs/architecture/deployment.md) for exactly what is built versus still only designed). This
+section will carry the public URL once that work lands. Once it does, the demo accounts are the same emails
+as the local seed (`owner@nile.test`, `owner@maadi.test`, `teacher@both.test`, `secretary@nile.test`) — the
+demo password is never written here; it lives only in the deployment's own secret store
+(`docs/architecture/deployment.md`'s secrets inventory).
 
 ## Quick start
 
@@ -165,12 +168,16 @@ flowchart TD
 - [ADR 0001 — Clean Architecture with four projects](docs/adr/0001-clean-architecture.md)
 - [ADR 0002 — .NET backend and React frontend](docs/adr/0002-dotnet-react.md)
 - [ADR 0005 — Encrypted cookie authentication over JWT](docs/adr/0005-cookie-authentication.md)
-- [ADR 0006 — Tenant isolation as defense in depth (draft)](docs/adr/0006-tenant-isolation.md)
+- [ADR 0006 — Tenant isolation as defense in depth](docs/adr/0006-tenant-isolation.md)
 - [ADR 0007 — Code-defined permissions](docs/adr/0007-code-defined-permissions.md)
+- [ADR 0008 — Audit log written in the command's own transaction](docs/adr/0008-audit-log-in-transaction.md)
+- [ADR 0009 — Azure Container Apps and OIDC](docs/adr/0009-azure-container-apps-and-oidc.md)
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
-- [Tenant isolation: the role model, and layers 1–4 as they land](docs/architecture/tenancy.md)
+- [Tenant isolation: the role model, and all four layers](docs/architecture/tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)
+- [Audit: how a change becomes an audit row, atomically](docs/architecture/audit.md)
 - [Deployment: topology, pipeline, secrets inventory, and what's not provisioned yet](docs/architecture/deployment.md)
+- [Live verification checklist](docs/operations/live-verification.md) and [runbook](docs/operations/runbook.md)
 - [Frontend decisions and conventions](frontend/README.md)
 
 ## Quality gates

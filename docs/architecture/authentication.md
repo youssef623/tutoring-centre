@@ -127,7 +127,10 @@ Exactly these opt out of the authentication-by-default policy:
 
 A second, pattern-less fallback (`app.MapFallback(...)`, also anonymous) covers unmatched routes *outside*
 `/api` for the same reason: without it, the authorization fallback policy would turn "no endpoint matched"
-into 401 instead of preserving 404. It stands in for the SPA's own static file serving, which Month 2 adds.
+into 401 instead of preserving 404. It sits behind the SPA's own static file serving and fallback
+(`MapSpaFallback`, Task 34.1), which wins first for any GET that is neither an `/api` route nor an existing
+asset — this anonymous 404 is what is left over once static files, the SPA shell and every `/api` route have
+all had their turn.
 
 ## Logout
 
@@ -149,7 +152,8 @@ Configured in `AuthenticationSetup.AddApiAuthentication`:
 | Expiration | 8 hours, sliding |
 
 Claims (`SessionClaimNames`), deliberately minimal — no email, no display name (those come from
-`GET /api/me`), no permissions (Month 2 resolves them server-side on every request):
+`GET /api/me`), no permissions either: those are resolved server-side on every request from the role claim
+below, never cached on the cookie (`docs/architecture/authorization.md`):
 
 | Claim | Meaning |
 |---|---|
@@ -215,8 +219,9 @@ Two different defenses against two different attacks:
 - **Rate limiting** (`LoginRateLimiting`, `Microsoft.AspNetCore.RateLimiting`) protects against **spraying
   many accounts from one source**: a fixed window of 10 requests per minute per client IP, attached only to
   the login endpoint. The 11th request in a window gets `auth.rate_limited`, 429, with a `Retry-After`
-  header. Forwarded-header-aware client IPs (so this works correctly behind a real proxy) are Month 2; today
-  it reads `HttpContext.Connection.RemoteIpAddress` directly.
+  header. The partition key is the connection's remote address *after* forwarded-header processing (Task
+  34.3/34.4): behind the configured proxy network this is the real client; a forged header from anywhere else
+  is never trusted, so it cannot be used to dodge or spread the limit.
   - The test suite varies the partition key via an `X-Test-RateLimit-Partition` header, honoured only when
     `IHostEnvironment.IsEnvironment("Testing")` — Production and Development never read it, so a real caller
     cannot use this header to dodge the limit.
@@ -242,16 +247,3 @@ Every code this flow can produce, and the status it comes with:
 | `auth.current_password_invalid` | 422 | `POST /api/auth/change-password` with the wrong current password |
 | `auth.password_too_weak` | 400 | `POST /api/auth/change-password` with a new password that fails the policy, or matches the current one |
 | `route.not_found` | 404 | Any unmatched route, `/api` or not, anonymous |
-
-## What Month 2 adds
-
-Deliberately out of scope today, called out at the point in the code where each one will land:
-
-- **Permissions.** Roles are stored (`StaffRole` on `Membership`) and carried in the session (`role` claim).
-  What each role may do with it is now enforced — see `docs/architecture/authorization.md`.
-- **Persisted Data Protection keys.** Done (Task 34.6): the key ring is persisted to
-  `platform.data_protection_keys` (`DependencyInjection.AddInfrastructure`, not `AuthenticationSetup` — only
-  Program and the CLI may reference Infrastructure), so a restart or a second instance decrypts cookies the
-  others issued. See "Every authenticated request" above for the second write path this adds.
-- **Forwarded headers.** `LoginRateLimiting` reads the direct connection's remote IP; behind a real reverse
-  proxy that is the proxy's own address, not the client's. Forwarded-header-aware client IPs are Month 2.

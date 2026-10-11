@@ -22,20 +22,28 @@
 
 **Safety.** Codes and messages never contain internals: no stack traces, SQL, file paths or secrets.
 
-## Request pipeline (end of Week 3)
+## Request pipeline (end of Month 2)
 
 ```
 Every HTTP request:
   client
-    → Api: CorrelationIdMiddleware → request logging → exception handler → status code pages
+    → Api: UseTrustedForwardedHeaders (first, always — trusted-proxy-only; Day 34.3)
+    → UseHsts (Production only)
+    → UseSecurityHeaders (CSP, X-Content-Type-Options, etc. — every response; Day 34.5)
+    → CorrelationIdMiddleware → request logging → exception handler → status code pages
+    → UseSpaStaticFiles / static files (hashed assets; cached forever — Day 34.1)
     → UseAuthentication (session cookie decrypted; OnValidatePrincipal revalidates against the
       database, 60 s cache — docs/architecture/authentication.md)
     → ActorMiddleware (claims → StaffActor; the one place claims become an actor)
     → UseAuthorization (authenticated by default; six routes opt out with .AllowAnonymous())
-    → UseRateLimiter (the "login" policy only — POST /api/auth/login)
+    → UseRateLimiter (the "login" and "change password" policies, partitioned by the real
+      client address after forwarded-header processing — Day 34.4)
     → endpoint routing
     → AntiforgeryEndpointFilter (whole /api group; unsafe methods only — rejects before the
       handler runs, no side effects)
+    → /api/{**path} fallback: unknown API route → JSON 404
+    → MapSpaFallback: any other GET → index.html (anonymous; no-op when no build is present)
+    → /{**path} fallback: anything still unmatched → anonymous JSON 404
 
 Command (HTTP POST/PUT/DELETE, CLI, jobs):
     → endpoint (bind only)
@@ -80,6 +88,25 @@ Query (HTTP GET, reads):
 
 **Who calls SaveChanges.** Only the command pipeline, exactly once, after a successful handler; queries never call it.
 
+**Two write paths exist entirely outside the dispatcher**, and therefore outside tenant isolation, the
+permission step, the audit interceptor and the single-transaction guarantee above — each one legitimately so,
+because each belongs to a framework that owns its own persistence:
+
+1. **ASP.NET Core Identity** (`UserManager<ApplicationUser>`, used directly by
+   `IdentityAuthenticationService`, `StaffAccountService` and `ResetPasswordCommand`) writes password hashes,
+   lockout counters and the security stamp straight through Identity's own store. These are not Application
+   commands and never go through `Dispatcher` — there is no `ITenantScoped`, `IRequirePermission` or audited
+   change here to enforce in the first place, since the rows it touches (`identity.users`) are not
+   centre-scoped (`docs/architecture/tenancy.md`'s Exemptions table).
+2. **The Data Protection key ring** (`platform.data_protection_keys`, Task 34.6) is written by the framework
+   itself, inside `Microsoft.AspNetCore.DataProtection.EntityFrameworkCore`, whenever a new key is generated —
+   platform-level, shared across every centre and every instance, with no single tenant it could belong to
+   (same Exemptions table).
+
+Neither path writes a row that any of the four tenant-isolation layers, the permission matrix or the audit
+log were ever meant to cover; both are the same reasoning tenancy.md's Exemptions table already gives for why
+`identity.users` and `platform.data_protection_keys` carry no centre-based policy.
+
 **Where tenant and permission checks go.** `Dispatcher.CheckTenantScope`, after validation and before `BeginAsync`, in both pipelines (Day 22 — see tenancy.md, Layer 1). It is a no-op for a request that does not implement `ITenantScoped`; Month 1's requests never do. `Dispatcher.CheckPermission` runs directly after it, in the same place, in both pipelines (Day 28 — see authorization.md); it is a no-op for a request that does not implement `IRequirePermission`. Idempotency for marked commands comes later (Month 6).
 
 ## Request path: `CreateCentreCommand` (CLI → table)
@@ -112,15 +139,16 @@ There is no HTTP endpoint for this command — on purpose.
 | 6 | `Result<SystemInfoDto>` becomes 200 JSON (or Problem Details) | `src/TutoringCentre.Api/Http/ResultHttpExtensions.cs` |
 | 7 | Frontend: generated hook → `apiFetch` → `SystemInfoCard` | `frontend/src/api/generated/tutoring-centre.ts`, `frontend/src/api/apiFetch.ts`, `frontend/src/features/status/SystemInfoCard.tsx` |
 
-## Modules (Day 30)
+## Modules (Day 30, extended Day 31)
 
-Three modules exist today, by namespace:
+Four modules exist, by namespace:
 
 | Module | Application namespaces | Domain namespace |
 | --- | --- | --- |
 | Platform | `TutoringCentre.Application.Platform`, `TutoringCentre.Application.Centres` | `TutoringCentre.Domain.Centres` |
 | Identity | `TutoringCentre.Application.Identity`, `TutoringCentre.Application.Staff` | `TutoringCentre.Domain.Identity` |
 | Academics | `TutoringCentre.Application.Academics` | `TutoringCentre.Domain.Academics` |
+| Audit | `TutoringCentre.Application.Audit` | `TutoringCentre.Domain.Audit` (named for symmetry; Audit has no Domain types of its own — Task 31, it is read-only from the application's point of view) |
 
 **Rule.** A module reaches another only through its requests (commands, queries and their DTOs — always
 allowed) or an explicit Application interface it is handed; it may never reach into another module's
@@ -139,9 +167,14 @@ an acceptable fix for a real violation.
 - [ADR 0003 — Hand-written CQRS dispatcher](../adr/0003-custom-cqrs-dispatcher.md)
 - [ADR 0004 — Unit-of-work port](../adr/0004-unit-of-work-port.md)
 - [ADR 0005 — Encrypted cookie authentication over JWT](../adr/0005-cookie-authentication.md)
-- [ADR 0006 — Tenant isolation as defense in depth (draft)](../adr/0006-tenant-isolation.md)
+- [ADR 0006 — Tenant isolation as defense in depth](../adr/0006-tenant-isolation.md)
 - [ADR 0007 — Code-defined permissions](../adr/0007-code-defined-permissions.md)
+- [ADR 0008 — Audit log written in the command's own transaction](../adr/0008-audit-log-in-transaction.md)
+- [ADR 0009 — Azure Container Apps and OIDC](../adr/0009-azure-container-apps-and-oidc.md)
 - [API conventions](api-conventions.md)
 - [Authentication: login, sessions, CSRF, revocation](authentication.md)
-- [Tenant isolation: the role model, and layers 1–4 as they land](tenancy.md)
+- [Tenant isolation: the role model, and layers 1–4](tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](authorization.md)
+- [Audit: how a change becomes an audit row, atomically](audit.md)
+- [Deployment: topology, pipeline, secrets inventory](deployment.md)
+- [Live verification](../operations/live-verification.md) and [runbook](../operations/runbook.md)

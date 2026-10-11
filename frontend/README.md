@@ -1,6 +1,6 @@
 # Frontend — Tutoring Centre Manager
 
-Scaffolded Day 3 with Vite + React + TypeScript. This file records the decisions that shaped the scaffold, the planned structure, and the API contract the status page depends on.
+Scaffolded Day 3 with Vite + React + TypeScript. This file records the decisions that shaped the scaffold, the real structure as it stands at the end of Month 2, and the API contract the status page depends on.
 
 ## Stack
 
@@ -12,15 +12,23 @@ Scaffolded Day 3 with Vite + React + TypeScript. This file records the decisions
 - **i18next** with Arabic and English locales.
 - **Logical CSS properties** (`margin-inline-start`, `padding-inline-end`, etc.) instead of physical ones (`margin-left`, `padding-right`), so layout flips correctly for Arabic RTL instead of needing a separate RTL stylesheet.
 
-## Planned folder structure
+## Folder structure (end of Month 2)
 
 ```
 frontend/
-  app/            # app shell, routing setup, providers
-  api/            # generated API client + query hooks
-  features/       # one folder per feature (feature-based, not type-based)
-  components/ui/  # shadcn/ui components and shared primitives
-  i18n/           # i18next config and locale files (ar, en)
+  src/
+    app/            # app shell, providers
+    routes/         # TanStack Router file-based routes (__root.tsx, login.tsx, _authenticated/*)
+    api/            # generated API client (src/api/generated/), apiFetch, csrf
+    features/       # one folder per feature (feature-based, not type-based):
+                     #   auth, session (Can/useCan/useSession — see below), language, shell,
+                     #   status (system info, demo banner), subjects, staff, settings, audit
+    components/
+      ui/           # shadcn/ui components and shared primitives
+      brand/        # logo/wordmark
+    i18n/           # i18next config and locale files (ar, en), one namespace per feature
+    lib/            # small framework-free helpers (e.g. initials)
+    test/           # MSW handlers, render helpers
 ```
 
 ## API contract used by the status page
@@ -41,6 +49,36 @@ frontend/
 - **Tests mock the network with MSW,** not hooks or modules; each test renders with a fresh `QueryClient` (`src/test/render.tsx`).
 - **No `any`, no `!` non-null assertions, no `eslint-disable` comments** in feature code.
 - **Scripts that must pass before a PR:** `npm run lint`, `npm run typecheck`, `npm test -- --run`, `npm run build`.
+
+### The permission hook (`features/session`)
+
+`useCan(permission: Permission): boolean` reads the signed-in session's active-role permission list
+(`me.permissions`, from `GET /api/me`) and answers whether it holds the given one. `<Can permission={...}>`
+wraps it for conditionally rendering children. **This is advice for the UI only** — it decides what to show,
+never what to allow. The actual decision is the dispatcher's permission step
+(`docs/architecture/authorization.md`), enforced server-side on every request regardless of what the client
+rendered; a `useCan` check that is wrong, stale, or bypassed by editing the bundle changes nothing about what
+the API will accept. Permission names (`Permission`, `features/session/permissions.ts`) are a frontend-side
+mirror of the backend's own code-defined permission set (ADR 0007) — kept in sync by hand, not generated,
+since they are a small, stable, enum-like list.
+
+### CSP constraints on new dependencies
+
+The backend's Content-Security-Policy (`docs/architecture/deployment.md`) is `script-src 'self'` with no
+relaxation, ever. Before adding a frontend dependency:
+
+- **No CDN `<script src>` tags, ever** — everything ships bundled through Vite, served from this origin.
+- **No inline event handlers** (`onclick="..."` in HTML) and no `new Function`/`eval`-based libraries —
+  `script-src` has no `'unsafe-eval'` and never will.
+- **Inline styles need scrutiny.** `style-src` carries `'unsafe-inline'` today, and only because Sonner's
+  `Toaster` sets runtime-computed inline styles with no alternative (Task 34.8, documented in
+  `later.md`). A new dependency that also needs inline styles does not get a free pass — it reuses the
+  already-open door, but a library that can be configured to use CSS classes instead should be.
+- **Fonts and images:** `font-src 'self'`, `img-src 'self' data:` — self-host fonts (`vite.config.ts`'s
+  `assetsInlineLimit: 0` keeps even small ones as real same-origin files, Task 34.1), no third-party font or
+  image CDNs.
+- If a dependency cannot work within this policy, that is a reason to pick a different dependency, not to
+  relax the policy — raise it instead of quietly adding `'unsafe-inline'`/`'unsafe-eval'` to make something work.
 
 ## Vite template notes
 
@@ -122,8 +160,9 @@ export default defineConfig([
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `applicationVersion` | string | Informational version without build metadata |
+| `applicationVersion` | string | Informational version; carries the deployed commit SHA as a `+<sha>` suffix once built with `-p:SourceRevisionId` (Task 34.2) |
 | `latestMigration` | string or null | Latest applied database migration |
 | `databaseUpToDate` | boolean | True when no migrations are pending |
+| `demoMode` | boolean | Drives the non-dismissible demo banner (Task 35.7) shown on every route when true |
 
 Errors are RFC 9457 Problem Details with a stable `code` and `correlationId`. The MSW handler in `src/test/msw/handlers.ts` mirrors this shape; from Day 12 the generated client in `src/api/generated/` is the source of truth.
