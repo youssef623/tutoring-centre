@@ -4,6 +4,10 @@
 
 A multi-tenant management platform for Egyptian tutoring centres: students and parents, groups and schedules, attendance (manual and QR), fees and payments, and a WhatsApp assistant that answers parents' questions in Egyptian Arabic and English through the same authorized use cases as the staff web app. Built with ASP.NET Core (.NET 10) using Clean Architecture and a hand-written CQRS pipeline, PostgreSQL, and a React + TypeScript frontend.
 
+**Live instance:** not yet deployed — no Azure subscription provisioned yet (see
+[Deployment](docs/architecture/deployment.md)). This link will point at the public URL once Day 36 closes out
+Slice 6.
+
 ## Quick start
 
 ### Prerequisites
@@ -166,8 +170,9 @@ flowchart TD
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Tenant isolation: the role model, and layers 1–4 as they land](docs/architecture/tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)
+- [Deployment: topology, pipeline, secrets inventory, and what's not provisioned yet](docs/architecture/deployment.md)
 - [Frontend decisions and conventions](frontend/README.md)
 
 ## Quality gates
 
-Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, eight Playwright end-to-end journeys against a real API and PostgreSQL, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
+Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, eight Playwright end-to-end journeys against a real API and PostgreSQL, a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
