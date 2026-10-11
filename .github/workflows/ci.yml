@@ -185,3 +185,87 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report/
           retention-days: 7
+
+  container:
+    name: container
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: tutoring
+          POSTGRES_USER: tutoring_dev
+          # CI-only throwaway, not a real credential: the service container never leaves this job.
+          POSTGRES_PASSWORD: ci-only-throwaway-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tutoring_dev -d tutoring"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+
+      # Same roles the local Compose stack and the e2e job above rely on: a service container has no
+      # docker-entrypoint-initdb.d folder, so db/bootstrap-roles.sh is what actually creates them.
+      - name: Bootstrap least-privilege database roles
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: tutoring_dev
+          PGPASSWORD: ci-only-throwaway-password
+          PGDATABASE: tutoring
+          TUTORING_OWNER_PASSWORD: ci-only-throwaway-owner-password
+          TUTORING_APP_PASSWORD: ci-only-throwaway-app-password
+        run: bash db/bootstrap-roles.sh
+
+      - name: Build the production image
+        run: docker build -t tutoring-centre:ci --build-arg COMMIT_SHA=${{ github.sha }} .
+
+      # --network host: the only way a `docker run` container reaches a job service container bound to
+      # localhost on a GitHub-hosted runner.
+      - name: Apply migrations with the image itself
+        run: >
+          docker run --rm --network host
+          -e ASPNETCORE_ENVIRONMENT=Production
+          -e Proxy__KnownNetworks__0=127.0.0.1/32
+          -e ConnectionStrings__PostgresMigrations="Host=localhost;Port=5432;Database=tutoring;Username=tutoring_owner;Password=ci-only-throwaway-owner-password"
+          -e ConnectionStrings__Postgres="Host=localhost;Port=5432;Database=tutoring;Username=tutoring_app;Password=ci-only-throwaway-app-password"
+          tutoring-centre:ci migrate
+
+      - name: Start the container
+        run: >
+          docker run -d --name tutoring-centre-ci --network host
+          -e ASPNETCORE_ENVIRONMENT=Production
+          -e Proxy__KnownNetworks__0=127.0.0.1/32
+          -e ConnectionStrings__Postgres="Host=localhost;Port=5432;Database=tutoring;Username=tutoring_app;Password=ci-only-throwaway-app-password"
+          -e ASPNETCORE_HTTP_PORTS=8080
+          tutoring-centre:ci
+
+      - name: Wait for /health/ready
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health/ready || true)
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 1
+          done
+          echo "::error::/health/ready never returned 200"
+          docker logs tutoring-centre-ci
+          exit 1
+
+      - name: / returns HTML with the CSP header
+        run: |
+          headers=$(curl -s -D - -o /tmp/body.html http://localhost:8080/)
+          echo "$headers" | grep -i "^content-security-policy:" || { echo "::error::missing Content-Security-Policy header"; exit 1; }
+          head -c 15 /tmp/body.html | grep -qi "<!doctype html" || { echo "::error::response body is not HTML"; exit 1; }
+
+      - name: Container logs (always, for visibility)
+        if: always()
+        run: docker logs tutoring-centre-ci
+
+      - name: Stop the container
+        if: always()
+        run: docker rm -f tutoring-centre-ci

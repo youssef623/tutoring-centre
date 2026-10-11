@@ -1,0 +1,41 @@
+# Git metadata (.editorconfig is kept: the build needs it, see the Dockerfile)
+.git
+.gitignore
+.gitattributes
+.gitleaksignore
+
+# Secrets and local-only environment
+.env
+.env.example
+
+# .NET build output and user-specific files (rebuilt fresh inside the image)
+**/bin/
+**/obj/
+**/*.user
+
+# Frontend: rebuilt fresh inside the image, never copied in from the host
+**/node_modules/
+frontend/dist/
+frontend/.tanstack/
+
+# Tests: not needed to run the application
+tests/
+
+# Generated OpenAPI spec and docs: not part of the running application
+frontend/openapi/
+docs/
+
+# CI, tooling and misc
+.github/
+.config/
+later.md
+README.md
+*.md
+docker-compose*.yaml
+compose*.yaml
+db/
+
+# Playwright artefacts
+frontend/playwright-report/
+frontend/test-results/
+frontend/e2e/.cache/

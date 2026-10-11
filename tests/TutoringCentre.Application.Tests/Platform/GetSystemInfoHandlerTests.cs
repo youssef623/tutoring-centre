@@ -29,14 +29,16 @@ public sealed class GetSystemInfoHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_AnyStatus_ReturnsNonEmptyVersionWithoutBuildMetadata()
+    public async Task HandleAsync_AnyStatus_ReturnsNonEmptyVersion()
     {
         var handler = new GetSystemInfoHandler(new FakeSystemInfoReadService(new SchemaStatus(null, 0)));
 
         var result = await handler.HandleAsync(new GetSystemInfoQuery(), CancellationToken.None);
 
+        // Whatever the SDK put in AssemblyInformationalVersionAttribute is returned as-is (Task 34.2): once the
+        // Dockerfile passes -p:SourceRevisionId=<git sha> to `dotnet publish`, that is a "+<sha>" suffix here,
+        // deliberately kept rather than stripped, so this is how an operator confirms what is actually deployed.
         Assert.False(string.IsNullOrWhiteSpace(result.Value.ApplicationVersion));
-        Assert.DoesNotContain('+', result.Value.ApplicationVersion);
         Assert.Null(result.Value.LatestMigration);
     }
 

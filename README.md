@@ -121,6 +121,23 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    SEED_PASSWORD="<the password you chose in step 5>" npm run test:e2e
    ```
 
+8. **Run the local production stack** (the real container image, behind a TLS-terminating reverse proxy —
+   the same topology a deployed environment uses, before any cloud resource exists). Add
+   `DEMO_SEED_PASSWORD` to your `.env` (any password; it only ever seeds this local stack), then:
+
+   ```bash
+   docker compose -f compose.yaml -f compose.prod.yaml up --build
+   ```
+
+   This builds the image, runs `migrate` and `seed` (with `Demo:Enabled=true`) as one-shot jobs, starts the
+   app container with only its runtime connection string (never the owner connection), and puts Caddy in
+   front of it on `https://localhost:8443`. Caddy's certificate is self-signed for `localhost`
+   (`tls internal`); your browser will warn once — accept it to continue, or run
+   `docker compose -f compose.yaml -f compose.prod.yaml exec caddy caddy trust` once to stop the warning.
+   Sign in with any seeded email (step 5's table) and `DEMO_SEED_PASSWORD`. Restarting only the app container
+   (`docker compose -f compose.yaml -f compose.prod.yaml restart app`) does not sign you out: the session's
+   Data Protection keys live in PostgreSQL, not in the app's memory (Task 34.6).
+
 To reset the database completely: `docker compose down -v` (deletes the `pgdata` volume).
 
 ## Architecture

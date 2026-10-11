@@ -1,0 +1,8 @@
+# Local HTTPS reverse proxy (Task 34.8): terminates TLS with Caddy's own locally-trusted certificate authority
+# (the "tls internal" directive — no real certificate needed for this local stack) and forwards to the app
+# container, setting X-Forwarded-For and X-Forwarded-Proto automatically (Caddy's own reverse_proxy default),
+# which the app trusts only because Proxy:KnownNetworks names this Compose network (compose.prod.yaml).
+localhost:8443 {
+	tls internal
+	reverse_proxy app:8080
+}

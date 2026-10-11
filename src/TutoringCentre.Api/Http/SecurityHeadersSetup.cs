@@ -8,10 +8,16 @@ public static class SecurityHeadersSetup
 {
     // No 'unsafe-inline' or 'unsafe-eval' for script-src, ever — the whole point of this policy is that
     // injected markup still cannot run script, because the browser refuses anything not served from our origin.
+    //
+    // style-src carries 'unsafe-inline' (Task 34.8, confirmed against the local production stack behind
+    // Caddy): Sonner's Toaster (frontend/src/routes/__root.tsx, mounted on every route) sets its runtime-
+    // computed offsets as inline styles on its own container; the SPA is a pre-built static index.html with
+    // no per-request templating, so neither a CSP nonce nor a style hash is available to allow just that.
+    // Only style-src is relaxed; script-src keeps its full 'self'-only policy. Recorded for 35.9.
     private const string ContentSecurityPolicy =
         "default-src 'self'; " +
         "script-src 'self'; " +
-        "style-src 'self'; " +
+        "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data:; " +
         "font-src 'self'; " +
         "connect-src 'self'; " +
