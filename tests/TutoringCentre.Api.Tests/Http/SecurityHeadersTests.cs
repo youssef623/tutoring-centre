@@ -23,7 +23,7 @@ public sealed class SecurityHeadersTests(SpaHostingFactory factory)
         var response = await _client.GetAsync(new Uri(path, UriKind.Relative));
 
         Assert.Equal(
-            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; "
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; "
                 + "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
             response.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());

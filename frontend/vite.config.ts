@@ -24,6 +24,11 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    // 0, not the Vite default (4096): a small font file inlined as a data: URI is blocked by
+    // `font-src 'self'` (Task 34.5/34.8) — every asset must be a real same-origin file instead.
+    assetsInlineLimit: 0,
+  },
   server: {
     proxy: {
       // secure: false — Node's TLS stack doesn't read the OS trust store, so it doesn't trust the
