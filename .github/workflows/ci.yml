@@ -234,7 +234,7 @@ jobs:
           -e Proxy__KnownNetworks__0=127.0.0.1/32
           -e ConnectionStrings__PostgresMigrations="Host=localhost;Port=5432;Database=tutoring;Username=tutoring_owner;Password=ci-only-throwaway-owner-password"
           -e ConnectionStrings__Postgres="Host=localhost;Port=5432;Database=tutoring;Username=tutoring_app;Password=ci-only-throwaway-app-password"
-          tutoring-centre:ci migrate
+          tutoring-centre:ci dotnet TutoringCentre.Api.dll migrate
 
       - name: Start the container
         run: >
