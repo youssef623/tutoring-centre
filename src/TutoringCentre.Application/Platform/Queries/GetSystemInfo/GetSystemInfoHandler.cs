@@ -10,7 +10,7 @@ namespace TutoringCentre.Application.Platform.Queries.GetSystemInfo;
 /// Reads go through the read service; no entities and no EF types.
 /// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService)
+internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService, IDemoModeProvider demoModeProvider)
     : IQueryHandler<GetSystemInfoQuery, SystemInfoDto>
 {
     private const string UnknownVersion = "unknown";
@@ -22,7 +22,8 @@ internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService)
         var dto = new SystemInfoDto(
             ReadApplicationVersion(),
             status.LatestAppliedMigration,
-            DatabaseUpToDate: status.PendingMigrationCount == 0);
+            DatabaseUpToDate: status.PendingMigrationCount == 0,
+            DemoMode: demoModeProvider.IsEnabled);
 
         return Result<SystemInfoDto>.Success(dto);
     }

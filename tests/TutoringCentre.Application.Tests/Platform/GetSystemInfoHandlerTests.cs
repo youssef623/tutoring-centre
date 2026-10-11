@@ -8,7 +8,9 @@ public sealed class GetSystemInfoHandlerTests
     [Fact]
     public async Task HandleAsync_NoPendingMigrations_ReportsDatabaseUpToDate()
     {
-        var handler = new GetSystemInfoHandler(new FakeSystemInfoReadService(new SchemaStatus("20261012_InitialPlatform", 0)));
+        var handler = new GetSystemInfoHandler(
+            new FakeSystemInfoReadService(new SchemaStatus("20261012_InitialPlatform", 0)),
+            new FakeDemoModeProvider(false));
 
         var result = await handler.HandleAsync(new GetSystemInfoQuery(), CancellationToken.None);
 
@@ -20,7 +22,9 @@ public sealed class GetSystemInfoHandlerTests
     [Fact]
     public async Task HandleAsync_TwoPendingMigrations_ReportsDatabaseNotUpToDate()
     {
-        var handler = new GetSystemInfoHandler(new FakeSystemInfoReadService(new SchemaStatus("20261012_InitialPlatform", 2)));
+        var handler = new GetSystemInfoHandler(
+            new FakeSystemInfoReadService(new SchemaStatus("20261012_InitialPlatform", 2)),
+            new FakeDemoModeProvider(false));
 
         var result = await handler.HandleAsync(new GetSystemInfoQuery(), CancellationToken.None);
 
@@ -31,7 +35,9 @@ public sealed class GetSystemInfoHandlerTests
     [Fact]
     public async Task HandleAsync_AnyStatus_ReturnsNonEmptyVersion()
     {
-        var handler = new GetSystemInfoHandler(new FakeSystemInfoReadService(new SchemaStatus(null, 0)));
+        var handler = new GetSystemInfoHandler(
+            new FakeSystemInfoReadService(new SchemaStatus(null, 0)),
+            new FakeDemoModeProvider(false));
 
         var result = await handler.HandleAsync(new GetSystemInfoQuery(), CancellationToken.None);
 
@@ -42,8 +48,27 @@ public sealed class GetSystemInfoHandlerTests
         Assert.Null(result.Value.LatestMigration);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_ReportsDemoModeFromProvider(bool demoEnabled)
+    {
+        var handler = new GetSystemInfoHandler(
+            new FakeSystemInfoReadService(new SchemaStatus(null, 0)),
+            new FakeDemoModeProvider(demoEnabled));
+
+        var result = await handler.HandleAsync(new GetSystemInfoQuery(), CancellationToken.None);
+
+        Assert.Equal(demoEnabled, result.Value.DemoMode);
+    }
+
     private sealed class FakeSystemInfoReadService(SchemaStatus status) : ISystemInfoReadService
     {
         public Task<SchemaStatus> GetSchemaStatusAsync(CancellationToken ct) => Task.FromResult(status);
+    }
+
+    private sealed class FakeDemoModeProvider(bool isEnabled) : IDemoModeProvider
+    {
+        public bool IsEnabled => isEnabled;
     }
 }

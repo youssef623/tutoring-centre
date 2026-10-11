@@ -16,5 +16,6 @@ public sealed class SystemInfoQueryTests(PostgresFixture fixture) : PostgresTest
         Assert.EndsWith("_AddDataProtectionKeys", result.Value.LatestMigration, StringComparison.Ordinal);
         Assert.True(result.Value.DatabaseUpToDate);
         Assert.False(string.IsNullOrWhiteSpace(result.Value.ApplicationVersion));
+        Assert.False(result.Value.DemoMode);
     }
 }

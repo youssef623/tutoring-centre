@@ -3,5 +3,8 @@
   "language": {
     "arabic": "العربية",
     "english": "English"
+  },
+  "demoBanner": {
+    "message": "Demo environment — data may be reset. Do not enter real personal data."
   }
 }

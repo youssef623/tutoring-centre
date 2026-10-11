@@ -269,3 +269,73 @@ jobs:
       - name: Stop the container
         if: always()
         run: docker rm -f tutoring-centre-ci
+
+  smoke:
+    name: smoke
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    # Day 35: no Azure subscription provisioned yet (see docs/architecture/deployment.md), so this proves the
+    # deployed smoke test (Task 35.8) and the local production stack (Task 34.8) together, continuously, in
+    # place of the live post-deployment check deploy.yml would otherwise run.
+    env:
+      POSTGRES_DB: tutoring
+      POSTGRES_USER: tutoring_dev
+      # CI-only throwaways, not real credentials: this stack never leaves this job.
+      POSTGRES_PASSWORD: ci-only-throwaway-password
+      TUTORING_OWNER_PASSWORD: ci-only-throwaway-owner-password
+      TUTORING_APP_PASSWORD: ci-only-throwaway-app-password
+      DEMO_SEED_PASSWORD: ci-only-throwaway-seed-password
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+
+      - name: Build and start the local production stack
+        run: docker compose -f compose.yaml -f compose.prod.yaml up --build -d
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+
+      - name: Wait for /health/ready
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -sk -o /dev/null -w "%{http_code}" https://localhost:8443/health/ready || true)
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 1
+          done
+          echo "::error::/health/ready never returned 200"
+          docker compose -f compose.yaml -f compose.prod.yaml logs
+          exit 1
+
+      - name: Set up Node.js (LTS) with npm cache
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: smoke/package-lock.json
+
+      - name: Install exactly the lock file
+        working-directory: smoke
+        run: npm ci
+
+      - name: Install Chromium with its system dependencies
+        working-directory: smoke
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the deployed smoke test against the local production stack
+        working-directory: smoke
+        env:
+          SMOKE_BASE_URL: https://localhost:8443
+          SMOKE_EXPECTED_SHA: ${{ github.sha }}
+          SMOKE_PASSWORD: ci-only-throwaway-seed-password
+          # Caddy's local site address is literally "localhost:8443" (Caddyfile, Task 34.8); ASP.NET Core's
+          # HstsMiddleware excludes that host by default, so the header is correctly absent here (see
+          # smoke/README.md). A real deployed hostname keeps this check at its default (on).
+          SMOKE_EXPECT_HSTS: "false"
+        run: npm test
+
+      - name: Stack logs (always, for visibility)
+        if: always()
+        run: docker compose -f compose.yaml -f compose.prod.yaml logs
+
+      - name: Tear down the stack
+        if: always()
+        run: docker compose -f compose.yaml -f compose.prod.yaml down -v

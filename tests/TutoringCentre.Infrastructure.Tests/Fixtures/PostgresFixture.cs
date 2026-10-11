@@ -8,6 +8,7 @@ using Testcontainers.PostgreSql;
 using TutoringCentre.Application;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Platform;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
@@ -191,6 +192,10 @@ public sealed class PostgresFixture : IAsyncLifetime
         // rollback test can dispatch through the real transaction before that command exists.
         services.AddScoped<ICommandHandler<EnsureAccountThenFailCommand, Unit>, EnsureAccountThenFailCommandHandler>();
 
+        // GetSystemInfoHandler's port (Task 35.7); the real implementation is Api-only (DemoOptions), so these
+        // tenancy/tenant-isolation tests never need it to be anything but off.
+        services.AddSingleton<IDemoModeProvider, AlwaysDisabledDemoModeProvider>();
+
         configure?.Invoke(services);
 
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
@@ -329,4 +334,9 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     private string WithCredentials(string username, string password) =>
         new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Username = username, Password = password }.ConnectionString;
+
+    private sealed class AlwaysDisabledDemoModeProvider : IDemoModeProvider
+    {
+        public bool IsEnabled => false;
+    }
 }
