@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { DemoBanner } from "@/features/status/DemoBanner";
 import { Toaster } from "@/components/ui/sonner";
 
 /** Available to every route's `beforeLoad`/`loader` (Day 17: the guard reads the session through it). */
@@ -14,6 +15,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <DemoBanner />
       <Outlet />
       {/* One toaster for the whole app; Day 12's error utilities show API failures here. */}
       <Toaster richColors />

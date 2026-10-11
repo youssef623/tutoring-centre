@@ -246,6 +246,7 @@ export interface SystemInfoDto {
   /** @nullable */
   latestMigration: string | null;
   databaseUpToDate: boolean;
+  demoMode: boolean;
 }
 
 export interface UpdateCentreSettingsRequest {

@@ -13,6 +13,7 @@ using TutoringCentre.Api.Http;
 using TutoringCentre.Api.Logging;
 using TutoringCentre.Api.Telemetry;
 using TutoringCentre.Application;
+using TutoringCentre.Application.Platform;
 using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
@@ -57,6 +58,8 @@ builder.Services.AddProxyOptions(builder.Configuration);
 // Bound and validated at start like every other option here, even though a bare bool has nothing to fail on:
 // a misconfigured container fails at start, not at first request, as a rule for every setting, not case by case.
 builder.Services.AddOptions<DemoOptions>().Bind(builder.Configuration.GetSection("Demo")).ValidateOnStart();
+
+builder.Services.AddSingleton<IDemoModeProvider, DemoModeProvider>();
 
 builder.Services.AddApiTelemetry(builder.Configuration);
 

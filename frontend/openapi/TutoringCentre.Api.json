@@ -1781,7 +1781,8 @@
         "required": [
           "applicationVersion",
           "latestMigration",
-          "databaseUpToDate"
+          "databaseUpToDate",
+          "demoMode"
         ],
         "type": "object",
         "properties": {
@@ -1795,6 +1796,9 @@
             ]
           },
           "databaseUpToDate": {
+            "type": "boolean"
+          },
+          "demoMode": {
             "type": "boolean"
           }
         },
