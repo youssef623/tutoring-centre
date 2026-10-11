@@ -4,7 +4,7 @@
 # never contains the SDK, node_modules, source, or anything else beyond what is needed to run (Task 34.2).
 
 # ---- Frontend build ------------------------------------------------------------------------------------------
-FROM node:22.12-alpine AS frontend-build
+FROM node:26.10-alpine AS frontend-build
 WORKDIR /frontend
 
 # Dependencies before source: this layer is reused across builds unless package*.json itself changed.
