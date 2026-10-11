@@ -61,11 +61,11 @@ The 500 body never contains the exception's message, type or stack trace — onl
 
 ## Routing
 
-All product HTTP endpoints live under the `/api` group (`app.MapGroup("/api")`). An unmatched `/api/*` route returns Problem Details 404 with `code: "route.not_found"` via `app.MapFallback`, instead of the framework's empty body. Routes outside `/api` (health checks today, the SPA shell from Month 2) are unaffected.
+All product HTTP endpoints live under the `/api` group (`app.MapGroup("/api")`). An unmatched `/api/*` route returns Problem Details 404 with `code: "route.not_found"` via `app.MapFallback`, instead of the framework's empty body. Routes outside `/api` (health checks, and the SPA shell's own static files and fallback, Task 34.1) are unaffected.
 
 ## `GET /api/system/info`
 
-The first JSON endpoint, added to prove the conventions above end-to-end. Returns `applicationVersion`, `latestMigration` and `databaseUpToDate`. Anonymous access is explicit via `.AllowAnonymous()` (see Authentication and authorization below), not an oversight.
+The first JSON endpoint, added to prove the conventions above end-to-end. Returns `applicationVersion`, `latestMigration`, `databaseUpToDate` and `demoMode` (Task 35.7). Anonymous access is explicit via `.AllowAnonymous()` (see Authentication and authorization below), not an oversight.
 
 ## Authentication and authorization (Day 16)
 
@@ -82,6 +82,39 @@ Exactly six routes are explicitly anonymous, each with its own `.AllowAnonymous(
 | `POST /api/auth/login` | The one way to start a session; can't require being already signed in. |
 | `/api/{**path}` fallback | The uniform 404 for an unknown route must not leak whether a route exists behind a login wall. |
 
-A second, pattern-less `app.MapFallback(...)` is also anonymous, for a subtler reason: ASP.NET Core's authorization fallback policy applies not only to mapped endpoints without `.AllowAnonymous()`, but also to requests that match *no* endpoint at all — without a catch-all, an unknown route outside `/api` (today just `/does-not-exist`-style probes; from Month 2, the SPA shell's own routes) would 401 instead of 404. This fallback stays anonymous because the SPA shell it will eventually serve is itself public; auth-gating happens client-side within the app, same as any other static asset.
+A second, pattern-less `app.MapFallback(...)` is also anonymous, for a subtler reason: ASP.NET Core's authorization fallback policy applies not only to mapped endpoints without `.AllowAnonymous()`, but also to requests that match *no* endpoint at all — without a catch-all, an unknown route outside `/api` (a `/does-not-exist`-style probe, or a stale deep link into a since-removed SPA route) would 401 instead of 404. This fallback stays anonymous because the SPA shell it sits behind (Task 34.1) is itself public; auth-gating happens client-side within the app, same as any other static asset. Static files and the SPA fallback (`MapSpaFallback`) both run before this one, so an existing asset or a real client route is served first — this is only what neither of those matched.
 
 Every other endpoint — `/api/auth/logout`, `/api/me`, `/api/session/centre`, and anything added later — relies on the fallback policy rather than its own `.RequireAuthorization()` call. That redundant call was removed where it previously existed: once the default is "authenticated," repeating it per endpoint reads as if it might mean something stricter than the default, when it does not. The Development-only `/openapi/v1.json` document (`app.MapOpenApi()`) is also marked `.AllowAnonymous()` so it stays reachable for local tooling; it never exists outside Development.
+
+## Error codes added in Month 2
+
+`auth.invalid_credentials`, `auth.not_authenticated`, `auth.csrf_invalid`, `auth.rate_limited`,
+`route.not_found`, `request.malformed`, `server.unexpected` and `validation.failed` predate Month 2 (Month 1's
+authentication and error-handling work; the full authentication set is catalogued in
+`docs/architecture/authentication.md`). Every code a Month 2 feature added, by the `ErrorKind` it carries and
+the HTTP status that maps to (`ResultHttpExtensions`):
+
+| Code | Kind → Status | Feature (Day) |
+| --- | --- | --- |
+| `tenant.not_selected` | Forbidden → 403 | Tenant scope, Layer 1 (Day 22) |
+| `tenant.no_membership` | Forbidden → 403 | Centre selection (Day 19) |
+| `centre.create_forbidden` | Forbidden → 403 | Centre creation restricted to the seed path (Day 20) |
+| `centre.slug_taken` | Conflict → 409 | Centre creation |
+| `centre.name_required`, `centre.name_too_long`, `centre.name_invalid`, `centre.slug_invalid`, `centre.time_zone_invalid` | Validation → 400 | Centre settings (Day 32) |
+| `subject.not_found` | NotFound → 404 | Subjects (Day 23) |
+| `subject.name_taken` | Conflict → 409 | Subjects |
+| `subject.name_invalid`, `subject.centre_required` | Validation → 400 | Subjects |
+| `subject.already_archived`, `subject.not_archived`, `subject.archived_read_only` | Rule → 422 | Subjects |
+| `auth.permission_denied` | Forbidden → 403 | Role-based permission step (Day 28) |
+| `auth.password_change_required` | Forbidden → 403 | First-login forced password change (Day 29/30) |
+| `auth.current_password_invalid` | Rule → 422 | Change password (Day 30) |
+| `auth.password_too_weak` | Validation → 400 | Change password (Day 30) |
+| `staff.not_found` | NotFound → 404 | Staff management (Day 29) |
+| `staff.already_member`, `staff.last_owner`, `staff.cannot_change_self` | Rule → 422 | Staff management |
+| `staff.email_invalid` | Validation → 400 | Staff management |
+| `membership.centre_required`, `membership.user_required` | Validation → 400 | Staff management |
+| `membership.already_active`, `membership.already_inactive`, `membership.inactive`, `membership.role_unchanged` | Rule → 422 | Staff management |
+| `concurrency.stale` | Conflict → 409 | Optimistic concurrency, shared by subjects, staff and centre settings (`version`/`xmin`) |
+
+Audit (Day 31) adds no error codes of its own: it is read-only, with no command and therefore nothing for a
+business rule to refuse.

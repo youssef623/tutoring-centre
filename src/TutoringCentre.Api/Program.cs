@@ -116,6 +116,14 @@ if (args is ["seed"])
     return await SeedCommand.RunAsync(app.Services);
 }
 
+// CLI mode: `dotnet run --project src/TutoringCentre.Api -- reset-password <email> <new-password>` (Task
+// 36.2). An operator-only action: direct process execution against the database, the same trust level as
+// migrate/seed, never exposed over HTTP.
+if (args is ["reset-password", var resetEmail, var resetPassword])
+{
+    return await ResetPasswordCommand.RunAsync(app.Services, resetEmail, resetPassword);
+}
+
 // Development convenience only. Production migrations run from the deployment pipeline (Month 2), never at app startup:
 // auto-migrating there is risky (several instances racing, no review, long locks).
 if (app.Environment.IsDevelopment() && !isDocumentGeneration)
