@@ -9,6 +9,7 @@ using TutoringCentre.Application;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Platform;
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
@@ -319,7 +320,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         command.Parameters.AddWithValue("id", id);
         command.Parameters.AddWithValue("centre_id", centreId);
         command.Parameters.AddWithValue("full_name", fullName);
-        command.Parameters.AddWithValue("search_name", fullName.ToUpperInvariant());
+        command.Parameters.AddWithValue("search_name", SearchText.Normalize(fullName));
         command.Parameters.AddWithValue("status", status);
         await command.ExecuteNonQueryAsync();
         return id;
