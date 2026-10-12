@@ -265,7 +265,7 @@ export function RegisterStudentForm() {
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={disabled}>
           {isSubmitting && <Loader2 className="animate-spin" aria-hidden="true" />}
-          {t("form.save")}
+          {t("actions.register")}
         </Button>
         <Button type="button" variant="outline" render={<Link to="/students" />}>
           {t("form.cancel")}

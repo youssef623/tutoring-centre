@@ -12,19 +12,51 @@
     "status": "الحالة"
   },
   "actions": {
-    "register": "تسجيل طالب"
+    "register": "تسجيل طالب",
+    "edit": "تعديل",
+    "archive": "أرشفة",
+    "restore": "استعادة",
+    "addParent": "إضافة ولي أمر",
+    "makePrimary": "جعله الأساسي",
+    "unlink": "إلغاء الربط"
   },
   "loading": {
-    "label": "جاري تحميل الطلاب"
+    "label": "جاري تحميل الطلاب",
+    "detailLabel": "جاري تحميل بيانات الطالب"
   },
   "error": {
     "title": "تعذر تحميل الطلاب",
     "reference": "المرجع: {correlationId}"
   },
+  "detailError": {
+    "title": "تعذر تحميل بيانات هذا الطالب"
+  },
+  "notFound": {
+    "title": "الطالب غير موجود",
+    "description": "هذا الطالب غير موجود، أو ليس لديك صلاحية الوصول إليه.",
+    "backToList": "العودة إلى الطلاب"
+  },
   "emptyState": {
     "title": "لا يوجد طلاب حتى الآن",
     "description": "سجّل أول طالب للبدء.",
     "noMatchTitle": "لا يوجد طلاب مطابقون لـ \"{search}\"."
+  },
+  "detail": {
+    "phoneLabel": "الهاتف"
+  },
+  "parentsCard": {
+    "title": "أولياء الأمور",
+    "primaryBadge": "جهة الاتصال الأساسية",
+    "openMenu": "فتح قائمة الإجراءات"
+  },
+  "addParent": {
+    "link": "ربط",
+    "retryLink": "إعادة محاولة الربط",
+    "linkFailedNotice": "تم إنشاء ولي الأمر لكن تعذّر ربطه بعد. حاول الربط مرة أخرى."
+  },
+  "archivedBanner": {
+    "title": "هذا الطالب مؤرشف",
+    "description": "استعد الطالب لتعديل بياناته أو إدارة أولياء أموره."
   },
   "form": {
     "studentSectionTitle": "الطالب",
@@ -38,8 +70,20 @@
     "parentFullNameLabel": "اسم ولي الأمر الكامل",
     "parentFullNamePlaceholder": "مثال: محمود حسن",
     "relationshipLabel": "صلة القرابة",
-    "save": "تسجيل الطالب",
+    "save": "حفظ",
     "cancel": "إلغاء"
+  },
+  "dialogs": {
+    "editTitle": "تعديل بيانات الطالب",
+    "addParentTitle": "إضافة ولي أمر"
+  },
+  "confirmations": {
+    "archiveTitle": "أرشفة \"{name}\"؟",
+    "archiveBody": "سيصبح للقراءة فقط حتى تتم استعادته، وستُخفى إجراءات أولياء الأمور الخاصة به.",
+    "archiveConfirm": "أرشفة الطالب",
+    "unlinkTitle": "إلغاء ربط {name}؟",
+    "unlinkBody": "لن يعود مرتبطًا بهذا الطالب. هذا لا يحذف سجله.",
+    "unlinkConfirm": "إلغاء الربط"
   },
   "lookup": {
     "existingParent": "ولي أمر مسجّل مسبقًا: {name}",
@@ -52,7 +96,13 @@
     "other": "آخر"
   },
   "toasts": {
-    "registered": "تم تسجيل الطالب."
+    "registered": "تم تسجيل الطالب.",
+    "updated": "تم تحديث بيانات الطالب.",
+    "archived": "تمت أرشفة الطالب.",
+    "restored": "تمت استعادة الطالب.",
+    "parentLinked": "تم ربط ولي الأمر.",
+    "parentMadePrimary": "تم تحديث جهة الاتصال الأساسية.",
+    "parentUnlinked": "تم إلغاء ربط ولي الأمر."
   },
   "validation": {
     "fullNameRequired": "اسم الطالب مطلوب.",
