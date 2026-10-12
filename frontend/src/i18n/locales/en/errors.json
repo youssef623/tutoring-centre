@@ -47,6 +47,31 @@
       "not_archived": "This subject is not archived.",
       "archived_read_only": "An archived subject cannot be renamed until it is restored."
     },
+    "phone": {
+      "invalid": "Enter a valid phone number."
+    },
+    "parent": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Parent name must be 2-120 characters.",
+      "not_found": "This parent could not be found.",
+      "phone_taken": "A parent with this phone number already exists."
+    },
+    "student": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Student name must be 2-120 characters.",
+      "school_year_invalid": "School year must be at most 40 characters.",
+      "parent_required": "A parent is required.",
+      "parent_already_linked": "This parent is already linked to this student.",
+      "parent_not_linked": "This parent is not linked to this student.",
+      "too_many_parents": "A student can have at most 4 parents.",
+      "last_parent": "A student must keep at least one parent.",
+      "primary_parent_required": "Make another parent primary before removing the primary parent.",
+      "already_primary": "This parent is already the primary contact.",
+      "already_archived": "This student is already archived.",
+      "not_archived": "This student is not archived.",
+      "archived_read_only": "An archived student is read-only until it is restored.",
+      "not_found": "This student could not be found."
+    },
     "concurrency": {
       "stale": "This record was changed by someone else. Reload and try again."
     },

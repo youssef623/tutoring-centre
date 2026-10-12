@@ -15,9 +15,10 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     private static readonly Uri MeUri = new("/api/me", UriKind.Relative);
     private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
 
-    private static readonly string[] AllSixPermissionsSorted =
+    private static readonly string[] AllEightPermissionsSorted =
     [
-        "audit.view", "centre.settings.manage", "staff.manage", "staff.view", "subjects.manage", "subjects.view",
+        "audit.view", "centre.settings.manage", "staff.manage", "staff.view",
+        "students.manage", "students.view", "subjects.manage", "subjects.view",
     ];
 
     public async Task InitializeAsync()
@@ -54,7 +55,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         // (empty) snapshot — a client that renders straight off the login response, without a follow-up
         // GET /api/me, must still see the correct permission-gated UI.
         var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(AllSixPermissionsSorted, permissions);
+        Assert.Equal(AllEightPermissionsSorted, permissions);
     }
 
     [Fact]
@@ -72,7 +73,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal("secretary", body.RootElement.GetProperty("activeRole").GetString());
 
         var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(["subjects.manage", "subjects.view"], permissions);
+        Assert.Equal(["students.manage", "students.view", "subjects.manage", "subjects.view"], permissions);
     }
 
     [Fact]
@@ -153,7 +154,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetMe_AsOwner_ReturnsAllSixPermissionsSorted()
+    public async Task GetMe_AsOwner_ReturnsAllEightPermissionsSorted()
     {
         using var client = CreateSessionClient();
         using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
@@ -166,11 +167,11 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         var me = await ReadJsonAsync(meResponse);
 
         var permissions = me.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(AllSixPermissionsSorted, permissions);
+        Assert.Equal(AllEightPermissionsSorted, permissions);
     }
 
     [Fact]
-    public async Task GetMe_AsSecretary_ReturnsSubjectsPermissionsSorted()
+    public async Task GetMe_AsSecretary_ReturnsStudentsAndSubjectsPermissionsSorted()
     {
         using var client = CreateSessionClient();
         using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
@@ -183,7 +184,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         var me = await ReadJsonAsync(meResponse);
 
         var permissions = me.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(["subjects.manage", "subjects.view"], permissions);
+        Assert.Equal(["students.manage", "students.view", "subjects.manage", "subjects.view"], permissions);
     }
 
     [Fact]
