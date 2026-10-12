@@ -11,7 +11,10 @@
   "entityType": {
     "subject": "Subject",
     "membership": "Staff membership",
-    "centre": "Centre"
+    "centre": "Centre",
+    "parent": "Parent",
+    "student": "Student",
+    "student_parent": "Student-parent link"
   },
   "action": {
     "created": "Created",
@@ -23,13 +26,30 @@
     "status": "Status",
     "role": "Role",
     "userId": "User",
-    "defaultLocale": "Default language"
+    "defaultLocale": "Default language",
+    "fullName": "Full name",
+    "phone": "Phone",
+    "schoolYear": "School year",
+    "studentId": "Student",
+    "parentId": "Parent",
+    "relationship": "Relationship",
+    "isPrimary": "Primary contact"
   },
   "value": {
     "status": {
       "active": "Active",
       "archived": "Archived",
       "inactive": "Inactive"
+    },
+    "relationship": {
+      "father": "Father",
+      "mother": "Mother",
+      "guardian": "Guardian",
+      "other": "Other"
+    },
+    "isPrimary": {
+      "true": "Yes",
+      "false": "No"
     }
   },
   "system": "System",
