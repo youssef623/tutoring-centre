@@ -95,6 +95,15 @@ export interface ChangeStaffRoleRequest {
   version: number | string;
 }
 
+export interface CreateParentRequest {
+  fullName: string;
+  phone: string;
+}
+
+export interface CreateParentResponse {
+  id: string;
+}
+
 export interface CreateStaffRequest {
   email: string;
   displayName: string;
@@ -141,6 +150,10 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface LookupParentRequest {
+  phone: string;
+}
+
 export interface MembershipDto {
   centreId: string;
   centreName: string;
@@ -168,6 +181,53 @@ export const MembershipStatus = {
   active: 'active',
   inactive: 'inactive',
 } as const;
+
+export type StudentStatus = typeof StudentStatus[keyof typeof StudentStatus];
+
+
+export const StudentStatus = {
+  active: 'active',
+  archived: 'archived',
+} as const;
+
+export type ParentRelationship = typeof ParentRelationship[keyof typeof ParentRelationship];
+
+
+export const ParentRelationship = {
+  father: 'father',
+  mother: 'mother',
+  guardian: 'guardian',
+  other: 'other',
+} as const;
+
+export interface ParentChildDto {
+  studentId: string;
+  fullName: string;
+  status: StudentStatus;
+  relationship: ParentRelationship;
+  isPrimary: boolean;
+}
+
+export interface ParentDetailDto {
+  id: string;
+  fullName: string;
+  phone: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+  children: ParentChildDto[];
+}
+
+export interface ParentDto {
+  id: string;
+  fullName: string;
+  phone: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface ParentLookupDto {
+  parent: null | ParentDto;
+}
 
 export interface ProblemDetails {
   /** @nullable */
@@ -252,6 +312,13 @@ export interface SystemInfoDto {
 export interface UpdateCentreSettingsRequest {
   name: string;
   defaultLocale: SupportedLocale;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface UpdateParentRequest {
+  fullName: string;
+  phone: string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   version: number | string;
 }
@@ -1417,6 +1484,348 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRestoreSubjectMutationOptions(options), queryClient);
+    }
+
+export const getCreateParentUrl = () => {
+
+
+
+
+  return `/api/parents`
+}
+
+export const createParent = async (createParentRequest: CreateParentRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CreateParentResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CreateParentResponse>(getCreateParentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createParentRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateParentMutationKey = () => ['createParent'] as const;
+
+export const getCreateParentMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParent>>, TError,CreateParentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createParent>>, TError,CreateParentMutationVariables, TContext> => {
+
+const mutationKey = getCreateParentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createParent>>, CreateParentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createParent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateParentMutationResult = NonNullable<Awaited<ReturnType<typeof createParent>>>
+    export type CreateParentMutationBody = CreateParentRequest
+    export type CreateParentMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateParentMutationVariables = {data: CreateParentRequest}
+
+    export const useCreateParent = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParent>>, TError,CreateParentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createParent>>,
+        TError,
+        CreateParentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateParentMutationOptions(options), queryClient);
+    }
+
+export const getGetParentUrl = (id: string,) => {
+
+
+
+
+  return `/api/parents/${id}`
+}
+
+export const getParent = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ParentDetailDto> => {
+
+  return apiFetch<ParentDetailDto>(getGetParentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetParentQueryKey = (id: string,) => {
+    return [
+    `/api/parents/${id}`
+    ] as const;
+    }
+
+
+export const getGetParentQueryOptions = <TData = Awaited<ReturnType<typeof getParent>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParent>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetParentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getParent>>> = ({ signal }) => getParent(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getParent>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetParentQueryResult = NonNullable<Awaited<ReturnType<typeof getParent>>>
+export type GetParentQueryError = ProblemDetails
+
+
+export function useGetParent<TData = Awaited<ReturnType<typeof getParent>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParent>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getParent>>,
+          TError,
+          Awaited<ReturnType<typeof getParent>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetParent<TData = Awaited<ReturnType<typeof getParent>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParent>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getParent>>,
+          TError,
+          Awaited<ReturnType<typeof getParent>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetParent<TData = Awaited<ReturnType<typeof getParent>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParent>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetParent<TData = Awaited<ReturnType<typeof getParent>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParent>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetParentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateParentUrl = (id: string,) => {
+
+
+
+
+  return `/api/parents/${id}`
+}
+
+export const updateParent = async (id: string,
+    updateParentRequest: UpdateParentRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getUpdateParentUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateParentRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateParentMutationKey = () => ['updateParent'] as const;
+
+export const getUpdateParentMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParent>>, TError,UpdateParentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateParent>>, TError,UpdateParentMutationVariables, TContext> => {
+
+const mutationKey = getUpdateParentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateParent>>, UpdateParentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateParent(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateParentMutationResult = NonNullable<Awaited<ReturnType<typeof updateParent>>>
+    export type UpdateParentMutationBody = UpdateParentRequest
+    export type UpdateParentMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdateParentMutationVariables = {id: string;data: UpdateParentRequest}
+
+    export const useUpdateParent = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParent>>, TError,UpdateParentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateParent>>,
+        TError,
+        UpdateParentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateParentMutationOptions(options), queryClient);
+    }
+
+export const getLookupParentUrl = () => {
+
+
+
+
+  return `/api/parents/lookup`
+}
+
+export const lookupParent = async (lookupParentRequest: LookupParentRequest, options?: Parameters<typeof apiFetch>[1]): Promise<ParentLookupDto> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ParentLookupDto>(getLookupParentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(lookupParentRequest)
+  }
+);}
+
+
+
+
+
+export const getLookupParentMutationKey = () => ['lookupParent'] as const;
+
+export const getLookupParentMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof lookupParent>>, TError,LookupParentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof lookupParent>>, TError,LookupParentMutationVariables, TContext> => {
+
+const mutationKey = getLookupParentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof lookupParent>>, LookupParentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  lookupParent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LookupParentMutationResult = NonNullable<Awaited<ReturnType<typeof lookupParent>>>
+    export type LookupParentMutationBody = LookupParentRequest
+    export type LookupParentMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type LookupParentMutationVariables = {data: LookupParentRequest}
+
+    export const useLookupParent = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof lookupParent>>, TError,LookupParentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof lookupParent>>,
+        TError,
+        LookupParentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLookupParentMutationOptions(options), queryClient);
     }
 
 export const getListStaffUrl = () => {
