@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Infrastructure.Persistence;
@@ -64,6 +65,8 @@ internal sealed class UnitOfWork : IUnitOfWork
 
     public async Task<Result> SaveChangesAsync(CancellationToken ct)
     {
+        ReconcileOrphanedStudentParentLinks();
+
         try
         {
             await _db.SaveChangesAsync(ct);
@@ -80,6 +83,50 @@ internal sealed class UnitOfWork : IUnitOfWork
             }
 
             return translated;
+        }
+    }
+
+    /// <summary>
+    /// Student.RemoveParent only takes a link out of the aggregate's own in-memory collection; the foreign key
+    /// to Student stays Restrict, never cascade at the database level (Task 38.2), so EF does not infer
+    /// deletion from a severed required relationship on its own — the row would otherwise linger, unchanged,
+    /// in the database. Runs for every tracked Student, not just the one the current handler touched, so this
+    /// holds regardless of which use case removed the link.
+    /// </summary>
+    /// <remarks>
+    /// AutoDetectChangesEnabled is turned off for the scan itself: <c>ChangeTracker.Entries&lt;T&gt;()</c> runs
+    /// a full DetectChanges pass first, and that pass is exactly what throws "the association ... has been
+    /// severed" the moment it notices the collection no longer holds a link whose foreign key is still
+    /// required — before this method gets a chance to mark that link Deleted instead. With detection off, the
+    /// scan sees the tracker's last-known state (the FK still intact) while still reading each Student's
+    /// *current* in-memory Parents collection (a plain property read, unaffected by the flag), so the diff
+    /// still finds the right orphans. Once an orphan is explicitly Deleted, EF's own fixer leaves it alone on
+    /// the next real detection, so turning detection back on afterwards is safe.
+    /// </remarks>
+    private void ReconcileOrphanedStudentParentLinks()
+    {
+        var changeTracker = _db.ChangeTracker;
+        var wasDetectingChanges = changeTracker.AutoDetectChangesEnabled;
+        changeTracker.AutoDetectChangesEnabled = false;
+        try
+        {
+            foreach (var studentEntry in changeTracker.Entries<Student>())
+            {
+                var stillLinked = studentEntry.Entity.Parents.Select(link => link.Id).ToHashSet();
+                foreach (var linkEntry in changeTracker.Entries<StudentParentLink>())
+                {
+                    if (linkEntry.State != EntityState.Deleted
+                        && linkEntry.Entity.StudentId == studentEntry.Entity.Id
+                        && !stillLinked.Contains(linkEntry.Entity.Id))
+                    {
+                        linkEntry.State = EntityState.Deleted;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            changeTracker.AutoDetectChangesEnabled = wasDetectingChanges;
         }
     }
 
