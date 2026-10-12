@@ -1,0 +1,29 @@
+{
+  "page": {
+    "title": "الطلاب",
+    "searchLabel": "البحث عن الطلاب",
+    "showArchived": "إظهار المؤرشفين"
+  },
+  "columns": {
+    "name": "الاسم",
+    "schoolYear": "الصف الدراسي",
+    "primaryParent": "ولي الأمر الأساسي",
+    "parentPhone": "هاتف ولي الأمر",
+    "status": "الحالة"
+  },
+  "actions": {
+    "register": "تسجيل طالب"
+  },
+  "loading": {
+    "label": "جاري تحميل الطلاب"
+  },
+  "error": {
+    "title": "تعذر تحميل الطلاب",
+    "reference": "المرجع: {correlationId}"
+  },
+  "emptyState": {
+    "title": "لا يوجد طلاب حتى الآن",
+    "description": "سجّل أول طالب للبدء.",
+    "noMatchTitle": "لا يوجد طلاب مطابقون لـ \"{search}\"."
+  }
+}

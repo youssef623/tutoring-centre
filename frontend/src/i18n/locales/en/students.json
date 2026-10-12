@@ -1,0 +1,29 @@
+{
+  "page": {
+    "title": "Students",
+    "searchLabel": "Search students",
+    "showArchived": "Show archived"
+  },
+  "columns": {
+    "name": "Name",
+    "schoolYear": "School year",
+    "primaryParent": "Primary parent",
+    "parentPhone": "Parent phone",
+    "status": "Status"
+  },
+  "actions": {
+    "register": "Register student"
+  },
+  "loading": {
+    "label": "Loading students"
+  },
+  "error": {
+    "title": "Students could not be loaded",
+    "reference": "Reference: {correlationId}"
+  },
+  "emptyState": {
+    "title": "No students yet",
+    "description": "Register your first student to get started.",
+    "noMatchTitle": "No students match \"{search}\"."
+  }
+}

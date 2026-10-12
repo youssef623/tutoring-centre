@@ -1,5 +1,16 @@
 {
   "retry": "Retry",
+  "loadMore": "Load more",
+  "comingSoon": "This page is on its way.",
+  "search": {
+    "label": "Search",
+    "placeholder": "Search",
+    "clear": "Clear search"
+  },
+  "status": {
+    "active": "Active",
+    "archived": "Archived"
+  },
   "language": {
     "arabic": "العربية",
     "english": "English"

@@ -1,5 +1,16 @@
 {
   "retry": "إعادة المحاولة",
+  "loadMore": "عرض المزيد",
+  "comingSoon": "هذه الصفحة قادمة قريبًا.",
+  "search": {
+    "label": "بحث",
+    "placeholder": "بحث",
+    "clear": "مسح البحث"
+  },
+  "status": {
+    "active": "نشط",
+    "archived": "مؤرشف"
+  },
   "language": {
     "arabic": "العربية",
     "english": "English"
