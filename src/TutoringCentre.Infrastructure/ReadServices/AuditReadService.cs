@@ -30,7 +30,7 @@ internal sealed class AuditReadService(AppDbContext db) : IAuditReadService
     {
         var entries = db.Set<AuditEntry>().AsNoTracking().AsQueryable();
 
-        if (entityType is not null && Enum.TryParse<AuditEntityType>(entityType, ignoreCase: true, out var parsedEntityType))
+        if (entityType is not null && AuditEntityTypeNames.TryParse(entityType, out var parsedEntityType))
         {
             entries = entries.Where(entry => entry.EntityType == parsedEntityType);
         }
@@ -87,7 +87,7 @@ internal sealed class AuditReadService(AppDbContext db) : IAuditReadService
         entry.ActorUserId,
         actorDisplayName,
         entry.Action.ToString().ToLowerInvariant(),
-        entry.EntityType.ToString().ToLowerInvariant(),
+        AuditEntityTypeNames.ToDatabase(entry.EntityType),
         entry.EntityId,
         ParseChanges(entry.Changes),
         entry.CorrelationId);
@@ -101,12 +101,19 @@ internal sealed class AuditReadService(AppDbContext db) : IAuditReadService
         {
             var before = field.Value.GetProperty("before");
             var after = field.Value.GetProperty("after");
-            changes.Add(new AuditChangeDto(
-                field.Name,
-                before.ValueKind == JsonValueKind.Null ? null : before.GetString(),
-                after.ValueKind == JsonValueKind.Null ? null : after.GetString()));
+            changes.Add(new AuditChangeDto(field.Name, ReadValue(before), ReadValue(after)));
         }
 
         return changes;
     }
+
+    // Most changed fields are JSON strings; isPrimary (Task 38.6) is the first boolean one, so GetString()
+    // alone is no longer enough — a JSON true/false has no string representation to read.
+    private static string? ReadValue(JsonElement element) => element.ValueKind switch
+    {
+        JsonValueKind.Null => null,
+        JsonValueKind.True => "true",
+        JsonValueKind.False => "false",
+        _ => element.GetString(),
+    };
 }

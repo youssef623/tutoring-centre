@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json.Nodes;
+using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Infrastructure.Audit;
 
@@ -14,11 +15,22 @@ internal static class AuditDiffBuilder
 {
     /// <returns>The changes document as JSON text, or null when there is nothing to record (an update where no
     /// allowed field actually changed) — null means no audit row is written at all, not an empty one.</returns>
-    public static string? Build(AuditAction action, IReadOnlySet<string> allowedFields, IReadOnlyList<AuditPropertyChange> propertyChanges)
+    /// <param name="maskedFields">
+    /// Task 38.6: the subset of <paramref name="allowedFields"/> whose before/after values are masked before
+    /// being written. Whether a field changed is still decided from the real values (<paramref
+    /// name="propertyChanges"/>), before masking is applied to what is written — two different phone numbers
+    /// that happen to share their last four digits must still produce an entry.
+    /// </param>
+    public static string? Build(
+        AuditAction action,
+        IReadOnlySet<string> allowedFields,
+        IReadOnlyList<AuditPropertyChange> propertyChanges,
+        IReadOnlySet<string>? maskedFields = null)
     {
         ArgumentNullException.ThrowIfNull(allowedFields);
         ArgumentNullException.ThrowIfNull(propertyChanges);
 
+        var masked = maskedFields ?? new HashSet<string>(StringComparer.Ordinal);
         var changesByName = propertyChanges.ToDictionary(change => change.Name, StringComparer.Ordinal);
         var document = new JsonObject();
 
@@ -29,17 +41,19 @@ internal static class AuditDiffBuilder
             switch (action)
             {
                 case AuditAction.Created:
-                    document[ToCamelCase(field)] = BuildEntry(before: null, after: change?.CurrentValue);
+                    document[ToCamelCase(field)] = BuildEntry(before: null, after: Represent(field, masked, change?.CurrentValue));
                     break;
 
                 case AuditAction.Deleted:
-                    document[ToCamelCase(field)] = BuildEntry(before: change?.OriginalValue, after: null);
+                    document[ToCamelCase(field)] = BuildEntry(before: Represent(field, masked, change?.OriginalValue), after: null);
                     break;
 
                 case AuditAction.Updated:
                     if (change is { IsModified: true } modified && !Equals(modified.OriginalValue, modified.CurrentValue))
                     {
-                        document[ToCamelCase(field)] = BuildEntry(modified.OriginalValue, modified.CurrentValue);
+                        document[ToCamelCase(field)] = BuildEntry(
+                            Represent(field, masked, modified.OriginalValue),
+                            Represent(field, masked, modified.CurrentValue));
                     }
 
                     break;
@@ -57,6 +71,23 @@ internal static class AuditDiffBuilder
         ["before"] = ToJsonValue(before),
         ["after"] = ToJsonValue(after),
     };
+
+    /// <summary>Masking applies only to what is written — the comparison in <see cref="Build"/> above already
+    /// ran on the real value by the time this is called.</summary>
+    private static object? Represent(string field, IReadOnlySet<string> maskedFields, object? value)
+    {
+        if (!maskedFields.Contains(field))
+        {
+            return value;
+        }
+
+        return value switch
+        {
+            null => null,
+            PhoneNumber phone => phone.Masked,
+            _ => throw new InvalidOperationException($"Masked field '{field}' must hold a PhoneNumber or null, not {value.GetType().Name}."),
+        };
+    }
 
     private static JsonValue? ToJsonValue(object? value) => value switch
     {

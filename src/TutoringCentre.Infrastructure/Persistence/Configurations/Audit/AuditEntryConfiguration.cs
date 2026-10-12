@@ -63,8 +63,8 @@ internal sealed class AuditEntryConfiguration : IEntityTypeConfiguration<AuditEn
         builder
             .Property(entry => entry.EntityType)
             .HasConversion(new ValueConverter<AuditEntityType, string>(
-                value => EntityTypeToDatabase(value),
-                value => EntityTypeFromDatabase(value)))
+                value => AuditEntityTypeNames.ToDatabase(value),
+                value => AuditEntityTypeNames.FromDatabase(value)))
             .IsRequired()
             .HasMaxLength(EntityTypeMaxLength);
 
@@ -117,19 +117,4 @@ internal sealed class AuditEntryConfiguration : IEntityTypeConfiguration<AuditEn
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported action value in the database."),
     };
 
-    private static string EntityTypeToDatabase(AuditEntityType value) => value switch
-    {
-        AuditEntityType.Subject => "subject",
-        AuditEntityType.Membership => "membership",
-        AuditEntityType.Centre => "centre",
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported audit entity type."),
-    };
-
-    private static AuditEntityType EntityTypeFromDatabase(string value) => value switch
-    {
-        "subject" => AuditEntityType.Subject,
-        "membership" => AuditEntityType.Membership,
-        "centre" => AuditEntityType.Centre,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported entity type value in the database."),
-    };
 }

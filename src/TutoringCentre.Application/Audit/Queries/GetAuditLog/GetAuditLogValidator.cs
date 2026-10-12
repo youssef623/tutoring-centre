@@ -6,7 +6,7 @@ namespace TutoringCentre.Application.Audit.Queries.GetAuditLog;
 /// <summary>Shape checks only, per the Day 32 contract. The cursor's value is decoded here to validate it, then decoded again (never trusted) by the read service that actually uses it.</summary>
 internal sealed class GetAuditLogValidator : AbstractValidator<GetAuditLogQuery>
 {
-    private static readonly string[] KnownEntityTypes = ["subject", "membership", "centre"];
+    private static readonly string[] KnownEntityTypes = ["subject", "membership", "centre", "parent", "student", "student_parent"];
 
     public GetAuditLogValidator()
     {

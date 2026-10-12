@@ -11,7 +11,10 @@
   "entityType": {
     "subject": "مادة",
     "membership": "عضوية موظف",
-    "centre": "المركز"
+    "centre": "المركز",
+    "parent": "ولي أمر",
+    "student": "طالب",
+    "student_parent": "رابط طالب وولي أمر"
   },
   "action": {
     "created": "تم الإنشاء",
@@ -23,13 +26,30 @@
     "status": "الحالة",
     "role": "الدور",
     "userId": "المستخدم",
-    "defaultLocale": "اللغة الافتراضية"
+    "defaultLocale": "اللغة الافتراضية",
+    "fullName": "الاسم الكامل",
+    "phone": "الهاتف",
+    "schoolYear": "الصف الدراسي",
+    "studentId": "الطالب",
+    "parentId": "ولي الأمر",
+    "relationship": "صلة القرابة",
+    "isPrimary": "جهة الاتصال الأساسية"
   },
   "value": {
     "status": {
       "active": "نشط",
       "archived": "مؤرشف",
       "inactive": "غير نشط"
+    },
+    "relationship": {
+      "father": "الأب",
+      "mother": "الأم",
+      "guardian": "ولي الأمر",
+      "other": "أخرى"
+    },
+    "isPrimary": {
+      "true": "نعم",
+      "false": "لا"
     }
   },
   "system": "النظام",

@@ -10,7 +10,8 @@ namespace TutoringCentre.Infrastructure.Persistence;
 /// Turns the two expected families of save-time database failure into a <see cref="Result"/>: a stale
 /// optimistic-concurrency version, and a unique-constraint violation (via <see cref="UniqueConstraintCatalogue"/>).
 /// Matches on SQLSTATE and constraint name only, never on message text. Everything else — foreign-key (23503),
-/// check (23514) and any other failure — is left untranslated (null), so the caller rethrows it (Task 25.4).
+/// check (23514), a unique violation the catalogue deliberately excludes (Task 38.7), and any other failure —
+/// is left untranslated (null), so the caller rethrows it (Task 25.4).
 /// </summary>
 internal static class PersistenceErrorTranslator
 {
@@ -34,6 +35,11 @@ internal static class PersistenceErrorTranslator
 
         if (exception is DbUpdateException { InnerException: PostgresException { SqlState: UniqueViolation } postgresException })
         {
+            if (UniqueConstraintCatalogue.IsDeliberatelyExcluded(postgresException.ConstraintName))
+            {
+                return null;
+            }
+
             var mapped = UniqueConstraintCatalogue.Find(postgresException.ConstraintName);
             if (mapped is not null)
             {

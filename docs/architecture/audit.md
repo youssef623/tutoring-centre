@@ -43,7 +43,7 @@ centre the change happened in:
 | `actor_type` | `varchar(10)` | `'staff'` or `'system'`. |
 | `actor_user_id` | `uuid`, nullable | The staff user; `null` for a system actor. |
 | `action` | `varchar(10)` | `'created'`, `'updated'` or `'deleted'`. |
-| `entity_type` | `varchar(60)` | `'subject'`, `'membership'` or `'centre'`. |
+| `entity_type` | `varchar(60)` | `'subject'`, `'membership'`, `'centre'`, `'parent'`, `'student'` or `'student_parent'` (Day 38). `AuditEntityTypeNames` (`TutoringCentre.Infrastructure.Audit`) is the one mapping between the enum and this string, shared by the EF value converter and the read side's API output, so the two can never drift apart — needed since `StudentParent` has no simple lower-case mapping from its CLR name alone. |
 | `entity_id` | `uuid` | The changed row's own id. No foreign key to it: the audited row can later be deleted (a subject is never hard-deleted today, but nothing here depends on that). |
 | `changes` | `jsonb` | `{ "<field>": { "before": ..., "after": ... } }`, allowed fields only, camelCase keys. |
 | `correlation_id` | `varchar(64)`, nullable | The request's correlation id, or `null` outside an HTTP request. |
@@ -74,17 +74,33 @@ property on an audited entity is never recorded until someone adds it here on pu
 | `Subject` | `subject` | Its own `CentreId` | `name`, `status` |
 | `Membership` | `membership` | Its own `CentreId` | `userId` (only ever appears on creation — nothing changes it afterward), `role`, `status` |
 | `Centre` | `centre` | Its own `Id` — it is the tenant, not scoped by one | `name`, `defaultLocale` |
+| `Parent` (Day 38) | `parent` | Its own `CentreId` | `fullName`, `phone` (masked) |
+| `Student` (Day 38) | `student` | Its own `CentreId` | `fullName`, `schoolYear`, `status`, `phone` (masked) |
+| `StudentParentLink` (Day 38) | `student_parent` | Its own `CentreId` | `studentId`, `parentId`, `relationship`, `isPrimary` |
 
 Nothing else is audited. `AuditEntry` itself and Identity's user type (`ApplicationUser`) are never in the
 policy — a test asserts this directly (`AuditPolicyTests.Entries_NeverIncludesAuditEntriesOrIdentityUsers`).
 Normalized names, hashes, stamps, emails, passwords and tokens are never recorded, because none of them is in
-any entity's field list above — not because of a separate redaction step that could be bypassed.
+any entity's field list above — not because of a separate redaction step that could be bypassed. `SearchName`
+(`Parent`, `Student`) and `LinksRevision` (`Student`) follow the same rule: neither is an independent fact —
+one is derived from `FullName`, the other is persistence bookkeeping for optimistic concurrency — so neither
+is in the field list either.
 
 **Created** writes every allowed field, `before: null`, `after` the value. **Updated** writes only the
 allowed fields that are both modified and whose value actually changed — a property touched but left equal
 to what it already was writes nothing, and if no allowed field really changed, no row is written at all.
 **Deleted** writes every allowed field, the value `before`, `after: null`. Enum values are written as the
 same lower-case strings the API already uses (`"archived"`, `"teacher"`, `"en"`, ...); GUIDs as strings.
+
+**Masked fields (Day 38).** `AuditPolicyEntry.MaskedFields` names the subset of `AllowedFields` whose values
+are never written in full — today, every audited `phone`. `AuditDiffBuilder` decides whether a field changed
+from the *real* tracked values first (so two different phone numbers that happen to share their last four
+digits still produce an entry — masking could never have told them apart), then, only for what is actually
+written, replaces the value with `PhoneNumber.Masked`. The audit table is append-only and this log is a
+durable record with no redaction step that runs later: once a full number were written, it could never be
+taken back, so masking happens before the row is ever inserted, not as a read-time transform. A masked field
+holding anything other than a `PhoneNumber` (or `null`) is a policy mistake, not a business outcome, and
+throws rather than writing silently wrong data.
 
 **The two-centre match.** A change is audited only when the entity's own centre equals the *acting actor's*
 centre. This is what keeps platform bootstrap — centre creation, the development identity seeder — out of

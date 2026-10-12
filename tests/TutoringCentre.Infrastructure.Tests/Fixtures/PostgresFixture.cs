@@ -192,6 +192,17 @@ public sealed class PostgresFixture : IAsyncLifetime
         // rollback test can dispatch through the real transaction before that command exists.
         services.AddScoped<ICommandHandler<EnsureAccountThenFailCommand, Unit>, EnsureAccountThenFailCommandHandler>();
 
+        // Task 38.5/38.6: test-only requests exercising the Student and Parent aggregates through the real
+        // context, standing in for the repositories and use cases that arrive on Days 39–40.
+        services.AddScoped<ICommandHandler<AddParentCommand, Guid>, AddParentCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateParentPhoneCommand, Unit>, UpdateParentPhoneCommandHandler>();
+        services.AddScoped<ICommandHandler<RegisterStudentCommand, Guid>, RegisterStudentCommandHandler>();
+        services.AddScoped<ICommandHandler<AddStudentParentCommand, Unit>, AddStudentParentCommandHandler>();
+        services.AddScoped<ICommandHandler<RemoveStudentParentCommand, Unit>, RemoveStudentParentCommandHandler>();
+        services.AddScoped<ICommandHandler<SetPrimaryStudentParentCommand, Unit>, SetPrimaryStudentParentCommandHandler>();
+        services.AddScoped<IQueryHandler<ListStudentNamesQuery, List<string>>, ListStudentNamesQueryHandler>();
+        services.AddScoped<IQueryHandler<GetStudentLinksSnapshotQuery, StudentLinksSnapshot>, GetStudentLinksSnapshotQueryHandler>();
+
         // GetSystemInfoHandler's port (Task 35.7); the real implementation is Api-only (DemoOptions), so these
         // tenancy/tenant-isolation tests never need it to be anything but off.
         services.AddSingleton<IDemoModeProvider, AlwaysDisabledDemoModeProvider>();
@@ -264,6 +275,74 @@ public sealed class PostgresFixture : IAsyncLifetime
         command.Parameters.AddWithValue("centre_id", centreId);
         command.Parameters.AddWithValue("name", name);
         command.Parameters.AddWithValue("normalized_name", name.ToUpperInvariant());
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one parent row for the given centre directly as the superuser — bypassing row-level security,
+    /// the write guard and EF entirely, on purpose, so RLS and integrity tests (Task 38.4) seed rows for both
+    /// centres that the policy under test cannot have biased. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedParentAsync(Guid centreId, string fullName, string phone)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.parents (id, centre_id, full_name, search_name, phone, created_at)
+            values (@id, @centre_id, @full_name, @search_name, @phone, now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("full_name", fullName);
+        command.Parameters.AddWithValue("search_name", fullName.ToUpperInvariant());
+        command.Parameters.AddWithValue("phone", phone);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>Inserts one student row for the given centre directly as the superuser (Task 38.4). Returns the generated id.</summary>
+    public async Task<Guid> SeedStudentAsync(Guid centreId, string fullName, string status = "active")
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.students (id, centre_id, full_name, search_name, status, links_revision, created_at)
+            values (@id, @centre_id, @full_name, @search_name, @status, 0, now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("full_name", fullName);
+        command.Parameters.AddWithValue("search_name", fullName.ToUpperInvariant());
+        command.Parameters.AddWithValue("status", status);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>Inserts one student-parent link row for the given centre directly as the superuser (Task 38.4). Returns the generated id.</summary>
+    public async Task<Guid> SeedStudentParentLinkAsync(Guid centreId, Guid studentId, Guid parentId, bool isPrimary, string relationship = "father")
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.student_parents (id, centre_id, student_id, parent_id, relationship, is_primary, created_at)
+            values (@id, @centre_id, @student_id, @parent_id, @relationship, @is_primary, now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("student_id", studentId);
+        command.Parameters.AddWithValue("parent_id", parentId);
+        command.Parameters.AddWithValue("relationship", relationship);
+        command.Parameters.AddWithValue("is_primary", isPrimary);
         await command.ExecuteNonQueryAsync();
         return id;
     }

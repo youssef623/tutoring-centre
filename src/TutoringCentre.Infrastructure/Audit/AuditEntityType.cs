@@ -6,4 +6,7 @@ public enum AuditEntityType
     Subject,
     Membership,
     Centre,
+    Parent,
+    Student,
+    StudentParent,
 }

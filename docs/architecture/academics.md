@@ -1,8 +1,8 @@
-# Academics: students and parents (Day 37)
+# Academics: students and parents (Days 37–38)
 
-The Domain model behind registering a student and the parents a centre contacts about them. Written from the
-implementation; every name and rule below is checked against the code, not the plan that produced it.
-Day 37 is Domain only — nothing here is persisted or exposed over HTTP yet (Days 38–41).
+The Domain model behind registering a student and the parents a centre contacts about them, and how that
+model is stored. Written from the implementation; every name and rule below is checked against the code, not
+the plan that produced it. Nothing here is exposed over HTTP yet (Days 39–41).
 
 ## Entities
 
@@ -92,3 +92,45 @@ changes, storing the result as `SearchName`; Day 40's search query will call the
 term before comparing, so a search for "احمد" matches a student stored as "أحمد" without either side
 special-casing the other. One function, called from both the write side and the read side, is what keeps that
 true — two independent implementations could drift silently the first time either one changed.
+
+## Storage (Day 38)
+
+Three tables in the `academics` schema, added by one migration (`AddStudentsAndParents`) that touches nothing
+else: `parents`, `students`, and `student_parents` (the `StudentParentLink` child entity). All three carry
+the Day 38 contract's exact columns, constraints, grants and row-level security; `student_parents` is the
+first table with foreign keys to two *other* tenant-owned tables, both composite on `(centre_id, …)` per
+Layer 4 (`docs/architecture/tenancy.md`) — `fk_student_parents_students` and `fk_student_parents_parents`
+each target `(centre_id, id)`, not a bare id, so a link can only ever name a student and a parent that both
+belong to the same centre as the link itself.
+
+`PhoneNumber` is stored as its E.164 string in one column (`Required`/`Optional` converters,
+`PhoneNumberConverters`), never as an owned type with its own columns — the Domain type gains no EF
+knowledge. A stored value that no longer passes `PhoneNumber.Create` surfaces as an exception on read, not a
+`Result`: a value converter has no channel to report a failure through EF's materialisation path, and a
+corrupt column is a bug, not a business outcome.
+
+`Student.Parents` is mapped from `StudentConfiguration`, not from `StudentParentLinkConfiguration`: EF reads
+and writes the collection through its private backing field (`Navigation(...).UsePropertyAccessMode(
+PropertyAccessMode.Field)`), since the public property exposes only `IReadOnlyCollection<StudentParentLink>`
+and EF cannot call `Add` through that. `StudentParentLink` carries no navigation back to `Student` or across
+to `Parent` — only the scalar ids — so nothing reachable through the aggregate lets a handler reach into
+`Parent`.
+
+**Two persistence details found by running Task 38.5's tests, not predicted in advance:**
+
+- **Removing a link needs an explicit delete.** `Student.RemoveParent` only takes the link out of its own
+  in-memory collection. Because the foreign key to `Student` is `RESTRICT` — deliberately never `CASCADE` at
+  the database level (Task 38.2's constraint: nothing here is removed by a database cascade) — EF does not
+  infer "deleted" from a child disappearing out of a required collection; it raises
+  `InvalidOperationException` instead, asking the caller to say what it meant. The caller (today, the Day
+  38.5 test-only handler; Day 40's real one inherits the same shape) holds onto the removed link and calls
+  `db.Set<StudentParentLink>().Remove(removedLink)` itself, right after a successful `RemoveParent`. This is
+  an EF client-side concern, not a Domain one: `Student` still only ever says "this link is gone from my
+  collection," and the persistence layer is what turns that into a row deletion.
+- **The primary-contact switch needs no explicit statement ordering.** `SetPrimaryParent` calls
+  `current?.ClearPrimary()` before `link.MarkPrimary()`, in that order, inside one Domain method; Task 38.5's
+  test proves `ux_student_parents_one_primary` (a statement-level partial unique index) never sees two
+  primary rows at once during the save — EF's default change-tracking order already clears the old primary's
+  `UPDATE` before issuing the new one's, because that is the order the two calls touched the entities in.
+  No explicit reordering was needed in the end; this is recorded here because the task called for proving it
+  by running the test rather than assuming it, not because anything had to change.

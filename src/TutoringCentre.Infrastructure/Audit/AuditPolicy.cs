@@ -31,5 +31,34 @@ internal static class AuditPolicy
             AuditEntityType.Centre,
             entity => ((Centre)entity).Id,
             new HashSet<string>(StringComparer.Ordinal) { nameof(Centre.Name), nameof(Centre.DefaultLocale) }),
+
+        // SearchName is never audited: it is derived from FullName, not an independent fact to record.
+        [typeof(Parent)] = new AuditPolicyEntry(
+            AuditEntityType.Parent,
+            entity => ((Parent)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal) { nameof(Parent.FullName), nameof(Parent.Phone) },
+            new HashSet<string>(StringComparer.Ordinal) { nameof(Parent.Phone) }),
+
+        // SearchName and LinksRevision are never audited: one is derived from FullName, the other is
+        // persistence bookkeeping for optimistic concurrency, not a fact about the student.
+        [typeof(Student)] = new AuditPolicyEntry(
+            AuditEntityType.Student,
+            entity => ((Student)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(Student.FullName), nameof(Student.SchoolYear), nameof(Student.Status), nameof(Student.Phone),
+            },
+            new HashSet<string>(StringComparer.Ordinal) { nameof(Student.Phone) }),
+
+        [typeof(StudentParentLink)] = new AuditPolicyEntry(
+            AuditEntityType.StudentParent,
+            entity => ((StudentParentLink)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(StudentParentLink.StudentId),
+                nameof(StudentParentLink.ParentId),
+                nameof(StudentParentLink.Relationship),
+                nameof(StudentParentLink.IsPrimary),
+            }),
     };
 }

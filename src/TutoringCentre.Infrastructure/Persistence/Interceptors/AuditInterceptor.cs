@@ -114,7 +114,7 @@ internal sealed class AuditInterceptor : SaveChangesInterceptor
                     property.IsModified))
                 .ToList();
 
-            var changes = AuditDiffBuilder.Build(action, policy.AllowedFields, propertyChanges);
+            var changes = AuditDiffBuilder.Build(action, policy.AllowedFields, propertyChanges, policy.MaskedFields);
             if (changes is null)
             {
                 continue;
