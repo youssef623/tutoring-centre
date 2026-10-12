@@ -34,6 +34,10 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "GET /api/audit",
         "GET /api/centre/settings",
         "PUT /api/centre/settings",
+        "POST /api/parents",
+        "GET /api/parents/{id:guid}",
+        "PUT /api/parents/{id:guid}",
+        "POST /api/parents/lookup",
     ];
 
     public async Task InitializeAsync()
@@ -306,6 +310,103 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
             Assert.Equal(before, await SnapshotNileCentreAsync());
         }
     }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.Created)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Created)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ParentsCreate(string role, HttpStatusCode expected)
+    {
+        var countBefore = await CountParentsAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            signedIn.Client, new Uri("/api/parents", UriKind.Relative),
+            new { fullName = $"Matrix Create {Guid.NewGuid():N}", phone = $"015{Random.Shared.Next(10000000, 99999999)}" });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(countBefore, await CountParentsAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ParentsGetById(string role, HttpStatusCode expected)
+    {
+        var (id, _) = await CreateParentAsOwnerAsync($"Matrix GetById {Guid.NewGuid():N}");
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/parents/{id}", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ParentsUpdate(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateParentAsOwnerAsync($"Matrix Update {Guid.NewGuid():N}");
+        var snapshotBefore = await SnapshotParentAsync(id);
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Put, new Uri($"/api/parents/{id}", UriKind.Relative),
+            new { fullName = "Renamed By Attempt", phone = "01012340000", version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotParentAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ParentsLookup(string role, HttpStatusCode expected)
+    {
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            signedIn.Client, new Uri("/api/parents/lookup", UriKind.Relative), new { phone = "01012340001" });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    private Task<long> CountParentsAsync() =>
+        factory.ScalarAsync<long>("select count(*) from academics.parents where centre_id = (select id from platform.centres where slug = 'nile-centre')");
+
+    private async Task<(Guid Id, uint Version)> CreateParentAsOwnerAsync(string fullName)
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var createResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/parents", UriKind.Relative),
+            new { fullName, phone = $"011{Random.Shared.Next(10000000, 99999999)}" });
+        var location = createResponse.Headers.Location!;
+        using var getResponse = await owner.Client.GetAsync(location);
+        var body = await ReadJsonAsync(getResponse);
+        return (body.RootElement.GetProperty("id").GetGuid(), body.RootElement.GetProperty("version").GetUInt32());
+    }
+
+    private Task<string> SnapshotParentAsync(Guid id) =>
+        factory.ScalarAsync<string>($"select full_name || '|' || phone || '|' || xmin from academics.parents where id = '{id}'");
 
     private Task<string> SnapshotNileCentreAsync() =>
         factory.ScalarAsync<string>("select name || '|' || default_locale || '|' || xmin from platform.centres where slug = 'nile-centre'");
