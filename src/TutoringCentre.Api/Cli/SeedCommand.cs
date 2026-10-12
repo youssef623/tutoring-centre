@@ -2,10 +2,16 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TutoringCentre.Application.Academics.Parents;
+using TutoringCentre.Application.Academics.Parents.Queries.LookupParentByPhone;
+using TutoringCentre.Application.Academics.Students;
+using TutoringCentre.Application.Academics.Students.Commands.RegisterStudent;
+using TutoringCentre.Application.Academics.Students.Queries.ListStudents;
 using TutoringCentre.Application.Academics.Subjects.Commands.CreateSubject;
 using TutoringCentre.Application.Centres.Commands.CreateCentre;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
@@ -25,6 +31,28 @@ public static class SeedCommand
     [
         new("nile-centre", ["رياضيات", "فيزياء", "كيمياء"]),
         new("maadi-hub", ["Mathematics", "Physics"]),
+    ];
+
+    // Phones are synthetic, in a block no real Egyptian number could collide with (010 + six zeros + a running
+    // index), never a value that looks like it could belong to an actual person. Three families per centre list
+    // two student names (siblings sharing a parent); the rest list one.
+    private static readonly SeedFamily[] Families =
+    [
+        new("nile-centre", "محمود حسن", "01000000001", ["أحمد محمود", "سارة محمود"]),
+        new("nile-centre", "علي سعيد", "01000000002", ["إبراهيم علي", "ياسمين علي"]),
+        new("nile-centre", "حسن عبدالله", "01000000003", ["فاطمة حسن", "يوسف حسن"]),
+        new("nile-centre", "السيد محمد", "01000000004", ["مصطفى السيد"]),
+        new("nile-centre", "أحمد فوزي", "01000000005", ["نور الدين أحمد"]),
+        new("nile-centre", "طارق سمير", "01000000006", ["ريم طارق"]),
+        new("nile-centre", "عادل منصور", "01000000007", ["كريم عادل"]),
+        new("nile-centre", "وليد جمال", "01000000008", ["هبة وليد"]),
+        new("nile-centre", "خالد رضا", "01000000009", ["عمر خالد"]),
+        new("maadi-hub", "Robert Wilson", "01000000010", ["James Wilson"]),
+        new("maadi-hub", "Michael Clark", "01000000011", ["Emma Clark"]),
+        new("maadi-hub", "David Brown", "01000000012", ["Oliver Brown"]),
+        new("maadi-hub", "Daniel Davis", "01000000013", ["Sophia Davis"]),
+        new("maadi-hub", "Thomas Miller", "01000000014", ["Lucas Miller"]),
+        new("maadi-hub", "Christopher Anderson", "01000000015", ["Mia Anderson"]),
     ];
 
     /// <returns>0 when every centre exists afterwards; 1 when any command failed for another reason.</returns>
@@ -132,10 +160,63 @@ public static class SeedCommand
             }
         }
 
+        foreach (var family in Families)
+        {
+            if (!centreIdsBySlug.TryGetValue(family.CentreSlug, out var centreId))
+            {
+                logger.LogError("Seed: centre {Slug} does not exist; cannot seed its students", family.CentreSlug);
+                exitCode = 1;
+                continue;
+            }
+
+            // One scope per centre's worth of work would mix families from different centres into a lookup that
+            // never clears between them; one scope per family keeps each lookup and every registration in it
+            // scoped to exactly that family's centre, same as the subjects loop above does per centre.
+            await using var familyScope = services.CreateAsyncScope();
+            familyScope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(new SystemActor(centreId));
+            var dispatcher = familyScope.ServiceProvider.GetRequiredService<Dispatcher>();
+
+            var lookup = await dispatcher.QueryAsync<LookupParentByPhoneQuery, ParentLookupDto>(
+                new LookupParentByPhoneQuery(family.ParentPhone), CancellationToken.None);
+            Guid? parentId = lookup.IsSuccess ? lookup.Value.Parent?.Id : null;
+
+            foreach (var studentName in family.StudentNames)
+            {
+                var existingSearch = await dispatcher.QueryAsync<ListStudentsQuery, StudentPageDto>(
+                    new ListStudentsQuery(studentName, true, null, 5), CancellationToken.None);
+                if (existingSearch.IsSuccess && existingSearch.Value.Items.Any(item => item.FullName == studentName))
+                {
+                    logger.LogInformation("Seed: student {Name} in {Slug} already exists", studentName, family.CentreSlug);
+                    continue;
+                }
+
+                var parentForm = parentId is { } existingParentId
+                    ? new RegisterStudentParent(existingParentId, null, null)
+                    : new RegisterStudentParent(null, family.ParentFullName, family.ParentPhone);
+
+                var result = await dispatcher.SendAsync<RegisterStudentCommand, RegisterStudentResult>(
+                    new RegisterStudentCommand(studentName, null, null, parentForm, ParentRelationship.Father), CancellationToken.None);
+
+                if (result.IsSuccess)
+                {
+                    parentId = result.Value.ParentId;
+                    logger.LogInformation("Seed: created student {Name} in {Slug}", studentName, family.CentreSlug);
+                }
+                else
+                {
+                    logger.LogError(
+                        "Seed: creating student {Name} in {Slug} failed with {ErrorCode}", studentName, family.CentreSlug, result.Error?.Code);
+                    exitCode = 1;
+                }
+            }
+        }
+
         return exitCode;
     }
 
     private sealed record SeedCentre(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale);
 
     private sealed record SeedSubjects(string CentreSlug, string[] Names);
+
+    private sealed record SeedFamily(string CentreSlug, string ParentFullName, string ParentPhone, string[] StudentNames);
 }

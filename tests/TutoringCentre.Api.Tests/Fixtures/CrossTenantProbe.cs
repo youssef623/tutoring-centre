@@ -24,12 +24,52 @@ internal static class CrossTenantProbe
         string? expectedCode,
         Func<Task<string>> snapshotVictimRowAsync)
     {
-        ArgumentNullException.ThrowIfNull(attackerClient);
-        ArgumentNullException.ThrowIfNull(method);
-        ArgumentNullException.ThrowIfNull(url);
         ArgumentNullException.ThrowIfNull(snapshotVictimRowAsync);
 
         var before = await snapshotVictimRowAsync();
+
+        await SendAndAssertAsync(attackerClient, method, url, body, expectedStatus, expectedCode);
+
+        var after = await snapshotVictimRowAsync();
+        Assert.Equal(before, after);
+    }
+
+    /// <summary>
+    /// A reference-attack probe: the URL and body are the ATTACKER's own (a resource they genuinely own), but
+    /// one id inside them — a route segment or a body field — names the VICTIM's record instead. An ordinary
+    /// <see cref="RunAsync"/> cannot express this: that helper attacks the victim's URL directly and would
+    /// always see 404 regardless of whether the reference itself was checked. Both rows are snapshotted and
+    /// re-checked, because a reference attack could just as easily corrupt the attacker's own row (e.g. by
+    /// linking it to someone else's child record) as the victim's.
+    /// </summary>
+    public static async Task RunReferenceAsync(
+        HttpClient attackerClient,
+        HttpMethod method,
+        string url,
+        object? body,
+        HttpStatusCode expectedStatus,
+        string? expectedCode,
+        Func<Task<string>> snapshotAttackerRowAsync,
+        Func<Task<string>> snapshotVictimRowAsync)
+    {
+        ArgumentNullException.ThrowIfNull(snapshotAttackerRowAsync);
+        ArgumentNullException.ThrowIfNull(snapshotVictimRowAsync);
+
+        var attackerBefore = await snapshotAttackerRowAsync();
+        var victimBefore = await snapshotVictimRowAsync();
+
+        await SendAndAssertAsync(attackerClient, method, url, body, expectedStatus, expectedCode);
+
+        Assert.Equal(attackerBefore, await snapshotAttackerRowAsync());
+        Assert.Equal(victimBefore, await snapshotVictimRowAsync());
+    }
+
+    private static async Task SendAndAssertAsync(
+        HttpClient attackerClient, HttpMethod method, string url, object? body, HttpStatusCode expectedStatus, string? expectedCode)
+    {
+        ArgumentNullException.ThrowIfNull(attackerClient);
+        ArgumentNullException.ThrowIfNull(method);
+        ArgumentNullException.ThrowIfNull(url);
 
         using var request = new HttpRequestMessage(method, url);
         if (body is not null)
@@ -54,8 +94,5 @@ internal static class CrossTenantProbe
             using var json = JsonDocument.Parse(text);
             Assert.Equal(expectedCode, json.RootElement.GetProperty("code").GetString());
         }
-
-        var after = await snapshotVictimRowAsync();
-        Assert.Equal(before, after);
     }
 }

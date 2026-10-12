@@ -9,6 +9,7 @@ import settingsAr from "./locales/ar/settings.json";
 import shellAr from "./locales/ar/shell.json";
 import staffAr from "./locales/ar/staff.json";
 import statusAr from "./locales/ar/status.json";
+import studentsAr from "./locales/ar/students.json";
 import subjectsAr from "./locales/ar/subjects.json";
 import auditEn from "./locales/en/audit.json";
 import authEn from "./locales/en/auth.json";
@@ -18,6 +19,7 @@ import settingsEn from "./locales/en/settings.json";
 import shellEn from "./locales/en/shell.json";
 import staffEn from "./locales/en/staff.json";
 import statusEn from "./locales/en/status.json";
+import studentsEn from "./locales/en/students.json";
 import subjectsEn from "./locales/en/subjects.json";
 
 const StorageKey = "tcm.lang";
@@ -72,6 +74,7 @@ void i18next
         auth: authEn,
         shell: shellEn,
         subjects: subjectsEn,
+        students: studentsEn,
         staff: staffEn,
         settings: settingsEn,
         audit: auditEn,
@@ -83,6 +86,7 @@ void i18next
         auth: authAr,
         shell: shellAr,
         subjects: subjectsAr,
+        students: studentsAr,
         staff: staffAr,
         settings: settingsAr,
         audit: auditAr,
@@ -90,7 +94,7 @@ void i18next
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "staff", "settings", "audit"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "staff", "settings", "audit"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

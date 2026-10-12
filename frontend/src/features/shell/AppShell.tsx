@@ -1,7 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, History, LayoutDashboard, Menu as MenuIcon, Settings, Users, X } from "lucide-react";
+import { BookOpen, GraduationCap, History, LayoutDashboard, Menu as MenuIcon, Settings, Users, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,6 +90,12 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link to="/subjects" search={{ archived: false }} className={linkClassName} onClick={onNavigate}>
           <BookOpen className="size-4" aria-hidden="true" />
           {t("nav.subjects")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.StudentsView}>
+        <Link to="/students" className={linkClassName} onClick={onNavigate}>
+          <GraduationCap className="size-4" aria-hidden="true" />
+          {t("nav.students")}
         </Link>
       </Can>
       <Can permission={Permissions.StaffView}>

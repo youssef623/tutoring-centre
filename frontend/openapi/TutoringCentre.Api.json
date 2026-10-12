@@ -846,6 +846,642 @@
         }
       }
     },
+    "/api/students": {
+      "get": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "listStudents",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "registerStudent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterStudentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterStudentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{id}": {
+      "get": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "getStudent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentDetailDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "updateStudent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{id}/archive": {
+      "post": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "archiveStudent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{id}/restore": {
+      "post": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "restoreStudent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{id}/parents": {
+      "post": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "linkStudentParent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkStudentParentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{id}/parents/{parentId}/unlink": {
+      "post": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "unlinkStudentParent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "parentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{id}/parents/{parentId}/make-primary": {
+      "post": {
+        "tags": [
+          "StudentEndpoints"
+        ],
+        "operationId": "makeStudentParentPrimary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "parentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/staff": {
       "get": {
         "tags": [
@@ -1696,6 +2332,32 @@
         },
         "additionalProperties": false
       },
+      "LinkStudentParentRequest": {
+        "required": [
+          "parentId",
+          "relationship",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/ParentRelationship"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "LoginRequest": {
         "required": [
           "email",
@@ -1979,6 +2641,81 @@
         },
         "additionalProperties": false
       },
+      "RegisterStudentRequest": {
+        "required": [
+          "fullName",
+          "parent",
+          "relationship"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "schoolYear": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parent": {
+            "$ref": "#/components/schemas/RegisterStudentRequestParent"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/ParentRelationship"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterStudentRequestParent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterStudentResponse": {
+        "required": [
+          "id",
+          "parentId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
       "RenameSubjectRequest": {
         "required": [
           "name",
@@ -2100,11 +2837,172 @@
         },
         "additionalProperties": false
       },
+      "StudentDetailDto": {
+        "required": [
+          "id",
+          "fullName",
+          "phone",
+          "schoolYear",
+          "status",
+          "version",
+          "parents"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "schoolYear": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/StudentStatus"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "uint32"
+          },
+          "parents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentParentDto"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "StudentListItemDto": {
+        "required": [
+          "id",
+          "fullName",
+          "schoolYear",
+          "status",
+          "primaryParentName",
+          "primaryParentPhone"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "schoolYear": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/StudentStatus"
+          },
+          "primaryParentName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "primaryParentPhone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "StudentPageDto": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentListItemDto"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "StudentParentDto": {
+        "required": [
+          "parentId",
+          "fullName",
+          "phone",
+          "relationship",
+          "isPrimary"
+        ],
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/ParentRelationship"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "StudentStatus": {
         "enum": [
           "active",
           "archived"
         ]
+      },
+      "StudentVersionRequest": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "SubjectDto": {
         "required": [
@@ -2256,6 +3154,39 @@
           }
         },
         "additionalProperties": false
+      },
+      "UpdateStudentRequest": {
+        "required": [
+          "fullName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "schoolYear": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       }
     }
   },
@@ -2274,6 +3205,9 @@
     },
     {
       "name": "ParentEndpoints"
+    },
+    {
+      "name": "StudentEndpoints"
     },
     {
       "name": "StaffEndpoints"

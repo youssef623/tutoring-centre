@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "subjects": "المواد",
+    "students": "الطلاب",
     "staff": "الموظفون",
     "settings": "الإعدادات",
     "audit": "سجل النشاط",

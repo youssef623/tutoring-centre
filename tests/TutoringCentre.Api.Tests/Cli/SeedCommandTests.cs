@@ -91,4 +91,66 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
                 where c.slug = 'maadi-hub'
                 """));
     }
+
+    [Fact]
+    public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoStudentsAndParentsIdempotently()
+    {
+        var firstExitCode = await SeedCommand.RunAsync(factory.Services);
+        var secondExitCode = await SeedCommand.RunAsync(factory.Services);
+
+        Assert.Equal(0, firstExitCode);
+        Assert.Equal(0, secondExitCode);
+        Assert.Equal(18, await factory.ScalarAsync<long>("select count(*) from academics.students"));
+        Assert.Equal(15, await factory.ScalarAsync<long>("select count(*) from academics.parents"));
+        Assert.Equal(
+            12,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.students s
+                join platform.centres c on c.id = s.centre_id
+                where c.slug = 'nile-centre'
+                """));
+        Assert.Equal(
+            9,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.parents p
+                join platform.centres c on c.id = p.centre_id
+                where c.slug = 'nile-centre'
+                """));
+        Assert.Equal(
+            6,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.students s
+                join platform.centres c on c.id = s.centre_id
+                where c.slug = 'maadi-hub'
+                """));
+        Assert.Equal(
+            6,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.parents p
+                join platform.centres c on c.id = p.centre_id
+                where c.slug = 'maadi-hub'
+                """));
+
+        // Every student-parent link's own centre_id matches both the student's and the parent's — never a row
+        // that could only exist by crossing the tenant boundary the composite foreign keys enforce.
+        Assert.Equal(
+            0,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.student_parents sp
+                join academics.students s on s.id = sp.student_id
+                join academics.parents p on p.id = sp.parent_id
+                where sp.centre_id != s.centre_id or sp.centre_id != p.centre_id
+                """));
+
+        // Every seeded phone is a synthetic, reserved-looking value, never one a real person could hold.
+        Assert.Equal(
+            0,
+            await factory.ScalarAsync<long>(
+                "select count(*) from academics.parents where phone !~ '^\\+2010000000[0-9]{2}$'"));
+    }
 }

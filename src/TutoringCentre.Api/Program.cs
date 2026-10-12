@@ -190,6 +190,7 @@ api.MapPlatformEndpoints();
 api.MapAuthEndpoints();
 api.MapSubjectEndpoints();
 api.MapParentEndpoints();
+api.MapStudentEndpoints();
 api.MapStaffEndpoints();
 api.MapAuditEndpoints();
 api.MapCentreSettingsEndpoints();

@@ -17,17 +17,19 @@ public sealed class ApiRuleTests
             .ToArray();
 
         // Every Domain type except Common: endpoints legitimately map Result/Error, never entities or value objects.
-        // Named per type, not per namespace, so StaffRole (Day 30 contract) and SupportedLocale (Day 32 contract)
-        // can be carved out on their own: pure enums, not entities, bound straight off the wire so an unknown
-        // value is refused at binding (400) instead of reaching a handler. Their namespace-mates (Membership,
-        // MembershipStatus, Permissions, RolePermissions, Centre) stay forbidden.
+        // Named per type, not per namespace, so StaffRole (Day 30 contract), SupportedLocale (Day 32 contract)
+        // and ParentRelationship (Day 41 contract) can be carved out on their own: pure enums, not entities,
+        // bound straight off the wire so an unknown value is refused at binding (400) instead of reaching a
+        // handler. Their namespace-mates (Membership, MembershipStatus, Permissions, RolePermissions, Centre,
+        // Student, Parent, StudentParentLink, StudentStatus) stay forbidden.
         var domainEntityTypes = SourceAssemblies.Domain.GetTypes()
             .Where(type => type.Namespace is not null
                 && type.Namespace != "TutoringCentre.Domain"
                 && type.Namespace != "TutoringCentre.Domain.Common"
                 && !type.Namespace.StartsWith("TutoringCentre.Domain.Common.", StringComparison.Ordinal)
                 && type.FullName != "TutoringCentre.Domain.Identity.StaffRole"
-                && type.FullName != "TutoringCentre.Domain.Centres.SupportedLocale")
+                && type.FullName != "TutoringCentre.Domain.Centres.SupportedLocale"
+                && type.FullName != "TutoringCentre.Domain.Academics.ParentRelationship")
             .Select(type => type.FullName!)
             .ToArray();
 
