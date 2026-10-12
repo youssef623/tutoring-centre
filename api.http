@@ -238,3 +238,105 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 
 ### 30. GET again — expect 200, the new name, "en", and a new version. /api/me (step 2) also now shows the new name.
 GET {{baseUrl}}/api/centre/settings
+
+### Manual walkthrough of the students API (Day 41), continuing owner@nile.test's session from step 12.
+
+### 31. List students — expect 200, { "items": [...], "nextCursor" }, empty or Nile-only.
+GET {{baseUrl}}/api/students
+
+### 32. Register a student with a brand-new parent — expect 201, Location: /api/students/{newId}, body { "id", "parentId" }.
+# @name registerStudent
+POST {{baseUrl}}/api/students
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "fullName": "أحمد محمود",
+  "phone": null,
+  "schoolYear": "الصف الثالث الثانوي",
+  "parent": { "fullName": "محمود حسن", "phone": "01012345678" },
+  "relationship": "father"
+}
+
+### 33. Search for the student by a hamza-insensitive spelling of "أحمد" — expect 200, the student above in "items".
+GET {{baseUrl}}/api/students?search=%D8%A7%D8%AD%D9%85%D8%AF
+
+### 34. GET the created student via the Location header from step 32 — expect 200, one parent, isPrimary true.
+@studentId = replace-with-the-id-from-step-32
+GET {{baseUrl}}/api/students/{{studentId}}
+
+### 35. Register a sibling using the existing-parent form — copy "parentId" from step 32 — expect 201, the same parentId back.
+@firstParentId = replace-with-the-parentId-from-step-32
+POST {{baseUrl}}/api/students
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "fullName": "محمد محمود",
+  "phone": null,
+  "schoolYear": null,
+  "parent": { "id": "{{firstParentId}}" },
+  "relationship": "father"
+}
+
+### 36. Update the student — copy "version" from step 34 first — expect 204.
+@studentVersion = replace-with-the-version-from-step-34
+PUT {{baseUrl}}/api/students/{{studentId}}
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "fullName": "أحمد محمود حسن",
+  "phone": null,
+  "schoolYear": "الصف الثالث الثانوي",
+  "version": {{studentVersion}}
+}
+
+### 37. Link a second parent — re-run step 34 first to refresh @studentVersion, and register a second parent via
+### step 32's pattern (a different phone) to get a @secondParentId first — expect 204.
+@secondParentId = replace-with-a-second-parentId
+POST {{baseUrl}}/api/students/{{studentId}}/parents
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "parentId": "{{secondParentId}}",
+  "relationship": "mother",
+  "version": {{studentVersion}}
+}
+
+### 38. Make the second parent primary — re-run step 34 first to refresh @studentVersion — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/parents/{{secondParentId}}/make-primary
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}
+
+### 39. Unlink the first (now non-primary) parent — re-run step 34 first to refresh @studentVersion — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/parents/{{firstParentId}}/unlink
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}
+
+### 40. Archive the student — re-run step 34 first to refresh @studentVersion — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/archive
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}
+
+### 41. Restore it — re-run step 34 first to refresh @studentVersion to the archived row's current version — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/restore
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}

@@ -13,6 +13,8 @@ Every error carries two extensions beyond the RFC fields:
 
 Validation failures also carry `errors`: a field name (camelCase) → message list, built from `Error.Fields`.
 
+**Nested field paths (Day 41).** A field inside a nested request object is still one dotted key in `errors`, never its own nested object: `RegisterStudentCommand`'s `Parent` value produces `errors["parent.fullName"]` or `errors["parent.phone"]`, not `errors.parent.fullName`. The dispatcher builds this by camel-casing each dotted segment of the validator's `PropertyName` (`Dispatcher.ToCamelCase`) — a validator that uses `SetValidator` on a nested property, or an `OverridePropertyName("Parent.Phone")` call, gets the nested path for free. A handler-level error that needs the same path for a field FluentValidation never sees (e.g. the nested parent's phone failing `PhoneNumber.Create`, not the validator's own shape check) builds the `Fields` dictionary directly with the same dotted key, by hand (`StudentErrors.ParentPhoneInvalid`).
+
 ## Result → HTTP mapping
 
 **Rule.** `ResultHttpExtensions` (`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`) is the single place a domain `Result`/`Error` becomes an HTTP response. Endpoints call `.ToHttpResult(...)` and never branch on `ErrorKind` themselves.
@@ -118,3 +120,16 @@ the HTTP status that maps to (`ResultHttpExtensions`):
 
 Audit (Day 31) adds no error codes of its own: it is read-only, with no command and therefore nothing for a
 business rule to refuse.
+
+## Error codes added in Month 3
+
+| Code | Kind → Status | Feature (Day) |
+| --- | --- | --- |
+| `parent.not_found` | NotFound → 404 | Parents (Day 39); also returned when a student command's nested parent reference does not exist or belongs to another centre |
+| `parent.phone_taken` | Conflict → 409 | Parents; `errors["parent.phone"]` when raised from `RegisterStudentCommand`'s nested new-parent form |
+| `phone.invalid` | Validation → 400 | Parents/Students — `PhoneNumber.Create`'s own validation, re-keyed by the caller to `errors.phone` (a resource's own phone) or `errors["parent.phone"]` (a nested parent's) |
+| `student.not_found` | NotFound → 404 | Students (Day 40) |
+| `student.name_invalid`, `student.school_year_invalid`, `student.centre_required`, `student.parent_required` | Validation → 400 | Students |
+| `student.already_archived`, `student.not_archived`, `student.archived_read_only` | Rule → 422 | Students |
+| `student.parent_already_linked`, `student.too_many_parents`, `student.parent_not_linked`, `student.last_parent`, `student.primary_parent_required`, `student.already_primary` | Rule → 422, except `student.parent_not_linked` which is NotFound → 404 (unlink/make-primary addressing a parent id that is not, or no longer, linked) | Students |
+| `concurrency.stale` | Conflict → 409 | Shared with Month 2; now also students (`version`/`xmin` on the student row, which guards its parent links too) |
