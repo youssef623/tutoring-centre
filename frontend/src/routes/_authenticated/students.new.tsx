@@ -1,22 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { RegisterStudentForm } from "@/features/students/RegisterStudentForm";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { Permissions } from "@/features/session/permissions";
 
-/**
- * Placeholder (Day 42 builds the registration form). Routed and guarded now so the students list (Day 41) can
- * link to it with type-safe routing instead of a string that resolves to nothing.
- */
 export const Route = createFileRoute("/_authenticated/students/new")({
   component: RegisterStudentPage,
 });
 
 function RegisterStudentPage() {
-  const { t } = useTranslation("common");
-
   return (
     <RouteGuard permission={Permissions.StudentsManage}>
-      <p className="text-sm text-muted-foreground">{t("comingSoon")}</p>
+      <RegisterStudentPageContent />
     </RouteGuard>
+  );
+}
+
+function RegisterStudentPageContent() {
+  const { t } = useTranslation("students");
+
+  return (
+    <section className="space-y-4">
+      <h1 className="text-2xl font-semibold tracking-tight">{t("actions.register")}</h1>
+      <RegisterStudentForm />
+    </section>
   );
 }

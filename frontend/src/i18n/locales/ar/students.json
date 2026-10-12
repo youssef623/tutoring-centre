@@ -25,5 +25,43 @@
     "title": "لا يوجد طلاب حتى الآن",
     "description": "سجّل أول طالب للبدء.",
     "noMatchTitle": "لا يوجد طلاب مطابقون لـ \"{search}\"."
+  },
+  "form": {
+    "studentSectionTitle": "الطالب",
+    "parentSectionTitle": "ولي الأمر",
+    "fullNameLabel": "الاسم الكامل",
+    "fullNamePlaceholder": "مثال: أحمد محمود",
+    "phoneLabel": "الهاتف (اختياري)",
+    "schoolYearLabel": "الصف الدراسي (اختياري)",
+    "schoolYearPlaceholder": "مثال: الصف الخامس",
+    "parentPhoneLabel": "هاتف ولي الأمر",
+    "parentFullNameLabel": "اسم ولي الأمر الكامل",
+    "parentFullNamePlaceholder": "مثال: محمود حسن",
+    "relationshipLabel": "صلة القرابة",
+    "save": "تسجيل الطالب",
+    "cancel": "إلغاء"
+  },
+  "lookup": {
+    "existingParent": "ولي أمر مسجّل مسبقًا: {name}",
+    "changeNumber": "ليس هذا الشخص؟ غيّر رقم الهاتف"
+  },
+  "relationship": {
+    "father": "الأب",
+    "mother": "الأم",
+    "guardian": "ولي الأمر",
+    "other": "آخر"
+  },
+  "toasts": {
+    "registered": "تم تسجيل الطالب."
+  },
+  "validation": {
+    "fullNameRequired": "اسم الطالب مطلوب.",
+    "fullNameTooLong": "يجب ألا يتجاوز اسم الطالب 120 حرفًا.",
+    "phoneTooLong": "يجب ألا يتجاوز رقم الهاتف 30 حرفًا.",
+    "schoolYearTooLong": "يجب ألا يتجاوز الصف الدراسي 40 حرفًا.",
+    "parentPhoneRequired": "هاتف ولي الأمر مطلوب.",
+    "parentPhoneTooLong": "يجب ألا يتجاوز رقم الهاتف 30 حرفًا.",
+    "parentFullNameRequired": "اسم ولي الأمر الكامل مطلوب.",
+    "parentFullNameTooLong": "يجب ألا يتجاوز اسم ولي الأمر 120 حرفًا."
   }
 }

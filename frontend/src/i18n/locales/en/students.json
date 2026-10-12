@@ -25,5 +25,43 @@
     "title": "No students yet",
     "description": "Register your first student to get started.",
     "noMatchTitle": "No students match \"{search}\"."
+  },
+  "form": {
+    "studentSectionTitle": "Student",
+    "parentSectionTitle": "Parent or guardian",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "e.g. Ahmed Mahmoud",
+    "phoneLabel": "Phone (optional)",
+    "schoolYearLabel": "School year (optional)",
+    "schoolYearPlaceholder": "e.g. Grade 5",
+    "parentPhoneLabel": "Parent's phone",
+    "parentFullNameLabel": "Parent's full name",
+    "parentFullNamePlaceholder": "e.g. Mahmoud Hassan",
+    "relationshipLabel": "Relationship",
+    "save": "Register student",
+    "cancel": "Cancel"
+  },
+  "lookup": {
+    "existingParent": "Existing parent: {name}",
+    "changeNumber": "Not this person? Change the number"
+  },
+  "relationship": {
+    "father": "Father",
+    "mother": "Mother",
+    "guardian": "Guardian",
+    "other": "Other"
+  },
+  "toasts": {
+    "registered": "Student registered."
+  },
+  "validation": {
+    "fullNameRequired": "Student name is required.",
+    "fullNameTooLong": "Student name must be at most 120 characters.",
+    "phoneTooLong": "Phone number must be at most 30 characters.",
+    "schoolYearTooLong": "School year must be at most 40 characters.",
+    "parentPhoneRequired": "Parent's phone is required.",
+    "parentPhoneTooLong": "Phone number must be at most 30 characters.",
+    "parentFullNameRequired": "Parent's full name is required.",
+    "parentFullNameTooLong": "Parent's full name must be at most 120 characters."
   }
 }
