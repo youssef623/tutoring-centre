@@ -20,6 +20,40 @@ public sealed class PersistenceErrorTranslatorTests
     }
 
     [Fact]
+    public void TryTranslate_UniqueViolationOnParentPhoneConstraint_ReturnsParentPhoneTaken()
+    {
+        var exception = UniqueViolation("ux_parents_centre_phone");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailure);
+        Assert.Equal("parent.phone_taken", result.Error!.Code);
+    }
+
+    [Fact]
+    public void TryTranslate_UniqueViolationOnStudentParentConstraint_ReturnsParentAlreadyLinked()
+    {
+        var exception = UniqueViolation("ux_student_parents_student_parent");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailure);
+        Assert.Equal("student.parent_already_linked", result.Error!.Code);
+    }
+
+    [Fact]
+    public void TryTranslate_UniqueViolationOnOnePrimaryIndex_IsNotTranslated()
+    {
+        var exception = UniqueViolation("ux_student_parents_one_primary");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void TryTranslate_UniqueViolationOnUnregisteredConstraint_ReturnsGenericDuplicate()
     {
         var exception = UniqueViolation("ux_something_nobody_registered");

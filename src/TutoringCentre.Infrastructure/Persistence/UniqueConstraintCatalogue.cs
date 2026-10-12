@@ -22,9 +22,33 @@ internal static class UniqueConstraintCatalogue
             "This person already has a membership in this centre.",
             ErrorKind.Conflict,
             new Dictionary<string, string[]> { ["email"] = ["This person already has a membership in this centre."] }),
+
+        ["ux_parents_centre_phone"] = () => new Error(
+            "parent.phone_taken",
+            "A parent with this phone number already exists.",
+            ErrorKind.Conflict,
+            new Dictionary<string, string[]> { ["phone"] = ["A parent with this phone number already exists."] }),
+
+        ["ux_student_parents_student_parent"] = () =>
+            Error.Conflict("student.parent_already_linked", "This parent is already linked to this student."),
+    };
+
+    /// <summary>
+    /// Constraints that must never become a Result, even the generic duplicate one: each guards an invariant
+    /// the Domain is supposed to make impossible before a save is ever attempted (Task 38.7) — the one-primary-
+    /// per-student partial index is in this set, not the Entries map above, deliberately. A violation here is a
+    /// bug in that guarantee, not a race the business expects, so it must stay a loud, unhandled exception
+    /// rather than a quiet 409 that would hide it.
+    /// </summary>
+    private static readonly HashSet<string> NeverTranslated = new(StringComparer.Ordinal)
+    {
+        "ux_student_parents_one_primary",
     };
 
     /// <summary>The mapped error for a registered constraint, or null when the constraint is not in the catalogue.</summary>
     public static Error? Find(string? constraintName) =>
         constraintName is not null && Entries.TryGetValue(constraintName, out var factory) ? factory() : null;
+
+    public static bool IsDeliberatelyExcluded(string? constraintName) =>
+        constraintName is not null && NeverTranslated.Contains(constraintName);
 }
