@@ -126,6 +126,196 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                     b.ToTable("user_tokens", "identity");
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Parent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("SearchName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("search_name");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parents");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_parents_centre_id_id");
+
+                    b.HasIndex("CentreId", "Phone")
+                        .IsUnique()
+                        .HasDatabaseName("ux_parents_centre_phone");
+
+                    b.HasIndex("CentreId", "SearchName")
+                        .HasDatabaseName("ix_parents_centre_search_name");
+
+                    b.ToTable("parents", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_parents_phone_format", "phone ~ '^\\+[1-9][0-9]{7,14}$'");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Student", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("full_name");
+
+                    b.Property<int>("LinksRevision")
+                        .HasColumnType("integer")
+                        .HasColumnName("links_revision");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("SchoolYear")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("school_year");
+
+                    b.Property<string>("SearchName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("search_name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_students");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_students_centre_id_id");
+
+                    b.HasIndex("CentreId", "SearchName", "Id")
+                        .HasDatabaseName("ix_students_centre_search_name_id");
+
+                    b.ToTable("students", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_students_phone_format", "phone IS NULL OR phone ~ '^\\+[1-9][0-9]{7,14}$'");
+
+                            t.HasCheckConstraint("ck_students_status", "status IN ('active','archived')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.StudentParentLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary");
+
+                    b.Property<Guid>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<string>("Relationship")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("relationship");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_student_parents");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_student_parents_centre_id_id");
+
+                    b.HasIndex("CentreId", "ParentId")
+                        .HasDatabaseName("ix_student_parents_centre_parent");
+
+                    b.HasIndex("CentreId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_student_parents_one_primary")
+                        .HasFilter("is_primary");
+
+                    b.HasIndex("CentreId", "StudentId", "ParentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_student_parents_student_parent");
+
+                    b.ToTable("student_parents", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_student_parents_relationship", "relationship IN ('father','mother','guardian','other')");
+                        });
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Subject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -507,6 +697,52 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_user_tokens_users_user_id");
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Parent", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_parents_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Student", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_students_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.StudentParentLink", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_parents_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Parent", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ParentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_parents_parents");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Student", null)
+                        .WithMany("Parents")
+                        .HasForeignKey("CentreId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_parents_students");
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Subject", b =>
                 {
                     b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
@@ -548,6 +784,11 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_audit_entries_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Student", b =>
+                {
+                    b.Navigation("Parents");
                 });
 #pragma warning restore 612, 618
         }
