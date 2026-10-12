@@ -90,6 +90,7 @@ public sealed class StudentEndpointTests(ApiFactory factory) : IAsyncLifetime
     public async Task Register_BothParentFormsGiven_Returns400WithErrorsParentAndCreatesNoRow()
     {
         using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var countBefore = await factory.ScalarAsync<long>("select count(*) from academics.students");
 
         using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
             owner.Client, StudentsUri,
@@ -98,7 +99,7 @@ public sealed class StudentEndpointTests(ApiFactory factory) : IAsyncLifetime
         var body = await ReadJsonAsync(response);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.True(body.RootElement.GetProperty("errors").GetProperty("parent").GetArrayLength() > 0);
-        Assert.Equal(0, await factory.ScalarAsync<long>("select count(*) from academics.students"));
+        Assert.Equal(countBefore, await factory.ScalarAsync<long>("select count(*) from academics.students"));
     }
 
     [Fact]
@@ -163,6 +164,7 @@ public sealed class StudentEndpointTests(ApiFactory factory) : IAsyncLifetime
     public async Task Register_UnknownFieldAtTopLevel_Returns400RequestMalformedAndCreatesNoRow()
     {
         using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var countBefore = await factory.ScalarAsync<long>("select count(*) from academics.students");
 
         using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
             owner.Client, StudentsUri,
@@ -171,13 +173,14 @@ public sealed class StudentEndpointTests(ApiFactory factory) : IAsyncLifetime
         var body = await ReadJsonAsync(response);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("request.malformed", body.RootElement.GetProperty("code").GetString());
-        Assert.Equal(0, await factory.ScalarAsync<long>("select count(*) from academics.students"));
+        Assert.Equal(countBefore, await factory.ScalarAsync<long>("select count(*) from academics.students"));
     }
 
     [Fact]
     public async Task Register_UnknownFieldInsideNestedParent_Returns400RequestMalformedAndCreatesNoRow()
     {
         using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var countBefore = await factory.ScalarAsync<long>("select count(*) from academics.students");
 
         using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
             owner.Client, StudentsUri,
@@ -186,22 +189,26 @@ public sealed class StudentEndpointTests(ApiFactory factory) : IAsyncLifetime
         var body = await ReadJsonAsync(response);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("request.malformed", body.RootElement.GetProperty("code").GetString());
-        Assert.Equal(0, await factory.ScalarAsync<long>("select count(*) from academics.students"));
+        Assert.Equal(countBefore, await factory.ScalarAsync<long>("select count(*) from academics.students"));
     }
 
     [Fact]
-    public async Task List_EmptySearch_ReturnsOnlyActiveStudentsInNormalizedOrder()
+    public async Task List_EmptySearch_ReturnsActiveStudentsInNormalizedOrder()
     {
+        // Distinctively named so these two can never collide with the seed's own demo students (Day 41.7) that
+        // the same database already carries — the point here is relative order, not an exhaustive list.
         using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
-        await RegisterStudentAsync(owner.Client, "زينب علي", "ولي أمر 1", "01099990010");
-        await RegisterStudentAsync(owner.Client, "أحمد محمود", "ولي أمر 2", "01099990011");
+        await RegisterStudentAsync(owner.Client, "زينب اختبار", "ولي أمر 1", "01099990010");
+        await RegisterStudentAsync(owner.Client, "أحمد اختبار", "ولي أمر 2", "01099990011");
 
-        using var response = await owner.Client.GetAsync(StudentsUri);
+        using var response = await owner.Client.GetAsync(new Uri("/api/students?pageSize=100", UriKind.Relative));
 
         var body = await ReadJsonAsync(response);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var names = body.RootElement.GetProperty("items").EnumerateArray().Select(item => item.GetProperty("fullName").GetString()).ToList();
-        Assert.Equal(["أحمد محمود", "زينب علي"], names);
+        Assert.Contains("أحمد اختبار", names);
+        Assert.Contains("زينب اختبار", names);
+        Assert.True(names.IndexOf("أحمد اختبار") < names.IndexOf("زينب اختبار"), "Expected normalized order: أحمد اختبار before زينب اختبار.");
     }
 
     [Fact]

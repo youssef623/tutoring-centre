@@ -119,6 +119,7 @@ public sealed class ParentEndpointTests(ApiFactory factory) : IAsyncLifetime
     public async Task Create_WithExtraCentreIdField_Returns400RequestMalformedAndCreatesNoRow()
     {
         using var nileOwner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var countBefore = await factory.ScalarAsync<long>("select count(*) from academics.parents");
 
         using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
             nileOwner.Client, ParentsUri, new { fullName = "Omar Hassan", phone = "01012345678", centreId = Guid.NewGuid() });
@@ -126,7 +127,7 @@ public sealed class ParentEndpointTests(ApiFactory factory) : IAsyncLifetime
         var body = await ReadJsonAsync(response);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("request.malformed", body.RootElement.GetProperty("code").GetString());
-        Assert.Equal(0, await factory.ScalarAsync<long>("select count(*) from academics.parents"));
+        Assert.Equal(countBefore, await factory.ScalarAsync<long>("select count(*) from academics.parents"));
     }
 
     [Fact]
