@@ -13,11 +13,15 @@ public static class RolePermissions
             Permissions.StaffManage,
             Permissions.AuditView,
             Permissions.CentreSettingsManage,
+            Permissions.StudentsView,
+            Permissions.StudentsManage,
         },
         [StaffRole.Secretary] = new HashSet<string>
         {
             Permissions.SubjectsView,
             Permissions.SubjectsManage,
+            Permissions.StudentsView,
+            Permissions.StudentsManage,
         },
         [StaffRole.Teacher] = new HashSet<string>
         {

@@ -6,6 +6,8 @@ export const Permissions = {
   StaffManage: "staff.manage",
   AuditView: "audit.view",
   CentreSettingsManage: "centre.settings.manage",
+  StudentsView: "students.view",
+  StudentsManage: "students.manage",
 } as const;
 
 export type Permission = (typeof Permissions)[keyof typeof Permissions];
