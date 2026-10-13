@@ -1,8 +1,8 @@
-# Academics: students and parents (Days 37–38)
+# Academics: students and parents (Days 37–42)
 
-The Domain model behind registering a student and the parents a centre contacts about them, and how that
-model is stored. Written from the implementation; every name and rule below is checked against the code, not
-the plan that produced it. Nothing here is exposed over HTTP yet (Days 39–41).
+The Domain model behind registering a student and the parents a centre contacts about them, how that model is
+stored, the use cases and endpoints built on it, and the two screens that use them. Written from the
+implementation; every name and rule below is checked against the code, not the plan that produced it.
 
 ## Entities
 
@@ -134,3 +134,96 @@ to `Parent` — only the scalar ids — so nothing reachable through the aggrega
   `UPDATE` before issuing the new one's, because that is the order the two calls touched the entities in.
   No explicit reordering was needed in the end; this is recorded here because the task called for proving it
   by running the test rather than assuming it, not because anything had to change.
+
+## Use cases (Days 39–40)
+
+Thirteen use cases, one per endpoint below, each an `IRequirePermission` command or query the same way every
+other Month 2 use case is (`docs/architecture/authorization.md`):
+
+| Use case | Kind | Permission |
+| --- | --- | --- |
+| `ListStudentsQuery` | query | `students.view` |
+| `GetStudentQuery` | query | `students.view` |
+| `RegisterStudentCommand` | command | `students.manage` |
+| `UpdateStudentCommand` | command | `students.manage` |
+| `ArchiveStudentCommand` | command | `students.manage` |
+| `RestoreStudentCommand` | command | `students.manage` |
+| `LinkParentCommand` | command | `students.manage` |
+| `UnlinkParentCommand` | command | `students.manage` |
+| `SetPrimaryParentCommand` | command | `students.manage` |
+| `CreateParentCommand` | command | `students.manage` |
+| `GetParentQuery` | query | `students.view` |
+| `UpdateParentCommand` | command | `students.manage` |
+| `LookupParentByPhoneQuery` | query | `students.view` |
+
+`ListStudentsQuery` searches by calling `SearchText.Normalize` on the search term before comparing it against
+`SearchName` — the same function `Student.SetName` already called to produce that column, so "احمد" and
+"أحمد" compare equal without either side special-casing the other
+(`StudentEndpointTests.List_HamzaInsensitiveSearch_FindsStudentRegisteredWithHamza` pins this end to end,
+through the real endpoint and database). Paging is keyset, not offset: the
+cursor encodes `(searchName, id)`, matching the query's own `ORDER BY search_name, id`, so a page boundary
+never shifts under a concurrent insert the way an offset would. `LookupParentByPhoneQuery` is a query, not a
+command, even though the frontend drives it from a mutation hook (`useLookupParent`) rather than a cached
+`useQuery` — the Day 42 contract's own reason: the phone never belongs in a query-cache key, since it is
+typed once per lookup and never reused for a later, different number. `CreateParentCommand` and
+`GetParentQuery` require `students.manage`/`students.view` like every other row here, even though today's only
+caller of `CreateParentCommand` is `RegisterStudentCommand` (see below) and of `GetParentQuery` is the parent
+detail page — both are ordinary, independently reachable endpoints, not private helpers, so each carries its
+own permission rather than inheriting one from a caller.
+
+## The registration transaction
+
+`RegisterStudentCommand` is the one use case here that spans two aggregates and, for a brand-new parent, one
+of Day 38's uniqueness checks, all inside the one transaction its own `SaveChanges` call makes —
+`RegisterStudentHandler`'s own words for why: "the dispatcher saves once: both aggregates and the link, or
+neither." Given an existing parent id, it loads and links to that `Parent`; given a new parent's name and
+phone, it checks `PhoneNumber.Create`, then `IParentRepository.PhoneExistsAsync` (failing `409
+parent.phone_taken` if someone else claimed that number in the time between the frontend's own lookup and this
+request), then `Parent.Create`, adds it, and links the student to the id it was just given — all before a
+single row is written. The handler never dispatches a nested command to get there (`CreateParentCommand`
+exists as its own endpoint for the frontend's create-then-link flow in the parents card, Day 42, which is
+deliberately two separate requests, never dressed up as one transaction) — the dispatcher's nested-transaction
+guard would refuse a handler calling back into itself, and doing so would split one transaction into two,
+reopening exactly the partial-write window this design avoids. `RegisterStudentResult` carries both the new
+`studentId` and the resolved `parentId` (new or existing) in the one `201` response, so the frontend never has
+to ask which parent it ended up with.
+
+## Endpoints (Day 41)
+
+Thirteen endpoints under `/api`, each bind → dispatch → map its use case's result with no rule, repository or
+tenant logic of its own (`docs/architecture/api-conventions.md`); none is anonymous.
+
+| Method | Route | Use case |
+| --- | --- | --- |
+| `GET` | `/students` | `ListStudentsQuery` |
+| `GET` | `/students/{id}` | `GetStudentQuery` |
+| `POST` | `/students` | `RegisterStudentCommand` |
+| `PUT` | `/students/{id}` | `UpdateStudentCommand` |
+| `POST` | `/students/{id}/archive` | `ArchiveStudentCommand` |
+| `POST` | `/students/{id}/restore` | `RestoreStudentCommand` |
+| `POST` | `/students/{id}/parents` | `LinkParentCommand` |
+| `POST` | `/students/{id}/parents/{parentId}/unlink` | `UnlinkParentCommand` |
+| `POST` | `/students/{id}/parents/{parentId}/make-primary` | `SetPrimaryParentCommand` |
+| `POST` | `/parents` | `CreateParentCommand` |
+| `GET` | `/parents/{id}` | `GetParentQuery` |
+| `PUT` | `/parents/{id}` | `UpdateParentCommand` |
+| `POST` | `/parents/lookup` | `LookupParentByPhoneQuery` |
+
+Unlink and make-primary are action sub-resources carrying the student's own `version` in the body, Month 2's
+convention for a version-guarded state transition, rather than an HTTP `DELETE` with a body: the parent id
+comes from the route, the version from the body, so the two can never disagree about which student is being
+changed. Every mutation here follows the same optimistic-concurrency shape every Month 2 write already
+does — a stale `version` fails `409 concurrency.stale`, never silently overwritten and never retried
+automatically by the frontend (Day 42 rules, `docs/architecture/api-conventions.md`).
+
+## Frontend (Day 42)
+
+Four screens: the students list (search, show-archived, Day 41) gets a registration form at `/students/new`,
+a student detail page at `/students/$studentId`, and a parent detail page at `/parents/$parentId`, all under
+`frontend/src/features/students` and `frontend/src/features/parents`. The registration form never decides
+that a phone is valid or already known — it calls `useLookupParent` on blur and renders whichever of the two
+branches the server's answer picks (an existing-parent panel, or a new-parent name field), the same way the
+parents card's own "Add parent" dialog reuses that lookup. The detail pages hide an action the aggregate would
+refuse — archived hides edit and the parents card's manage controls; the parents card itself has no Unlink or
+Make primary on the only or the primary parent, and no Add at four — but that is convenience, never
+enforcement: every one of those rules is still checked, again, by the use case it would otherwise let through.

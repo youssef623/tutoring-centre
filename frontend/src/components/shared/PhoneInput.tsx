@@ -10,14 +10,22 @@ export function PhoneInput({
   id,
   value,
   onChange,
+  onBlur,
   placeholder,
   required,
+  disabled,
+  "aria-invalid": ariaInvalid,
+  "aria-busy": ariaBusy,
 }: {
   id?: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
+  "aria-invalid"?: boolean;
+  "aria-busy"?: boolean;
 }) {
   return (
     <Input
@@ -28,9 +36,13 @@ export function PhoneInput({
       value={value}
       placeholder={placeholder}
       required={required}
+      disabled={disabled}
+      aria-invalid={ariaInvalid}
+      aria-busy={ariaBusy}
       onChange={(event) => {
         onChange(event.target.value);
       }}
+      onBlur={onBlur}
     />
   );
 }
