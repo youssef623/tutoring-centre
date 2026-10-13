@@ -1,6 +1,6 @@
 # ADR 0010: Student aggregate and value objects
 
-- **Status:** Draft
+- **Status:** Accepted
 - **Date:** 2026-10-12
 
 ## Context

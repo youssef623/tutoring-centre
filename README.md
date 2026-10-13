@@ -89,14 +89,19 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    | `inactive@nile.test` | Secretary (inactive membership) | Nile Tutoring Centre |
 
    Each centre is also seeded with its own subjects — Nile Tutoring Centre gets رياضيات، فيزياء and كيمياء;
-   Maadi Learning Hub gets Mathematics and Physics — visible from the app's Subjects page (below) once signed in.
+   Maadi Learning Hub gets Mathematics and Physics — visible from the app's Subjects page (below) once signed
+   in, along with a set of demo students and the parents linked to them.
 
 6. **Run the frontend** in a second terminal, then open http://localhost:5173 — signed out, this redirects to
    `/login`; sign in with any seeded email above and the password you chose in step 5. From the sidebar,
    **Subjects** lists, adds, renames, archives and restores a centre's subjects, in Arabic or English, scoped
-   to whichever centre is currently selected. An owner also sees **Staff** (add, change role, deactivate,
-   reactivate), **Settings** (centre name, default language) and **Audit log** (filterable, infinite-scroll
-   history of every change above); a new staff member is forced through a password change on first sign-in.
+   to whichever centre is currently selected. A secretary or owner also sees **Students**: register a student
+   and either link a parent already known by phone or create a new one in one request; a student's own page
+   edits their details, archives and restores them, and links, unlinks or sets the primary contact among up
+   to four parents; a parent's own page edits their contact details and lists every child linked to them. An
+   owner also sees **Staff** (add, change role, deactivate, reactivate), **Settings** (centre name, default
+   language) and **Audit log** (filterable, infinite-scroll history of every change above); a new staff member
+   is forced through a password change on first sign-in.
 
    ```bash
    cd frontend
@@ -172,9 +177,11 @@ flowchart TD
 - [ADR 0007 — Code-defined permissions](docs/adr/0007-code-defined-permissions.md)
 - [ADR 0008 — Audit log written in the command's own transaction](docs/adr/0008-audit-log-in-transaction.md)
 - [ADR 0009 — Azure Container Apps and OIDC](docs/adr/0009-azure-container-apps-and-oidc.md)
+- [ADR 0010 — Student aggregate and value objects](docs/adr/0010-student-aggregate-and-value-objects.md)
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Tenant isolation: the role model, and all four layers](docs/architecture/tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)
+- [Academics: students and parents — the Domain model, storage, use cases and endpoints](docs/architecture/academics.md)
 - [Audit: how a change becomes an audit row, atomically](docs/architecture/audit.md)
 - [Deployment: topology, pipeline, secrets inventory, and what's not provisioned yet](docs/architecture/deployment.md)
 - [Live verification checklist](docs/operations/live-verification.md) and [runbook](docs/operations/runbook.md)
@@ -182,4 +189,4 @@ flowchart TD
 
 ## Quality gates
 
-Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, eight Playwright end-to-end journeys against a real API and PostgreSQL, a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
+Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, eleven Playwright end-to-end journeys against a real API and PostgreSQL, a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.

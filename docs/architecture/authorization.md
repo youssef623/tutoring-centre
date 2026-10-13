@@ -19,14 +19,16 @@ overrides.
 | `staff.manage` | yes | no | no | `POST /api/staff`, change role, deactivate, reactivate (Day 30) |
 | `audit.view` | yes | no | no | read the audit log (Day 32) |
 | `centre.settings.manage` | yes | no | no | read and update centre settings (Day 32) |
+| `students.view` | yes | yes | no | list and get a student or parent, and the phone lookup (Days 39–41) |
+| `students.manage` | yes | yes | no | register, update, archive, restore a student; create, update, link, unlink and set-primary a parent (Days 39–41) |
 
 Permission keys are constants on `Permissions` (`TutoringCentre.Domain.Identity`), `<module>.<capability>`,
 lower case, dot separated — never a free string. `RolePermissions.Holds(role, permission)` is the only place
 that answers "does this role hold this permission"; an unknown role or an unknown permission key is denied,
-never default-allowed, including for Owner — Owner holds every permission because the map lists all six
-against it, not because of a bypass branch. Four rows (`staff.*`, `audit.view`, `centre.settings.manage`) are
-defined today but unused until Days 29 and 32 — the catalogue and the map exist ahead of the use cases that
-will declare them, so those use cases have nothing left to invent.
+never default-allowed, including for Owner — Owner holds every permission because the map lists all eight
+against it, not because of a bypass branch. The `students.*` pair splits exactly like the others: the parent
+phone lookup used while registering a student (`POST /api/parents/lookup`) only needs `students.view` — it
+changes nothing — even though it is reachable only from a `students.manage`-gated screen today.
 
 ## The marker and the pipeline step
 
@@ -74,7 +76,10 @@ mid-session (by another admin, in another tab) is reflected without a full reloa
 
 A whole page can need gating too, for a user who types the URL directly rather than following a hidden nav
 link: `RouteGuard` (Day 33, same module) wraps the Staff, Settings and Audit log routes, each tied to its
-`staff.view` / `centre.settings.manage` / `audit.view` permission. Unlike `Can`, which renders nothing, a
+`staff.view` / `centre.settings.manage` / `audit.view` permission — and, since Day 41–42, the Students list and
+detail pages (`students.view`) and the registration page (`students.manage`); a student's parents card then
+hides its own manage affordances (link, unlink, make primary, add a fifth parent) the same way `Can` does
+everywhere else, never as the actual enforcement. Unlike `Can`, which renders nothing, a
 denied `RouteGuard` renders a translated "you don't have access" state with a link back to the dashboard —
 and critically, the page's own data hooks live inside its children, so they never mount and no request for
 the guarded data is ever issued. Still not the security boundary: a hand-made request to `GET /api/staff` as
