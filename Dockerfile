@@ -15,7 +15,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # ---- Backend build ---------------------------------------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/sdk:10.0.401 AS backend-build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.402 AS backend-build
 WORKDIR /src
 
 # Carries the Git commit into every project's AssemblyInformationalVersionAttribute (the SDK's own
