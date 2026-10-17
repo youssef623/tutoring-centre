@@ -189,6 +189,7 @@ var api = app.MapGroup("/api").AddEndpointFilter<AntiforgeryEndpointFilter>();
 api.MapPlatformEndpoints();
 api.MapAuthEndpoints();
 api.MapSubjectEndpoints();
+api.MapTeacherEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();

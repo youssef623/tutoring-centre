@@ -72,6 +72,17 @@
       "archived_read_only": "An archived student is read-only until it is restored.",
       "not_found": "This student could not be found."
     },
+    "teacher": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Teacher name must be 2-120 characters.",
+      "user_required": "A user is required.",
+      "already_archived": "This teacher is already archived.",
+      "not_archived": "This teacher is not archived.",
+      "archived_read_only": "An archived teacher is read-only until it is restored.",
+      "not_found": "This teacher could not be found.",
+      "user_not_eligible": "This person is not an eligible Teacher at this centre.",
+      "account_taken": "This account is already linked to another teacher."
+    },
     "concurrency": {
       "stale": "This record was changed by someone else. Reload and try again."
     },

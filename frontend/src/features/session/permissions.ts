@@ -8,6 +8,8 @@ export const Permissions = {
   CentreSettingsManage: "centre.settings.manage",
   StudentsView: "students.view",
   StudentsManage: "students.manage",
+  TeachersView: "teachers.view",
+  TeachersManage: "teachers.manage",
 } as const;
 
 export type Permission = (typeof Permissions)[keyof typeof Permissions];
