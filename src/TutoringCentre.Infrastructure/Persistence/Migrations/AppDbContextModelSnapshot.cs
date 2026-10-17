@@ -17,7 +17,7 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -371,6 +371,79 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                     b.ToTable("subjects", "academics", t =>
                         {
                             t.HasCheckConstraint("ck_subjects_status", "status IN ('active','archived')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Teacher", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("SearchName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("search_name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_teachers");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_teachers_centre_id_id");
+
+                    b.HasIndex("CentreId", "SearchName")
+                        .HasDatabaseName("ix_teachers_centre_search_name");
+
+                    b.HasIndex("CentreId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_teachers_centre_user")
+                        .HasFilter("user_id IS NOT NULL");
+
+                    b.ToTable("teachers", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_teachers_phone_format", "phone IS NULL OR phone ~ '^\\+[1-9][0-9]{7,14}$'");
+
+                            t.HasCheckConstraint("ck_teachers_status", "status IN ('active','archived')");
                         });
                 });
 
@@ -751,6 +824,16 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_subjects_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Teacher", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_teachers_centres");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Identity.Membership", b =>
