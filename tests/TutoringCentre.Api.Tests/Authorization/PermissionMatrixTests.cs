@@ -7,9 +7,9 @@ using TutoringCentre.Api.Tests.Fixtures;
 namespace TutoringCentre.Api.Tests.Authorization;
 
 /// <summary>
-/// Task 30.8 (extended Task 32.11): one table of role x endpoint -> expected status, executed over real HTTP
-/// against Nile's three roles. 42 literal cases (six subject endpoints, five staff endpoints, one audit
-/// endpoint, two centre-settings endpoints, three roles). Allowed cases assert a non-403 success status;
+/// Task 30.8 (extended Task 32.11, Task 43.14): one table of role x endpoint -> expected status, executed over
+/// real HTTP against Nile's three roles, now including the seven teacher endpoints (21 more literal cases).
+/// Allowed cases assert a non-403 success status;
 /// denied cases assert 403 auth.permission_denied and an unchanged database, compared against the exact
 /// pre-request state, not a snapshot taken after the request already ran. Values are written literally here,
 /// never derived from <c>RolePermissions</c> — that would prove the matrix agrees with itself, not with the
@@ -48,6 +48,13 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "POST /api/students/{id:guid}/parents",
         "POST /api/students/{id:guid}/parents/{parentId:guid}/unlink",
         "POST /api/students/{id:guid}/parents/{parentId:guid}/make-primary",
+        "GET /api/teachers",
+        "GET /api/teachers/{id:guid}",
+        "POST /api/teachers",
+        "PUT /api/teachers/{id:guid}",
+        "PUT /api/teachers/{id:guid}/account",
+        "POST /api/teachers/{id:guid}/archive",
+        "POST /api/teachers/{id:guid}/restore",
     ];
 
     public async Task InitializeAsync()
@@ -585,6 +592,143 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         }
     }
 
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task TeachersList(string role, HttpStatusCode expected)
+    {
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri("/api/teachers", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task TeachersGetById(string role, HttpStatusCode expected)
+    {
+        var (id, _) = await CreateTeacherAsOwnerAsync($"Matrix GetById {Guid.NewGuid():N}");
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/teachers/{id}", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.Created)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task TeachersCreate(string role, HttpStatusCode expected)
+    {
+        var countBefore = await CountTeachersAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            signedIn.Client, new Uri("/api/teachers", UriKind.Relative), new { fullName = $"Matrix Create {Guid.NewGuid():N}", phone = (string?)null });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(countBefore, await CountTeachersAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task TeachersUpdate(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateTeacherAsOwnerAsync($"Matrix Update {Guid.NewGuid():N}");
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Put, new Uri($"/api/teachers/{id}", UriKind.Relative),
+            new { fullName = "Updated By Attempt", phone = (string?)null, version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal($"active|{version}", await SnapshotTeacherAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task TeachersSetAccount(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateTeacherAsOwnerAsync($"Matrix SetAccount {Guid.NewGuid():N}");
+        var eligibleUserId = await CreateEligibleTeacherUserAsOwnerAsync($"matrix-account-{Guid.NewGuid():N}@nile.test");
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Put, new Uri($"/api/teachers/{id}/account", UriKind.Relative), new { userId = eligibleUserId, version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal($"active|{version}", await SnapshotTeacherAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task TeachersArchive(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateTeacherAsOwnerAsync($"Matrix Archive {Guid.NewGuid():N}");
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/teachers/{id}/archive", UriKind.Relative), new { version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal($"active|{version}", await SnapshotTeacherAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task TeachersRestore(string role, HttpStatusCode expected)
+    {
+        var (id, archivedVersion) = await CreateArchivedTeacherAsOwnerAsync($"Matrix Restore {Guid.NewGuid():N}");
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/teachers/{id}/restore", UriKind.Relative), new { version = archivedVersion });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal($"archived|{archivedVersion}", await SnapshotTeacherAsync(id));
+        }
+    }
+
     // Random.Shared.Next(10000000, 99999999) collides often enough across this many call sites in one run to
     // occasionally produce a 409 parent.phone_taken where a test expects 201/204 — an interlocked counter
     // never repeats within a run, unlike eight random digits.
@@ -756,6 +900,45 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         var body = await ReadJsonAsync(response);
         return body.RootElement.GetProperty("items").GetArrayLength();
     }
+
+    private async Task<(Guid Id, uint Version)> CreateTeacherAsOwnerAsync(string fullName)
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var createResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/teachers", UriKind.Relative), new { fullName, phone = (string?)null });
+        var location = createResponse.Headers.Location!;
+        using var getResponse = await owner.Client.GetAsync(location);
+        var body = await ReadJsonAsync(getResponse);
+        return (body.RootElement.GetProperty("id").GetGuid(), body.RootElement.GetProperty("version").GetUInt32());
+    }
+
+    private async Task<(Guid Id, uint ArchivedVersion)> CreateArchivedTeacherAsOwnerAsync(string fullName)
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var (id, version) = await CreateTeacherAsOwnerAsync(fullName);
+        using var archiveResponse = await AntiforgeryTestHelper.SendAsJsonAsync(
+            owner.Client, HttpMethod.Post, new Uri($"/api/teachers/{id}/archive", UriKind.Relative), new { version });
+        Assert.Equal(HttpStatusCode.NoContent, archiveResponse.StatusCode);
+        using var getResponse = await owner.Client.GetAsync(new Uri($"/api/teachers/{id}", UriKind.Relative));
+        var body = await ReadJsonAsync(getResponse);
+        return (id, body.RootElement.GetProperty("version").GetUInt32());
+    }
+
+    /// <summary>Creates a real Nile Teacher-role staff member through /api/staff, so TeachersSetAccount's allowed case links to a genuinely eligible user.</summary>
+    private async Task<Guid> CreateEligibleTeacherUserAsOwnerAsync(string email)
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var createResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/staff", UriKind.Relative), new { email, displayName = "Matrix Teacher Account", role = "teacher", preferredLocale = "en" });
+        var body = await ReadJsonAsync(createResponse);
+        return body.RootElement.GetProperty("userId").GetGuid();
+    }
+
+    private Task<string> SnapshotTeacherAsync(Guid id) =>
+        factory.ScalarAsync<string>($"select status || '|' || xmin from academics.teachers where id = '{id}'");
+
+    private Task<long> CountTeachersAsync() =>
+        factory.ScalarAsync<long>("select count(*) from academics.teachers where centre_id = (select id from platform.centres where slug = 'nile-centre')");
 
     private static async Task<JsonDocument> ReadJsonAsync(HttpResponseMessage response)
     {

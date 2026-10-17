@@ -12,15 +12,16 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlySixAuditedTypes()
+    public void Entries_HasExactlySevenAuditedTypes()
     {
-        Assert.Equal(6, AuditPolicy.Entries.Count);
+        Assert.Equal(7, AuditPolicy.Entries.Count);
         Assert.Contains(typeof(Subject), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Membership), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Centre), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Parent), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Student), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(StudentParentLink), AuditPolicy.Entries.Keys);
+        Assert.Contains(typeof(Teacher), AuditPolicy.Entries.Keys);
     }
 
     [Fact]
@@ -131,5 +132,24 @@ public sealed class AuditPolicyTests
         var entry = AuditPolicy.Entries[typeof(Student)];
 
         Assert.Equal(student.CentreId, entry.ResolveCentreId(student));
+    }
+
+    [Fact]
+    public void Teacher_IsAuditedAsTeacher_WithFullNameUserIdStatusAndMaskedPhoneOnly()
+    {
+        var entry = AuditPolicy.Entries[typeof(Teacher)];
+
+        Assert.Equal(AuditEntityType.Teacher, entry.EntityType);
+        Assert.Equal(new HashSet<string> { "FullName", "UserId", "Status", "Phone" }, entry.AllowedFields);
+        Assert.Equal(new HashSet<string> { "Phone" }, entry.MaskedFields);
+    }
+
+    [Fact]
+    public void Teacher_ResolvesItsCentreId_FromItsOwnCentreIdProperty()
+    {
+        var teacher = Teacher.Create(Guid.CreateVersion7(), "Amina Hassan", null).Value;
+        var entry = AuditPolicy.Entries[typeof(Teacher)];
+
+        Assert.Equal(teacher.CentreId, entry.ResolveCentreId(teacher));
     }
 }

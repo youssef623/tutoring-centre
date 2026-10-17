@@ -9,4 +9,5 @@ public enum AuditEntityType
     Parent,
     Student,
     StudentParent,
+    Teacher,
 }

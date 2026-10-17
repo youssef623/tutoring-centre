@@ -14,7 +14,8 @@
     "centre": "المركز",
     "parent": "ولي أمر",
     "student": "طالب",
-    "student_parent": "رابط طالب وولي أمر"
+    "student_parent": "رابط طالب وولي أمر",
+    "teacher": "معلم"
   },
   "action": {
     "created": "تم الإنشاء",
