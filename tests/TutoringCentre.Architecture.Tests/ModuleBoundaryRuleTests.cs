@@ -1,3 +1,4 @@
+using System.Reflection;
 using NetArchTest.Rules;
 
 namespace TutoringCentre.Architecture.Tests;
@@ -5,9 +6,12 @@ namespace TutoringCentre.Architecture.Tests;
 /// <summary>
 /// Task 30.9: keeps the monolith modular without separate assemblies. Three modules exist today, by Application
 /// and Domain namespace: Platform (with Centres), Identity (with Staff), Academics. A module reaches another
-/// only through its requests (commands, queries, DTOs — explicitly allowed) or an explicit Application
-/// interface it is handed; it may never reach into another module's repository, read service, handler,
-/// validator or Domain entity directly.
+/// only through its requests (commands, queries, DTOs — explicitly allowed) or an explicit published interface
+/// in that module's own <c>Contracts</c> namespace (Task 43.3, e.g. <c>TutoringCentre.Application.Identity.Contracts</c>);
+/// it may never reach into another module's repository, read service, handler, validator or Domain entity
+/// directly. A <c>Contracts</c> namespace is itself narrow by construction: every type in one must be an
+/// interface or a record, and may not depend on its own module's repositories, read services or Domain
+/// entities — a contract publishes a question another module may ask, never a door into how it is answered.
 /// </summary>
 public sealed class ModuleBoundaryRuleTests
 {
@@ -56,6 +60,67 @@ public sealed class ModuleBoundaryRuleTests
     {
         Assert.All(ApplicationModuleNamespaces, module => AssertNoDependencyOnOtherModulesDomainTypes(module.Key, module.Value));
     }
+
+    [Fact]
+    public void ContractTypes_AreInterfacesOrRecords()
+    {
+        var contractTypes = ContractTypes();
+
+        // Guards against the allowance being untested if nothing ever publishes a contract.
+        Assert.NotEmpty(contractTypes);
+
+        var violations = contractTypes.Where(type => !type.IsInterface && !IsRecord(type)).Select(type => type.FullName).ToArray();
+        Assert.True(violations.Length == 0, "Contracts-namespace type must be an interface or a record: " + string.Join(", ", violations));
+    }
+
+    [Fact]
+    public void ContractTypes_DoNotDependOnTheirOwnModulesPortsOrDomainTypes()
+    {
+        var contractTypes = ContractTypes();
+        Assert.NotEmpty(contractTypes);
+
+        foreach (var module in ApplicationModuleNamespaces)
+        {
+            var ownContractNamespaces = contractTypes
+                .Where(type => IsInAnyNamespace(type, module.Value))
+                .Select(type => type.Namespace!)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            if (ownContractNamespaces.Length == 0)
+            {
+                continue;
+            }
+
+            // A contract type may depend only on shared kernel and other contract/request shapes, never on its
+            // own module's repositories, read services or Domain entities — the same forbidden set as ports,
+            // plus the module's own Domain namespace outright.
+            var forbiddenPorts = ApplicationTypes
+                .Where(type => IsInAnyNamespace(type, module.Value))
+                .Where(type => ArchitectureSupport.IsRepositoryInterface(type) || IsReadServiceInterface(type))
+                .Select(type => type.FullName!)
+                .ToArray();
+            var forbiddenDomain = DomainTypes
+                .Where(type => IsInAnyNamespace(type, DomainModuleNamespaces[module.Key]) && !IsSharedKernelDomainType(type))
+                .Select(type => type.FullName!)
+                .ToArray();
+            var forbidden = forbiddenPorts.Concat(forbiddenDomain).ToArray();
+            if (forbidden.Length == 0)
+            {
+                continue;
+            }
+
+            var result = RunDependencyCheck(ownContractNamespaces, forbidden);
+            Assert.True(result.IsSuccessful, $"Module '{module.Key}' contract: {ArchitectureSupport.Describe(result)}");
+        }
+    }
+
+    private static Type[] ContractTypes() =>
+        ApplicationTypes.Where(type => type.Namespace is not null && type.Namespace.EndsWith(".Contracts", StringComparison.Ordinal)).ToArray();
+
+    /// <summary>Record class check: the compiler always synthesises a protected `&lt;Clone&gt;$` method for one. This codebase's DTOs and contracts are reference-type records, never record structs.</summary>
+    private static bool IsRecord(Type type) =>
+        type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+            .Any(method => method.Name == "<Clone>$");
 
     private static void AssertNoDependencyOnOtherModulesPorts(string moduleName, string[] ownNamespaces)
     {
