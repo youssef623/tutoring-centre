@@ -13,6 +13,7 @@ using TutoringCentre.Application.Centres;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Identity;
+using TutoringCentre.Application.Identity.Contracts;
 using TutoringCentre.Application.Platform;
 using TutoringCentre.Application.Staff;
 using TutoringCentre.Infrastructure.Identity;
@@ -128,6 +129,7 @@ public static class DependencyInjection
 
         services.AddScoped<IMembershipRepository, MembershipRepository>();
         services.AddScoped<IStaffReadService, StaffReadService>();
+        services.AddScoped<IStaffDirectory, StaffDirectory>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
