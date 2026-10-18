@@ -14,6 +14,8 @@ public sealed class RolePermissionsTests
     [InlineData(StaffRole.Owner, Permissions.CentreSettingsManage, true)]
     [InlineData(StaffRole.Owner, Permissions.StudentsView, true)]
     [InlineData(StaffRole.Owner, Permissions.StudentsManage, true)]
+    [InlineData(StaffRole.Owner, Permissions.TeachersView, true)]
+    [InlineData(StaffRole.Owner, Permissions.TeachersManage, true)]
     [InlineData(StaffRole.Secretary, Permissions.SubjectsView, true)]
     [InlineData(StaffRole.Secretary, Permissions.SubjectsManage, true)]
     [InlineData(StaffRole.Secretary, Permissions.StaffView, false)]
@@ -22,6 +24,8 @@ public sealed class RolePermissionsTests
     [InlineData(StaffRole.Secretary, Permissions.CentreSettingsManage, false)]
     [InlineData(StaffRole.Secretary, Permissions.StudentsView, true)]
     [InlineData(StaffRole.Secretary, Permissions.StudentsManage, true)]
+    [InlineData(StaffRole.Secretary, Permissions.TeachersView, true)]
+    [InlineData(StaffRole.Secretary, Permissions.TeachersManage, false)]
     [InlineData(StaffRole.Teacher, Permissions.SubjectsView, true)]
     [InlineData(StaffRole.Teacher, Permissions.SubjectsManage, false)]
     [InlineData(StaffRole.Teacher, Permissions.StaffView, false)]
@@ -30,6 +34,8 @@ public sealed class RolePermissionsTests
     [InlineData(StaffRole.Teacher, Permissions.CentreSettingsManage, false)]
     [InlineData(StaffRole.Teacher, Permissions.StudentsView, false)]
     [InlineData(StaffRole.Teacher, Permissions.StudentsManage, false)]
+    [InlineData(StaffRole.Teacher, Permissions.TeachersView, false)]
+    [InlineData(StaffRole.Teacher, Permissions.TeachersManage, false)]
     public void Holds_MatchesTheMatrixCellLiterally(StaffRole role, string permission, bool expected)
     {
         Assert.Equal(expected, RolePermissions.Holds(role, permission));

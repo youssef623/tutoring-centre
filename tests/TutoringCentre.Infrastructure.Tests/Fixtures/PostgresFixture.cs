@@ -412,6 +412,32 @@ public sealed class PostgresFixture : IAsyncLifetime
         return id;
     }
 
+    /// <summary>
+    /// Inserts one teacher row for the given centre directly as the superuser — bypassing row-level security,
+    /// the write guard and EF entirely, on purpose, so RLS and integrity tests (Task 43.14) seed rows for both
+    /// centres, and exercise the composite foreign key into identity.memberships and the unique index on
+    /// (centre_id, user_id), that the policy under test cannot have biased. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedTeacherAsync(Guid centreId, string fullName, Guid? userId = null)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.teachers (id, centre_id, full_name, search_name, user_id, status, created_at)
+            values (@id, @centre_id, @full_name, @search_name, @user_id, 'active', now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("full_name", fullName);
+        command.Parameters.AddWithValue("search_name", SearchText.Normalize(fullName));
+        command.Parameters.AddWithValue("user_id", userId.HasValue ? userId.Value : DBNull.Value);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
     private string WithCredentials(string username, string password) =>
         new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Username = username, Password = password }.ConnectionString;
 

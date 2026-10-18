@@ -89,7 +89,7 @@ public sealed class GetMyMembershipsHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(["students.manage", "students.view", "subjects.manage", "subjects.view"], result.Value.Permissions);
+        Assert.Equal(["students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], result.Value.Permissions);
     }
 
     [Fact]

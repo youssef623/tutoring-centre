@@ -14,7 +14,8 @@
     "centre": "Centre",
     "parent": "Parent",
     "student": "Student",
-    "student_parent": "Student-parent link"
+    "student_parent": "Student-parent link",
+    "teacher": "Teacher"
   },
   "action": {
     "created": "Created",

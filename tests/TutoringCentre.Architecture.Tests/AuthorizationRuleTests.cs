@@ -20,6 +20,10 @@ public sealed class AuthorizationRuleTests
     [
         "src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleHandler.cs",
         "src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffHandler.cs",
+
+        // Task 43.8: passes StaffRole.Teacher to IStaffDirectory as the role being asked about, not branched
+        // on for an authorization decision of its own.
+        "src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountHandler.cs",
     ];
 
     private static readonly Regex StaffRoleMemberPattern = new(@"\bStaffRole\.(Owner|Secretary|Teacher)\b", RegexOptions.Compiled);

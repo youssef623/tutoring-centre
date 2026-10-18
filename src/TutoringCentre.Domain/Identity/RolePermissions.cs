@@ -15,6 +15,8 @@ public static class RolePermissions
             Permissions.CentreSettingsManage,
             Permissions.StudentsView,
             Permissions.StudentsManage,
+            Permissions.TeachersView,
+            Permissions.TeachersManage,
         },
         [StaffRole.Secretary] = new HashSet<string>
         {
@@ -22,6 +24,7 @@ public static class RolePermissions
             Permissions.SubjectsManage,
             Permissions.StudentsView,
             Permissions.StudentsManage,
+            Permissions.TeachersView,
         },
         [StaffRole.Teacher] = new HashSet<string>
         {

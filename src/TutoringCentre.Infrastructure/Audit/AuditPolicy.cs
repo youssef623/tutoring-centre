@@ -60,5 +60,15 @@ internal static class AuditPolicy
                 nameof(StudentParentLink.Relationship),
                 nameof(StudentParentLink.IsPrimary),
             }),
+
+        // SearchName is never audited: it is derived from FullName, not an independent fact to record.
+        [typeof(Teacher)] = new AuditPolicyEntry(
+            AuditEntityType.Teacher,
+            entity => ((Teacher)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(Teacher.FullName), nameof(Teacher.UserId), nameof(Teacher.Status), nameof(Teacher.Phone),
+            },
+            new HashSet<string>(StringComparer.Ordinal) { nameof(Teacher.Phone) }),
     };
 }

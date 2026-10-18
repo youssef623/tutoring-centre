@@ -151,9 +151,17 @@ Four modules exist, by namespace:
 | Audit | `TutoringCentre.Application.Audit` | `TutoringCentre.Domain.Audit` (named for symmetry; Audit has no Domain types of its own — Task 31, it is read-only from the application's point of view) |
 
 **Rule.** A module reaches another only through its requests (commands, queries and their DTOs — always
-allowed) or an explicit Application interface it is handed; it may never reach into another module's
+allowed) or an explicit published interface in that module's own `Contracts` namespace (Task 43.3, e.g.
+`TutoringCentre.Application.Identity.Contracts.IStaffDirectory`); it may never reach into another module's
 repository, read service, handler or validator, nor reference another module's Domain types directly.
-Enforced by two architecture tests (`ModuleBoundaryRuleTests`), without separate assemblies.
+Enforced by four architecture tests (`ModuleBoundaryRuleTests`), without separate assemblies.
+
+**Contracts.** A `Contracts` namespace publishes a narrow question another module may ask, never a door into
+how it is answered: every type in one must be an interface or a record, and it may not itself depend on its
+own module's repositories, read services or Domain entities. A contract method returns the smallest shape
+that answers the question (a bool, an ID, never the entity or a DTO built for a different purpose), and its
+adapter writes any tenant predicate by hand when it queries a table the EF filter and row-level security do
+not cover (e.g. `identity.memberships`, Day 29's documented RLS exemption).
 
 **Shared kernel**, available to every module without counting as "another module's": the Domain and
 Application `Common` namespaces, plus exactly four cross-cutting types — `SupportedLocale`, `StaffRole`,

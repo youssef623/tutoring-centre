@@ -31,6 +31,12 @@ internal static class UniqueConstraintCatalogue
 
         ["ux_student_parents_student_parent"] = () =>
             Error.Conflict("student.parent_already_linked", "This parent is already linked to this student."),
+
+        ["ux_teachers_centre_user"] = () => new Error(
+            "teacher.account_taken",
+            "This account is already linked to another teacher.",
+            ErrorKind.Conflict,
+            new Dictionary<string, string[]> { ["userId"] = ["This account is already linked to another teacher."] }),
     };
 
     /// <summary>
