@@ -37,6 +37,12 @@ internal static class UniqueConstraintCatalogue
             "This account is already linked to another teacher.",
             ErrorKind.Conflict,
             new Dictionary<string, string[]> { ["userId"] = ["This account is already linked to another teacher."] }),
+
+        ["ux_groups_centre_normalized_name"] = () => new Error(
+            "group.name_taken",
+            "A group with this name already exists.",
+            ErrorKind.Conflict,
+            new Dictionary<string, string[]> { ["name"] = ["A group with this name already exists."] }),
     };
 
     /// <summary>

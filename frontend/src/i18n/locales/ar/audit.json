@@ -15,7 +15,8 @@
     "parent": "ولي أمر",
     "student": "طالب",
     "student_parent": "رابط طالب وولي أمر",
-    "teacher": "معلم"
+    "teacher": "معلم",
+    "group": "فصل"
   },
   "action": {
     "created": "تم الإنشاء",
@@ -34,7 +35,10 @@
     "studentId": "الطالب",
     "parentId": "ولي الأمر",
     "relationship": "صلة القرابة",
-    "isPrimary": "جهة الاتصال الأساسية"
+    "isPrimary": "جهة الاتصال الأساسية",
+    "subjectId": "المادة",
+    "teacherId": "المعلم",
+    "capacity": "السعة"
   },
   "value": {
     "status": {
