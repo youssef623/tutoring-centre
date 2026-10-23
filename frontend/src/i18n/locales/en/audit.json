@@ -15,7 +15,8 @@
     "parent": "Parent",
     "student": "Student",
     "student_parent": "Student-parent link",
-    "teacher": "Teacher"
+    "teacher": "Teacher",
+    "group": "Group"
   },
   "action": {
     "created": "Created",
@@ -34,7 +35,10 @@
     "studentId": "Student",
     "parentId": "Parent",
     "relationship": "Relationship",
-    "isPrimary": "Primary contact"
+    "isPrimary": "Primary contact",
+    "subjectId": "Subject",
+    "teacherId": "Teacher",
+    "capacity": "Capacity"
   },
   "value": {
     "status": {

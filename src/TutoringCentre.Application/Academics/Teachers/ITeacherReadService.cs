@@ -16,7 +16,7 @@ public interface ITeacherReadService
 }
 
 /// <summary>
-/// The one shape every teacher read returns. <see cref="ActiveGroupCount"/> stays 0 until Day 44 fills it. The
+/// The one shape every teacher read returns. <see cref="ActiveGroupCount"/> counts the teacher's active groups. The
 /// linked account, if any, is shown by display name only — never email, which stays behind <c>staff.view</c>.
 /// </summary>
 public sealed record TeacherDto(

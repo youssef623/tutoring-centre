@@ -13,7 +13,7 @@ public sealed class ArchiveTeacherHandlerTests
     public async Task HandleAsync_UnknownId_ReturnsNotFound()
     {
         var repository = new FakeTeacherRepository();
-        var handler = new ArchiveTeacherHandler(repository);
+        var handler = new ArchiveTeacherHandler(repository, new FakeGroupRepository());
 
         var result = await handler.HandleAsync(new ArchiveTeacherCommand(Guid.CreateVersion7(), 0), CancellationToken.None);
 
@@ -30,7 +30,7 @@ public sealed class ArchiveTeacherHandlerTests
         teacher.LinkUser(userId);
         var repository = new FakeTeacherRepository();
         repository.Existing.Add(teacher);
-        var handler = new ArchiveTeacherHandler(repository);
+        var handler = new ArchiveTeacherHandler(repository, new FakeGroupRepository());
 
         var result = await handler.HandleAsync(new ArchiveTeacherCommand(teacher.Id, 0), CancellationToken.None);
 
@@ -46,12 +46,48 @@ public sealed class ArchiveTeacherHandlerTests
         teacher.Archive();
         var repository = new FakeTeacherRepository();
         repository.Existing.Add(teacher);
-        var handler = new ArchiveTeacherHandler(repository);
+        var handler = new ArchiveTeacherHandler(repository, new FakeGroupRepository());
 
         var result = await handler.HandleAsync(new ArchiveTeacherCommand(teacher.Id, 0), CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Equal("teacher.already_archived", result.Error!.Code);
         Assert.Equal(ErrorKind.Rule, result.Error.Kind);
+    }
+
+    [Fact]
+    public async Task HandleAsync_TeacherWithActiveGroup_ReturnsHasActiveGroupsAndStaysActive()
+    {
+        var teacher = Teacher.Create(NileCentreId, "Amina Hassan", null).Value;
+        var repository = new FakeTeacherRepository();
+        repository.Existing.Add(teacher);
+        var groups = new FakeGroupRepository();
+        groups.Existing.Add(Group.Create(NileCentreId, "Grade 10 A", Guid.CreateVersion7(), teacher.Id, 20).Value);
+        var handler = new ArchiveTeacherHandler(repository, groups);
+
+        var result = await handler.HandleAsync(new ArchiveTeacherCommand(teacher.Id, 0), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("teacher.has_active_groups", result.Error!.Code);
+        Assert.Equal(ErrorKind.Rule, result.Error.Kind);
+        Assert.Equal(TeacherStatus.Active, teacher.Status);
+    }
+
+    [Fact]
+    public async Task HandleAsync_TeacherWithOnlyArchivedGroups_Archives()
+    {
+        var teacher = Teacher.Create(NileCentreId, "Amina Hassan", null).Value;
+        var repository = new FakeTeacherRepository();
+        repository.Existing.Add(teacher);
+        var archivedGroup = Group.Create(NileCentreId, "Grade 10 A", Guid.CreateVersion7(), teacher.Id, 20).Value;
+        archivedGroup.Archive();
+        var groups = new FakeGroupRepository();
+        groups.Existing.Add(archivedGroup);
+        var handler = new ArchiveTeacherHandler(repository, groups);
+
+        var result = await handler.HandleAsync(new ArchiveTeacherCommand(teacher.Id, 0), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TeacherStatus.Archived, teacher.Status);
     }
 }

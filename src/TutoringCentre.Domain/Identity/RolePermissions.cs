@@ -17,6 +17,8 @@ public static class RolePermissions
             Permissions.StudentsManage,
             Permissions.TeachersView,
             Permissions.TeachersManage,
+            Permissions.GroupsView,
+            Permissions.GroupsManage,
         },
         [StaffRole.Secretary] = new HashSet<string>
         {
@@ -25,10 +27,13 @@ public static class RolePermissions
             Permissions.StudentsView,
             Permissions.StudentsManage,
             Permissions.TeachersView,
+            Permissions.GroupsView,
+            Permissions.GroupsManage,
         },
         [StaffRole.Teacher] = new HashSet<string>
         {
             Permissions.SubjectsView,
+            Permissions.GroupsView,
         },
     };
 

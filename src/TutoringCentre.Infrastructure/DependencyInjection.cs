@@ -7,6 +7,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Academics.Parents;
 using TutoringCentre.Application.Academics.Students;
+using TutoringCentre.Application.Academics.Groups;
 using TutoringCentre.Application.Academics.Subjects;
 using TutoringCentre.Application.Academics.Teachers;
 using TutoringCentre.Application.Audit;
@@ -124,6 +125,8 @@ public static class DependencyInjection
 
         services.AddScoped<ITeacherRepository, TeacherRepository>();
         services.AddScoped<ITeacherReadService, TeacherReadService>();
+        services.AddScoped<IGroupRepository, GroupRepository>();
+        services.AddScoped<IGroupReadService, GroupReadService>();
 
         services.AddScoped<IParentRepository, ParentRepository>();
         services.AddScoped<IParentReadService, ParentReadService>();
@@ -134,6 +137,7 @@ public static class DependencyInjection
         services.AddScoped<IMembershipRepository, MembershipRepository>();
         services.AddScoped<IStaffReadService, StaffReadService>();
         services.AddScoped<IStaffDirectory, StaffDirectory>();
+        services.AddScoped<ITeacherScopeProvider, TeacherScopeProvider>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();

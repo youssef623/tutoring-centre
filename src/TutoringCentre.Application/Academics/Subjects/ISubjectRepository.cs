@@ -16,6 +16,9 @@ public interface ISubjectRepository
     /// </summary>
     Task<Subject?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct);
 
+    /// <summary>Loads one subject without a version check, for commands that only reference it. Returns null when it does not exist or is not visible to the acting centre.</summary>
+    Task<Subject?> FindAsync(Guid id, CancellationToken ct);
+
     /// <summary>Whether a subject with this normalized name already exists in the acting centre, optionally excluding one subject (for rename).</summary>
     Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct);
 

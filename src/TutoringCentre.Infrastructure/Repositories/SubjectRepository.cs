@@ -29,6 +29,9 @@ internal sealed class SubjectRepository(AppDbContext db) : ISubjectRepository
         return subject;
     }
 
+    public Task<Subject?> FindAsync(Guid id, CancellationToken ct) =>
+        db.Set<Subject>().SingleOrDefaultAsync(subject => subject.Id == id, ct);
+
     public Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct) =>
         db.Set<Subject>().AnyAsync(subject => subject.NormalizedName == normalizedName && subject.Id != excludingId, ct);
 

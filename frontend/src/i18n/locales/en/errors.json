@@ -45,7 +45,8 @@
       "name_invalid": "Subject name must be 1-80 characters.",
       "already_archived": "This subject is already archived.",
       "not_archived": "This subject is not archived.",
-      "archived_read_only": "An archived subject cannot be renamed until it is restored."
+      "archived_read_only": "An archived subject cannot be renamed until it is restored.",
+      "has_active_groups": "This subject has active groups. Archive or move them first."
     },
     "phone": {
       "invalid": "Enter a valid phone number."
@@ -81,7 +82,22 @@
       "archived_read_only": "An archived teacher is read-only until it is restored.",
       "not_found": "This teacher could not be found.",
       "user_not_eligible": "This person is not an eligible Teacher at this centre.",
-      "account_taken": "This account is already linked to another teacher."
+      "account_taken": "This account is already linked to another teacher.",
+      "has_active_groups": "This teacher has active groups. Reassign or archive them first."
+    },
+    "group": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Group name must be 1-80 characters.",
+      "subject_required": "A subject is required.",
+      "teacher_required": "A teacher is required.",
+      "capacity_invalid": "Capacity must be 1-200.",
+      "already_archived": "This group is already archived.",
+      "not_archived": "This group is not archived.",
+      "archived_read_only": "An archived group is read-only until it is restored.",
+      "subject_archived": "This subject is archived.",
+      "teacher_archived": "This teacher is archived.",
+      "not_found": "This group could not be found.",
+      "name_taken": "A group with this name already exists."
     },
     "concurrency": {
       "stale": "This record was changed by someone else. Reload and try again."

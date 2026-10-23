@@ -12,9 +12,9 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlySevenAuditedTypes()
+    public void Entries_HasExactlyEightAuditedTypes()
     {
-        Assert.Equal(7, AuditPolicy.Entries.Count);
+        Assert.Equal(8, AuditPolicy.Entries.Count);
         Assert.Contains(typeof(Subject), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Membership), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Centre), AuditPolicy.Entries.Keys);
@@ -22,6 +22,7 @@ public sealed class AuditPolicyTests
         Assert.Contains(typeof(Student), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(StudentParentLink), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Teacher), AuditPolicy.Entries.Keys);
+        Assert.Contains(typeof(Group), AuditPolicy.Entries.Keys);
     }
 
     [Fact]
@@ -151,5 +152,25 @@ public sealed class AuditPolicyTests
         var entry = AuditPolicy.Entries[typeof(Teacher)];
 
         Assert.Equal(teacher.CentreId, entry.ResolveCentreId(teacher));
+    }
+
+    [Fact]
+    public void Group_IsAuditedAsGroup_WithNameSubjectIdTeacherIdCapacityAndStatusOnly()
+    {
+        var entry = AuditPolicy.Entries[typeof(Group)];
+
+        Assert.Equal(AuditEntityType.Group, entry.EntityType);
+        Assert.Equal(new HashSet<string> { "Name", "SubjectId", "TeacherId", "Capacity", "Status" }, entry.AllowedFields);
+        Assert.Empty(entry.MaskedFields);
+    }
+
+    [Fact]
+    public void Group_ResolvesItsCentreId_FromItsOwnCentreIdProperty()
+    {
+        var centreId = Guid.CreateVersion7();
+        var group = Group.Create(centreId, "Algebra", Guid.CreateVersion7(), Guid.CreateVersion7(), 20).Value;
+        var entry = AuditPolicy.Entries[typeof(Group)];
+
+        Assert.Equal(group.CentreId, entry.ResolveCentreId(group));
     }
 }

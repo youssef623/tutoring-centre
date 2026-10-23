@@ -204,6 +204,9 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<IQueryHandler<ListStudentNamesQuery, List<string>>, ListStudentNamesQueryHandler>();
         services.AddScoped<IQueryHandler<GetStudentLinksSnapshotQuery, StudentLinksSnapshot>, GetStudentLinksSnapshotQueryHandler>();
 
+        // Task 44.4: resolves ITeacherScopeProvider inside a real dispatched read.
+        services.AddTeacherScopeProbe();
+
         // GetSystemInfoHandler's port (Task 35.7); the real implementation is Api-only (DemoOptions), so these
         // tenancy/tenant-isolation tests never need it to be anything but off.
         services.AddSingleton<IDemoModeProvider, AlwaysDisabledDemoModeProvider>();
@@ -434,6 +437,33 @@ public sealed class PostgresFixture : IAsyncLifetime
         command.Parameters.AddWithValue("full_name", fullName);
         command.Parameters.AddWithValue("search_name", SearchText.Normalize(fullName));
         command.Parameters.AddWithValue("user_id", userId.HasValue ? userId.Value : DBNull.Value);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one group row directly as the superuser — bypassing row-level security, the write guard and EF
+    /// entirely, on purpose, so RLS tests (Task 44.14) seed rows for both centres that the policy under test
+    /// cannot have biased. The subject and teacher must belong to the same centre. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedGroupAsync(Guid centreId, string name, Guid subjectId, Guid teacherId, int capacity = 20)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.groups (id, centre_id, name, normalized_name, subject_id, teacher_id, capacity, status, created_at)
+            values (@id, @centre_id, @name, @normalized_name, @subject_id, @teacher_id, @capacity, 'active', now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("name", name);
+        command.Parameters.AddWithValue("normalized_name", SearchText.Normalize(name));
+        command.Parameters.AddWithValue("subject_id", subjectId);
+        command.Parameters.AddWithValue("teacher_id", teacherId);
+        command.Parameters.AddWithValue("capacity", capacity);
         await command.ExecuteNonQueryAsync();
         return id;
     }

@@ -66,7 +66,7 @@ public sealed class GetMyMembershipsHandlerTests
         Assert.Equal(centreId, result.Value.ActiveCentreId);
         Assert.Equal(StaffRole.Teacher, result.Value.ActiveRole);
         Assert.Single(result.Value.Memberships);
-        Assert.Equal(["subjects.view"], result.Value.Permissions);
+        Assert.Equal(["groups.view", "subjects.view"], result.Value.Permissions);
     }
 
     [Fact]
@@ -89,7 +89,9 @@ public sealed class GetMyMembershipsHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(["students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], result.Value.Permissions);
+        Assert.Equal(
+            ["groups.manage", "groups.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"],
+            result.Value.Permissions);
     }
 
     [Fact]

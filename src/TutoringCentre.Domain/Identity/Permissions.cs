@@ -13,6 +13,8 @@ public static class Permissions
     public const string StudentsManage = "students.manage";
     public const string TeachersView = "teachers.view";
     public const string TeachersManage = "teachers.manage";
+    public const string GroupsView = "groups.view";
+    public const string GroupsManage = "groups.manage";
 
     public static IReadOnlyCollection<string> All { get; } = new[]
     {
@@ -26,5 +28,7 @@ public static class Permissions
         StudentsManage,
         TeachersView,
         TeachersManage,
+        GroupsView,
+        GroupsManage,
     };
 }

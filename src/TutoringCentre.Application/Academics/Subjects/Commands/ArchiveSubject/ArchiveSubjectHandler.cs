@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using TutoringCentre.Application.Academics.Groups;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Domain.Common;
 
@@ -6,7 +7,7 @@ namespace TutoringCentre.Application.Academics.Subjects.Commands.ArchiveSubject;
 
 /// <summary>Orchestrates: scoped lookup → the state transition, which is behaviour on the entity, not a flag update.</summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class ArchiveSubjectHandler(ISubjectRepository subjects) : ICommandHandler<ArchiveSubjectCommand, Unit>
+internal sealed class ArchiveSubjectHandler(ISubjectRepository subjects, IGroupRepository groups) : ICommandHandler<ArchiveSubjectCommand, Unit>
 {
     public async Task<Result<Unit>> HandleAsync(ArchiveSubjectCommand command, CancellationToken cancellationToken)
     {
@@ -14,6 +15,11 @@ internal sealed class ArchiveSubjectHandler(ISubjectRepository subjects) : IComm
         if (subject is null)
         {
             return Result<Unit>.Failure(Error.NotFound("subject.not_found", "This subject could not be found."));
+        }
+
+        if (await groups.AnyActiveForSubjectAsync(subject.Id, cancellationToken))
+        {
+            return Result<Unit>.Failure(Error.Rule("subject.has_active_groups", "This subject has active groups."));
         }
 
         var archived = subject.Archive();

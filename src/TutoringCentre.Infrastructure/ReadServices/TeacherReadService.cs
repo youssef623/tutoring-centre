@@ -26,11 +26,17 @@ internal sealed class TeacherReadService(AppDbContext db) : ITeacherReadService
             from linkedUser in linkedUsers.DefaultIfEmpty()
             where includeArchived || teacher.Status == TeacherStatus.Active
             orderby teacher.SearchName
-            select new { teacher, UserDisplayName = (string?)linkedUser.DisplayName, Version = EF.Property<uint>(teacher, "Version") })
+            select new
+            {
+                teacher,
+                UserDisplayName = (string?)linkedUser.DisplayName,
+                ActiveGroupCount = db.Set<Group>().Count(taught => taught.TeacherId == teacher.Id && taught.Status == GroupStatus.Active),
+                Version = EF.Property<uint>(teacher, "Version"),
+            })
             .Take(ListCap)
             .ToListAsync(ct);
 
-        return rows.Select(row => ToDto(row.teacher, row.UserDisplayName, row.Version)).ToList();
+        return rows.Select(row => ToDto(row.teacher, row.UserDisplayName, row.ActiveGroupCount, row.Version)).ToList();
     }
 
     public async Task<TeacherDto?> GetAsync(Guid id, CancellationToken ct)
@@ -40,10 +46,16 @@ internal sealed class TeacherReadService(AppDbContext db) : ITeacherReadService
             join user in db.Set<ApplicationUser>().AsNoTracking() on teacher.UserId equals user.Id into linkedUsers
             from linkedUser in linkedUsers.DefaultIfEmpty()
             where teacher.Id == id
-            select new { teacher, UserDisplayName = (string?)linkedUser.DisplayName, Version = EF.Property<uint>(teacher, "Version") })
+            select new
+            {
+                teacher,
+                UserDisplayName = (string?)linkedUser.DisplayName,
+                ActiveGroupCount = db.Set<Group>().Count(taught => taught.TeacherId == teacher.Id && taught.Status == GroupStatus.Active),
+                Version = EF.Property<uint>(teacher, "Version"),
+            })
             .SingleOrDefaultAsync(ct);
 
-        return row is null ? null : ToDto(row.teacher, row.UserDisplayName, row.Version);
+        return row is null ? null : ToDto(row.teacher, row.UserDisplayName, row.ActiveGroupCount, row.Version);
     }
 
     public Task<Guid?> FindIdByUserAsync(Guid userId, CancellationToken ct) =>
@@ -53,13 +65,13 @@ internal sealed class TeacherReadService(AppDbContext db) : ITeacherReadService
             .Select(teacher => (Guid?)teacher.Id)
             .SingleOrDefaultAsync(ct);
 
-    private static TeacherDto ToDto(Teacher teacher, string? userDisplayName, uint version) => new(
+    private static TeacherDto ToDto(Teacher teacher, string? userDisplayName, int activeGroupCount, uint version) => new(
         teacher.Id,
         teacher.FullName,
         teacher.Phone?.Value,
         teacher.Status,
         teacher.UserId,
         userDisplayName,
-        ActiveGroupCount: 0,
+        activeGroupCount,
         version);
 }

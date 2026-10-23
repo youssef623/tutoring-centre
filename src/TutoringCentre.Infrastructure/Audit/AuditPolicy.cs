@@ -70,5 +70,14 @@ internal static class AuditPolicy
                 nameof(Teacher.FullName), nameof(Teacher.UserId), nameof(Teacher.Status), nameof(Teacher.Phone),
             },
             new HashSet<string>(StringComparer.Ordinal) { nameof(Teacher.Phone) }),
+
+        // NormalizedName is never audited: it is derived from Name, not an independent fact to record.
+        [typeof(Group)] = new AuditPolicyEntry(
+            AuditEntityType.Group,
+            entity => ((Group)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(Group.Name), nameof(Group.SubjectId), nameof(Group.TeacherId), nameof(Group.Capacity), nameof(Group.Status),
+            }),
     };
 }

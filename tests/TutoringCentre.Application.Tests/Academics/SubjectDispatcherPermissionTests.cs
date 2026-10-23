@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using TutoringCentre.Application.Academics.Groups;
 using TutoringCentre.Application.Academics.Subjects;
 using TutoringCentre.Application.Academics.Subjects.Commands.ArchiveSubject;
 using TutoringCentre.Application.Academics.Subjects.Commands.CreateSubject;
@@ -176,6 +177,7 @@ public sealed class SubjectDispatcherPermissionTests
         var provider = new ServiceCollection()
             .AddSingleton(unitOfWork)
             .AddSingleton<ICurrentActor>(currentActor)
+            .AddSingleton<IGroupRepository>(new FakeGroupRepository())
             .AddSingleton<ISubjectRepository>(subjectRepository)
             .AddSingleton<ISubjectReadService>(subjectReadService)
             .AddScoped<ICommandHandler<CreateSubjectCommand, CreateSubjectResult>, CreateSubjectHandler>()
