@@ -81,7 +81,8 @@ mid-session (by another admin, in another tab) is reflected without a full reloa
 A whole page can need gating too, for a user who types the URL directly rather than following a hidden nav
 link: `RouteGuard` (Day 33, same module) wraps the Staff, Settings and Audit log routes, each tied to its
 `staff.view` / `centre.settings.manage` / `audit.view` permission — and, since Day 41–42, the Students list and
-detail pages (`students.view`) and the registration page (`students.manage`); a student's parents card then
+detail pages (`students.view`) and the registration page (`students.manage`), and since Day 46 the Teachers page
+(`teachers.view`) and the Groups list and group pages (`groups.view`); a student's parents card then
 hides its own manage affordances (link, unlink, make primary, add a fifth parent) the same way `Can` does
 everywhere else, never as the actual enforcement. Unlike `Can`, which renders nothing, a
 denied `RouteGuard` renders a translated "you don't have access" state with a link back to the dashboard —
@@ -142,6 +143,17 @@ key — there is no `groups.view_own` — and it is the third check on a request
 - **Tenancy and ownership compose.** The provider looks the teacher record up in the acting centre, so one
   account linked to a teacher record in each of two centres sees a different set of groups per selected
   centre, and never another centre's group in either.
+- **What the screens do (Day 46).** The Groups pages never ask "is this a teacher": they render whatever the
+  scoped API returns, and branch only on permissions — `Can` with `groups.manage` around every write, the
+  teacher filter only with `teachers.view` (so a Teacher's session never calls `/api/teachers` at all), and a
+  distinct empty-state text chosen by the absence of `groups.manage`. A group page answered with 404 renders
+  one "Group not found" state for an unknown ID, another centre's group and someone else's group alike, so the
+  UI adds nothing the 404 itself withholds. None of this is enforcement: removing a `Can` exposes a button whose
+  request the API still refuses.
+- **The scope follows the current role.** It is resolved per request from the session's role and the linked
+  teacher record, never stored in the session: once a role change has gone through the session's
+  revalidation (`docs/architecture/authentication.md`), a former Teacher now holding Secretary resolves to
+  `All`; removing the account link makes the same Teacher's next list empty (`GroupTeacherScopeTests`).
 - **Tests answer different questions.** `PermissionMatrixTests` records the permission decision only: Teacher
   is "allowed" on the two group reads (on a group it owns) and 403 on the six writes. What a teacher sees is
   proven separately, through real sessions, by `GroupTeacherScopeTests` (linked, unlinked, reassigned,
