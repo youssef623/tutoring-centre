@@ -441,6 +441,33 @@ public sealed class PostgresFixture : IAsyncLifetime
         return id;
     }
 
+    /// <summary>
+    /// Inserts one group row directly as the superuser — bypassing row-level security, the write guard and EF
+    /// entirely, on purpose, so RLS tests (Task 44.14) seed rows for both centres that the policy under test
+    /// cannot have biased. The subject and teacher must belong to the same centre. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedGroupAsync(Guid centreId, string name, Guid subjectId, Guid teacherId, int capacity = 20)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.groups (id, centre_id, name, normalized_name, subject_id, teacher_id, capacity, status, created_at)
+            values (@id, @centre_id, @name, @normalized_name, @subject_id, @teacher_id, @capacity, 'active', now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("name", name);
+        command.Parameters.AddWithValue("normalized_name", SearchText.Normalize(name));
+        command.Parameters.AddWithValue("subject_id", subjectId);
+        command.Parameters.AddWithValue("teacher_id", teacherId);
+        command.Parameters.AddWithValue("capacity", capacity);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
     private string WithCredentials(string username, string password) =>
         new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Username = username, Password = password }.ConnectionString;
 
