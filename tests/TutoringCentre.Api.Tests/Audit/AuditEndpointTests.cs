@@ -49,6 +49,42 @@ public sealed class AuditEndpointTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Get_AfterGroupCapacityChange_ReturnsTheNumericBeforeAndAfterAsText()
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var subjectResponse = await AntiforgeryTestHelper.PostAsJsonAsync(owner.Client, new Uri("/api/subjects", UriKind.Relative), new { name = "Audit Physics" });
+        var subjectId = (await ReadJsonAsync(subjectResponse)).RootElement.GetProperty("id").GetGuid();
+        using var teacherResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/teachers", UriKind.Relative), new { fullName = "Audit Teacher", phone = (string?)null });
+        var teacherId = (await ReadJsonAsync(teacherResponse)).RootElement.GetProperty("id").GetGuid();
+        const int capacity = 20;
+        using var groupResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/groups", UriKind.Relative), new { name = "Audit Group", subjectId, teacherId, capacity });
+        var groupId = (await ReadJsonAsync(groupResponse)).RootElement.GetProperty("id").GetGuid();
+        using var groupGet = await owner.Client.GetAsync(new Uri($"/api/groups/{groupId}", UriKind.Relative));
+        var group = (await ReadJsonAsync(groupGet)).RootElement;
+        using (var changed = await AntiforgeryTestHelper.SendAsJsonAsync(
+            owner.Client, HttpMethod.Put, new Uri($"/api/groups/{groupId}/capacity", UriKind.Relative),
+            new { capacity = capacity + 1, version = group.GetProperty("version").GetUInt32() }))
+        {
+            Assert.Equal(HttpStatusCode.NoContent, changed.StatusCode);
+        }
+
+        // Unfiltered and newest first: the capacity change is the latest entry in the centre.
+        using var response = await owner.Client.GetAsync(AuditUri);
+        var body = await ReadJsonAsync(response);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var update = body.RootElement.GetProperty("items")[0];
+        Assert.Equal("group", update.GetProperty("entityType").GetString());
+        Assert.Equal(groupId, update.GetProperty("entityId").GetGuid());
+        Assert.Equal("updated", update.GetProperty("action").GetString());
+        var capacityField = update.GetProperty("changes").EnumerateArray().Single(c => c.GetProperty("field").GetString() == "capacity");
+        Assert.Equal(capacity.ToString(System.Globalization.CultureInfo.InvariantCulture), capacityField.GetProperty("before").GetString());
+        Assert.Equal((capacity + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), capacityField.GetProperty("after").GetString());
+    }
+
+    [Fact]
     public async Task Get_FilteredByEntityIdOfSubject_ReturnsOnlyThatSubjectsHistory()
     {
         using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
