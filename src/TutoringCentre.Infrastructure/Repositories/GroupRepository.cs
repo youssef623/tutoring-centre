@@ -54,6 +54,12 @@ internal sealed class GroupRepository(AppDbContext db) : IGroupRepository
         return new GroupForEnrollment(group, activeCount);
     }
 
+    public bool IsAtVersion(Group group, uint expectedVersion)
+    {
+        ArgumentNullException.ThrowIfNull(group);
+        return db.Entry(group).Property<uint>("Version").CurrentValue == expectedVersion;
+    }
+
     public Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct) =>
         db.Set<Group>().AnyAsync(group => group.NormalizedName == normalizedName && group.Id != excludingId, ct);
 

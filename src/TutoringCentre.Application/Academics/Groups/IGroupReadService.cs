@@ -20,7 +20,7 @@ public interface IGroupReadService
 /// <summary>Optional filters for the group list. Intersected with the scope, never widening it.</summary>
 public sealed record GroupListCriteria(Guid? SubjectId, Guid? TeacherId, bool IncludeArchived);
 
-/// <summary>The one shape every group read returns. <see cref="EnrolledCount"/> stays 0 until enrollments exist.</summary>
+/// <summary>The one shape every group read returns. <see cref="EnrolledCount"/> is the group's active enrollments, counted when read.</summary>
 public sealed record GroupDto(
     Guid Id,
     string Name,

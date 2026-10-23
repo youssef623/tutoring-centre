@@ -81,7 +81,8 @@ internal sealed class GroupReadService(AppDbContext db) : IGroupReadService
             grp.TeacherId,
             teacher.FullName,
             grp.Capacity,
-            0,
+            // Correlated count: the enrollment rows are the only source of truth; nothing stores this number.
+            db.Set<Enrollment>().Count(enrollment => enrollment.GroupId == grp.Id && enrollment.Status == EnrollmentStatus.Active),
             grp.Status,
             EF.Property<uint>(grp, "Version"));
 }

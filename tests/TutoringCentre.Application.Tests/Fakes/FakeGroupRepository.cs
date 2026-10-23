@@ -30,6 +30,12 @@ public sealed class FakeGroupRepository : IGroupRepository
             : new GroupForEnrollment(group, ActiveEnrollmentCounts.GetValueOrDefault(groupId)));
     }
 
+    /// <summary>The stored version of each group; a group not listed is at version 0.</summary>
+    public Dictionary<Guid, uint> Versions { get; } = [];
+
+    public bool IsAtVersion(Group group, uint expectedVersion) =>
+        Versions.GetValueOrDefault(group.Id) == expectedVersion;
+
     public Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct) =>
         Task.FromResult(Existing.Concat(Added).Any(group =>
             group.NormalizedName == normalizedName && group.Id != excludingId));

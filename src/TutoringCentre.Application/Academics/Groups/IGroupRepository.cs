@@ -28,6 +28,13 @@ public interface IGroupRepository
     /// </summary>
     Task<GroupForEnrollment?> GetForEnrollmentAsync(Guid groupId, CancellationToken ct);
 
+    /// <summary>
+    /// Whether a group loaded by this repository is still at <paramref name="expectedVersion"/>. For a group
+    /// locked by <see cref="GetForEnrollmentAsync"/>, where the row cannot change until the transaction ends, so
+    /// the handler can refuse a stale client before any rule runs.
+    /// </summary>
+    bool IsAtVersion(Group group, uint expectedVersion);
+
     /// <summary>Whether a group with this normalized name already exists in the acting centre, optionally excluding one group (for rename).</summary>
     Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct);
 
