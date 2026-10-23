@@ -10,6 +10,7 @@ import {
   Presentation,
   Settings,
   Users,
+  UsersRound,
   X,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -112,6 +113,12 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link to="/teachers" className={linkClassName} onClick={onNavigate}>
           <Presentation className="size-4" aria-hidden="true" />
           {t("nav.teachers")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.GroupsView}>
+        <Link to="/groups" className={linkClassName} onClick={onNavigate}>
+          <UsersRound className="size-4" aria-hidden="true" />
+          {t("nav.groups")}
         </Link>
       </Can>
       <Can permission={Permissions.StaffView}>

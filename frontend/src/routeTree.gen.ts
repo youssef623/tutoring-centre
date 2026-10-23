@@ -16,11 +16,14 @@ import { Route as SelectCentreRouteImport } from './routes/select-centre'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
+import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
+import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
+import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedParentsParentIdRouteImport } from './routes/_authenticated/parents.$parentId'
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
@@ -60,6 +63,11 @@ const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -85,6 +93,18 @@ const AuthenticatedTeachersRoute = AuthenticatedTeachersRouteImport.update({
   path: '/teachers',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedGroupsIndexRoute =
+  AuthenticatedGroupsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedGroupsRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdRoute =
+  AuthenticatedGroupsGroupIdRouteImport.update({
+    id: '/$groupId',
+    path: '/$groupId',
+    getParentRoute: () => AuthenticatedGroupsRoute,
+  } as any)
 const AuthenticatedParentsParentIdRoute =
   AuthenticatedParentsParentIdRouteImport.update({
     id: '/parents/$parentId',
@@ -117,14 +137,17 @@ export interface FileRoutesByFullPath {
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/audit': typeof AuthenticatedAuditRoute
+  '/groups': typeof AuthenticatedGroupsRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/groups/': typeof AuthenticatedGroupsIndexRoute
   '/students/': typeof AuthenticatedStudentsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -138,9 +161,11 @@ export interface FileRoutesByTo {
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/': typeof AuthenticatedIndexRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/groups': typeof AuthenticatedGroupsIndexRoute
   '/students': typeof AuthenticatedStudentsIndexRoute
 }
 export interface FileRoutesById {
@@ -151,15 +176,18 @@ export interface FileRoutesById {
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
+  '/_authenticated/groups': typeof AuthenticatedGroupsRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
+  '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
   '/_authenticated/students/': typeof AuthenticatedStudentsIndexRoute
 }
 export interface FileRouteTypes {
@@ -171,14 +199,17 @@ export interface FileRouteTypes {
     | '/select-centre'
     | '/status'
     | '/audit'
+    | '/groups'
     | '/settings'
     | '/staff'
     | '/students'
     | '/subjects'
     | '/teachers'
+    | '/groups/$groupId'
     | '/parents/$parentId'
     | '/students/$studentId'
     | '/students/new'
+    | '/groups/'
     | '/students/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -192,9 +223,11 @@ export interface FileRouteTypes {
     | '/subjects'
     | '/teachers'
     | '/'
+    | '/groups/$groupId'
     | '/parents/$parentId'
     | '/students/$studentId'
     | '/students/new'
+    | '/groups'
     | '/students'
   id:
     | '__root__'
@@ -204,15 +237,18 @@ export interface FileRouteTypes {
     | '/select-centre'
     | '/status'
     | '/_authenticated/audit'
+    | '/_authenticated/groups'
     | '/_authenticated/settings'
     | '/_authenticated/staff'
     | '/_authenticated/students'
     | '/_authenticated/subjects'
     | '/_authenticated/teachers'
     | '/_authenticated/'
+    | '/_authenticated/groups/$groupId'
     | '/_authenticated/parents/$parentId'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
+    | '/_authenticated/groups/'
     | '/_authenticated/students/'
   fileRoutesById: FileRoutesById
 }
@@ -275,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/groups': {
+      id: '/_authenticated/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof AuthenticatedGroupsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -310,6 +353,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeachersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/groups/': {
+      id: '/_authenticated/groups/'
+      path: '/'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
+      parentRoute: typeof AuthenticatedGroupsRoute
+    }
+    '/_authenticated/groups/$groupId': {
+      id: '/_authenticated/groups/$groupId'
+      path: '/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
+      parentRoute: typeof AuthenticatedGroupsRoute
+    }
     '/_authenticated/parents/$parentId': {
       id: '/_authenticated/parents/$parentId'
       path: '/parents/$parentId'
@@ -341,6 +398,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedGroupsRouteChildren {
+  AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
+  AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
+}
+
+const AuthenticatedGroupsRouteChildren: AuthenticatedGroupsRouteChildren = {
+  AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
+  AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
+}
+
+const AuthenticatedGroupsRouteWithChildren =
+  AuthenticatedGroupsRoute._addFileChildren(AuthenticatedGroupsRouteChildren)
+
 interface AuthenticatedStudentsRouteChildren {
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
   AuthenticatedStudentsNewRoute: typeof AuthenticatedStudentsNewRoute
@@ -360,6 +430,7 @@ const AuthenticatedStudentsRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
+  AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
@@ -371,6 +442,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
+  AuthenticatedGroupsRoute: AuthenticatedGroupsRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedStudentsRoute: AuthenticatedStudentsRouteWithChildren,

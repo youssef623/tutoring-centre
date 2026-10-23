@@ -5,6 +5,7 @@ import auditAr from "./locales/ar/audit.json";
 import authAr from "./locales/ar/auth.json";
 import commonAr from "./locales/ar/common.json";
 import errorsAr from "./locales/ar/errors.json";
+import groupsAr from "./locales/ar/groups.json";
 import parentsAr from "./locales/ar/parents.json";
 import settingsAr from "./locales/ar/settings.json";
 import shellAr from "./locales/ar/shell.json";
@@ -17,6 +18,7 @@ import auditEn from "./locales/en/audit.json";
 import authEn from "./locales/en/auth.json";
 import commonEn from "./locales/en/common.json";
 import errorsEn from "./locales/en/errors.json";
+import groupsEn from "./locales/en/groups.json";
 import parentsEn from "./locales/en/parents.json";
 import settingsEn from "./locales/en/settings.json";
 import shellEn from "./locales/en/shell.json";
@@ -84,6 +86,7 @@ void i18next
         settings: settingsEn,
         audit: auditEn,
         teachers: teachersEn,
+        groups: groupsEn,
       },
       ar: {
         common: commonAr,
@@ -98,11 +101,12 @@ void i18next
         settings: settingsAr,
         audit: auditAr,
         teachers: teachersAr,
+        groups: groupsAr,
       },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

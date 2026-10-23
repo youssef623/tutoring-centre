@@ -1,0 +1,144 @@
+{
+  "page": {
+    "title": "Groups",
+    "subtitle": "Classes students enrol in: one subject, one teacher and a fixed number of seats."
+  },
+  "filters": {
+    "label": "Filter groups",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "allSubjects": "All subjects",
+    "allTeachers": "All teachers",
+    "showArchived": "Show archived"
+  },
+  "stats": {
+    "activeGroups": "Active groups",
+    "openSeats": "Open seats",
+    "fullGroups": "Full groups"
+  },
+  "columns": {
+    "name": "Name",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "seats": "Seats",
+    "status": "Status"
+  },
+  "seats": {
+    "label": "{enrolled} of {capacity} seats taken",
+    "full": "Full"
+  },
+  "actions": {
+    "create": "Create group",
+    "rename": "Rename",
+    "changeCapacity": "Change capacity",
+    "changeTeacher": "Change teacher",
+    "archive": "Archive",
+    "restore": "Restore"
+  },
+  "loading": {
+    "label": "Loading groups",
+    "detailLabel": "Loading group"
+  },
+  "error": {
+    "title": "Groups could not be loaded",
+    "reference": "Reference:"
+  },
+  "detailError": {
+    "title": "This group could not be loaded"
+  },
+  "notFound": {
+    "title": "Group not found",
+    "description": "This group does not exist, or you don't have access to it.",
+    "backToList": "Back to groups"
+  },
+  "emptyState": {
+    "title": "No groups yet",
+    "description": "Create a group for a subject and assign it a teacher to start enrolling students.",
+    "assignedTitle": "No groups are assigned to you",
+    "assignedDescription": "Groups you teach will appear here once the centre assigns them to you.",
+    "noMatchTitle": "No groups match these filters",
+    "noMatchDescription": "Try another subject or teacher, or clear the filters."
+  },
+  "detail": {
+    "backToList": "All groups"
+  },
+  "overview": {
+    "seats": "Seats",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "capacity": "Capacity",
+    "status": "Status"
+  },
+  "tabs": {
+    "label": "Group sections",
+    "overview": "Overview",
+    "roster": "Roster",
+    "schedule": "Schedule"
+  },
+  "placeholders": {
+    "rosterTitle": "Roster coming soon",
+    "rosterDescription": "The students enrolled in this group will be listed here.",
+    "scheduleTitle": "Schedule coming soon",
+    "scheduleDescription": "This group's weekly sessions will be shown here."
+  },
+  "archivedBanner": {
+    "title": "This group is archived",
+    "description": "An archived group is read-only. Restore it to rename it, change its capacity or change its teacher."
+  },
+  "dialogs": {
+    "createTitle": "Create group",
+    "createDescription": "Choose the subject and teacher. The subject cannot be changed later.",
+    "renameTitle": "Rename group",
+    "renameDescription": "Group names are unique within the centre.",
+    "capacityTitle": "Change capacity",
+    "capacityDescription": "Between 1 and 200 seats. {enrolled} currently enrolled.",
+    "teacherTitle": "Change teacher",
+    "teacherDescription": "The new teacher's account will see this group; the previous teacher's will not."
+  },
+  "form": {
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Physics – Grade 11 A",
+    "subjectLabel": "Subject",
+    "teacherLabel": "Teacher",
+    "capacityLabel": "Capacity",
+    "capacityHint": "Number of seats, 1 to 200.",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "selects": {
+    "loading": "Loading…",
+    "loadFailed": "This list could not be loaded.",
+    "subjectPlaceholder": "Choose a subject",
+    "teacherPlaceholder": "Choose a teacher",
+    "noSubjects": "There are no active subjects yet.",
+    "noTeachers": "There are no active teachers yet.",
+    "goToSubjects": "Go to Subjects",
+    "goToTeachers": "Go to Teachers"
+  },
+  "confirmations": {
+    "archiveTitle": "Archive \"{name}\"?",
+    "archiveBody": "The group becomes read-only and stops accepting enrolments until it is restored.",
+    "archiveConfirm": "Archive group"
+  },
+  "ruleErrors": {
+    "capacityBelowEnrolled": "Capacity cannot be lower than the number of students already enrolled.",
+    "hasActiveEnrollments": "This group still has enrolled students. Transfer or withdraw them before archiving."
+  },
+  "toasts": {
+    "created": "Group created.",
+    "renamed": "Group renamed.",
+    "capacityChanged": "Capacity updated.",
+    "teacherChanged": "Teacher changed.",
+    "archived": "Group archived.",
+    "restored": "Group restored."
+  },
+  "validation": {
+    "nameRequired": "Group name is required.",
+    "nameTooLong": "Group name must be at most 80 characters.",
+    "subjectRequired": "Choose a subject.",
+    "teacherRequired": "Choose a teacher.",
+    "capacityRequired": "Enter the number of seats.",
+    "capacityWhole": "Capacity must be a whole number.",
+    "capacityRange": "Capacity must be between 1 and 200."
+  }
+}
