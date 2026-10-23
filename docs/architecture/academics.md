@@ -1,8 +1,8 @@
-# Academics: students, parents, teachers and groups (Days 37–46)
+# Academics: students, parents, teachers, groups and enrollments (Days 37–47)
 
 The Domain model behind registering a student and the parents a centre contacts about them, how that model is
 stored, the use cases and endpoints built on it, and the two screens that use them. Teachers and groups
-(Days 43–46) follow in their own section at the end. Written from the implementation; every name and rule
+(Days 43–46) and enrollments (Day 47) follow in their own sections at the end. Written from the implementation; every name and rule
 below is checked against the code, not the plan that produced it.
 
 ## Entities
@@ -316,3 +316,70 @@ Rendering follows permissions, never role names. Selects for subject and teacher
 `TeacherSelect`) offer active entries only; a refusal about either lands under that select and refetches its
 list. Field errors carrying an error code are shown in the session's language (the `errors` namespace), with
 the server's own field text only as a fallback; numbers stay in Western digits in both languages.
+## Enrollments (Day 47)
+
+| Type | Kind | Tenant-owned | Lives in |
+| --- | --- | --- | --- |
+| `Enrollment` | aggregate root | yes | `TutoringCentre.Domain.Academics` |
+
+An `Enrollment` says "this student holds a seat in this group since this moment": a `StudentId` and a `GroupId`
+(by ID only), a status (`active` or `ended`), the time it started, and — once ended — when and why
+(`withdrawn` or `transferred`). It is its own aggregate rather than a child of `Student` or `Group` because it
+changes on its own schedule and is shared ground between the two: a student's enrollments span many groups, a
+group's span many students, and neither side should have to load the other's whole history to add one row.
+
+History is kept by ending a row and starting a new one, never by editing the past. `End` happens once
+(`enrollment.already_ended` keeps the first end) and never before the start (`enrollment.end_before_start`);
+there is no `Reactivate` — a student who comes back gets a new enrollment, and a transfer is an end in one
+group plus a start in another. Timestamps are passed in by the use case from the application's clock; the
+entity never reads one.
+
+**What the entity does not own.** Capacity is a rule about the group and a count of *other* rows; "not already
+enrolled" is about other rows too (the handler checks it, a partial unique index backs it); whether the student
+or the group is active belongs to those aggregates (the handler checks it). Day 48 adds those checks.
+
+**What the table enforces** (`academics.enrollments`, migration `AddEnrollments`):
+
+- at most one *active* enrollment per student and group — the partial unique index
+  `ux_enrollments_active_student_group` (`WHERE status = 'active'`), partial so that ended enrollments stay as
+  history and a student can re-enroll after a withdrawal; its violation maps to `enrollment.already_enrolled`;
+- an enrollment joins a student and a group of the same centre — composite foreign keys through
+  `(centre_id, id)` on both sides;
+- an ended row always has its time and reason, an active row has neither, and nothing ends before it started —
+  `ck_enrollments_end_consistency` and `ck_enrollments_end_after_start`;
+- forced row-level security like every tenant table, and no `DELETE` grant: ended enrollments are history.
+
+**What it cannot enforce: capacity.** "At most N active rows for this group" is a rule about a count of rows,
+and unique and check constraints are evaluated per row. The decision lives in the Domain instead —
+`Group.EnsureCanEnroll(activeEnrollmentCount)` refuses with `group.archived` for an archived group and with
+`group.full` (a Conflict: the request was valid and may succeed later) once the count reaches the capacity, and
+`Group.ChangeCapacity(capacity, activeEnrollmentCount)` refuses to shrink below it
+(`group.capacity_below_enrolled`). The count is a parameter, not a field: `Group` stores no enrolled count, so
+the enrollment rows remain the only source of truth, and the rule can be tested without a database.
+
+What makes that count safe to use is a row lock on the group, taken before counting (Day 48;
+`docs/adr/0011-pessimistic-lock-for-enrollment-capacity.md`). Without it, two requests for the last seat can
+both count 19 of 20 and both insert. With it, the second waits:
+
+```text
+Tx A                                   Tx B
+BEGIN + app.current_centre             BEGIN + app.current_centre
+SELECT group ... FOR UPDATE  (granted)
+                                       SELECT group ... FOR UPDATE  (waits)
+COUNT active = 19
+EnsureCanEnroll(19) ok -> INSERT
+COMMIT  (lock released)
+                                       (granted) COUNT active = 20
+                                       EnsureCanEnroll(20) -> group.full -> ROLLBACK
+```
+
+PostgreSQL's default READ COMMITTED isolation is enough: Tx B's count is a new statement that runs only after
+its lock is granted, which is only after Tx A has committed, so it sees Tx A's insert. Locking the enrollment
+rows instead would not work — the row that would overbook the group is the one being inserted, and it does not
+exist yet.
+
+**Permissions.** `enrollments.view` (Owner, Secretary, and Teacher — narrowed to their own groups by the same
+teacher scope as groups, applied by the read services) and `enrollments.manage` (Owner, Secretary). Teachers see
+who is in their groups, which they need for attendance, but never enroll or withdraw anyone: enrollment drives
+fees, so only office roles change it. Enrollment changes are audited (`studentId`, `groupId`, `status`,
+`endReason`).
