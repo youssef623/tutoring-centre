@@ -204,6 +204,9 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<IQueryHandler<ListStudentNamesQuery, List<string>>, ListStudentNamesQueryHandler>();
         services.AddScoped<IQueryHandler<GetStudentLinksSnapshotQuery, StudentLinksSnapshot>, GetStudentLinksSnapshotQueryHandler>();
 
+        // Task 44.4: resolves ITeacherScopeProvider inside a real dispatched read.
+        services.AddTeacherScopeProbe();
+
         // GetSystemInfoHandler's port (Task 35.7); the real implementation is Api-only (DemoOptions), so these
         // tenancy/tenant-isolation tests never need it to be anything but off.
         services.AddSingleton<IDemoModeProvider, AlwaysDisabledDemoModeProvider>();

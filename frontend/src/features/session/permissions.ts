@@ -10,6 +10,8 @@ export const Permissions = {
   StudentsManage: "students.manage",
   TeachersView: "teachers.view",
   TeachersManage: "teachers.manage",
+  GroupsView: "groups.view",
+  GroupsManage: "groups.manage",
 } as const;
 
 export type Permission = (typeof Permissions)[keyof typeof Permissions];

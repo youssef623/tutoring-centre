@@ -44,7 +44,7 @@ public sealed class ModuleBoundaryRuleTests
     /// Exactly these cross-cutting types, named individually rather than by namespace, so the exception stays
     /// as small as the contract: growing this list to make a test pass is the one thing not allowed here.
     /// </summary>
-    private static readonly string[] SharedKernelTypeNames = ["SupportedLocale", "StaffRole", "Permissions", "RolePermissions"];
+    private static readonly string[] SharedKernelTypeNames = ["SupportedLocale", "StaffRole", "Permissions", "RolePermissions", "RoleScopes"];
 
     private static readonly Type[] ApplicationTypes = SourceAssemblies.Application.GetTypes();
     private static readonly Type[] DomainTypes = SourceAssemblies.Domain.GetTypes();
