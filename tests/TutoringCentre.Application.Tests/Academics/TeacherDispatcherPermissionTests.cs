@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using TutoringCentre.Application.Academics.Groups;
 using TutoringCentre.Application.Academics.Teachers;
 using TutoringCentre.Application.Academics.Teachers.Commands.ArchiveTeacher;
 using TutoringCentre.Application.Academics.Teachers.Commands.CreateTeacher;
@@ -224,6 +225,7 @@ public sealed class TeacherDispatcherPermissionTests
         var provider = new ServiceCollection()
             .AddSingleton(unitOfWork)
             .AddSingleton<ICurrentActor>(currentActor)
+            .AddSingleton<IGroupRepository>(new FakeGroupRepository())
             .AddSingleton<ITeacherRepository>(teacherRepository)
             .AddSingleton<ITeacherReadService>(teacherReadService)
             .AddSingleton<IStaffDirectory>(staffDirectory)
