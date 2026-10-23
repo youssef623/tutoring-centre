@@ -45,6 +45,7 @@ internal static class SignInHelper
 {
     private static readonly Uri LoginUri = new("/api/auth/login", UriKind.Relative);
     private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
+    private static readonly Uri ChangePasswordUri = new("/api/auth/change-password", UriKind.Relative);
 
     public static Task<SignedInClient> SignInAsNileOwnerAsync(ApiFactory factory) =>
         SignInAsync(factory, "owner@nile.test");
@@ -93,6 +94,46 @@ internal static class SignInHelper
         }
 
         return new SignedInClient(client, centreId);
+    }
+
+    /// <summary>
+    /// Creates a brand-new Teacher-role member of the owner's centre through the real POST /api/staff, then signs
+    /// that account in with its temporary password, completes the forced password change and selects the centre
+    /// — the same path a real new teacher takes. Returns the signed-in client and the new user's ID.
+    /// </summary>
+    public static async Task<(SignedInClient Client, Guid UserId)> CreateAndSignInNewTeacherAsync(
+        ApiFactory factory, SignedInClient owner, string email)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(owner);
+
+        using var createResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/staff", UriKind.Relative), new { email, displayName = "New Teacher", role = "teacher", preferredLocale = "en" });
+        if (createResponse.StatusCode != HttpStatusCode.Created)
+        {
+            throw new InvalidOperationException($"Creating staff member '{email}' failed with {createResponse.StatusCode}.");
+        }
+
+        using var created = await ReadJsonAsync(createResponse);
+        var userId = created.RootElement.GetProperty("userId").GetGuid();
+        var temporaryPassword = created.RootElement.GetProperty("temporaryPassword").GetString()!;
+
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+        using var loginResponse = await AntiforgeryTestHelper.PostAsJsonAsync(client, LoginUri, new { email, password = temporaryPassword });
+        using var changeResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, ChangePasswordUri, new { currentPassword = temporaryPassword, newPassword = $"{Guid.NewGuid():N}-New-1!" });
+        using var selectResponse = await AntiforgeryTestHelper.PostAsJsonAsync(client, SelectCentreUri, new { centreId = owner.CentreId });
+        if (loginResponse.StatusCode != HttpStatusCode.OK
+            || changeResponse.StatusCode != HttpStatusCode.NoContent
+            || selectResponse.StatusCode != HttpStatusCode.NoContent)
+        {
+            client.Dispose();
+            throw new InvalidOperationException(
+                $"Signing in new teacher '{email}' failed: login {loginResponse.StatusCode}, change password {changeResponse.StatusCode}, "
+                + $"select centre {selectResponse.StatusCode}.");
+        }
+
+        return (new SignedInClient(client, owner.CentreId), userId);
     }
 
     internal static Guid? FindMembershipCentreId(JsonDocument me, string centreSlug)

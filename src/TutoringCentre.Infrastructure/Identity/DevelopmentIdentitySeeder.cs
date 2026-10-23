@@ -15,6 +15,9 @@ namespace TutoringCentre.Infrastructure.Identity;
 /// </summary>
 public sealed class DevelopmentIdentitySeeder(UserManager<ApplicationUser> userManager, AppDbContext db, IConfiguration configuration)
 {
+    /// <summary>The seeded account with a Teacher membership in both demo centres; the demo seed links it to a teacher record in each.</summary>
+    public const string TwoCentreTeacherEmail = "teacher@both.test";
+
     private const string PasswordConfigurationKey = "Seed:Password";
 
     private static readonly SeedUser[] Users =
@@ -22,7 +25,7 @@ public sealed class DevelopmentIdentitySeeder(UserManager<ApplicationUser> userM
         new("owner@nile.test", "Nile Owner", "ar", [new("nile-centre", StaffRole.Owner, Active: true)]),
         new("owner@maadi.test", "Maadi Owner", "en", [new("maadi-hub", StaffRole.Owner, Active: true)]),
         new(
-            "teacher@both.test",
+            TwoCentreTeacherEmail,
             "Two-Centre Teacher",
             "en",
             [new("nile-centre", StaffRole.Teacher, Active: true), new("maadi-hub", StaffRole.Teacher, Active: true)]),

@@ -1,18 +1,28 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TutoringCentre.Application.Academics.Groups.Commands.CreateGroup;
 using TutoringCentre.Application.Academics.Parents;
 using TutoringCentre.Application.Academics.Parents.Queries.LookupParentByPhone;
 using TutoringCentre.Application.Academics.Students;
 using TutoringCentre.Application.Academics.Students.Commands.RegisterStudent;
 using TutoringCentre.Application.Academics.Students.Queries.ListStudents;
+using TutoringCentre.Application.Academics.Subjects;
 using TutoringCentre.Application.Academics.Subjects.Commands.CreateSubject;
+using TutoringCentre.Application.Academics.Subjects.Queries.ListSubjects;
+using TutoringCentre.Application.Academics.Teachers;
+using TutoringCentre.Application.Academics.Teachers.Commands.CreateTeacher;
+using TutoringCentre.Application.Academics.Teachers.Commands.SetTeacherAccount;
+using TutoringCentre.Application.Academics.Teachers.Queries.GetTeacher;
+using TutoringCentre.Application.Academics.Teachers.Queries.ListTeachers;
 using TutoringCentre.Application.Centres.Commands.CreateCentre;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 
@@ -53,6 +63,26 @@ public static class SeedCommand
         new("maadi-hub", "Daniel Davis", "01000000013", ["Sophia Davis"]),
         new("maadi-hub", "Thomas Miller", "01000000014", ["Lucas Miller"]),
         new("maadi-hub", "Christopher Anderson", "01000000015", ["Mia Anderson"]),
+    ];
+
+    // The same person (the two-centre teacher account) is linked to one teacher record per centre, so the demo
+    // shows the ownership guard: one account, different groups per selected centre. In Nile the linked teacher
+    // owns exactly one group and the unlinked one the other three, including the two-seat last-seat demo group.
+    private static readonly SeedTeacher[] Teachers =
+    [
+        new("nile-centre", "كريم فتحي", LinkTwoCentreTeacher: true),
+        new("nile-centre", "منى السيد", LinkTwoCentreTeacher: false),
+        new("maadi-hub", "Karim Fathy", LinkTwoCentreTeacher: true),
+    ];
+
+    private static readonly SeedGroup[] Groups =
+    [
+        new("nile-centre", "رياضيات - المجموعة أ", "رياضيات", "كريم فتحي", 20),
+        new("nile-centre", "فيزياء - المجموعة أ", "فيزياء", "منى السيد", 20),
+        new("nile-centre", "كيمياء - المجموعة أ", "كيمياء", "منى السيد", 15),
+        new("nile-centre", "رياضيات - المجموعة ب", "رياضيات", "منى السيد", 2),
+        new("maadi-hub", "Mathematics - Group A", "Mathematics", "Karim Fathy", 20),
+        new("maadi-hub", "Physics - Group A", "Physics", "Karim Fathy", 20),
     ];
 
     /// <returns>0 when every centre exists afterwards; 1 when any command failed for another reason.</returns>
@@ -211,8 +241,174 @@ public static class SeedCommand
             }
         }
 
+        if (!await SeedTeachersAndGroupsAsync(services, centreIdsBySlug, logger))
+        {
+            exitCode = 1;
+        }
+
         return exitCode;
     }
+
+    /// <summary>
+    /// Teachers, the two-centre teacher's account links and the groups, all through the same commands an HTTP
+    /// client would dispatch, as <see cref="SystemActor"/> of each centre (which resolves to the All scope).
+    /// Idempotent: teachers are matched by name before creating, and a <c>teacher.account_taken</c> or
+    /// <c>group.name_taken</c> result counts as already seeded. Every write gets its own scope, so a refused
+    /// command never leaves tracked changes behind for the next one to save.
+    /// </summary>
+    /// <returns>True when every teacher, link and group exists afterwards.</returns>
+    [SuppressMessage(
+        "Performance",
+        "CA1848:Use the LoggerMessage delegates",
+        Justification = "A handful of one-off log lines in a short-lived CLI command; a source-generated delegate is unwarranted here.")]
+    [SuppressMessage(
+        "Performance",
+        "CA1873:Avoid potentially expensive logging",
+        Justification = "The logged arguments (names, slug, error code) are plain strings already in hand; nothing expensive is being guarded against.")]
+    private static async Task<bool> SeedTeachersAndGroupsAsync(IServiceProvider services, Dictionary<string, Guid> centreIdsBySlug, ILogger logger)
+    {
+        var succeeded = true;
+
+        // The account comes from the identity seeding that already ran, looked up through Identity itself.
+        Guid? twoCentreTeacherUserId;
+        await using (var scope = services.CreateAsyncScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            twoCentreTeacherUserId = (await userManager.FindByEmailAsync(DevelopmentIdentitySeeder.TwoCentreTeacherEmail))?.Id;
+        }
+
+        if (twoCentreTeacherUserId is null)
+        {
+            logger.LogError("Seed: the two-centre teacher account does not exist; cannot link teachers");
+            succeeded = false;
+        }
+
+        foreach (var (slug, centreId) in centreIdsBySlug)
+        {
+            if (!Teachers.Any(teacher => teacher.CentreSlug == slug) && !Groups.Any(group => group.CentreSlug == slug))
+            {
+                continue;
+            }
+
+            var teacherIdsByName = new Dictionary<string, Guid>(StringComparer.Ordinal);
+            IReadOnlyList<TeacherDto> existingTeachers;
+            Dictionary<string, Guid> subjectIdsByName;
+            await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+            {
+                var teachers = await dispatcher.QueryAsync<ListTeachersQuery, IReadOnlyList<TeacherDto>>(new ListTeachersQuery(true), CancellationToken.None);
+                var subjects = await dispatcher.QueryAsync<ListSubjectsQuery, IReadOnlyList<SubjectDto>>(new ListSubjectsQuery(true), CancellationToken.None);
+                if (!teachers.IsSuccess || !subjects.IsSuccess)
+                {
+                    logger.LogError("Seed: listing teachers or subjects in {Slug} failed", slug);
+                    succeeded = false;
+                    continue;
+                }
+
+                existingTeachers = teachers.Value;
+                subjectIdsByName = subjects.Value.ToDictionary(subject => subject.Name, subject => subject.Id, StringComparer.Ordinal);
+            }
+
+            foreach (var seedTeacher in Teachers.Where(teacher => teacher.CentreSlug == slug))
+            {
+                var existing = existingTeachers.FirstOrDefault(teacher => teacher.FullName == seedTeacher.FullName);
+                Guid teacherId;
+                if (existing is not null)
+                {
+                    teacherId = existing.Id;
+                    logger.LogInformation("Seed: teacher {Name} in {Slug} already exists", seedTeacher.FullName, slug);
+                }
+                else
+                {
+                    await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
+                    var created = await dispatcher.SendAsync<CreateTeacherCommand, CreateTeacherResult>(
+                        new CreateTeacherCommand(seedTeacher.FullName, null), CancellationToken.None);
+                    if (!created.IsSuccess)
+                    {
+                        logger.LogError("Seed: creating teacher {Name} in {Slug} failed with {ErrorCode}", seedTeacher.FullName, slug, created.Error?.Code);
+                        succeeded = false;
+                        continue;
+                    }
+
+                    teacherId = created.Value.TeacherId;
+                    logger.LogInformation("Seed: created teacher {Name} in {Slug}", seedTeacher.FullName, slug);
+                }
+
+                teacherIdsByName[seedTeacher.FullName] = teacherId;
+
+                if (!seedTeacher.LinkTwoCentreTeacher || twoCentreTeacherUserId is not { } userId || existing?.UserId == userId)
+                {
+                    continue;
+                }
+
+                await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+                {
+                    var current = await dispatcher.QueryAsync<GetTeacherQuery, TeacherDto>(new GetTeacherQuery(teacherId), CancellationToken.None);
+                    var linked = current.IsSuccess
+                        ? await dispatcher.SendAsync<SetTeacherAccountCommand, Unit>(
+                            new SetTeacherAccountCommand(teacherId, userId, current.Value.Version), CancellationToken.None)
+                        : Result<Unit>.Failure(current.Error!);
+
+                    if (linked.IsSuccess)
+                    {
+                        logger.LogInformation("Seed: linked teacher {Name} in {Slug} to the two-centre teacher account", seedTeacher.FullName, slug);
+                    }
+                    else if (linked.Error?.Code == "teacher.account_taken")
+                    {
+                        logger.LogInformation("Seed: the two-centre teacher account is already linked in {Slug}", slug);
+                    }
+                    else
+                    {
+                        logger.LogError(
+                            "Seed: linking teacher {Name} in {Slug} failed with {ErrorCode}", seedTeacher.FullName, slug, linked.Error?.Code);
+                        succeeded = false;
+                    }
+                }
+            }
+
+            foreach (var seedGroup in Groups.Where(group => group.CentreSlug == slug))
+            {
+                if (!subjectIdsByName.TryGetValue(seedGroup.SubjectName, out var subjectId)
+                    || !teacherIdsByName.TryGetValue(seedGroup.TeacherName, out var teacherId))
+                {
+                    logger.LogError("Seed: group {Name} in {Slug} references a missing subject or teacher", seedGroup.Name, slug);
+                    succeeded = false;
+                    continue;
+                }
+
+                await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
+                var result = await dispatcher.SendAsync<CreateGroupCommand, CreateGroupResult>(
+                    new CreateGroupCommand(seedGroup.Name, subjectId, teacherId, seedGroup.Capacity), CancellationToken.None);
+
+                if (result.IsSuccess)
+                {
+                    logger.LogInformation("Seed: created group {Name} in {Slug}", seedGroup.Name, slug);
+                }
+                else if (result.Error?.Code == "group.name_taken")
+                {
+                    logger.LogInformation("Seed: group {Name} in {Slug} already exists", seedGroup.Name, slug);
+                }
+                else
+                {
+                    logger.LogError("Seed: creating group {Name} in {Slug} failed with {ErrorCode}", seedGroup.Name, slug, result.Error?.Code);
+                    succeeded = false;
+                }
+            }
+        }
+
+        return succeeded;
+    }
+
+    private static AsyncServiceScope CreateCentreScope(IServiceProvider services, Guid centreId, out Dispatcher dispatcher)
+    {
+        var scope = services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(new SystemActor(centreId));
+        dispatcher = scope.ServiceProvider.GetRequiredService<Dispatcher>();
+        return scope;
+    }
+
+    private sealed record SeedTeacher(string CentreSlug, string FullName, bool LinkTwoCentreTeacher);
+
+    private sealed record SeedGroup(string CentreSlug, string Name, string SubjectName, string TeacherName, int Capacity);
 
     private sealed record SeedCentre(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale);
 

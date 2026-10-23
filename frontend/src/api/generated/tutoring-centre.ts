@@ -28,6 +28,12 @@ export interface AntiforgeryTokenResponse {
   token: string;
 }
 
+export interface AssignGroupTeacherRequest {
+  teacherId: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
 export interface AuditChangeDto {
   field: string;
   /** @nullable */
@@ -75,6 +81,13 @@ export interface CentreSettingsDto {
   version: number | string;
 }
 
+export interface ChangeGroupCapacityRequest {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  capacity: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
@@ -93,6 +106,18 @@ export interface ChangeStaffRoleRequest {
   role: StaffRole;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   version: number | string;
+}
+
+export interface CreateGroupRequest {
+  name: string;
+  subjectId: string;
+  teacherId: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  capacity: number | string;
+}
+
+export interface CreateGroupResponse {
+  id: string;
 }
 
 export interface CreateParentRequest {
@@ -134,6 +159,39 @@ export interface CreateTeacherRequest {
 
 export interface CreateTeacherResponse {
   id: string;
+}
+
+export type GroupStatus = typeof GroupStatus[keyof typeof GroupStatus];
+
+
+export const GroupStatus = {
+  active: 'active',
+  archived: 'archived',
+} as const;
+
+export interface GroupDto {
+  id: string;
+  name: string;
+  subjectId: string;
+  subjectName: string;
+  teacherId: string;
+  teacherName: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  capacity: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  enrolledCount: number | string;
+  status: GroupStatus;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface GroupListResponse {
+  items: GroupDto[];
+}
+
+export interface GroupVersionRequest {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
 }
 
 export type HttpValidationProblemDetailsErrors = {[key: string]: string[]};
@@ -284,6 +342,12 @@ export interface RegisterStudentRequest {
 export interface RegisterStudentResponse {
   id: string;
   parentId: string;
+}
+
+export interface RenameGroupRequest {
+  name: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
 }
 
 export interface RenameSubjectRequest {
@@ -471,6 +535,12 @@ includeArchived?: boolean;
 };
 
 export type ListTeachersParams = {
+includeArchived?: boolean;
+};
+
+export type ListGroupsParams = {
+subjectId?: string;
+teacherId?: string;
 includeArchived?: boolean;
 };
 
@@ -2252,6 +2322,700 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRestoreTeacherMutationOptions(options), queryClient);
+    }
+
+export const getListGroupsUrl = (params?: ListGroupsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/groups?${stringifiedParams}` : `/api/groups`
+}
+
+export const listGroups = async (params?: ListGroupsParams, options?: Parameters<typeof apiFetch>[1]): Promise<GroupListResponse> => {
+
+  return apiFetch<GroupListResponse>(getListGroupsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListGroupsQueryKey = (params?: ListGroupsParams,) => {
+    return [
+    `/api/groups`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListGroupsQueryOptions = <TData = Awaited<ReturnType<typeof listGroups>>, TError = ProblemDetails>(params?: ListGroupsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroups>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListGroupsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listGroups>>> = ({ signal }) => listGroups(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listGroups>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof listGroups>>>
+export type ListGroupsQueryError = ProblemDetails
+
+
+export function useListGroups<TData = Awaited<ReturnType<typeof listGroups>>, TError = ProblemDetails>(
+ params: undefined |  ListGroupsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroups>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listGroups>>,
+          TError,
+          Awaited<ReturnType<typeof listGroups>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListGroups<TData = Awaited<ReturnType<typeof listGroups>>, TError = ProblemDetails>(
+ params?: ListGroupsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroups>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listGroups>>,
+          TError,
+          Awaited<ReturnType<typeof listGroups>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListGroups<TData = Awaited<ReturnType<typeof listGroups>>, TError = ProblemDetails>(
+ params?: ListGroupsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroups>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListGroups<TData = Awaited<ReturnType<typeof listGroups>>, TError = ProblemDetails>(
+ params?: ListGroupsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroups>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListGroupsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateGroupUrl = () => {
+
+
+
+
+  return `/api/groups`
+}
+
+export const createGroup = async (createGroupRequest: CreateGroupRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CreateGroupResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CreateGroupResponse>(getCreateGroupUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createGroupRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateGroupMutationKey = () => ['createGroup'] as const;
+
+export const getCreateGroupMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGroup>>, TError,CreateGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createGroup>>, TError,CreateGroupMutationVariables, TContext> => {
+
+const mutationKey = getCreateGroupMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createGroup>>, CreateGroupMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createGroup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateGroupMutationResult = NonNullable<Awaited<ReturnType<typeof createGroup>>>
+    export type CreateGroupMutationBody = CreateGroupRequest
+    export type CreateGroupMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateGroupMutationVariables = {data: CreateGroupRequest}
+
+    export const useCreateGroup = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGroup>>, TError,CreateGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createGroup>>,
+        TError,
+        CreateGroupMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateGroupMutationOptions(options), queryClient);
+    }
+
+export const getGetGroupUrl = (id: string,) => {
+
+
+
+
+  return `/api/groups/${id}`
+}
+
+export const getGroup = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<GroupDto> => {
+
+  return apiFetch<GroupDto>(getGetGroupUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGroupQueryKey = (id: string,) => {
+    return [
+    `/api/groups/${id}`
+    ] as const;
+    }
+
+
+export const getGetGroupQueryOptions = <TData = Awaited<ReturnType<typeof getGroup>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroup>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGroupQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGroup>>> = ({ signal }) => getGroup(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGroup>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetGroupQueryResult = NonNullable<Awaited<ReturnType<typeof getGroup>>>
+export type GetGroupQueryError = ProblemDetails
+
+
+export function useGetGroup<TData = Awaited<ReturnType<typeof getGroup>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroup>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGroup>>,
+          TError,
+          Awaited<ReturnType<typeof getGroup>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetGroup<TData = Awaited<ReturnType<typeof getGroup>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroup>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGroup>>,
+          TError,
+          Awaited<ReturnType<typeof getGroup>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetGroup<TData = Awaited<ReturnType<typeof getGroup>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroup>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetGroup<TData = Awaited<ReturnType<typeof getGroup>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroup>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetGroupQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRenameGroupUrl = (id: string,) => {
+
+
+
+
+  return `/api/groups/${id}`
+}
+
+export const renameGroup = async (id: string,
+    renameGroupRequest: RenameGroupRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getRenameGroupUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(renameGroupRequest)
+  }
+);}
+
+
+
+
+
+export const getRenameGroupMutationKey = () => ['renameGroup'] as const;
+
+export const getRenameGroupMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameGroup>>, TError,RenameGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof renameGroup>>, TError,RenameGroupMutationVariables, TContext> => {
+
+const mutationKey = getRenameGroupMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameGroup>>, RenameGroupMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  renameGroup(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameGroupMutationResult = NonNullable<Awaited<ReturnType<typeof renameGroup>>>
+    export type RenameGroupMutationBody = RenameGroupRequest
+    export type RenameGroupMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type RenameGroupMutationVariables = {id: string;data: RenameGroupRequest}
+
+    export const useRenameGroup = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameGroup>>, TError,RenameGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof renameGroup>>,
+        TError,
+        RenameGroupMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRenameGroupMutationOptions(options), queryClient);
+    }
+
+export const getChangeGroupCapacityUrl = (id: string,) => {
+
+
+
+
+  return `/api/groups/${id}/capacity`
+}
+
+export const changeGroupCapacity = async (id: string,
+    changeGroupCapacityRequest: ChangeGroupCapacityRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getChangeGroupCapacityUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(changeGroupCapacityRequest)
+  }
+);}
+
+
+
+
+
+export const getChangeGroupCapacityMutationKey = () => ['changeGroupCapacity'] as const;
+
+export const getChangeGroupCapacityMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeGroupCapacity>>, TError,ChangeGroupCapacityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeGroupCapacity>>, TError,ChangeGroupCapacityMutationVariables, TContext> => {
+
+const mutationKey = getChangeGroupCapacityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeGroupCapacity>>, ChangeGroupCapacityMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  changeGroupCapacity(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeGroupCapacityMutationResult = NonNullable<Awaited<ReturnType<typeof changeGroupCapacity>>>
+    export type ChangeGroupCapacityMutationBody = ChangeGroupCapacityRequest
+    export type ChangeGroupCapacityMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type ChangeGroupCapacityMutationVariables = {id: string;data: ChangeGroupCapacityRequest}
+
+    export const useChangeGroupCapacity = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeGroupCapacity>>, TError,ChangeGroupCapacityMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeGroupCapacity>>,
+        TError,
+        ChangeGroupCapacityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangeGroupCapacityMutationOptions(options), queryClient);
+    }
+
+export const getAssignGroupTeacherUrl = (id: string,) => {
+
+
+
+
+  return `/api/groups/${id}/teacher`
+}
+
+export const assignGroupTeacher = async (id: string,
+    assignGroupTeacherRequest: AssignGroupTeacherRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getAssignGroupTeacherUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(assignGroupTeacherRequest)
+  }
+);}
+
+
+
+
+
+export const getAssignGroupTeacherMutationKey = () => ['assignGroupTeacher'] as const;
+
+export const getAssignGroupTeacherMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignGroupTeacher>>, TError,AssignGroupTeacherMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof assignGroupTeacher>>, TError,AssignGroupTeacherMutationVariables, TContext> => {
+
+const mutationKey = getAssignGroupTeacherMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignGroupTeacher>>, AssignGroupTeacherMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  assignGroupTeacher(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AssignGroupTeacherMutationResult = NonNullable<Awaited<ReturnType<typeof assignGroupTeacher>>>
+    export type AssignGroupTeacherMutationBody = AssignGroupTeacherRequest
+    export type AssignGroupTeacherMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type AssignGroupTeacherMutationVariables = {id: string;data: AssignGroupTeacherRequest}
+
+    export const useAssignGroupTeacher = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignGroupTeacher>>, TError,AssignGroupTeacherMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof assignGroupTeacher>>,
+        TError,
+        AssignGroupTeacherMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAssignGroupTeacherMutationOptions(options), queryClient);
+    }
+
+export const getArchiveGroupUrl = (id: string,) => {
+
+
+
+
+  return `/api/groups/${id}/archive`
+}
+
+export const archiveGroup = async (id: string,
+    groupVersionRequest: GroupVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getArchiveGroupUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(groupVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getArchiveGroupMutationKey = () => ['archiveGroup'] as const;
+
+export const getArchiveGroupMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveGroup>>, TError,ArchiveGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof archiveGroup>>, TError,ArchiveGroupMutationVariables, TContext> => {
+
+const mutationKey = getArchiveGroupMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof archiveGroup>>, ArchiveGroupMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  archiveGroup(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ArchiveGroupMutationResult = NonNullable<Awaited<ReturnType<typeof archiveGroup>>>
+    export type ArchiveGroupMutationBody = GroupVersionRequest
+    export type ArchiveGroupMutationError = ProblemDetails
+    export type ArchiveGroupMutationVariables = {id: string;data: GroupVersionRequest}
+
+    export const useArchiveGroup = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveGroup>>, TError,ArchiveGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof archiveGroup>>,
+        TError,
+        ArchiveGroupMutationVariables,
+        TContext
+      > => {
+      return useMutation(getArchiveGroupMutationOptions(options), queryClient);
+    }
+
+export const getRestoreGroupUrl = (id: string,) => {
+
+
+
+
+  return `/api/groups/${id}/restore`
+}
+
+export const restoreGroup = async (id: string,
+    groupVersionRequest: GroupVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getRestoreGroupUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(groupVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getRestoreGroupMutationKey = () => ['restoreGroup'] as const;
+
+export const getRestoreGroupMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restoreGroup>>, TError,RestoreGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof restoreGroup>>, TError,RestoreGroupMutationVariables, TContext> => {
+
+const mutationKey = getRestoreGroupMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof restoreGroup>>, RestoreGroupMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  restoreGroup(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RestoreGroupMutationResult = NonNullable<Awaited<ReturnType<typeof restoreGroup>>>
+    export type RestoreGroupMutationBody = GroupVersionRequest
+    export type RestoreGroupMutationError = ProblemDetails
+    export type RestoreGroupMutationVariables = {id: string;data: GroupVersionRequest}
+
+    export const useRestoreGroup = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restoreGroup>>, TError,RestoreGroupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof restoreGroup>>,
+        TError,
+        RestoreGroupMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRestoreGroupMutationOptions(options), queryClient);
     }
 
 export const getCreateParentUrl = () => {

@@ -108,12 +108,14 @@ internal sealed class AuditReadService(AppDbContext db) : IAuditReadService
     }
 
     // Most changed fields are JSON strings; isPrimary (Task 38.6) is the first boolean one, so GetString()
-    // alone is no longer enough — a JSON true/false has no string representation to read.
+    // alone is no longer enough — a JSON true/false has no string representation to read. A group's capacity
+    // (Day 44) is the first number, written as a JSON number by AuditDiffBuilder; its raw text is the value.
     private static string? ReadValue(JsonElement element) => element.ValueKind switch
     {
         JsonValueKind.Null => null,
         JsonValueKind.True => "true",
         JsonValueKind.False => "false",
+        JsonValueKind.Number => element.GetRawText(),
         _ => element.GetString(),
     };
 }
