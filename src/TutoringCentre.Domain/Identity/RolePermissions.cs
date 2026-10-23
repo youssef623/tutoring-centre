@@ -19,6 +19,8 @@ public static class RolePermissions
             Permissions.TeachersManage,
             Permissions.GroupsView,
             Permissions.GroupsManage,
+            Permissions.EnrollmentsView,
+            Permissions.EnrollmentsManage,
         },
         [StaffRole.Secretary] = new HashSet<string>
         {
@@ -29,11 +31,15 @@ public static class RolePermissions
             Permissions.TeachersView,
             Permissions.GroupsView,
             Permissions.GroupsManage,
+            Permissions.EnrollmentsView,
+            Permissions.EnrollmentsManage,
         },
         [StaffRole.Teacher] = new HashSet<string>
         {
             Permissions.SubjectsView,
             Permissions.GroupsView,
+            // Own groups only: the read services' teacher scope narrows it (Day 48); not a separate key.
+            Permissions.EnrollmentsView,
         },
     };
 

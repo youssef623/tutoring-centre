@@ -125,7 +125,7 @@ public sealed class GroupTests
     {
         var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
 
-        var result = group.ChangeCapacity(30);
+        var result = group.ChangeCapacity(30, activeEnrollmentCount: 0);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(30, group.Capacity);
@@ -136,7 +136,7 @@ public sealed class GroupTests
     {
         var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
 
-        var result = group.ChangeCapacity(201);
+        var result = group.ChangeCapacity(201, activeEnrollmentCount: 0);
 
         Assert.True(result.IsFailure);
         Assert.Equal("group.capacity_invalid", result.Error!.Code);
@@ -235,7 +235,7 @@ public sealed class GroupTests
         var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
         Assert.True(group.Archive().IsSuccess);
 
-        var result = group.ChangeCapacity(30);
+        var result = group.ChangeCapacity(30, activeEnrollmentCount: 0);
 
         Assert.True(result.IsFailure);
         Assert.Equal("group.archived_read_only", result.Error!.Code);
@@ -253,6 +253,86 @@ public sealed class GroupTests
         Assert.True(result.IsFailure);
         Assert.Equal("group.archived_read_only", result.Error!.Code);
         Assert.Equal(TeacherId, group.TeacherId);
+    }
+
+    [Fact]
+    public void EnsureCanEnroll_NobodyEnrolledInAOneSeatGroup_Succeeds()
+    {
+        var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 1).Value;
+
+        Assert.True(group.EnsureCanEnroll(0).IsSuccess);
+    }
+
+    [Fact]
+    public void EnsureCanEnroll_OneSeatLeft_Succeeds()
+    {
+        var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
+
+        Assert.True(group.EnsureCanEnroll(19).IsSuccess);
+    }
+
+    [Fact]
+    public void EnsureCanEnroll_EverySeatTaken_ReturnsFullAsConflict()
+    {
+        var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
+
+        var result = group.EnsureCanEnroll(20);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("group.full", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
+    }
+
+    [Fact]
+    public void EnsureCanEnroll_MoreEnrolledThanSeats_ReturnsFull()
+    {
+        var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
+
+        var result = group.EnsureCanEnroll(21);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("group.full", result.Error!.Code);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    public void EnsureCanEnroll_ArchivedGroup_ReturnsArchivedWhateverTheCount(int activeEnrollmentCount)
+    {
+        var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
+        Assert.True(group.Archive().IsSuccess);
+
+        var result = group.EnsureCanEnroll(activeEnrollmentCount);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("group.archived", result.Error!.Code);
+        Assert.Equal(ErrorKind.Rule, result.Error.Kind);
+    }
+
+    [Fact]
+    public void ChangeCapacity_ToExactlyTheEnrolledCount_Succeeds()
+    {
+        var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
+
+        var result = group.ChangeCapacity(12, activeEnrollmentCount: 12);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(12, group.Capacity);
+    }
+
+    [Fact]
+    public void ChangeCapacity_BelowTheEnrolledCount_ReturnsCapacityBelowEnrolledAndLeavesCapacityUnchanged()
+    {
+        var group = Group.Create(CentreId, "Algebra", SubjectId, TeacherId, 20).Value;
+
+        var result = group.ChangeCapacity(11, activeEnrollmentCount: 12);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("group.capacity_below_enrolled", result.Error!.Code);
+        Assert.Equal(ErrorKind.Rule, result.Error.Kind);
+        Assert.NotNull(result.Error.Fields);
+        Assert.Contains("capacity", result.Error.Fields.Keys);
+        Assert.Equal(20, group.Capacity);
     }
 
     private static void AssertValidationFailure(Result<Group> result, string expectedCode)

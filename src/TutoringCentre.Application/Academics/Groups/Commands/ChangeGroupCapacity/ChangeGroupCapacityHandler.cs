@@ -16,7 +16,9 @@ internal sealed class ChangeGroupCapacityHandler(IGroupRepository groups) : ICom
             return Result<Unit>.Failure(GroupErrors.NotFound());
         }
 
-        var changed = group.ChangeCapacity(command.Capacity);
+        // No enrollments can exist yet: Task 48.8 replaces this 0 with the real active count, read under the
+        // group's row lock.
+        var changed = group.ChangeCapacity(command.Capacity, activeEnrollmentCount: 0);
         return changed.IsFailure ? Result<Unit>.Failure(changed.Error!) : Result<Unit>.Success(Unit.Value);
     }
 }

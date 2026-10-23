@@ -16,7 +16,8 @@
     "student": "Student",
     "student_parent": "Student-parent link",
     "teacher": "Teacher",
-    "group": "Group"
+    "group": "Group",
+    "enrollment": "Enrollment"
   },
   "action": {
     "created": "Created",
@@ -38,13 +39,20 @@
     "isPrimary": "Primary contact",
     "subjectId": "Subject",
     "teacherId": "Teacher",
-    "capacity": "Capacity"
+    "capacity": "Capacity",
+    "groupId": "Group",
+    "endReason": "End reason"
   },
   "value": {
     "status": {
       "active": "Active",
       "archived": "Archived",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "ended": "Ended"
+    },
+    "endReason": {
+      "withdrawn": "Withdrawn",
+      "transferred": "Transferred"
     },
     "relationship": {
       "father": "Father",

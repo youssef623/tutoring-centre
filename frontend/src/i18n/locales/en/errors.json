@@ -71,7 +71,8 @@
       "already_archived": "This student is already archived.",
       "not_archived": "This student is not archived.",
       "archived_read_only": "An archived student is read-only until it is restored.",
-      "not_found": "This student could not be found."
+      "not_found": "This student could not be found.",
+      "has_active_enrollments": "This student is still enrolled in a group. Withdraw them first."
     },
     "teacher": {
       "centre_required": "A centre is required.",
@@ -97,7 +98,23 @@
       "subject_archived": "This subject is archived.",
       "teacher_archived": "This teacher is archived.",
       "not_found": "This group could not be found.",
-      "name_taken": "A group with this name already exists."
+      "name_taken": "A group with this name already exists.",
+      "archived": "This group is archived and accepts no enrollments.",
+      "full": "This group is full. No seats are left.",
+      "capacity_below_enrolled": "Capacity cannot be lower than the number of students already enrolled.",
+      "has_active_enrollments": "This group still has enrolled students. Transfer or withdraw them first."
+    },
+    "enrollment": {
+      "centre_required": "A centre is required.",
+      "student_required": "A student is required.",
+      "group_required": "A group is required.",
+      "already_ended": "This enrollment has already ended.",
+      "end_before_start": "An enrollment cannot end before it started.",
+      "not_found": "This enrollment could not be found.",
+      "student_archived": "This student is archived and cannot be enrolled.",
+      "already_enrolled": "This student is already enrolled in this group.",
+      "same_group": "The student is already in this group. Choose a different group.",
+      "subject_mismatch": "A transfer must be to a group of the same subject."
     },
     "concurrency": {
       "stale": "This record was changed by someone else. Reload and try again."

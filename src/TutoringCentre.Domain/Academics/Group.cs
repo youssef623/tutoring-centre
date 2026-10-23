@@ -100,7 +100,11 @@ public sealed partial class Group : Entity, ITenantOwned
         return Result.Success();
     }
 
-    public Result ChangeCapacity(int capacity)
+    /// <summary>
+    /// Changes the number of seats. <paramref name="activeEnrollmentCount"/> is a fact about other rows, supplied
+    /// by the caller (the repository counts it); shrinking below the students already enrolled is refused.
+    /// </summary>
+    public Result ChangeCapacity(int capacity, int activeEnrollmentCount)
     {
         var readOnly = CheckNotArchived();
         if (readOnly.IsFailure)
@@ -114,7 +118,43 @@ public sealed partial class Group : Entity, ITenantOwned
             return Result.Failure(validatedCapacity.Error!);
         }
 
+        if (capacity < activeEnrollmentCount)
+        {
+            var fields = new Dictionary<string, string[]>
+            {
+                ["capacity"] = ["Capacity cannot be lower than the number of students already enrolled."],
+            };
+            return Result.Failure(new Error(
+                "group.capacity_below_enrolled",
+                "Capacity cannot be lower than the number of students already enrolled.",
+                ErrorKind.Rule,
+                fields));
+        }
+
         Capacity = capacity;
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Decides whether one more student may enroll. The active enrollment count is not part of this aggregate —
+    /// it is a count of other rows — so it is passed in: the repository supplies it after locking this group's
+    /// row, which is what makes the decision safe under concurrency. No enrolled-count field is stored here; a
+    /// stored, incremented counter would be a second source of truth that can drift.
+    /// </summary>
+    public Result EnsureCanEnroll(int activeEnrollmentCount)
+    {
+        if (Status == GroupStatus.Archived)
+        {
+            return Result.Failure(Error.Rule("group.archived", "This group is archived and accepts no enrollments."));
+        }
+
+        // >=, not >: with every seat taken the group is full. A Conflict, not a Rule: the request itself was
+        // valid and may succeed later, once a seat frees up.
+        if (activeEnrollmentCount >= Capacity)
+        {
+            return Result.Failure(Error.Conflict("group.full", "This group has no free seats."));
+        }
+
         return Result.Success();
     }
 

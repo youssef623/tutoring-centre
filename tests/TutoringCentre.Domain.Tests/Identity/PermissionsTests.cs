@@ -14,7 +14,7 @@ public sealed class PermissionsTests
         var keys = Permissions.All;
 
         // Assert
-        Assert.Equal(12, keys.Count);
+        Assert.Equal(14, keys.Count);
         Assert.Equal(keys.Count, keys.Distinct().Count());
         Assert.All(keys, key => Assert.Matches(KeyPattern, key));
     }

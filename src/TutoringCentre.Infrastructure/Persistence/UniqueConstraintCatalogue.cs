@@ -43,6 +43,11 @@ internal static class UniqueConstraintCatalogue
             "A group with this name already exists.",
             ErrorKind.Conflict,
             new Dictionary<string, string[]> { ["name"] = ["A group with this name already exists."] }),
+
+        // The partial index allows one active enrollment per student and group; a race loser gets the same
+        // Conflict as the enroll handler's own check (Day 48).
+        ["ux_enrollments_active_student_group"] = () =>
+            Error.Conflict("enrollment.already_enrolled", "This student is already enrolled in this group."),
     };
 
     /// <summary>

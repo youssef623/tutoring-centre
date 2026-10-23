@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure.Persistence;
 
 namespace TutoringCentre.Infrastructure.Tests.Persistence;
@@ -41,6 +42,19 @@ public sealed class PersistenceErrorTranslatorTests
         Assert.NotNull(result);
         Assert.True(result.IsFailure);
         Assert.Equal("student.parent_already_linked", result.Error!.Code);
+    }
+
+    [Fact]
+    public void TryTranslate_UniqueViolationOnActiveEnrollmentIndex_ReturnsAlreadyEnrolledConflict()
+    {
+        var exception = UniqueViolation("ux_enrollments_active_student_group");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailure);
+        Assert.Equal("enrollment.already_enrolled", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
     }
 
     [Fact]
