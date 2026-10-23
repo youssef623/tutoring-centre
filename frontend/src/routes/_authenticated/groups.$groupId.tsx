@@ -152,7 +152,7 @@ function GroupNotFound() {
   );
 }
 
-type EditDialog = "rename" | "capacity" | "teacher" | null;
+type EditDialog = "rename" | "capacity" | "assignTeacher" | null;
 
 function GroupDetailContent({ group }: { group: GroupDto }) {
   const { t } = useTranslation("groups");
@@ -274,7 +274,7 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      setEditDialog("teacher");
+                      setEditDialog("assignTeacher");
                     }}
                   >
                     {t("actions.changeTeacher")}
@@ -378,7 +378,7 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
       <Can permission={Permissions.GroupsManage}>
         <RenameGroupDialog group={group} open={editDialog === "rename"} onOpenChange={closeEditDialog} />
         <ChangeGroupCapacityDialog group={group} open={editDialog === "capacity"} onOpenChange={closeEditDialog} />
-        {editDialog === "teacher" && <AssignGroupTeacherDialog group={group} open onOpenChange={closeEditDialog} />}
+        {editDialog === "assignTeacher" && <AssignGroupTeacherDialog group={group} open onOpenChange={closeEditDialog} />}
 
         <AlertDialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
           <AlertDialogContent>

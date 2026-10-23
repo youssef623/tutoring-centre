@@ -25,7 +25,11 @@ export function SeatsMeter({
         <span
           className={size === "lg" ? "text-2xl font-semibold tabular-nums" : "text-sm tabular-nums"}
           dir="ltr"
-          aria-label={t("seats.label", { enrolled: String(enrolled), capacity: String(capacity) })}
+          aria-label={t("seats.label", {
+            enrolledText: String(enrolled),
+            capacity,
+            capacityText: String(capacity),
+          })}
         >
           {`${String(enrolled)} / ${String(capacity)}`}
         </span>

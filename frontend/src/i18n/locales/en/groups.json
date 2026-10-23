@@ -24,7 +24,7 @@
     "status": "Status"
   },
   "seats": {
-    "label": "{enrolled} of {capacity} seats taken",
+    "label": "{enrolledText} of {capacity, plural, one {{capacityText} seat} other {{capacityText} seats}} taken",
     "full": "Full"
   },
   "actions": {
