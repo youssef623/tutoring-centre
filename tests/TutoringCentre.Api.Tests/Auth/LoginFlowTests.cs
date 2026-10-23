@@ -17,7 +17,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
 
     private static readonly string[] AllTwelvePermissionsSorted =
     [
-        "audit.view", "centre.settings.manage", "groups.manage", "groups.view", "staff.manage", "staff.view",
+        "audit.view", "centre.settings.manage", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "staff.manage", "staff.view",
         "students.manage", "students.view", "subjects.manage", "subjects.view",
         "teachers.manage", "teachers.view",
     ];
@@ -74,7 +74,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal("secretary", body.RootElement.GetProperty("activeRole").GetString());
 
         var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(["groups.manage", "groups.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
+        Assert.Equal(["enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         var me = await ReadJsonAsync(meResponse);
 
         var permissions = me.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(["groups.manage", "groups.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
+        Assert.Equal(["enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
     }
 
     [Fact]
