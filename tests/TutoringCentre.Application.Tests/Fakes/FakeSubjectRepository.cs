@@ -13,6 +13,9 @@ public sealed class FakeSubjectRepository : ISubjectRepository
     public Task<Subject?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct) =>
         Task.FromResult(Existing.FirstOrDefault(subject => subject.Id == id));
 
+    public Task<Subject?> FindAsync(Guid id, CancellationToken ct) =>
+        Task.FromResult(Existing.FirstOrDefault(subject => subject.Id == id));
+
     public Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct) =>
         Task.FromResult(Existing.Concat(Added).Any(subject =>
             subject.NormalizedName == normalizedName && subject.Id != excludingId));
