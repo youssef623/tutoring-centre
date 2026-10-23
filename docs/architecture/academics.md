@@ -1,8 +1,9 @@
-# Academics: students and parents (Days 37–42)
+# Academics: students, parents, teachers and groups (Days 37–46)
 
 The Domain model behind registering a student and the parents a centre contacts about them, how that model is
-stored, the use cases and endpoints built on it, and the two screens that use them. Written from the
-implementation; every name and rule below is checked against the code, not the plan that produced it.
+stored, the use cases and endpoints built on it, and the two screens that use them. Teachers and groups
+(Days 43–46) follow in their own section at the end. Written from the implementation; every name and rule
+below is checked against the code, not the plan that produced it.
 
 ## Entities
 
@@ -227,3 +228,91 @@ parents card's own "Add parent" dialog reuses that lookup. The detail pages hide
 refuse — archived hides edit and the parents card's manage controls; the parents card itself has no Unlink or
 Make primary on the only or the primary parent, and no Add at four — but that is convenience, never
 enforcement: every one of those rules is still checked, again, by the use case it would otherwise let through.
+
+## Teachers and groups (Days 43–46)
+
+| Type | Kind | Tenant-owned | Lives in |
+| --- | --- | --- | --- |
+| `Teacher` | aggregate root | yes | `TutoringCentre.Domain.Academics` |
+| `Group` | aggregate root | yes | `TutoringCentre.Domain.Academics` |
+
+**`Teacher`** (`academics.teachers`) is a person who teaches, not a login: a full name (2–120 characters), an
+optional `PhoneNumber`, an optional `UserId`, and a status. Archived is read-only until restored, and
+`ArchiveTeacherHandler` refuses to archive a teacher who still has an active group (`teacher.has_active_groups`)
+— reassign or archive the groups first. Two teachers may share a name.
+
+**`Group`** (`academics.groups`) is the class students enrol in: a name (1–80 characters, unique per centre by
+its normalised form — `group.name_taken`), one `SubjectId` fixed at creation, one `TeacherId` that can change,
+a capacity of 1–200, and a status (archived is read-only). It refers to its subject and teacher by identity
+only, through composite foreign keys `(centre_id, subject_id)` and `(centre_id, teacher_id)`, so a group can
+never point at another centre's subject or teacher even through privileged SQL. Whether that subject or teacher
+is still active is the handlers' check (`group.subject_archived`, `group.teacher_archived`), on create, on
+reassignment and again on restore; symmetrically, a subject (`subject.has_active_groups`) or a teacher with an
+active group cannot be archived. The enrolled count is not the group's to own: it is 0 until enrolments exist
+(Days 47–48).
+
+**The account link.** A teacher record may be linked to one staff account, which is what lets a signed-in
+Teacher-role user see their own groups (the ownership guard, `docs/architecture/authorization.md`). The link is
+its own sub-resource (`PUT /api/teachers/{id}/account`, `SetTeacherAccountCommand`) — editing a teacher's
+details never touches it, and no other request accepts a `userId`. Linking requires a user who is an active
+Teacher-role member of the actor's centre; an unknown user, another centre's user, another role and an
+inactive member all receive the same `teacher.user_not_eligible`, so the answer never discloses which case it
+was. One account is linked to at most one teacher per centre (`teacher.account_taken`, checked by the handler
+and backed by the unique index `ux_teachers_centre_user` for a race). `null` removes the link.
+
+**The `Contracts` rule.** Eligibility is an Identity question, and Academics may not reach into Identity's
+repositories or read services (`ModuleBoundaryRuleTests`). It asks instead through Identity's published
+contract `TutoringCentre.Application.Identity.Contracts.IStaffDirectory`, whose one method answers with a bool —
+never a membership or a DTO — so the caller learns exactly the one fact it asked for
+(`docs/architecture/overview.md`, "Contracts").
+
+### Endpoints (Days 43 and 45)
+
+| Method | Route | Use case | Permission |
+| --- | --- | --- | --- |
+| `GET` | `/teachers` | `ListTeachersQuery` | `teachers.view` |
+| `GET` | `/teachers/{id}` | `GetTeacherQuery` | `teachers.view` |
+| `POST` | `/teachers` | `CreateTeacherCommand` | `teachers.manage` |
+| `PUT` | `/teachers/{id}` | `UpdateTeacherCommand` | `teachers.manage` |
+| `PUT` | `/teachers/{id}/account` | `SetTeacherAccountCommand` | `teachers.manage` |
+| `POST` | `/teachers/{id}/archive` | `ArchiveTeacherCommand` | `teachers.manage` |
+| `POST` | `/teachers/{id}/restore` | `RestoreTeacherCommand` | `teachers.manage` |
+| `GET` | `/groups?subjectId=&teacherId=&includeArchived=` | `ListGroupsQuery` | `groups.view` (scoped) |
+| `GET` | `/groups/{id}` | `GetGroupQuery` | `groups.view` (scoped) |
+| `POST` | `/groups` | `CreateGroupCommand` | `groups.manage` |
+| `PUT` | `/groups/{id}` | `RenameGroupCommand` | `groups.manage` |
+| `PUT` | `/groups/{id}/capacity` | `ChangeGroupCapacityCommand` | `groups.manage` |
+| `PUT` | `/groups/{id}/teacher` | `AssignGroupTeacherCommand` | `groups.manage` |
+| `POST` | `/groups/{id}/archive` | `ArchiveGroupCommand` | `groups.manage` |
+| `POST` | `/groups/{id}/restore` | `RestoreGroupCommand` | `groups.manage` |
+
+Name, capacity and teacher are separate sub-resources with their own request models, so no route can change a
+group's subject (a `subjectId` in any PUT body is an unknown field: `400 request.malformed`). "Scoped" means the
+read is narrowed by the actor's teacher scope in SQL; there is no separate "my groups" route.
+
+### Frontend (Day 46)
+
+Three screens, under `frontend/src/features/teachers` and `frontend/src/features/groups`:
+
+- `/teachers` (`teachers.view`, URL parameter `archived`): summary tiles and the directory — name, phone,
+  linked account by display name, active-group count, status. Add, edit, account, archive and restore sit
+  behind `Can` with `teachers.manage`, so a secretary sees the same list read-only. The account dialog reuses
+  the Staff module's own `GET /api/staff` for its picker; both `staff.view` and `teachers.manage` are
+  owner-only, so staff emails reach exactly the people who can use the dialog, and the list is requested only
+  while the dialog is open. It offers active Teacher-role members not already linked — a convenience filter;
+  the server's refusal (`teacher.user_not_eligible`, `teacher.account_taken`) is shown under the select.
+- `/groups` (`groups.view`, URL parameters `subject`, `teacher`, `archived`): one page for owners, secretaries
+  and teachers, rendering whatever the scoped API returns. The teacher filter needs `teachers.view` and is not
+  rendered without it (so a teacher's session never calls `/api/teachers`); create needs `groups.manage`, and a
+  session without it gets its own empty-state text ("No groups are assigned to you"). Seats show as
+  "enrolled / capacity", isolated left-to-right, with a "Full" badge when no seat is left.
+- `/groups/$groupId` (`groups.view`, URL parameter `tab` = `overview` | `roster` | `schedule`): a summary card
+  and URL-addressable tabs; Roster and Schedule are placeholders until Days 50 and 53. Rename, capacity and
+  teacher are three dialogs sending three requests, each with the loaded version — never one form posting to
+  several endpoints, which could leave a half-applied edit. An unknown group, another centre's group and, for a
+  teacher, someone else's group all render the same "Group not found" state.
+
+Rendering follows permissions, never role names. Selects for subject and teacher (`SubjectSelect`,
+`TeacherSelect`) offer active entries only; a refusal about either lands under that select and refetches its
+list. Field errors carrying an error code are shown in the session's language (the `errors` namespace), with
+the server's own field text only as a fallback; numbers stay in Western digits in both languages.

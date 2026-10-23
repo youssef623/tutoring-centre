@@ -3,6 +3,8 @@
     "dashboard": "Dashboard",
     "subjects": "Subjects",
     "students": "Students",
+    "teachers": "Teachers",
+    "groups": "Groups",
     "staff": "Staff",
     "settings": "Settings",
     "audit": "Audit log",

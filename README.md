@@ -90,7 +90,9 @@ Run commands from the repository root unless a step says otherwise. Each step sh
 
    Each centre is also seeded with its own subjects — Nile Tutoring Centre gets رياضيات، فيزياء and كيمياء;
    Maadi Learning Hub gets Mathematics and Physics — visible from the app's Subjects page (below) once signed
-   in, along with a set of demo students and the parents linked to them.
+   in, along with a set of demo students and the parents linked to them. Nile also gets two teachers, "كريم
+   فتحي" (linked to `teacher@both.test`) and "منى السيد", and four groups — the linked teacher teaches exactly
+   one of them; Maadi gets one teacher linked to the same account and two groups.
 
 6. **Run the frontend** in a second terminal, then open http://localhost:5173 — signed out, this redirects to
    `/login`; sign in with any seeded email above and the password you chose in step 5. From the sidebar,
@@ -98,7 +100,11 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    to whichever centre is currently selected. A secretary or owner also sees **Students**: register a student
    and either link a parent already known by phone or create a new one in one request; a student's own page
    edits their details, archives and restores them, and links, unlinks or sets the primary contact among up
-   to four parents; a parent's own page edits their contact details and lists every child linked to them. An
+   to four parents; a parent's own page edits their contact details and lists every child linked to them.
+   **Teachers** lists the centre's teachers (an owner adds, edits, archives them and links one to a staff
+   account; a secretary reads), and **Groups** lists the centre's groups with seats, filterable by subject and
+   teacher, each with its own page (rename, capacity, teacher, archive). A teacher signed in as
+   `teacher@both.test` sees only the groups they teach — a different set per selected centre. An
    owner also sees **Staff** (add, change role, deactivate, reactivate), **Settings** (centre name, default
    language) and **Audit log** (filterable, infinite-scroll history of every change above); a new staff member
    is forced through a password change on first sign-in.
@@ -181,7 +187,7 @@ flowchart TD
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Tenant isolation: the role model, and all four layers](docs/architecture/tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)
-- [Academics: students and parents — the Domain model, storage, use cases and endpoints](docs/architecture/academics.md)
+- [Academics: students, parents, teachers and groups — the Domain model, storage, use cases, endpoints and screens](docs/architecture/academics.md)
 - [Audit: how a change becomes an audit row, atomically](docs/architecture/audit.md)
 - [Deployment: topology, pipeline, secrets inventory, and what's not provisioned yet](docs/architecture/deployment.md)
 - [Live verification checklist](docs/operations/live-verification.md) and [runbook](docs/operations/runbook.md)
