@@ -29,13 +29,16 @@ public sealed class QueryFilterBypassTests
     // Exactly: the unit of work (the one place SET TRANSACTION READ ONLY runs), the runtime-role health check,
     // every migration (generated, never hand-reviewed line by line), the code that supports running them, and
     // the membership repository (Task 29.3: locks identity.memberships' active-owner rows with SELECT ... FOR
-    // UPDATE — a locking clause PostgreSQL does not allow EF's LINQ translation to express).
+    // UPDATE — a locking clause PostgreSQL does not allow EF's LINQ translation to express), and the group
+    // repository (Task 48.1: GetForEnrollmentAsync locks one academics.groups row with SELECT ... FOR UPDATE
+    // before counting its active enrollments).
     private static readonly string[] AllowListedFiles =
     [
         "src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs",
         "src/TutoringCentre.Infrastructure/Persistence/RuntimeRolePrivilegeHealthCheck.cs",
         "src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs",
         "src/TutoringCentre.Infrastructure/Repositories/MembershipRepository.cs",
+        "src/TutoringCentre.Infrastructure/Repositories/GroupRepository.cs",
     ];
 
     private const string MigrationsDirectoryPrefix = "src/TutoringCentre.Infrastructure/Persistence/Migrations/";

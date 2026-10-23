@@ -19,6 +19,15 @@ public interface IGroupRepository
     /// <summary>Loads one group without a version check. Returns null when it does not exist or is not visible to the acting centre.</summary>
     Task<Group?> FindAsync(Guid id, CancellationToken ct);
 
+    /// <summary>
+    /// The only load for a decision that depends on the group's active enrollment count (ADR 0011): locks the
+    /// group's row, then counts its active enrollments, both inside the dispatcher's open transaction. The lock
+    /// is held until that transaction ends, so the count stays true for the rest of the command. No version
+    /// parameter: the lock, not the row version, protects this path. Meaningless outside a dispatched command,
+    /// where no transaction holds the lock. Returns null when no such group is visible to the acting centre.
+    /// </summary>
+    Task<GroupForEnrollment?> GetForEnrollmentAsync(Guid groupId, CancellationToken ct);
+
     /// <summary>Whether a group with this normalized name already exists in the acting centre, optionally excluding one group (for rename).</summary>
     Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct);
 
@@ -31,3 +40,6 @@ public interface IGroupRepository
     /// <summary>Tracks a new group; the dispatcher saves it.</summary>
     void Add(Group group);
 }
+
+/// <summary>A tracked, row-locked group and the count of its active enrollments, read after the lock was taken.</summary>
+public sealed record GroupForEnrollment(Group Group, int ActiveEnrollmentCount);

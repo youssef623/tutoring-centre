@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using TutoringCentre.Application.Academics.Enrollments;
 using TutoringCentre.Application.Academics.Parents;
 using TutoringCentre.Application.Academics.Students;
 using TutoringCentre.Application.Academics.Groups;
@@ -133,6 +134,8 @@ public static class DependencyInjection
 
         services.AddScoped<IStudentRepository, StudentRepository>();
         services.AddScoped<IStudentReadService, StudentReadService>();
+
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 
         services.AddScoped<IMembershipRepository, MembershipRepository>();
         services.AddScoped<IStaffReadService, StaffReadService>();

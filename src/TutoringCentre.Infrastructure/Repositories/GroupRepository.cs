@@ -31,6 +31,29 @@ internal sealed class GroupRepository(AppDbContext db) : IGroupRepository
     public Task<Group?> FindAsync(Guid id, CancellationToken ct) =>
         db.Set<Group>().SingleOrDefaultAsync(group => group.Id == id, ct);
 
+    public async Task<GroupForEnrollment?> GetForEnrollmentAsync(Guid groupId, CancellationToken ct)
+    {
+        // Allow-listed raw SQL (QueryFilterBypassTests): LINQ cannot express FOR UPDATE. Interpolated, so groupId
+        // is a parameter, never SQL text. xmin is named explicitly because SELECT * omits system columns and the
+        // entity maps its Version to it. EF composes the tenant filter over this as a sub-select, and row-level
+        // security applies to it as to any query; PostgreSQL still locks the row the sub-select returns. Tracked,
+        // not AsNoTracking: the handler may change the group. The lock waits for any other holder and is released
+        // by the dispatcher's commit or rollback.
+        var group = await db.Set<Group>()
+            .FromSql($"SELECT *, xmin FROM academics.groups WHERE id = {groupId} FOR UPDATE")
+            .SingleOrDefaultAsync(ct);
+        if (group is null)
+        {
+            return null;
+        }
+
+        // Counted only now, with the lock held: under READ COMMITTED this statement sees every enrollment
+        // committed by the transaction that held the lock before us.
+        var activeCount = await db.Set<Enrollment>()
+            .CountAsync(enrollment => enrollment.GroupId == groupId && enrollment.Status == EnrollmentStatus.Active, ct);
+        return new GroupForEnrollment(group, activeCount);
+    }
+
     public Task<bool> NameExistsAsync(string normalizedName, Guid? excludingId, CancellationToken ct) =>
         db.Set<Group>().AnyAsync(group => group.NormalizedName == normalizedName && group.Id != excludingId, ct);
 
