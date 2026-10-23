@@ -21,11 +21,15 @@ overrides.
 | `centre.settings.manage` | yes | no | no | read and update centre settings (Day 32) |
 | `students.view` | yes | yes | no | list and get a student or parent, and the phone lookup (Days 39–41) |
 | `students.manage` | yes | yes | no | register, update, archive, restore a student; create, update, link, unlink and set-primary a parent (Days 39–41) |
+| `teachers.view` | yes | yes | no | list and get teachers (Day 43) |
+| `teachers.manage` | yes | no | no | create, update, link an account to, archive, restore a teacher (Day 43) |
+| `groups.view` | yes | yes | yes | list and get groups — a teacher only their own, see "Ownership" below (Days 44–45) |
+| `groups.manage` | yes | yes | no | create, rename, change capacity, assign a teacher, archive, restore a group (Days 44–45) |
 
 Permission keys are constants on `Permissions` (`TutoringCentre.Domain.Identity`), `<module>.<capability>`,
 lower case, dot separated — never a free string. `RolePermissions.Holds(role, permission)` is the only place
 that answers "does this role hold this permission"; an unknown role or an unknown permission key is denied,
-never default-allowed, including for Owner — Owner holds every permission because the map lists all eight
+never default-allowed, including for Owner — Owner holds every permission because the map lists all twelve
 against it, not because of a bypass branch. The `students.*` pair splits exactly like the others: the parent
 phone lookup used while registering a student (`POST /api/parents/lookup`) only needs `students.view` — it
 changes nothing — even though it is reachable only from a `students.manage`-gated screen today.
@@ -106,10 +110,43 @@ Three questions, three places they're answered, one example each:
   evaluated before existence.
 - **Ownership — which record?** "Within an action this role may generally perform, is this the specific row
   it may act on?" Neither layer above answers this — tenancy stops at "this centre", permission stops at
-  "this capability" — and nothing in the codebase answers it yet. A teacher assigned to only some of a
-  centre's groups, who should see all subjects but only their own groups' attendance, is the Month 3 shape of
-  this question; it is deferred, not solved by coincidence, because no Month 2 use case needs a check finer
-  than centre and role together.
+  "this capability". Month 2 needed nothing finer than centre and role together; since Days 44–45 groups
+  answer it for teachers: `groups.view` lets a teacher read groups, and the teacher scope (next section)
+  decides which ones.
+
+## Ownership: the teacher scope
+
+A Teacher holds `groups.view` but must see only the groups it teaches. That is a scope, not a permission
+key — there is no `groups.view_own` — and it is the third check on a request, after tenancy and permission.
+
+- **The rule lives in the Domain.** `RoleScopes.IsLimitedToOwnGroups(role)` (`TutoringCentre.Domain.Identity`,
+  beside `RolePermissions`) is true for Teacher only. Handlers never compare `StaffRole` values themselves
+  (`AuthorizationRuleTests` rule 3); they see only the resolved value below.
+- **The value.** `TeacherScope` (`TutoringCentre.Application.Common.Security`) is one of `All`, `None` or
+  `Own(teacherId)`, with `Allows(teacherId)`. `ITeacherScopeProvider.GetAsync` resolves it once per request:
+  a system actor (the seed CLI, background work) gets `All`; a staff role not limited to its own groups gets
+  `All`; a limited role gets `Own` of the active teacher record linked to its user in the acting centre
+  (`ITeacherReadService.FindIdByUserAsync`), or `None` when there is no linked record or it is archived; any
+  other actor gets `None`. It fails closed: an unlinked teacher sees nothing, never everything.
+- **Where it is applied.** Every `IGroupReadService` method takes a `TeacherScope` as a required parameter —
+  there is no overload without one, so a new read cannot forget it — and the predicate is part of the SQL, so
+  out-of-scope rows never leave the database. `ListGroupsQuery` and `GetGroupQuery` resolve the scope and
+  pass it down. The endpoints (`GroupEndpoints`) hold no role or scope logic and there is no separate "my
+  groups" route: one route, different results per actor, nothing to bypass by calling the "other" route.
+  Filters intersect with the scope and never widen it (`?teacherId=<someone else>` returns an empty list).
+- **Out of scope is 404, not 403.** A teacher reading another teacher's group gets `group.not_found`, exactly
+  as for an unknown ID or another centre's group, so the response never confirms that the group exists. A
+  403 would be a disclosure. Writes are different: a teacher's write to its own group is still 403
+  `auth.permission_denied`, because permission is evaluated before ownership and a Teacher does not hold
+  `groups.manage`.
+- **Tenancy and ownership compose.** The provider looks the teacher record up in the acting centre, so one
+  account linked to a teacher record in each of two centres sees a different set of groups per selected
+  centre, and never another centre's group in either.
+- **Tests answer different questions.** `PermissionMatrixTests` records the permission decision only: Teacher
+  is "allowed" on the two group reads (on a group it owns) and 403 on the six writes. What a teacher sees is
+  proven separately, through real sessions, by `GroupTeacherScopeTests` (linked, unlinked, reassigned,
+  unlinked again, and the other centre), and in the Infrastructure layer by `TeacherScopeProviderTests` and
+  `GroupTeacherScopeTests` against PostgreSQL.
 
 ## Accepted disclosure: CreateStaffCommand reveals whether an email already has an account
 

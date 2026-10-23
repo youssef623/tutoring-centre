@@ -340,3 +340,90 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 {
   "version": {{studentVersion}}
 }
+
+### Manual walkthrough of the groups API (Day 45), continuing owner@nile.test's session from step 12.
+
+### 42. List groups — expect 200, { "items": [ { "id", "name", "subjectId", "subjectName", "teacherId", "teacherName",
+### "capacity", "enrolledCount", "status", "version" } ] }: every Nile group, including the four seeded ones.
+### Optional filters: ?subjectId=...&teacherId=...&includeArchived=true.
+GET {{baseUrl}}/api/groups
+
+### 43. Create a group — copy a subject "id" from step 13 and a teacher "id" from GET /api/teachers first —
+### expect 201, Location: /api/groups/{newId}, body { "id" }. Re-running it unchanged — expect 409 group.name_taken.
+@groupSubjectId = replace-with-a-subject-id-from-step-13
+@groupTeacherId = replace-with-a-teacher-id-from-GET-/api/teachers
+# @name createGroup
+POST {{baseUrl}}/api/groups
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "فيزياء - المجموعة ج",
+  "subjectId": "{{groupSubjectId}}",
+  "teacherId": "{{groupTeacherId}}",
+  "capacity": 20
+}
+
+### 44. GET the created group via the Location header — expect 200, status "active", enrolledCount 0.
+GET {{baseUrl}}{{createGroup.response.headers.Location}}
+
+### 45. Rename it — copy the "id" from step 43 and the "version" from step 44 below first — expect 204.
+### Adding "subjectId" to this body (or to steps 46–47) — expect 400 request.malformed: the subject never changes.
+@groupId = replace-with-the-id-from-step-43
+@groupVersion = replace-with-the-version-from-step-44
+PUT {{baseUrl}}/api/groups/{{groupId}}
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "فيزياء - المجموعة د",
+  "version": {{groupVersion}}
+}
+
+### 46. Change its capacity — re-run step 44 first to refresh @groupVersion — expect 204. Capacity 0 or 201 — expect
+### 400 with errors.capacity.
+PUT {{baseUrl}}/api/groups/{{groupId}}/capacity
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "capacity": 25,
+  "version": {{groupVersion}}
+}
+
+### 47. Assign another teacher — re-run step 44 first, and set @groupNewTeacherId to another Nile teacher's id —
+### expect 204. An archived teacher — expect 422 group.teacher_archived.
+@groupNewTeacherId = replace-with-another-teacher-id
+PUT {{baseUrl}}/api/groups/{{groupId}}/teacher
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "teacherId": "{{groupNewTeacherId}}",
+  "version": {{groupVersion}}
+}
+
+### 48. Archive it — re-run step 44 first to refresh @groupVersion — expect 204; again — expect 422 group.already_archived.
+POST {{baseUrl}}/api/groups/{{groupId}}/archive
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{groupVersion}}
+}
+
+### 49. Restore it — re-run step 44 first to refresh @groupVersion — expect 204 (or 422 group.subject_archived /
+### group.teacher_archived if its subject or teacher was archived in the meantime).
+POST {{baseUrl}}/api/groups/{{groupId}}/restore
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{groupVersion}}
+}
+
+### 50. The ownership guard: log in as teacher@both.test and select nile-centre (steps 3–5, with the nile-centre
+### centreId), then list groups — expect 200 with only the seeded group taught by the linked teacher record
+### ("كريم فتحي"). GET /api/groups/{id} of any other group — expect 404 group.not_found, never 403. Any write
+### (steps 43, 45–49) — expect 403 auth.permission_denied, even on the teacher's own group.
+GET {{baseUrl}}/api/groups

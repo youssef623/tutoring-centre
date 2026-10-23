@@ -7,8 +7,11 @@ using TutoringCentre.Api.Tests.Fixtures;
 namespace TutoringCentre.Api.Tests.Authorization;
 
 /// <summary>
-/// Task 30.8 (extended Task 32.11, Task 43.14): one table of role x endpoint -> expected status, executed over
-/// real HTTP against Nile's three roles, now including the seven teacher endpoints (21 more literal cases).
+/// Task 30.8 (extended Task 32.11, Task 43.14, Task 45.9): one table of role x endpoint -> expected status, executed
+/// over real HTTP against Nile's three roles, now including the seven teacher endpoints (21 more literal cases)
+/// and the eight group endpoints (24 more). The matrix records the permission decision only: Teacher is allowed
+/// on the two group reads (and reads a group it owns here), while what a teacher may see is ownership, proven
+/// separately by GroupTeacherScopeTests.
 /// Allowed cases assert a non-403 success status;
 /// denied cases assert 403 auth.permission_denied and an unchanged database, compared against the exact
 /// pre-request state, not a snapshot taken after the request already ran. Values are written literally here,
@@ -55,6 +58,14 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "PUT /api/teachers/{id:guid}/account",
         "POST /api/teachers/{id:guid}/archive",
         "POST /api/teachers/{id:guid}/restore",
+        "GET /api/groups",
+        "GET /api/groups/{id:guid}",
+        "POST /api/groups",
+        "PUT /api/groups/{id:guid}",
+        "PUT /api/groups/{id:guid}/capacity",
+        "PUT /api/groups/{id:guid}/teacher",
+        "POST /api/groups/{id:guid}/archive",
+        "POST /api/groups/{id:guid}/restore",
     ];
 
     public async Task InitializeAsync()
@@ -728,6 +739,215 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
             Assert.Equal($"archived|{archivedVersion}", await SnapshotTeacherAsync(id));
         }
     }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.OK)]
+    public async Task GroupsList(string role, HttpStatusCode expected)
+    {
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri("/api/groups", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.OK)]
+    public async Task GroupsGetById(string role, HttpStatusCode expected)
+    {
+        // The seeded Nile group the two-centre teacher owns, so the teacher's 200 is the permission decision,
+        // not a scope decision; out-of-scope reads are GroupTeacherScopeTests' question.
+        var id = await GetTwoCentreTeachersOwnNileGroupIdAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/groups/{id}", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.Created)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Created)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task GroupsCreate(string role, HttpStatusCode expected)
+    {
+        var (subjectId, _) = await CreateSubjectAsOwnerAsync($"Matrix Group Subject {Guid.NewGuid():N}");
+        var (teacherId, _) = await CreateTeacherAsOwnerAsync($"Matrix Group Teacher {Guid.NewGuid():N}");
+        var countBefore = await CountGroupsAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            signedIn.Client, new Uri("/api/groups", UriKind.Relative),
+            new { name = $"Matrix Create {Guid.NewGuid():N}", subjectId, teacherId, capacity = 20 });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(countBefore, await CountGroupsAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task GroupsRename(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Rename {Guid.NewGuid():N}");
+        var snapshotBefore = await SnapshotGroupAsync(id);
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Put, new Uri($"/api/groups/{id}", UriKind.Relative), new { name = $"Renamed By Attempt {Guid.NewGuid():N}", version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotGroupAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task GroupsChangeCapacity(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Capacity {Guid.NewGuid():N}");
+        var snapshotBefore = await SnapshotGroupAsync(id);
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Put, new Uri($"/api/groups/{id}/capacity", UriKind.Relative), new { capacity = 30, version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotGroupAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task GroupsAssignTeacher(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Assign {Guid.NewGuid():N}");
+        var (newTeacherId, _) = await CreateTeacherAsOwnerAsync($"Matrix New Teacher {Guid.NewGuid():N}");
+        var snapshotBefore = await SnapshotGroupAsync(id);
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Put, new Uri($"/api/groups/{id}/teacher", UriKind.Relative), new { teacherId = newTeacherId, version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotGroupAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task GroupsArchive(string role, HttpStatusCode expected)
+    {
+        var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Archive {Guid.NewGuid():N}");
+        var snapshotBefore = await SnapshotGroupAsync(id);
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/groups/{id}/archive", UriKind.Relative), new { version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotGroupAsync(id));
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task GroupsRestore(string role, HttpStatusCode expected)
+    {
+        var (id, archivedVersion) = await CreateArchivedGroupAsOwnerAsync($"Matrix Restore {Guid.NewGuid():N}");
+        var snapshotBefore = await SnapshotGroupAsync(id);
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/groups/{id}/restore", UriKind.Relative), new { version = archivedVersion });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotGroupAsync(id));
+        }
+    }
+
+    private Task<Guid> GetTwoCentreTeachersOwnNileGroupIdAsync() =>
+        factory.ScalarAsync<Guid>(
+            """
+            select g.id from academics.groups g
+            join academics.teachers t on t.id = g.teacher_id
+            join identity.users u on u.id = t.user_id
+            join platform.centres c on c.id = g.centre_id
+            where u.email = 'teacher@both.test' and c.slug = 'nile-centre'
+            order by g.id limit 1
+            """);
+
+    private async Task<(Guid Id, uint Version)> CreateGroupAsOwnerAsync(string name)
+    {
+        var (subjectId, _) = await CreateSubjectAsOwnerAsync($"{name} Subject");
+        var (teacherId, _) = await CreateTeacherAsOwnerAsync($"{name} Teacher");
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var createResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/groups", UriKind.Relative), new { name, subjectId, teacherId, capacity = 20 });
+        var location = createResponse.Headers.Location!;
+        using var getResponse = await owner.Client.GetAsync(location);
+        var body = await ReadJsonAsync(getResponse);
+        return (body.RootElement.GetProperty("id").GetGuid(), body.RootElement.GetProperty("version").GetUInt32());
+    }
+
+    private async Task<(Guid Id, uint ArchivedVersion)> CreateArchivedGroupAsOwnerAsync(string name)
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var (id, version) = await CreateGroupAsOwnerAsync(name);
+        using var archiveResponse = await AntiforgeryTestHelper.SendAsJsonAsync(
+            owner.Client, HttpMethod.Post, new Uri($"/api/groups/{id}/archive", UriKind.Relative), new { version });
+        Assert.Equal(HttpStatusCode.NoContent, archiveResponse.StatusCode);
+        using var getResponse = await owner.Client.GetAsync(new Uri($"/api/groups/{id}", UriKind.Relative));
+        var body = await ReadJsonAsync(getResponse);
+        return (id, body.RootElement.GetProperty("version").GetUInt32());
+    }
+
+    private Task<string> SnapshotGroupAsync(Guid id) =>
+        factory.ScalarAsync<string>(
+            $"select name || '|' || capacity || '|' || teacher_id || '|' || status || '|' || xmin from academics.groups where id = '{id}'");
+
+    private Task<long> CountGroupsAsync() =>
+        factory.ScalarAsync<long>("select count(*) from academics.groups where centre_id = (select id from platform.centres where slug = 'nile-centre')");
 
     // Random.Shared.Next(10000000, 99999999) collides often enough across this many call sites in one run to
     // occasionally produce a 409 parent.phone_taken where a test expects 201/204 — an interlocked counter
