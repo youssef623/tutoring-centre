@@ -12,9 +12,10 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlyEightAuditedTypes()
+    public void Entries_HasExactlyNineAuditedTypes()
     {
-        Assert.Equal(8, AuditPolicy.Entries.Count);
+        Assert.Equal(9, AuditPolicy.Entries.Count);
+        Assert.Contains(typeof(Enrollment), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Subject), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Membership), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Centre), AuditPolicy.Entries.Keys);
@@ -172,5 +173,25 @@ public sealed class AuditPolicyTests
         var entry = AuditPolicy.Entries[typeof(Group)];
 
         Assert.Equal(group.CentreId, entry.ResolveCentreId(group));
+    }
+
+    [Fact]
+    public void Enrollment_IsAuditedAsEnrollment_WithStudentIdGroupIdStatusAndEndReasonOnly()
+    {
+        var entry = AuditPolicy.Entries[typeof(Enrollment)];
+
+        Assert.Equal(AuditEntityType.Enrollment, entry.EntityType);
+        Assert.Equal(new HashSet<string> { "StudentId", "GroupId", "Status", "EndReason" }, entry.AllowedFields);
+        Assert.Empty(entry.MaskedFields);
+    }
+
+    [Fact]
+    public void Enrollment_ResolvesItsCentreId_FromItsOwnCentreIdProperty()
+    {
+        var centreId = Guid.CreateVersion7();
+        var enrollment = Enrollment.Start(centreId, Guid.CreateVersion7(), Guid.CreateVersion7(), DateTimeOffset.UnixEpoch).Value;
+        var entry = AuditPolicy.Entries[typeof(Enrollment)];
+
+        Assert.Equal(enrollment.CentreId, entry.ResolveCentreId(enrollment));
     }
 }

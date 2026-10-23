@@ -16,7 +16,8 @@
     "student": "طالب",
     "student_parent": "رابط طالب وولي أمر",
     "teacher": "معلم",
-    "group": "فصل"
+    "group": "فصل",
+    "enrollment": "تسجيل"
   },
   "action": {
     "created": "تم الإنشاء",
@@ -38,13 +39,20 @@
     "isPrimary": "جهة الاتصال الأساسية",
     "subjectId": "المادة",
     "teacherId": "المعلم",
-    "capacity": "السعة"
+    "capacity": "السعة",
+    "groupId": "الفصل",
+    "endReason": "سبب الانتهاء"
   },
   "value": {
     "status": {
       "active": "نشط",
       "archived": "مؤرشف",
-      "inactive": "غير نشط"
+      "inactive": "غير نشط",
+      "ended": "منتهٍ"
+    },
+    "endReason": {
+      "withdrawn": "انسحاب",
+      "transferred": "نقل"
     },
     "relationship": {
       "father": "الأب",

@@ -79,5 +79,15 @@ internal static class AuditPolicy
             {
                 nameof(Group.Name), nameof(Group.SubjectId), nameof(Group.TeacherId), nameof(Group.Capacity), nameof(Group.Status),
             }),
+
+        // Who enrolled or withdrew a student, and when, is evidence in a later fee dispute. The timestamps
+        // (EnrolledAt, EndedAt) are not audited fields: the audit row carries its own occurred-at time.
+        [typeof(Enrollment)] = new AuditPolicyEntry(
+            AuditEntityType.Enrollment,
+            entity => ((Enrollment)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(Enrollment.StudentId), nameof(Enrollment.GroupId), nameof(Enrollment.Status), nameof(Enrollment.EndReason),
+            }),
     };
 }

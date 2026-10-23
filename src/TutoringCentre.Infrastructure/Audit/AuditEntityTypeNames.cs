@@ -18,6 +18,7 @@ internal static class AuditEntityTypeNames
         AuditEntityType.StudentParent => "student_parent",
         AuditEntityType.Teacher => "teacher",
         AuditEntityType.Group => "group",
+        AuditEntityType.Enrollment => "enrollment",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported audit entity type."),
     };
 
@@ -31,6 +32,7 @@ internal static class AuditEntityTypeNames
         "student_parent" => AuditEntityType.StudentParent,
         "teacher" => AuditEntityType.Teacher,
         "group" => AuditEntityType.Group,
+        "enrollment" => AuditEntityType.Enrollment,
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported entity type value in the database."),
     };
 
@@ -61,6 +63,9 @@ internal static class AuditEntityTypeNames
                 return true;
             case "group":
                 result = AuditEntityType.Group;
+                return true;
+            case "enrollment":
+                result = AuditEntityType.Enrollment;
                 return true;
             default:
                 result = default;

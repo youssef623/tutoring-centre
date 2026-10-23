@@ -11,4 +11,5 @@ public enum AuditEntityType
     StudentParent,
     Teacher,
     Group,
+    Enrollment,
 }
