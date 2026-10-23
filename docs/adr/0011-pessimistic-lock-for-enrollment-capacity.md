@@ -1,6 +1,6 @@
 # ADR 0011: Pessimistic lock for enrollment capacity
 
-- **Status:** Draft — to be confirmed once the locking load is implemented and tested (Day 48)
+- **Status:** Accepted (Day 48: `IGroupRepository.GetForEnrollmentAsync` and `LastSeatConcurrencyTests`)
 - **Date:** 2026-10-23
 
 ## Context
@@ -97,9 +97,15 @@ that arrived after the group filled, not a version conflict or a database error.
 
 The rule is only as strong as its callers: a write path that counts without first taking the lock reopens the
 race. Every operation that reads the count for a decision must therefore go through the one locking load, and
-Day 48's concurrency test (two parallel enrollments for the last seat, exactly one succeeding) is the check that
-it does. An operation that locks two groups — a transfer — must take the two locks in a fixed order so that two
-opposite transfers cannot deadlock; the order is settled with the implementation.
+Day 48's concurrency tests (`LastSeatConcurrencyTests`: ten parallel enrollments for the last seat, repeated, with
+exactly one succeeding; and a parallel enroll and shrink that never leave more students than seats) are the check
+that it does, and they fail when `FOR UPDATE` is removed. The locking load is
+`IGroupRepository.GetForEnrollmentAsync`; enroll, transfer, change-capacity and archive-group all go through it.
 
-This ADR is a draft written before the implementation, on purpose: the sequence above is the design Day 48
-implements against, and the status changes to Accepted once that implementation and its concurrency test exist.
+A transfer locks **only its target group**: only the target's capacity is at risk, because the source only
+loses a seat. Every command therefore takes at most one group lock, so two opposite transfers (A to B and B to A)
+can never wait on each other in a cycle, and no lock ordering rule is needed. An earlier draft of this ADR
+expected a transfer to lock both groups in a fixed order; locking only the target removes the need.
+
+This ADR was drafted before the implementation, on purpose: the sequence above is the design Day 48 implemented
+against, and it was accepted once that implementation and its concurrency tests existed.
