@@ -126,6 +126,86 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                     b.ToTable("user_tokens", "identity");
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Enrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EndReason")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("end_reason");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<DateTimeOffset>("EnrolledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("enrolled_at");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_enrollments");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_enrollments_centre_id_id");
+
+                    b.HasIndex("CentreId", "StudentId")
+                        .HasDatabaseName("ix_enrollments_centre_student");
+
+                    b.HasIndex("CentreId", "GroupId", "Status")
+                        .HasDatabaseName("ix_enrollments_centre_group_status");
+
+                    b.HasIndex("CentreId", "StudentId", "GroupId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_enrollments_active_student_group")
+                        .HasFilter("status = 'active'");
+
+                    b.ToTable("enrollments", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_enrollments_end_after_start", "ended_at IS NULL OR ended_at >= enrolled_at");
+
+                            t.HasCheckConstraint("ck_enrollments_end_consistency", "(status = 'ended') = (ended_at IS NOT NULL) AND (status = 'ended') = (end_reason IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_enrollments_end_reason", "end_reason IS NULL OR end_reason IN ('withdrawn','transferred')");
+
+                            t.HasCheckConstraint("ck_enrollments_status", "status IN ('active','ended')");
+                        });
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Group", b =>
                 {
                     b.Property<Guid>("Id")
@@ -846,6 +926,32 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_tokens_users_user_id");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Enrollment", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Group", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "GroupId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_groups");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Student", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_students");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Group", b =>
