@@ -1,0 +1,86 @@
+{
+  "page": {
+    "title": "Teachers",
+    "subtitle": "The people who teach your groups, and the staff accounts they sign in with.",
+    "showArchived": "Show archived"
+  },
+  "stats": {
+    "activeTeachers": "Active teachers",
+    "linkedAccounts": "Linked accounts",
+    "activeGroups": "Active groups taught"
+  },
+  "columns": {
+    "name": "Name",
+    "phone": "Phone",
+    "account": "Account",
+    "activeGroups": "Active groups",
+    "activeGroupsCount": "{count, plural, =0 {No groups} one {{countText} group} other {{countText} groups}}",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "actions": {
+    "create": "Add teacher",
+    "edit": "Edit details",
+    "account": "Link account",
+    "archive": "Archive",
+    "restore": "Restore",
+    "openMenu": "Actions for {name}"
+  },
+  "loading": {
+    "label": "Loading teachers"
+  },
+  "error": {
+    "title": "Teachers could not be loaded",
+    "reference": "Reference:"
+  },
+  "emptyState": {
+    "title": "No teachers yet",
+    "description": "Add the people who teach at this centre, then assign them to groups.",
+    "readOnlyDescription": "Teachers added by the centre's owner will appear here."
+  },
+  "dialogs": {
+    "createTitle": "Add teacher",
+    "editTitle": "Edit teacher",
+    "formDescription": "Name and phone only. A sign-in account is linked separately."
+  },
+  "form": {
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "e.g. Karim Fathy",
+    "phoneLabel": "Phone (optional)",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "account": {
+    "title": "Account for {name}",
+    "effect": "This account will see only this teacher's groups.",
+    "currentLabel": "Linked account",
+    "none": "No account",
+    "remove": "Remove link",
+    "selectLabel": "Staff account",
+    "selectPlaceholder": "Choose a teacher account",
+    "link": "Link account",
+    "loading": "Loading staff accounts",
+    "retry": "Retry",
+    "noEligibleTitle": "No account available to link",
+    "noEligibleDescription": "Only active staff with the Teacher role who are not already linked can be chosen. Add one on the Staff page.",
+    "goToStaff": "Go to Staff"
+  },
+  "confirmations": {
+    "archiveTitle": "Archive \"{name}\"?",
+    "archiveBody": "An archived teacher cannot be assigned to groups. Groups they still teach must be reassigned or archived first.",
+    "archiveConfirm": "Archive teacher"
+  },
+  "toasts": {
+    "created": "Teacher added.",
+    "updated": "Teacher updated.",
+    "archived": "Teacher archived.",
+    "restored": "Teacher restored.",
+    "accountLinked": "Account linked.",
+    "accountUnlinked": "Account link removed."
+  },
+  "validation": {
+    "fullNameRequired": "Teacher name is required.",
+    "fullNameTooLong": "Teacher name must be at most 120 characters.",
+    "phoneTooLong": "Phone number must be at most 30 characters."
+  }
+}
