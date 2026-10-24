@@ -9,6 +9,7 @@ import { messageFor } from "@/api/errorMessages";
 import { showApiError } from "@/api/showApiError";
 import {
   getGetStudentQueryKey,
+  getListStudentEnrollmentsQueryKey,
   getListStudentsQueryKey,
   useArchiveStudent,
   useGetStudent,
@@ -30,8 +31,11 @@ import { Button } from "@/components/ui/button";
 import { PhoneText } from "@/components/shared/PhoneText";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { enrollmentMessageFor } from "@/features/enrollments/enrollmentMessages";
+import { StudentEnrollmentsCard } from "@/features/enrollments/StudentEnrollmentsCard";
 import { ParentsCard } from "@/features/students/ParentsCard";
 import { StudentEditDialog } from "@/features/students/StudentEditDialog";
+import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { RouteGuard } from "@/features/session/RouteGuard";
@@ -142,7 +146,13 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
     } catch (thrown) {
       const apiError = asApiError(thrown);
       await invalidate();
-      showApiError(apiError);
+      if (apiError.code === "student.has_active_enrollments") {
+        // Names no group: the enrollments card (shown to those allowed to see it) already lists them.
+        toast.error(enrollmentMessageFor(apiError));
+        await queryClient.invalidateQueries({ queryKey: getListStudentEnrollmentsQueryKey(student.id) });
+      } else {
+        showApiError(apiError);
+      }
       refetchMeOnPermissionDenied(apiError, queryClient);
       setArchiveConfirmOpen(false);
     }
@@ -229,6 +239,10 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
       </div>
 
       <ParentsCard student={student} canManage={canManage && !isArchived} />
+
+      <Can permission={Permissions.EnrollmentsView}>
+        <StudentEnrollmentsCard student={student} canEnroll={!isArchived} />
+      </Can>
 
       {canManage && <StudentEditDialog student={student} open={editOpen} onOpenChange={setEditOpen} />}
 

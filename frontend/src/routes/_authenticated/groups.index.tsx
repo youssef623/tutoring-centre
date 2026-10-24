@@ -17,6 +17,7 @@ export interface GroupsSearch {
   subject?: string;
   teacher?: string;
   archived?: boolean;
+  freeSeats?: boolean;
 }
 
 export const Route = createFileRoute("/_authenticated/groups/")({
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/groups/")({
     ...(typeof search.subject === "string" && search.subject !== "" ? { subject: search.subject } : {}),
     ...(typeof search.teacher === "string" && search.teacher !== "" ? { teacher: search.teacher } : {}),
     ...(search.archived === true || search.archived === "true" ? { archived: true } : {}),
+    ...(search.freeSeats === true || search.freeSeats === "true" ? { freeSeats: true } : {}),
   }),
   component: GroupsPage,
 });
@@ -43,7 +45,8 @@ function GroupsPage() {
  */
 function GroupsPageContent() {
   const { t } = useTranslation("groups");
-  const { subject, teacher, archived = false } = Route.useSearch();
+  const { t: tEnrollments } = useTranslation("enrollments");
+  const { subject, teacher, archived = false, freeSeats = false } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -109,9 +112,25 @@ function GroupsPageContent() {
           />
           <Label htmlFor="groups-show-archived">{t("filters.showArchived")}</Label>
         </div>
+        <div className="flex min-h-8 items-center gap-2">
+          <Switch
+            id="groups-free-seats"
+            checked={freeSeats}
+            onCheckedChange={(next) => {
+              updateSearch({ freeSeats: next ? true : undefined });
+            }}
+          />
+          <Label htmlFor="groups-free-seats">{tEnrollments("groupsFilter.freeSeats")}</Label>
+        </div>
       </div>
 
-      <GroupsList subjectId={subject} teacherId={teacher} includeArchived={archived} onCreate={openCreate} />
+      <GroupsList
+        subjectId={subject}
+        teacherId={teacher}
+        includeArchived={archived}
+        onlyFreeSeats={freeSeats}
+        onCreate={openCreate}
+      />
 
       <Can permission={Permissions.GroupsManage}>
         <CreateGroupDialog open={createOpen} onOpenChange={setCreateOpen} />

@@ -25,11 +25,13 @@ export function GroupsList({
   subjectId,
   teacherId,
   includeArchived,
+  onlyFreeSeats = false,
   onCreate,
 }: {
   subjectId: string | undefined;
   teacherId: string | undefined;
   includeArchived: boolean;
+  onlyFreeSeats?: boolean;
   onCreate: () => void;
 }) {
   const { t } = useTranslation("groups");
@@ -114,6 +116,10 @@ export function GroupsList({
   const enrolled = active.reduce((sum, group) => sum + Number(group.enrolledCount), 0);
   const capacity = active.reduce((sum, group) => sum + Number(group.capacity), 0);
   const fullCount = active.filter((group) => Number(group.enrolledCount) >= Number(group.capacity)).length;
+  // A client-side filter of the page already loaded, labelled as such; the counts themselves stay the server's.
+  const rows = onlyFreeSeats
+    ? active.filter((group) => Number(group.enrolledCount) < Number(group.capacity))
+    : data.items;
 
   return (
     <div className="space-y-4">
@@ -123,47 +129,51 @@ export function GroupsList({
         <StatTile icon={CircleSlash} label={t("stats.fullGroups")} value={fullCount} />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.name")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.subject")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.teacher")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.seats")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.status")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {data.items.map((group) => (
-              <tr key={group.id} className={group.status === "archived" ? "text-muted-foreground" : undefined}>
-                <td className="px-4 py-3">
-                  <Link
-                    to="/groups/$groupId"
-                    params={{ groupId: group.id }}
-                    search={{ tab: "overview" }}
-                    className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                  >
-                    <span dir="auto">{group.name}</span>
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  <span dir="auto">{group.subjectName}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <span dir="auto">{group.teacherName}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={group.status} />
-                </td>
+      {rows.length === 0 ? (
+        <EmptyState icon={CircleSlash} title={t("emptyState.noMatchTitle")} description={t("emptyState.noMatchDescription")} />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead className="bg-muted/50 text-muted-foreground">
+              <tr>
+                <th className="px-4 py-2.5 text-start font-medium">{t("columns.name")}</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t("columns.subject")}</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t("columns.teacher")}</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t("columns.seats")}</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t("columns.status")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {rows.map((group) => (
+                <tr key={group.id} className={group.status === "archived" ? "text-muted-foreground" : undefined}>
+                  <td className="px-4 py-3">
+                    <Link
+                      to="/groups/$groupId"
+                      params={{ groupId: group.id }}
+                      search={{ tab: "overview" }}
+                      className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                    >
+                      <span dir="auto">{group.name}</span>
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span dir="auto">{group.subjectName}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span dir="auto">{group.teacherName}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={group.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -48,7 +48,8 @@
     "alreadyEnded": "This enrollment has already ended.",
     "sameGroup": "The student is already in this group. Choose a different group.",
     "subjectMismatch": "A student can only be transferred to a group of the same subject.",
-    "stale": "This enrollment was changed by someone else. The list has been refreshed."
+    "stale": "This enrollment was changed by someone else. The list has been refreshed.",
+    "studentHasActiveEnrollments": "Withdraw this student from their groups first."
   },
   "toasts": {
     "enrolled": "{student} was enrolled in {group}.",
@@ -67,5 +68,32 @@
     "loadingLabel": "Loading groups",
     "empty": "No other group for this subject",
     "submit": "Transfer"
+  },
+  "studentCard": {
+    "title": "Groups",
+    "enroll": "Enroll in a group",
+    "loadingLabel": "Loading groups",
+    "errorTitle": "The groups could not be loaded",
+    "empty": "Not enrolled in any group yet.",
+    "current": "Current groups",
+    "past": "Past groups",
+    "since": "Since {date}",
+    "ended": "Ended {date} · {reason}"
+  },
+  "groupPicker": {
+    "title": "Enroll in a group",
+    "description": "Choose a subject, then one of its groups for {student}.",
+    "subjectLabel": "Subject",
+    "groupsLabel": "Group",
+    "loadingLabel": "Loading groups",
+    "empty": "This subject has no active group.",
+    "alreadyEnrolled": "Already enrolled"
+  },
+  "endReasons": {
+    "withdrawn": "Withdrawn",
+    "transferred": "Transferred"
+  },
+  "groupsFilter": {
+    "freeSeats": "Only groups with free seats (on this page)"
   }
 }

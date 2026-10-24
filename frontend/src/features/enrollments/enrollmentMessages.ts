@@ -15,6 +15,7 @@ const OutcomeMessages: Record<string, string> = {
   "enrollment.same_group": "outcomes.sameGroup",
   "enrollment.subject_mismatch": "outcomes.subjectMismatch",
   "concurrency.stale": "outcomes.stale",
+  "student.has_active_enrollments": "outcomes.studentHasActiveEnrollments",
 };
 
 export function enrollmentMessageFor(error: ApiError): string {

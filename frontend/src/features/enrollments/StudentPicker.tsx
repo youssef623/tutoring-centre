@@ -138,12 +138,12 @@ export function StudentPicker({
                 )}
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium" dir="auto">
-                    {student.fullName}
+                  <span className="block truncate font-medium">
+                    <bdi>{student.fullName}</bdi>
                   </span>
                   {details.length > 0 && (
-                    <span className="block truncate text-xs text-muted-foreground" dir="auto">
-                      {details.join(" · ")}
+                    <span className="block truncate text-xs text-muted-foreground">
+                      <bdi>{details.join(" · ")}</bdi>
                     </span>
                   )}
                 </span>

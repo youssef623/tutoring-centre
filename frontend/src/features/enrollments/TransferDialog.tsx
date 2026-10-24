@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
-import { useListGroups, type GroupDto } from "@/api/generated/tutoring-centre";
+import { useGetGroup, useListGroups, type GroupDto } from "@/api/generated/tutoring-centre";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { enrollmentMessageFor } from "@/features/enrollments/enrollmentMessages";
-import { SeatMeter } from "@/features/enrollments/SeatMeter";
+import { GroupChoiceList } from "@/features/enrollments/GroupChoiceList";
 import { useEnrollmentMutations } from "@/features/enrollments/useEnrollmentMutations";
 import type { EnrollmentTarget } from "@/features/enrollments/WithdrawEnrollmentDialog";
 
@@ -34,7 +33,7 @@ export function TransferDialog({
   onClose,
 }: {
   target: EnrollmentTarget | null;
-  subjectId: string;
+  subjectId?: string;
   onClose: () => void;
 }) {
   const { t } = useTranslation("enrollments");
@@ -111,7 +110,7 @@ export function TransferDialog({
 
 function TransferForm({
   target,
-  subjectId,
+  subjectId: knownSubjectId,
   targetGroupId,
   onTargetChange,
   refusal,
@@ -120,7 +119,7 @@ function TransferForm({
   onSubmit,
 }: {
   target: EnrollmentTarget;
-  subjectId: string;
+  subjectId: string | undefined;
   targetGroupId: string | null;
   onTargetChange: (groupId: string) => void;
   refusal: string | null;
@@ -130,9 +129,14 @@ function TransferForm({
 }) {
   const { t } = useTranslation("enrollments");
   const { t: tCommon } = useTranslation("common");
-  const { data, error, isPending, refetch } = useListGroups({ subjectId });
-  const groups = (data?.items ?? []).filter((group) => group.id !== target.groupId && group.status === "active");
-  const isFull = (group: GroupDto) => Number(group.enrolledCount) >= Number(group.capacity);
+  // The student page knows only the subject's name, so there the subject comes from the source group.
+  const sourceGroup = useGetGroup(target.groupId, { query: { enabled: knownSubjectId === undefined } });
+  const subjectId = knownSubjectId ?? sourceGroup.data?.subjectId;
+  const groupList = useListGroups({ subjectId }, { query: { enabled: subjectId !== undefined } });
+  const error = sourceGroup.error ?? groupList.error;
+  const groups = (groupList.data?.items ?? []).filter(
+    (group) => group.id !== target.groupId && group.status === "active",
+  );
 
   return (
     <form
@@ -147,12 +151,7 @@ function TransferForm({
         <DialogDescription>{t("transferDialog.description", { group: target.groupName })}</DialogDescription>
       </DialogHeader>
 
-      {isPending ? (
-        <div role="status" aria-label={t("transferDialog.loadingLabel")} className="space-y-2">
-          <Skeleton className="h-14 w-full" />
-          <Skeleton className="h-14 w-full" />
-        </div>
-      ) : error ? (
+      {error ? (
         <div role="alert" className="flex flex-col items-start gap-2 rounded-lg border border-destructive/40 p-3 text-sm">
           <p>{messageFor(asApiError(error))}</p>
           <Button
@@ -160,52 +159,28 @@ function TransferForm({
             variant="outline"
             size="sm"
             onClick={() => {
-              void refetch();
+              void (sourceGroup.error ? sourceGroup.refetch() : groupList.refetch());
             }}
           >
             {tCommon("retry")}
           </Button>
+        </div>
+      ) : groupList.isPending ? (
+        <div role="status" aria-label={t("transferDialog.loadingLabel")} className="space-y-2">
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
         </div>
       ) : groups.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
           {t("transferDialog.empty")}
         </p>
       ) : (
-        <RadioGroup
-          aria-label={t("transferDialog.groupsLabel")}
+        <GroupChoiceList
+          groups={groups}
           value={targetGroupId}
-          onValueChange={(value: string) => {
-            onTargetChange(value);
-          }}
-          className="max-h-80 overflow-y-auto"
-        >
-          {groups.map((group) => {
-            const full = isFull(group);
-            const labelId = `transfer-option-${group.id}`;
-
-            return (
-              <label
-                key={group.id}
-                className={
-                  full
-                    ? "flex cursor-not-allowed items-center gap-3 rounded-lg border border-border p-3 text-muted-foreground"
-                    : "flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/60 has-data-checked:border-primary has-data-checked:bg-primary/5"
-                }
-              >
-                <RadioGroupItem value={group.id} disabled={full} aria-labelledby={labelId} />
-                <span id={labelId} className="min-w-0 flex-1">
-                  <span className="block truncate font-medium" dir="auto">
-                    {group.name}
-                  </span>
-                  <span className="block truncate text-xs text-muted-foreground" dir="auto">
-                    {group.teacherName}
-                  </span>
-                </span>
-                <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
-              </label>
-            );
-          })}
-        </RadioGroup>
+          onChange={onTargetChange}
+          label={t("transferDialog.groupsLabel")}
+        />
       )}
 
       {refusal !== null && (
