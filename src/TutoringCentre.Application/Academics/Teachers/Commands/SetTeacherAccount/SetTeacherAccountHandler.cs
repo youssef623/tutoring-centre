@@ -12,7 +12,7 @@ namespace TutoringCentre.Application.Academics.Teachers.Commands.SetTeacherAccou
 /// user is an active Teacher member of the actor's centre — unknown user, another centre's user, a user with
 /// another role and an inactive member all answer the same way, so this handler never discloses which case it
 /// was. The second check (already linked to another teacher) is the handler's own set-based guard; the unique
-/// index behind ux_teachers_centre_user (UniqueConstraintCatalogue) answers identically for a race that slips
+/// index behind ux_teachers_centre_user (ConstraintErrorCatalog) answers identically for a race that slips
 /// past it.
 /// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]

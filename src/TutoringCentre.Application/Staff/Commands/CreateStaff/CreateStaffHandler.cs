@@ -42,7 +42,7 @@ internal sealed class CreateStaffHandler(ICurrentActor currentActor, IStaffAccou
         return Result<CreateStaffResult>.Success(new CreateStaffResult(created.Value.Id, account.UserId, account.TemporaryPassword));
     }
 
-    // Matches UniqueConstraintCatalogue's ux_memberships_centre_user mapping exactly: a lost race against a
+    // Matches ConstraintErrorCatalog's ux_memberships_centre_user mapping exactly: a lost race against a
     // second concurrent create gives the identical outcome as this pre-check, not a different one.
     private static Error AlreadyMember() => new(
         "staff.already_member",

@@ -1,4 +1,5 @@
 using TutoringCentre.Domain.Academics;
+using TutoringCentre.Domain.Academics.Scheduling;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Domain.Common;
 using TutoringCentre.Domain.Identity;
@@ -12,9 +13,11 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlyNineAuditedTypes()
+    public void Entries_HasExactlyElevenAuditedTypes()
     {
-        Assert.Equal(9, AuditPolicy.Entries.Count);
+        Assert.Equal(11, AuditPolicy.Entries.Count);
+        Assert.Contains(typeof(ScheduleRule), AuditPolicy.Entries.Keys);
+        Assert.Contains(typeof(ClassSession), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Enrollment), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Subject), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Membership), AuditPolicy.Entries.Keys);
@@ -193,5 +196,41 @@ public sealed class AuditPolicyTests
         var entry = AuditPolicy.Entries[typeof(Enrollment)];
 
         Assert.Equal(enrollment.CentreId, entry.ResolveCentreId(enrollment));
+    }
+
+    [Fact]
+    public void ScheduleRule_IsAuditedAsScheduleRule_ForEveryAction_WithItsLocalValuesOnly()
+    {
+        var entry = AuditPolicy.Entries[typeof(ScheduleRule)];
+
+        Assert.Equal(AuditEntityType.ScheduleRule, entry.EntityType);
+        Assert.Equal(
+            new HashSet<string> { "GroupId", "DayOfWeek", "StartTime", "DurationMinutes", "Room", "EffectiveFrom", "EffectiveTo" },
+            entry.AllowedFields);
+        Assert.Empty(entry.MaskedFields);
+        Assert.Null(entry.Actions);
+        Assert.All(Enum.GetValues<AuditAction>(), action => Assert.True(entry.Records(action)));
+    }
+
+    [Fact]
+    public void ClassSession_IsAuditedAsClassSession_OnUpdateOnly_WithStatusAndTeacherIdOnly()
+    {
+        var entry = AuditPolicy.Entries[typeof(ClassSession)];
+
+        Assert.Equal(AuditEntityType.ClassSession, entry.EntityType);
+        Assert.Equal(new HashSet<string> { "Status", "TeacherId" }, entry.AllowedFields);
+        Assert.True(entry.Records(AuditAction.Updated));
+        Assert.False(entry.Records(AuditAction.Created));
+        Assert.False(entry.Records(AuditAction.Deleted));
+    }
+
+    [Fact]
+    public void EveryEntryWithoutAnActionList_RecordsEveryAction_AsBeforeActionListsExisted()
+    {
+        var withoutList = AuditPolicy.Entries.Values.Where(entry => entry.Actions is null).ToList();
+
+        Assert.Equal(10, withoutList.Count);
+        Assert.All(withoutList, entry =>
+            Assert.All(Enum.GetValues<AuditAction>(), action => Assert.True(entry.Records(action))));
     }
 }

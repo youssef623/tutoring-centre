@@ -9,6 +9,7 @@ using TutoringCentre.Application.Academics.Enrollments;
 using TutoringCentre.Application.Academics.Parents;
 using TutoringCentre.Application.Academics.Students;
 using TutoringCentre.Application.Academics.Groups;
+using TutoringCentre.Application.Academics.Scheduling;
 using TutoringCentre.Application.Academics.Subjects;
 using TutoringCentre.Application.Academics.Teachers;
 using TutoringCentre.Application.Audit;
@@ -140,6 +141,10 @@ public static class DependencyInjection
 
         services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
         services.AddScoped<IEnrollmentReadService, EnrollmentReadService>();
+
+        services.AddScoped<IScheduleRuleRepository, ScheduleRuleRepository>();
+        services.AddScoped<IClassSessionRepository, ClassSessionRepository>();
+        services.AddScoped<IScheduleReadService, ScheduleReadService>();
 
         services.AddScoped<IMembershipRepository, MembershipRepository>();
         services.AddScoped<IStaffReadService, StaffReadService>();

@@ -22,6 +22,9 @@ internal static class GroupErrors
     public static Error HasActiveEnrollments() =>
         Error.Rule("group.has_active_enrollments", "This group still has enrolled students.");
 
+    public static Error HasActiveSchedule() =>
+        Error.Rule("group.has_active_schedule", "This group still has a schedule rule in effect. End it first.");
+
     public static Error SubjectArchived() => Error.Rule("group.subject_archived", "This subject is archived.");
 
     public static Error TeacherArchived() => Error.Rule("group.teacher_archived", "This teacher is archived.");
