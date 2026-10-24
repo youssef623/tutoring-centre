@@ -12,11 +12,14 @@ import { Permissions } from "@/features/session/permissions";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { SubjectSelect } from "@/features/subjects/SubjectSelect";
 import { TeacherSelect } from "@/features/teachers/TeacherSelect";
+import { FilterBar, FilterToggle } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export interface GroupsSearch {
   subject?: string;
   teacher?: string;
   archived?: boolean;
+  freeSeats?: boolean;
 }
 
 export const Route = createFileRoute("/_authenticated/groups/")({
@@ -24,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/groups/")({
     ...(typeof search.subject === "string" && search.subject !== "" ? { subject: search.subject } : {}),
     ...(typeof search.teacher === "string" && search.teacher !== "" ? { teacher: search.teacher } : {}),
     ...(search.archived === true || search.archived === "true" ? { archived: true } : {}),
+    ...(search.freeSeats === true || search.freeSeats === "true" ? { freeSeats: true } : {}),
   }),
   component: GroupsPage,
 });
@@ -43,7 +47,8 @@ function GroupsPage() {
  */
 function GroupsPageContent() {
   const { t } = useTranslation("groups");
-  const { subject, teacher, archived = false } = Route.useSearch();
+  const { t: tEnrollments } = useTranslation("enrollments");
+  const { subject, teacher, archived = false, freeSeats = false } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -57,24 +62,20 @@ function GroupsPageContent() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("page.subtitle")}</p>
-        </div>
-        <Can permission={Permissions.GroupsManage}>
-          <Button type="button" onClick={openCreate}>
-            <Plus className="size-4" aria-hidden="true" />
-            {t("actions.create")}
-          </Button>
-        </Can>
-      </div>
+      <PageHeader
+        title={t("page.title")}
+        description={t("page.subtitle")}
+        actions={
+          <Can permission={Permissions.GroupsManage}>
+            <Button type="button" onClick={openCreate}>
+              <Plus className="size-4" aria-hidden="true" />
+              {t("actions.create")}
+            </Button>
+          </Can>
+        }
+      />
 
-      <div
-        role="search"
-        aria-label={t("filters.label")}
-        className="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card p-4"
-      >
+      <FilterBar label={t("filters.label")}>
         <div className="w-full space-y-1.5 sm:w-56">
           <Label htmlFor="groups-filter-subject">{t("filters.subject")}</Label>
           <SubjectSelect
@@ -99,7 +100,7 @@ function GroupsPageContent() {
             />
           </div>
         </Can>
-        <div className="flex min-h-8 items-center gap-2">
+        <FilterToggle>
           <Switch
             id="groups-show-archived"
             checked={archived}
@@ -108,10 +109,26 @@ function GroupsPageContent() {
             }}
           />
           <Label htmlFor="groups-show-archived">{t("filters.showArchived")}</Label>
-        </div>
-      </div>
+        </FilterToggle>
+        <FilterToggle>
+          <Switch
+            id="groups-free-seats"
+            checked={freeSeats}
+            onCheckedChange={(next) => {
+              updateSearch({ freeSeats: next ? true : undefined });
+            }}
+          />
+          <Label htmlFor="groups-free-seats">{tEnrollments("groupsFilter.freeSeats")}</Label>
+        </FilterToggle>
+      </FilterBar>
 
-      <GroupsList subjectId={subject} teacherId={teacher} includeArchived={archived} onCreate={openCreate} />
+      <GroupsList
+        subjectId={subject}
+        teacherId={teacher}
+        includeArchived={archived}
+        onlyFreeSeats={freeSeats}
+        onCreate={openCreate}
+      />
 
       <Can permission={Permissions.GroupsManage}>
         <CreateGroupDialog open={createOpen} onOpenChange={setCreateOpen} />

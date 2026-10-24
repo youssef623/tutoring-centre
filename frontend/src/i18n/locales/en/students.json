@@ -2,7 +2,9 @@
   "page": {
     "title": "Students",
     "searchLabel": "Search students",
-    "showArchived": "Show archived"
+    "showArchived": "Show archived",
+    "subtitle": "Every student registered at your centre, with their primary parent.",
+    "filtersLabel": "Filter students"
   },
   "columns": {
     "name": "Name",

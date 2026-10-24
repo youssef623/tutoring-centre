@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
+import { FilterBar, FilterToggle } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export interface SubjectsSearch {
   archived: boolean;
@@ -32,14 +34,11 @@ function SubjectsPage() {
   };
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Switch id="show-archived" checked={archived} onCheckedChange={setArchived} />
-            <Label htmlFor="show-archived">{t("page.showArchived")}</Label>
-          </div>
+    <section className="space-y-6">
+      <PageHeader
+        title={t("page.title")}
+        description={t("page.subtitle")}
+        actions={
           <Can permission={Permissions.SubjectsManage}>
             <Button
               type="button"
@@ -51,8 +50,15 @@ function SubjectsPage() {
               {t("actions.create")}
             </Button>
           </Can>
-        </div>
-      </div>
+        }
+      />
+
+      <FilterBar label={t("page.filtersLabel")}>
+        <FilterToggle>
+          <Switch id="show-archived" checked={archived} onCheckedChange={setArchived} />
+          <Label htmlFor="show-archived">{t("page.showArchived")}</Label>
+        </FilterToggle>
+      </FilterBar>
 
       <SubjectsList
         includeArchived={archived}

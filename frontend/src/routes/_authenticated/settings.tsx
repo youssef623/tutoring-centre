@@ -25,6 +25,7 @@ import { centreSettingsFormSchema, type CentreSettingsFormValues } from "@/featu
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { Permissions } from "@/features/session/permissions";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -97,7 +98,7 @@ function SettingsPageContent() {
   if (isPending) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
+        <PageHeader title={t("page.title")} description={t("page.subtitle")} />
         <div role="status" aria-label={t("loading.label")} className="max-w-md space-y-3">
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
@@ -112,7 +113,7 @@ function SettingsPageContent() {
 
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
+        <PageHeader title={t("page.title")} description={t("page.subtitle")} />
         <Alert variant="destructive">
           <AlertTitle>{t("error.title")}</AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
@@ -139,7 +140,7 @@ function SettingsPageContent() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
+      <PageHeader title={t("page.title")} description={t("page.subtitle")} />
       <form
         className="max-w-md space-y-4"
         onSubmit={(event) => {

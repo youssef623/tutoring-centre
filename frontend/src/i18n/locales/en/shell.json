@@ -9,7 +9,8 @@
     "settings": "Settings",
     "audit": "Audit log",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "home": "Hessa home"
   },
   "header": {
     "activeCentre": "Active centre"
@@ -27,6 +28,25 @@
   "dashboard": {
     "welcome": "Welcome, {name}",
     "activeCentre": "You are working in {centreName}.",
-    "placeholder": "More tools for running your centre are on their way."
+    "actions": {
+      "registerStudent": "Register student",
+      "students": "Students",
+      "groups": "Groups"
+    },
+    "loadingLabel": "Loading the overview",
+    "errorTitle": "The overview could not be loaded",
+    "stats": {
+      "activeGroups": "Active groups",
+      "seatsTaken": "Seats taken",
+      "openSeats": "Open seats",
+      "fullGroups": "Full groups"
+    },
+    "fillingUp": {
+      "title": "Groups filling up",
+      "description": "Active groups with 80% or more of their seats taken.",
+      "viewAll": "All groups",
+      "empty": "No group is close to full.",
+      "noGroups": "There are no active groups yet."
+    }
   }
 }

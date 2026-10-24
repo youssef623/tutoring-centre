@@ -16,6 +16,7 @@ import {
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { HessaWordmark } from "@/components/brand/HessaLogo";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import type { MeDto } from "@/api/generated/tutoring-centre";
@@ -33,14 +34,20 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
   return (
     <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
       <div className="flex min-h-screen">
-        <aside className="hidden w-56 shrink-0 border-e border-sidebar-border bg-sidebar p-4 text-sidebar-foreground md:block">
+        <aside className="hidden w-56 shrink-0 space-y-6 border-e border-sidebar-border bg-sidebar p-4 text-sidebar-foreground md:block">
+          <SidebarBrand />
           <SidebarNav />
         </aside>
 
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 bg-foreground/40 transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
           <Dialog.Popup className="fixed inset-y-0 start-0 flex h-full w-64 flex-col gap-4 bg-sidebar p-4 text-sidebar-foreground shadow-md transition-transform ltr:data-[ending-style]:-translate-x-full ltr:data-[starting-style]:-translate-x-full rtl:data-[ending-style]:translate-x-full rtl:data-[starting-style]:translate-x-full">
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between gap-2">
+              <SidebarBrand
+                onNavigate={() => {
+                  setMobileNavOpen(false);
+                }}
+              />
               <Dialog.Close
                 className="rounded-md p-1.5 outline-none hover:bg-sidebar-accent focus-visible:ring-3 focus-visible:ring-ring/50"
                 aria-label={tShell("nav.closeMenu")}
@@ -56,9 +63,9 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
           </Dialog.Popup>
         </Dialog.Portal>
 
-        <div className="flex flex-1 flex-col">
-          <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3 md:px-6">
-            <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 md:px-6">
+            <div className="flex min-w-0 items-center gap-2">
               <Dialog.Trigger
                 className="rounded-md p-1.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden"
                 aria-label={tShell("nav.openMenu")}
@@ -66,8 +73,8 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
                 <MenuIcon className="size-5" aria-hidden="true" />
               </Dialog.Trigger>
               {activeCentre !== undefined && (
-                <div aria-label={tShell("header.activeCentre")} className="flex items-center gap-2">
-                  <span dir="auto" className="font-medium">
+                <div aria-label={tShell("header.activeCentre")} className="flex min-w-0 items-center gap-2">
+                  <span dir="auto" className="truncate font-medium">
                     {activeCentre.centreName}
                   </span>
                   <Badge variant="secondary">{tAuth(`roles.${String(activeCentre.role)}`)}</Badge>
@@ -82,6 +89,22 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
         </div>
       </div>
     </Dialog.Root>
+  );
+}
+
+/** The product's name and mark, linking home; the same lockup as the sign-in page, sized for the sidebar. */
+function SidebarBrand({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation("shell");
+
+  return (
+    <Link
+      to="/"
+      onClick={onNavigate}
+      aria-label={t("nav.home")}
+      className="flex w-fit items-center rounded-md px-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      <HessaWordmark className="[&_svg]:size-8" />
+    </Link>
   );
 }
 
@@ -150,14 +173,16 @@ function UserMenu({ me }: { me: MeDto }) {
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="flex items-center gap-2 rounded-md py-1.5 ps-1.5 pe-3 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
+      <Menu.Trigger className="flex shrink-0 items-center gap-2 rounded-md py-1.5 ps-1.5 pe-1.5 sm:pe-3 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
         <span
           className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground"
           aria-hidden="true"
         >
           {initialsOf(me.displayName)}
         </span>
-        <span dir="auto">{me.displayName}</span>
+        <span dir="auto" className="sr-only sm:not-sr-only">
+          {me.displayName}
+        </span>
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner align="end" sideOffset={4}>

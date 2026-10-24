@@ -1,6 +1,7 @@
 {
   "page": {
-    "title": "Staff"
+    "title": "Staff",
+    "subtitle": "The people who can sign in to this centre, and their roles."
   },
   "columns": {
     "name": "Name",

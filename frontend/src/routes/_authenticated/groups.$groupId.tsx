@@ -42,12 +42,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssignGroupTeacherDialog, ChangeGroupCapacityDialog, RenameGroupDialog } from "@/features/groups/GroupEditDialogs";
-import { SeatsMeter } from "@/features/groups/SeatsMeter";
+import { GroupRosterTab } from "@/features/enrollments/GroupRosterTab";
+import { SeatMeter } from "@/features/enrollments/SeatMeter";
 import { showGroupError } from "@/features/groups/showGroupError";
 import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { RouteGuard } from "@/features/session/RouteGuard";
+import { useCan } from "@/features/session/useCan";
 
 const GroupTabs = ["overview", "roster", "schedule"] as const;
 type GroupTab = (typeof GroupTabs)[number];
@@ -156,7 +158,10 @@ type EditDialog = "rename" | "capacity" | "assignTeacher" | null;
 
 function GroupDetailContent({ group }: { group: GroupDto }) {
   const { t } = useTranslation("groups");
-  const { tab } = Route.useSearch();
+  const { tab: requestedTab } = Route.useSearch();
+  const canViewRoster = useCan(Permissions.EnrollmentsView);
+  // Without enrollments.view there is no Roster tab, so a pasted "?tab=roster" falls back to the overview.
+  const tab = requestedTab === "roster" && !canViewRoster ? "overview" : requestedTab;
   const navigate = useNavigate({ from: Route.fullPath });
   const queryClient = useQueryClient();
   const archiveMutation = useArchiveGroup();
@@ -317,10 +322,12 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
             <LayoutGrid aria-hidden="true" />
             {t("tabs.overview")}
           </TabsTrigger>
-          <TabsTrigger value="roster">
-            <Users aria-hidden="true" />
-            {t("tabs.roster")}
-          </TabsTrigger>
+          {canViewRoster && (
+            <TabsTrigger value="roster">
+              <Users aria-hidden="true" />
+              {t("tabs.roster")}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="schedule">
             <CalendarDays aria-hidden="true" />
             {t("tabs.schedule")}
@@ -331,7 +338,7 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-xl border border-border bg-card p-4 md:col-span-1">
               <p className="mb-3 text-sm text-muted-foreground">{t("overview.seats")}</p>
-              <SeatsMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} size="lg" />
+              <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} size="full" />
             </div>
             <dl className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 md:col-span-2">
               <div className="space-y-1">
@@ -362,9 +369,11 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
           </div>
         </TabsContent>
 
-        <TabsContent value="roster">
-          <TabPlaceholder icon={UsersRound} title={t("placeholders.rosterTitle")} description={t("placeholders.rosterDescription")} />
-        </TabsContent>
+        {canViewRoster && (
+          <TabsContent value="roster">
+            <GroupRosterTab group={group} />
+          </TabsContent>
+        )}
 
         <TabsContent value="schedule">
           <TabPlaceholder

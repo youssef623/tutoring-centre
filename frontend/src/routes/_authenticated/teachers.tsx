@@ -10,6 +10,8 @@ import { Permissions } from "@/features/session/permissions";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { TeacherFormDialog, type TeacherDialogState } from "@/features/teachers/TeacherFormDialog";
 import { TeachersList } from "@/features/teachers/TeachersList";
+import { FilterBar, FilterToggle } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export interface TeachersSearch {
   archived?: boolean;
@@ -46,24 +48,25 @@ function TeachersPageContent() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("page.subtitle")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Switch id="teachers-show-archived" checked={archived} onCheckedChange={setArchived} />
-            <Label htmlFor="teachers-show-archived">{t("page.showArchived")}</Label>
-          </div>
+      <PageHeader
+        title={t("page.title")}
+        description={t("page.subtitle")}
+        actions={
           <Can permission={Permissions.TeachersManage}>
             <Button type="button" onClick={openCreate}>
               <Plus className="size-4" aria-hidden="true" />
               {t("actions.create")}
             </Button>
           </Can>
-        </div>
-      </div>
+        }
+      />
+
+      <FilterBar label={t("page.filtersLabel")}>
+        <FilterToggle>
+          <Switch id="teachers-show-archived" checked={archived} onCheckedChange={setArchived} />
+          <Label htmlFor="teachers-show-archived">{t("page.showArchived")}</Label>
+        </FilterToggle>
+      </FilterBar>
 
       <TeachersList
         includeArchived={archived}

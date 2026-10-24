@@ -1,6 +1,7 @@
 {
   "page": {
-    "title": "Centre settings"
+    "title": "Centre settings",
+    "subtitle": "Your centre's name and the language it opens in."
   },
   "loading": {
     "label": "Loading settings"

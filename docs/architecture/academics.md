@@ -307,7 +307,8 @@ Three screens, under `frontend/src/features/teachers` and `frontend/src/features
   session without it gets its own empty-state text ("No groups are assigned to you"). Seats show as
   "enrolled / capacity", isolated left-to-right, with a "Full" badge when no seat is left.
 - `/groups/$groupId` (`groups.view`, URL parameter `tab` = `overview` | `roster` | `schedule`): a summary card
-  and URL-addressable tabs; Roster and Schedule are placeholders until Days 50 and 53. Rename, capacity and
+  and URL-addressable tabs; Roster is filled in on Day 50 (see "Frontend (Day 50)" below), Schedule is a
+  placeholder until Day 53. Rename, capacity and
   teacher are three dialogs sending three requests, each with the loaded version — never one form posting to
   several endpoints, which could leave a half-applied edit. An unknown group, another centre's group and, for a
   teacher, someone else's group all render the same "Group not found" state.
@@ -383,6 +384,33 @@ teacher scope as groups, applied by the read services) and `enrollments.manage` 
 who is in their groups, which they need for attendance, but never enroll or withdraw anyone: enrollment drives
 fees, so only office roles change it. Enrollment changes are audited (`studentId`, `groupId`, `status`,
 `endReason`).
+
+### Use cases and lock rules (Day 48)
+
+| Use case | Takes the group lock | Refusals, in the order the handler checks them |
+| --- | --- | --- |
+| `EnrollStudentCommand` | the group | `group.not_found`, `student.not_found`, `enrollment.student_archived`, `enrollment.already_enrolled`, `group.archived`, `group.full` |
+| `WithdrawEnrollmentCommand` | none | `enrollment.not_found`, `enrollment.already_ended`, `concurrency.stale` (on save) |
+| `TransferEnrollmentCommand` | the target group only | `enrollment.not_found`, `enrollment.already_ended`, `enrollment.same_group`, `group.not_found`, `enrollment.subject_mismatch`, `enrollment.already_enrolled`, `group.archived`, `group.full`, `concurrency.stale` (on save) |
+| `ChangeGroupCapacityCommand` | the group | `group.not_found`, `concurrency.stale`, `group.archived_read_only`, `group.capacity_invalid`, `group.capacity_below_enrolled` |
+| `ArchiveGroupCommand` | the group | `group.not_found`, `concurrency.stale`, `group.has_active_enrollments`, `group.already_archived` |
+| `GetGroupRosterQuery`, `ListStudentEnrollmentsQuery` | none (reads) | `group.not_found` / `student.not_found`, teacher-scoped like groups |
+
+Two rules keep the capacity decision safe:
+
+- **Every writer of capacity takes the lock.** Any command that decides from a group's active enrollment count —
+  enroll, transfer in, change capacity, archive group — loads the group through
+  `IGroupRepository.GetForEnrollmentAsync`, which takes `SELECT … FOR UPDATE` and returns the count taken under
+  that lock. A new command that counts without it reopens the last-seat race.
+- **One lock per command.** A transfer locks only its target: the source only loses a seat, which can never break
+  its capacity, so it is read without a lock. With at most one group lock per transaction, two opposite transfers
+  can never wait on each other in a cycle, and no lock-ordering rule is needed.
+
+Withdrawing frees a seat and takes no lock; its only race is with another change to the same enrollment, which
+the enrollment's own version (`xmin`) catches as `concurrency.stale`. Archiving a student who still has active
+enrollments is refused with `student.has_active_enrollments`. The tests that prove these rules are named in
+ADR 0011.
+
 ### Endpoints (Day 49)
 
 | Method | Route | Use case | Permission |
@@ -401,3 +429,33 @@ Withdraw and transfer are version-guarded actions, never an HTTP `DELETE`: an en
 Transfer is one endpoint dispatching one command, so ending the old enrollment and starting the new one commit
 in one transaction (`200` with the new enrollment's ID). The 404 names the first missing or foreign thing in the
 handler's lookup order — group, then student; enrollment, then target group.
+
+### Frontend (Day 50)
+
+Under `frontend/src/features/enrollments`, all text in the `enrollments` namespace in both languages:
+
+- **Roster tab** (`GroupRosterTab`, `RosterTable`, on `/groups/$groupId?tab=roster`). One view, three permission
+  levels: the tab exists for `enrollments.view` (so a group's own teacher sees it), the actions sit behind
+  `enrollments.manage`, and names link to the student page only with `students.view`. A `SeatMeter` shows
+  "enrolled / capacity" isolated as LTR, with a written "Full" badge. "Enroll student" is disabled with its reason
+  at capacity or when archived — a courtesy; the server is the capacity control.
+- **Enroll** (`EnrollStudentDialog`, `StudentPicker`). The picker is the existing students list query with a page of
+  10 and the debounced search, so the server's normalized Arabic search works with no new endpoint; search state
+  is local to the dialog. Students already on the roster are marked and cannot be picked. No contact details are
+  shown.
+- **Withdraw** (`WithdrawEnrollmentDialog`) asks for confirmation naming the student and the group, and sends the
+  row's version. **Transfer** (`TransferDialog`) offers the other active groups of the same subject
+  (`GET /groups?subjectId=`), full ones disabled, and sends one request — the client never withdraws and then
+  enrolls.
+- **Student page** (`StudentEnrollmentsCard`, rendered only with `enrollments.view`, so without it no enrollment
+  request is sent): current groups first with their actions, past ones muted with end date and reason. "Enroll in
+  a group" (`EnrollInGroupDialog`) picks a subject and then one of its groups, and calls the same mutation.
+- **Groups list**: the compact `SeatMeter` on every row, and an optional "only groups with free seats (on this
+  page)" filter applied in the browser to the loaded page; the counts themselves stay server-derived.
+
+`useEnrollmentMutations` is the one definition of enroll, withdraw and transfer. It does no optimistic updates:
+the seat count in the browser is advisory, and the server's 409 decides who gets the last seat. Every outcome —
+success or refusal — invalidates every query that shows a touched resource: for enroll and withdraw, that roster,
+that group, the groups list and that student's enrollments; for a transfer, both rosters, both groups, the list
+and the student's enrollments. A 409 or 422 is an ordinary outcome shown in the dialog in words ("This group is
+full", "Already in this group"), with the dialog left open; a 404 closes it with a toast.

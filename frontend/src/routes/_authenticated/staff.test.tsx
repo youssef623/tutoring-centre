@@ -369,7 +369,7 @@ describe("StaffPage", () => {
     renderRouter("/staff");
 
     expect(await screen.findByRole("heading", { name: "الموظفون" })).toBeInTheDocument();
-    expect(await screen.findByText("نشط")).toBeInTheDocument();
+    expect(await screen.findByRole("columnheader", { name: "البريد الإلكتروني" })).toBeInTheDocument();
     expect(document.documentElement.dir).toBe("rtl");
   });
 });

@@ -12,6 +12,14 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableColumn,
+  DataTableHead,
+  DataTableRow,
+} from "@/components/shared/DataTable";
 import { LoadMoreButton } from "@/components/shared/LoadMoreButton";
 import { PhoneText } from "@/components/shared/PhoneText";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -101,24 +109,19 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[640px] text-start text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.name")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.schoolYear")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.primaryParent")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.parentPhone")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.status")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {items.map((student) => (
-              <StudentRow key={student.id} student={student} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable className="sm:min-w-[640px]">
+        <DataTableHead>
+          <DataTableColumn>{t("columns.name")}</DataTableColumn>
+          <DataTableColumn>{t("columns.schoolYear")}</DataTableColumn>
+          <DataTableColumn>{t("columns.primaryParent")}</DataTableColumn>
+          <DataTableColumn>{t("columns.parentPhone")}</DataTableColumn>
+        </DataTableHead>
+        <DataTableBody>
+          {items.map((student) => (
+            <StudentRow key={student.id} student={student} />
+          ))}
+        </DataTableBody>
+      </DataTable>
 
       {hasNextPage && (
         <LoadMoreButton
@@ -133,25 +136,28 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
 }
 
 function StudentRow({ student }: { student: StudentListItemDto }) {
+  const { t } = useTranslation("students");
   const isArchived = student.status === "archived";
 
   return (
-    <tr className={isArchived ? "text-muted-foreground" : undefined}>
-      <td className="px-4 py-2" dir="auto">
-        <Link to="/students/$studentId" params={{ studentId: student.id }} className="font-medium hover:underline">
-          {student.fullName}
-        </Link>
-      </td>
-      <td className="px-4 py-2" dir="auto">
-        {student.schoolYear ?? "—"}
-      </td>
-      <td className="px-4 py-2" dir="auto">
-        {student.primaryParentName ?? "—"}
-      </td>
-      <td className="px-4 py-2">{student.primaryParentPhone === null ? "—" : <PhoneText value={student.primaryParentPhone} />}</td>
-      <td className="px-4 py-2">
-        <StatusBadge status={student.status} />
-      </td>
-    </tr>
+    <DataTableRow muted={isArchived}>
+      <DataTableCell kind="primary">
+        <span className="flex flex-wrap items-center gap-2">
+          <Link to="/students/$studentId" params={{ studentId: student.id }} className="font-medium hover:underline">
+            <bdi>{student.fullName}</bdi>
+          </Link>
+          {isArchived && <StatusBadge status="archived" />}
+        </span>
+      </DataTableCell>
+      <DataTableCell label={t("columns.schoolYear")}>
+        <bdi>{student.schoolYear ?? "—"}</bdi>
+      </DataTableCell>
+      <DataTableCell label={t("columns.primaryParent")}>
+        <bdi>{student.primaryParentName ?? "—"}</bdi>
+      </DataTableCell>
+      <DataTableCell label={t("columns.parentPhone")}>
+        {student.primaryParentPhone === null ? "—" : <PhoneText value={student.primaryParentPhone} />}
+      </DataTableCell>
+    </DataTableRow>
   );
 }

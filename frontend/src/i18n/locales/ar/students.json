@@ -2,7 +2,9 @@
   "page": {
     "title": "الطلاب",
     "searchLabel": "البحث عن الطلاب",
-    "showArchived": "إظهار المؤرشفين"
+    "showArchived": "إظهار المؤرشفين",
+    "subtitle": "كل الطلاب المسجلين في مركزك مع ولي الأمر الأساسي.",
+    "filtersLabel": "تصفية الطلاب"
   },
   "columns": {
     "name": "الاسم",
