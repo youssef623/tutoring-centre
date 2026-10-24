@@ -7,11 +7,12 @@ using TutoringCentre.Api.Tests.Fixtures;
 namespace TutoringCentre.Api.Tests.Authorization;
 
 /// <summary>
-/// Task 30.8 (extended Task 32.11, Task 43.14, Task 45.9): one table of role x endpoint -> expected status, executed
-/// over real HTTP against Nile's three roles, now including the seven teacher endpoints (21 more literal cases)
-/// and the eight group endpoints (24 more). The matrix records the permission decision only: Teacher is allowed
-/// on the two group reads (and reads a group it owns here), while what a teacher may see is ownership, proven
-/// separately by GroupTeacherScopeTests.
+/// Task 30.8 (extended Task 32.11, Task 43.14, Task 45.9, Task 49.9): one table of role x endpoint -> expected
+/// status, executed over real HTTP against Nile's three roles, now including the seven teacher endpoints (21 more
+/// literal cases), the eight group endpoints (24 more) and the five enrollment endpoints (15 more). The matrix
+/// records the permission decision only: Teacher is allowed on the two group reads and the two enrollment reads
+/// (and reads a group it owns here), while what a teacher may see is ownership, proven separately by
+/// GroupTeacherScopeTests and EnrollmentTeacherScopeTests.
 /// Allowed cases assert a non-403 success status;
 /// denied cases assert 403 auth.permission_denied and an unchanged database, compared against the exact
 /// pre-request state, not a snapshot taken after the request already ran. Values are written literally here,
@@ -66,6 +67,11 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "PUT /api/groups/{id:guid}/teacher",
         "POST /api/groups/{id:guid}/archive",
         "POST /api/groups/{id:guid}/restore",
+        "POST /api/groups/{groupId:guid}/enrollments",
+        "GET /api/groups/{groupId:guid}/roster",
+        "GET /api/students/{studentId:guid}/enrollments",
+        "POST /api/enrollments/{id:guid}/withdraw",
+        "POST /api/enrollments/{id:guid}/transfer",
     ];
 
     public async Task InitializeAsync()
@@ -905,6 +911,149 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
             Assert.Equal(snapshotBefore, await SnapshotGroupAsync(id));
         }
     }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.Created)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Created)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task EnrollmentsEnroll(string role, HttpStatusCode expected)
+    {
+        var groupId = await GetTwoCentreTeachersOwnNileGroupIdAsync();
+        var (studentId, _, _) = await RegisterStudentAsOwnerAsync($"Matrix Enroll {Guid.NewGuid():N}");
+        var snapshotBefore = await SnapshotEnrollmentsAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            signedIn.Client, new Uri($"/api/groups/{groupId}/enrollments", UriKind.Relative), new { studentId });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotEnrollmentsAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.OK)]
+    public async Task EnrollmentsRoster(string role, HttpStatusCode expected)
+    {
+        // The seeded Nile group the two-centre teacher owns, so the teacher's 200 is the permission decision,
+        // not a scope decision; out-of-scope rosters are EnrollmentTeacherScopeTests' question.
+        var groupId = await GetTwoCentreTeachersOwnNileGroupIdAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/groups/{groupId}/roster", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.OK)]
+    public async Task EnrollmentsListForStudent(string role, HttpStatusCode expected)
+    {
+        var (_, studentId) = await EnrollNewStudentInTeachersOwnGroupAsOwnerAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/students/{studentId}/enrollments", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task EnrollmentsWithdraw(string role, HttpStatusCode expected)
+    {
+        var (enrollmentId, _) = await EnrollNewStudentInTeachersOwnGroupAsOwnerAsync();
+        var version = await GetEnrollmentVersionAsync(enrollmentId);
+        var snapshotBefore = await SnapshotEnrollmentsAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/enrollments/{enrollmentId}/withdraw", UriKind.Relative), new { version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotEnrollmentsAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task EnrollmentsTransfer(string role, HttpStatusCode expected)
+    {
+        var (sourceGroupId, targetGroupId) = await CreateSameSubjectGroupsAsOwnerAsync($"Matrix Transfer {Guid.NewGuid():N}");
+        var (studentId, _, _) = await RegisterStudentAsOwnerAsync($"Matrix Transfer {Guid.NewGuid():N}");
+        var enrollmentId = await EnrollAsOwnerAsync(sourceGroupId, studentId);
+        var version = await GetEnrollmentVersionAsync(enrollmentId);
+        var snapshotBefore = await SnapshotEnrollmentsAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/enrollments/{enrollmentId}/transfer", UriKind.Relative), new { targetGroupId, version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotEnrollmentsAsync());
+        }
+    }
+
+    private async Task<(Guid EnrollmentId, Guid StudentId)> EnrollNewStudentInTeachersOwnGroupAsOwnerAsync()
+    {
+        var groupId = await GetTwoCentreTeachersOwnNileGroupIdAsync();
+        var (studentId, _, _) = await RegisterStudentAsOwnerAsync($"Matrix Enrolled {Guid.NewGuid():N}");
+        return (await EnrollAsOwnerAsync(groupId, studentId), studentId);
+    }
+
+    private async Task<Guid> EnrollAsOwnerAsync(Guid groupId, Guid studentId)
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri($"/api/groups/{groupId}/enrollments", UriKind.Relative), new { studentId });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await ReadJsonAsync(response)).RootElement.GetProperty("id").GetGuid();
+    }
+
+    private async Task<(Guid SourceGroupId, Guid TargetGroupId)> CreateSameSubjectGroupsAsOwnerAsync(string name)
+    {
+        var (subjectId, _) = await CreateSubjectAsOwnerAsync($"{name} Subject");
+        var (teacherId, _) = await CreateTeacherAsOwnerAsync($"{name} Teacher");
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var sourceResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/groups", UriKind.Relative), new { name = $"{name} Source", subjectId, teacherId, capacity = 20 });
+        using var targetResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri("/api/groups", UriKind.Relative), new { name = $"{name} Target", subjectId, teacherId, capacity = 20 });
+        return (
+            (await ReadJsonAsync(sourceResponse)).RootElement.GetProperty("id").GetGuid(),
+            (await ReadJsonAsync(targetResponse)).RootElement.GetProperty("id").GetGuid());
+    }
+
+    private Task<uint> GetEnrollmentVersionAsync(Guid enrollmentId) =>
+        factory.ScalarAsync<uint>($"select xmin from academics.enrollments where id = '{enrollmentId}'");
+
+    private Task<string> SnapshotEnrollmentsAsync() =>
+        factory.ScalarAsync<string>(
+            "select count(*)::text || '|' || coalesce(string_agg(id::text || ':' || status || ':' || xmin::text, ',' order by id), '') from academics.enrollments");
 
     private Task<Guid> GetTwoCentreTeachersOwnNileGroupIdAsync() =>
         factory.ScalarAsync<Guid>(

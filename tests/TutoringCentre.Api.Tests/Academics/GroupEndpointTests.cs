@@ -413,6 +413,54 @@ public sealed class GroupEndpointTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ChangeCapacity_BelowTheEnrolledCount_Returns422CapacityBelowEnrolledAndCapacityStays()
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var (subjectId, teacherId) = await CreateReferencesAsync(owner.Client);
+        var id = await CreateGroupAsync(owner.Client, "Grade 10 Physics", subjectId, teacherId);
+        await EnrollNewStudentAsync(owner.Client, id, "Capacity Student One", "01099991001");
+        await EnrollNewStudentAsync(owner.Client, id, "Capacity Student Two", "01099991002");
+        var version = await GetVersionAsync(owner.Client, id);
+
+        using var refused = await SendAsync(owner.Client, HttpMethod.Put, $"/api/groups/{id}/capacity", new { capacity = 1, version });
+
+        await AssertProblemAsync(refused, HttpStatusCode.UnprocessableEntity, "group.capacity_below_enrolled");
+        var group = await GetGroupAsync(owner.Client, id);
+        Assert.Equal(20, group.GetProperty("capacity").GetInt32());
+        Assert.Equal(version, group.GetProperty("version").GetUInt32());
+
+        // Exactly the enrolled count is allowed: every seat taken, none over.
+        using var allowed = await SendAsync(owner.Client, HttpMethod.Put, $"/api/groups/{id}/capacity", new { capacity = 2, version });
+        Assert.Equal(HttpStatusCode.NoContent, allowed.StatusCode);
+    }
+
+    [Fact]
+    public async Task Archive_WithAnActiveEnrollment_Returns422HasActiveEnrollmentsAndGroupStaysActive()
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var (subjectId, teacherId) = await CreateReferencesAsync(owner.Client);
+        var id = await CreateGroupAsync(owner.Client, "Grade 10 Physics", subjectId, teacherId);
+        var enrollmentId = await EnrollNewStudentAsync(owner.Client, id, "Archive Group Student", "01099991003");
+        var version = await GetVersionAsync(owner.Client, id);
+
+        using var refused = await SendAsync(owner.Client, HttpMethod.Post, $"/api/groups/{id}/archive", new { version });
+
+        await AssertProblemAsync(refused, HttpStatusCode.UnprocessableEntity, "group.has_active_enrollments");
+        Assert.Equal("active", (await GetGroupAsync(owner.Client, id)).GetProperty("status").GetString());
+
+        // Once its only enrollment is withdrawn, the same group archives normally.
+        using (var rosterResponse = await owner.Client.GetAsync(new Uri($"/api/groups/{id}/roster", UriKind.Relative)))
+        {
+            var enrollmentVersion = (await ReadJsonAsync(rosterResponse)).RootElement.GetProperty("items")[0].GetProperty("version").GetUInt32();
+            using var withdrawn = await SendAsync(owner.Client, HttpMethod.Post, $"/api/enrollments/{enrollmentId}/withdraw", new { version = enrollmentVersion });
+            Assert.Equal(HttpStatusCode.NoContent, withdrawn.StatusCode);
+        }
+
+        using var allowed = await SendAsync(owner.Client, HttpMethod.Post, $"/api/groups/{id}/archive", new { version = await GetVersionAsync(owner.Client, id) });
+        Assert.Equal(HttpStatusCode.NoContent, allowed.StatusCode);
+    }
+
+    [Fact]
     public async Task List_NoCookie_Returns401()
     {
         using var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
@@ -464,6 +512,19 @@ public sealed class GroupEndpointTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var body = await ReadJsonAsync(response);
         return body.RootElement.GetProperty("id").GetGuid();
+    }
+
+    private static async Task<Guid> EnrollNewStudentAsync(HttpClient client, Guid groupId, string fullName, string parentPhone)
+    {
+        using var studentResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, new Uri("/api/students", UriKind.Relative),
+            new { fullName, phone = (string?)null, schoolYear = (string?)null, parent = new { fullName = $"{fullName} Parent", phone = parentPhone }, relationship = "father" });
+        Assert.Equal(HttpStatusCode.Created, studentResponse.StatusCode);
+        var studentId = (await ReadJsonAsync(studentResponse)).RootElement.GetProperty("id").GetGuid();
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(client, new Uri($"/api/groups/{groupId}/enrollments", UriKind.Relative), new { studentId });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await ReadJsonAsync(response)).RootElement.GetProperty("id").GetGuid();
     }
 
     private static async Task ArchiveGroupAsync(HttpClient client, Guid id)

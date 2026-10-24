@@ -335,6 +335,27 @@ public sealed class StudentEndpointTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Archive_WithAnActiveEnrollment_Returns422HasActiveEnrollmentsAndStudentStaysActive()
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var (id, _, version) = await RegisterStudentAsync(owner.Client, "Enrolled Student", "Parent", "01099990048");
+        var groupId = await CreateGroupAsync(owner.Client, "Archive Student Group");
+        using (var enrolled = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri($"/api/groups/{groupId}/enrollments", UriKind.Relative), new { studentId = id }))
+        {
+            Assert.Equal(HttpStatusCode.Created, enrolled.StatusCode);
+        }
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            owner.Client, HttpMethod.Post, new Uri($"/api/students/{id}/archive", UriKind.Relative), new { version });
+
+        var body = await ReadJsonAsync(response);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("student.has_active_enrollments", body.RootElement.GetProperty("code").GetString());
+        Assert.Equal(version, await GetVersionAsync(owner.Client, id));
+    }
+
+    [Fact]
     public async Task RestoreAnActiveStudent_Returns422NotArchived()
     {
         using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
@@ -580,6 +601,20 @@ public sealed class StudentEndpointTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
         var body = await ReadJsonAsync(createResponse);
         return body.RootElement.GetProperty("parentId").GetGuid();
+    }
+
+    private static async Task<Guid> CreateGroupAsync(HttpClient client, string name)
+    {
+        var subjectId = await CreateAsync(client, "/api/subjects", new { name = $"{name} Subject" });
+        var teacherId = await CreateAsync(client, "/api/teachers", new { fullName = $"{name} Teacher", phone = (string?)null });
+        return await CreateAsync(client, "/api/groups", new { name, subjectId, teacherId, capacity = 20 });
+    }
+
+    private static async Task<Guid> CreateAsync(HttpClient client, string url, object body)
+    {
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(client, new Uri(url, UriKind.Relative), body);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await ReadJsonAsync(response)).RootElement.GetProperty("id").GetGuid();
     }
 
     private static async Task<uint> GetVersionAsync(HttpClient client, Guid studentId)
