@@ -13,12 +13,14 @@ using TutoringCentre.Application.Academics.Subjects;
 using TutoringCentre.Application.Academics.Teachers;
 using TutoringCentre.Application.Audit;
 using TutoringCentre.Application.Centres;
+using TutoringCentre.Application.Centres.Contracts;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Identity;
 using TutoringCentre.Application.Identity.Contracts;
 using TutoringCentre.Application.Platform;
 using TutoringCentre.Application.Staff;
+using TutoringCentre.Infrastructure.Centres;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
@@ -120,6 +122,7 @@ public static class DependencyInjection
 
         services.AddScoped<ICentreRepository, CentreRepository>();
         services.AddScoped<ICentreReadService, CentreReadService>();
+        services.AddScoped<ICentreTimeZoneProvider, CentreTimeZoneProvider>();
 
         services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<ISubjectReadService, SubjectReadService>();
