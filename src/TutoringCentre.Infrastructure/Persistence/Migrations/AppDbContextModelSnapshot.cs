@@ -345,6 +345,164 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Scheduling.ClassSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("EndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ends_at");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date")
+                        .HasColumnName("local_date");
+
+                    b.Property<string>("Room")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("room");
+
+                    b.Property<Guid>("ScheduleRuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("schedule_rule_id");
+
+                    b.Property<DateTimeOffset>("StartsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("starts_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("teacher_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_class_sessions");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_class_sessions_centre_id_id");
+
+                    b.HasIndex("CentreId", "TeacherId")
+                        .HasDatabaseName("ix_class_sessions_centre_teacher");
+
+                    b.HasIndex("CentreId", "GroupId", "LocalDate")
+                        .HasDatabaseName("ix_class_sessions_centre_group_date");
+
+                    b.HasIndex("CentreId", "LocalDate", "StartsAt")
+                        .HasDatabaseName("ix_class_sessions_centre_date");
+
+                    b.HasIndex("CentreId", "ScheduleRuleId", "LocalDate")
+                        .IsUnique()
+                        .HasDatabaseName("ux_class_sessions_rule_date");
+
+                    b.ToTable("class_sessions", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_class_sessions_range", "ends_at > starts_at");
+
+                            t.HasCheckConstraint("ck_class_sessions_status", "status IN ('scheduled','cancelled')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Scheduling.ScheduleRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<short>("DayOfWeek")
+                        .HasColumnType("smallint")
+                        .HasColumnName("day_of_week");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_minutes");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_from");
+
+                    b.Property<DateOnly?>("EffectiveTo")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_to");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<string>("Room")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("room");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time")
+                        .HasColumnName("start_time");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_schedule_rules");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_schedule_rules_centre_id_id");
+
+                    b.HasIndex("CentreId", "GroupId")
+                        .HasDatabaseName("ix_schedule_rules_centre_group");
+
+                    b.ToTable("schedule_rules", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_schedule_rules_dates", "effective_to IS NULL OR effective_to >= effective_from");
+
+                            t.HasCheckConstraint("ck_schedule_rules_day", "day_of_week BETWEEN 0 AND 6");
+
+                            t.HasCheckConstraint("ck_schedule_rules_duration", "duration_minutes BETWEEN 30 AND 240");
+                        });
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Student", b =>
                 {
                     b.Property<Guid>("Id")
@@ -988,6 +1146,58 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_parents_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Scheduling.ClassSession", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_sessions_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Group", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "GroupId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_sessions_groups");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Scheduling.ScheduleRule", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ScheduleRuleId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_sessions_rules");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Teacher", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "TeacherId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_sessions_teachers");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Scheduling.ScheduleRule", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_schedule_rules_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Group", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "GroupId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_schedule_rules_groups");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Student", b =>
