@@ -22,7 +22,16 @@ function me(role: "owner" | "teacher", permissions: string[]) {
   };
 }
 
-const ownerMe = me("owner", ["groups.manage", "groups.view", "subjects.view", "teachers.manage", "teachers.view"]);
+const ownerMe = me("owner", [
+  "enrollments.manage",
+  "enrollments.view",
+  "groups.manage",
+  "groups.view",
+  "students.view",
+  "subjects.view",
+  "teachers.manage",
+  "teachers.view",
+]);
 const teacherMe = me("teacher", ["groups.view", "subjects.view"]);
 
 function group(overrides: Record<string, unknown> = {}) {
@@ -60,6 +69,9 @@ describe("GroupDetailPage", () => {
       http.get(groupUrl, () => HttpResponse.json(group())),
       http.get(teachersUrl, () => HttpResponse.json({ items: teachers })),
       http.get("/api/groups", () => HttpResponse.json({ items: [group()] })),
+      http.get(`${groupUrl}/roster`, () =>
+        HttpResponse.json({ groupId: "g-1", groupName: "Physics A", capacity: 20, enrolledCount: 0, items: [] }),
+      ),
     );
   });
 
@@ -85,10 +97,10 @@ describe("GroupDetailPage", () => {
     expect(screen.getByRole("link", { name: "Back to groups" })).toBeInTheDocument();
   });
 
-  it("the tab parameter selects the tab, and Roster shows its placeholder", async () => {
+  it("the tab parameter selects the tab, and Roster shows the roster", async () => {
     renderRouter("/groups/g-1?tab=roster");
 
-    expect(await screen.findByText("Roster coming soon", {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(await screen.findByText("No students enrolled yet", {}, { timeout: 3000 })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Roster" })).toHaveAttribute("aria-selected", "true");
   });
 

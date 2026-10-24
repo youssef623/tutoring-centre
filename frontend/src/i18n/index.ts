@@ -4,6 +4,7 @@ import { initReactI18next } from "react-i18next";
 import auditAr from "./locales/ar/audit.json";
 import authAr from "./locales/ar/auth.json";
 import commonAr from "./locales/ar/common.json";
+import enrollmentsAr from "./locales/ar/enrollments.json";
 import errorsAr from "./locales/ar/errors.json";
 import groupsAr from "./locales/ar/groups.json";
 import parentsAr from "./locales/ar/parents.json";
@@ -17,6 +18,7 @@ import teachersAr from "./locales/ar/teachers.json";
 import auditEn from "./locales/en/audit.json";
 import authEn from "./locales/en/auth.json";
 import commonEn from "./locales/en/common.json";
+import enrollmentsEn from "./locales/en/enrollments.json";
 import errorsEn from "./locales/en/errors.json";
 import groupsEn from "./locales/en/groups.json";
 import parentsEn from "./locales/en/parents.json";
@@ -87,6 +89,7 @@ void i18next
         audit: auditEn,
         teachers: teachersEn,
         groups: groupsEn,
+        enrollments: enrollmentsEn,
       },
       ar: {
         common: commonAr,
@@ -102,11 +105,12 @@ void i18next
         audit: auditAr,
         teachers: teachersAr,
         groups: groupsAr,
+        enrollments: enrollmentsAr,
       },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

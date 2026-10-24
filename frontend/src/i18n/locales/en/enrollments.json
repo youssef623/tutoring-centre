@@ -1,0 +1,71 @@
+{
+  "seats": {
+    "label": "{enrolledText} of {capacity, plural, one {{capacityText} seat} other {{capacityText} seats}} taken",
+    "full": "Full"
+  },
+  "roster": {
+    "loadingLabel": "Loading the roster",
+    "columns": {
+      "student": "Student",
+      "enrolledAt": "Enrolled on",
+      "actions": "Actions"
+    },
+    "emptyTitle": "No students enrolled yet",
+    "emptyDescription": "Students enrolled in this group will be listed here.",
+    "errorTitle": "The roster could not be loaded",
+    "errorReference": "Reference: {correlationId}"
+  },
+  "actions": {
+    "enroll": "Enroll student",
+    "openMenu": "Actions for {name}",
+    "transfer": "Transfer to another group",
+    "withdraw": "Withdraw"
+  },
+  "enrollDisabled": {
+    "full": "This group is full. Withdraw a student or raise the capacity first.",
+    "archived": "This group is archived. Restore it to enroll students."
+  },
+  "form": {
+    "cancel": "Cancel"
+  },
+  "enrollDialog": {
+    "title": "Enroll a student",
+    "description": "Search for an active student to add to {group}.",
+    "submit": "Enroll"
+  },
+  "picker": {
+    "searchLabel": "Search students",
+    "listLabel": "Students",
+    "loadingLabel": "Loading students",
+    "empty": "No active student matches this search.",
+    "alreadyInGroup": "Already in this group"
+  },
+  "outcomes": {
+    "groupFull": "This group is full",
+    "groupArchived": "This group is archived and accepts no enrollments.",
+    "alreadyEnrolled": "Already in this group",
+    "studentArchived": "This student is archived and cannot be enrolled.",
+    "alreadyEnded": "This enrollment has already ended.",
+    "sameGroup": "The student is already in this group. Choose a different group.",
+    "subjectMismatch": "A student can only be transferred to a group of the same subject.",
+    "stale": "This enrollment was changed by someone else. The list has been refreshed."
+  },
+  "toasts": {
+    "enrolled": "{student} was enrolled in {group}.",
+    "withdrawn": "{student} was withdrawn from {group}.",
+    "transferred": "{student} was transferred to {group}."
+  },
+  "withdrawDialog": {
+    "title": "Withdraw {student} from {group}?",
+    "body": "{student} will leave this group's roster. The enrollment stays in their history.",
+    "confirm": "Withdraw"
+  },
+  "transferDialog": {
+    "title": "Transfer {student}",
+    "description": "Choose another group of the same subject. The student leaves {group} in the same step.",
+    "groupsLabel": "Target group",
+    "loadingLabel": "Loading groups",
+    "empty": "No other group for this subject",
+    "submit": "Transfer"
+  }
+}

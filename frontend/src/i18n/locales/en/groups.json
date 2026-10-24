@@ -23,10 +23,6 @@
     "seats": "Seats",
     "status": "Status"
   },
-  "seats": {
-    "label": "{enrolledText} of {capacity, plural, one {{capacityText} seat} other {{capacityText} seats}} taken",
-    "full": "Full"
-  },
   "actions": {
     "create": "Create group",
     "rename": "Rename",
@@ -76,8 +72,6 @@
     "schedule": "Schedule"
   },
   "placeholders": {
-    "rosterTitle": "Roster coming soon",
-    "rosterDescription": "The students enrolled in this group will be listed here.",
     "scheduleTitle": "Schedule coming soon",
     "scheduleDescription": "This group's weekly sessions will be shown here."
   },

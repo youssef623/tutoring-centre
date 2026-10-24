@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SeatsMeter } from "@/features/groups/SeatsMeter";
+import { SeatMeter } from "@/features/enrollments/SeatMeter";
 import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { useCan } from "@/features/session/useCan";
@@ -154,7 +154,7 @@ export function GroupsList({
                   <span dir="auto">{group.teacherName}</span>
                 </td>
                 <td className="px-4 py-3">
-                  <SeatsMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
+                  <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={group.status} />

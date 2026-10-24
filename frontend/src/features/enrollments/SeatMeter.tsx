@@ -2,28 +2,29 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Seats as "enrolled / capacity" plus a thin bar, with a "Full" badge when no seat is left (meaningful from
- * Day 48, when enrolments exist). The number pair is isolated left-to-right so "12 / 20" never reverses inside
- * an Arabic row; the bar is decorative (the text carries the value), so it is hidden from assistive tech.
+ * Seats as "enrolled / capacity" plus a thin bar, with a "Full" badge when no seat is left. Both numbers come
+ * from the server and are only displayed: the count is advisory, and the server's 409 decides who gets the last
+ * seat. The number pair is isolated as LTR so "12 / 20" never reverses inside an Arabic row; the bar is
+ * decorative (the text carries the value), so it is hidden from assistive tech.
  */
-export function SeatsMeter({
+export function SeatMeter({
   enrolled,
   capacity,
-  size = "sm",
+  size = "compact",
 }: {
   enrolled: number;
   capacity: number;
-  size?: "sm" | "lg";
+  size?: "compact" | "full";
 }) {
-  const { t } = useTranslation("groups");
+  const { t } = useTranslation("enrollments");
   const isFull = capacity > 0 && enrolled >= capacity;
   const percent = capacity > 0 ? Math.min(100, Math.round((enrolled / capacity) * 100)) : 0;
 
   return (
-    <div className={size === "lg" ? "w-full space-y-2" : "w-32 space-y-1.5"}>
+    <div className={size === "full" ? "w-full space-y-2" : "w-32 space-y-1.5"}>
       <div className="flex items-center gap-2">
         <span
-          className={size === "lg" ? "text-2xl font-semibold tabular-nums" : "text-sm tabular-nums"}
+          className={size === "full" ? "text-2xl font-semibold tabular-nums" : "text-sm tabular-nums"}
           dir="ltr"
           aria-label={t("seats.label", {
             enrolledText: String(enrolled),
