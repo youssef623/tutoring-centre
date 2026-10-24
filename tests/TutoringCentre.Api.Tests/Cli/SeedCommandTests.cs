@@ -233,4 +233,44 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
             await factory.ScalarAsync<long>(
                 "select count(*) from academics.teachers where user_id is null"));
     }
+
+    [Fact]
+    public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoEnrollmentsIdempotently_LeavingOneSeatInTheTwoSeatGroup()
+    {
+        var firstExitCode = await SeedCommand.RunAsync(factory.Services);
+        var firstCounts = await EnrollmentCountsAsync();
+        var secondExitCode = await SeedCommand.RunAsync(factory.Services);
+
+        Assert.Equal(0, firstExitCode);
+        Assert.Equal(0, secondExitCode);
+        Assert.Equal(firstCounts, await EnrollmentCountsAsync());
+        Assert.Equal("maadi-hub:6,nile-centre:25", firstCounts);
+        Assert.Equal(31, await factory.ScalarAsync<long>("select count(*) from academics.enrollments where status = 'active'"));
+        Assert.Equal(0, await factory.ScalarAsync<long>("select count(*) from academics.enrollments where status != 'active'"));
+
+        // Every Nile group has students, and the two-seat demo group has exactly one seat free.
+        Assert.Equal(
+            "1/2,6/15,8/20,10/20",
+            await factory.ScalarAsync<string>(
+                """
+                select string_agg(n || '/' || capacity, ',' order by capacity, n) from (
+                    select g.capacity, count(e.id) as n from academics.groups g
+                    join platform.centres c on c.id = g.centre_id
+                    left join academics.enrollments e on e.group_id = g.id and e.status = 'active'
+                    where c.slug = 'nile-centre'
+                    group by g.id, g.capacity) as seats
+                """));
+
+        // Commands only: every seeded enrollment was audited like an enrollment made over HTTP.
+        Assert.Equal(31, await factory.ScalarAsync<long>("select count(*) from audit.audit_entries where entity_type = 'enrollment'"));
+    }
+
+    private Task<string> EnrollmentCountsAsync() =>
+        factory.ScalarAsync<string>(
+            """
+            select string_agg(slug || ':' || n, ',' order by slug) from (
+                select c.slug, count(*) as n from academics.enrollments e
+                join platform.centres c on c.id = e.centre_id
+                group by c.slug) as counts
+            """);
 }
