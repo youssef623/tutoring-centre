@@ -87,6 +87,37 @@ public sealed class AssignGroupTeacherHandlerTests
         Assert.Equal(sut.CurrentTeacher.Id, sut.Group.TeacherId);
     }
 
+    [Fact]
+    public async Task HandleAsync_ActiveTeacher_MovesFutureScheduledSessionsAndLeavesPastAndCancelledOnes()
+    {
+        var teachers = new FakeTeacherRepository();
+        var currentTeacher = Teacher.Create(NileCentreId, "Amina Hassan", null).Value;
+        var otherTeacher = Teacher.Create(NileCentreId, "Youssef Kamal", null).Value;
+        teachers.Existing.AddRange([currentTeacher, otherTeacher]);
+        var group = Group.Create(NileCentreId, "Grade 10 A", Guid.CreateVersion7(), currentTeacher.Id, 20).Value;
+        var groups = new FakeGroupRepository();
+        groups.Existing.Add(group);
+
+        var rule = ScheduleTestData.SaturdayRule(group.Id, ScheduleTestData.Today.AddDays(-14));
+        var generated = ScheduleTestData.Sessions(rule, currentTeacher.Id, ScheduleTestData.Today.AddDays(-14), ScheduleTestData.Today.AddDays(27));
+        var sessions = new FakeClassSessionRepository();
+        sessions.Existing.AddRange(generated);
+        var cancelled = generated[^1];
+        cancelled.Cancel(ScheduleTestData.Now);
+        var handler = new AssignGroupTeacherHandler(ScheduleTestData.Clock(), groups, teachers, sessions);
+
+        var result = await handler.HandleAsync(new AssignGroupTeacherCommand(group.Id, otherTeacher.Id, 0), CancellationToken.None);
+
+        Assert.True(result.IsSuccess, result.Error?.Message);
+        var past = generated.Where(session => session.StartsAt <= ScheduleTestData.Now).ToList();
+        var futureScheduled = generated.Where(session => session.StartsAt > ScheduleTestData.Now && session != cancelled).ToList();
+        Assert.NotEmpty(past);
+        Assert.NotEmpty(futureScheduled);
+        Assert.All(past, session => Assert.Equal(currentTeacher.Id, session.TeacherId));
+        Assert.All(futureScheduled, session => Assert.Equal(otherTeacher.Id, session.TeacherId));
+        Assert.Equal(currentTeacher.Id, cancelled.TeacherId);
+    }
+
     private static Sut CreateSut()
     {
         var teachers = new FakeTeacherRepository();
