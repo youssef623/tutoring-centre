@@ -12,7 +12,7 @@ public sealed class ArchiveGroupHandlerTests
     [Fact]
     public async Task HandleAsync_UnknownId_ReturnsNotFound()
     {
-        var handler = new ArchiveGroupHandler(new FakeGroupRepository());
+        var handler = NewHandler(new FakeGroupRepository());
 
         var result = await handler.HandleAsync(new ArchiveGroupCommand(Guid.CreateVersion7(), 0), CancellationToken.None);
 
@@ -27,7 +27,7 @@ public sealed class ArchiveGroupHandlerTests
         var group = NewGroup();
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
-        var handler = new ArchiveGroupHandler(repository);
+        var handler = NewHandler(repository);
 
         var result = await handler.HandleAsync(new ArchiveGroupCommand(group.Id, 0), CancellationToken.None);
 
@@ -42,7 +42,7 @@ public sealed class ArchiveGroupHandlerTests
         group.Archive();
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
-        var handler = new ArchiveGroupHandler(repository);
+        var handler = NewHandler(repository);
 
         var result = await handler.HandleAsync(new ArchiveGroupCommand(group.Id, 0), CancellationToken.None);
 
@@ -58,7 +58,7 @@ public sealed class ArchiveGroupHandlerTests
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
         repository.ActiveEnrollmentCounts[group.Id] = 1;
-        var handler = new ArchiveGroupHandler(repository);
+        var handler = NewHandler(repository);
 
         var result = await handler.HandleAsync(new ArchiveGroupCommand(group.Id, 0), CancellationToken.None);
 
@@ -75,7 +75,7 @@ public sealed class ArchiveGroupHandlerTests
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
         repository.Versions[group.Id] = 3;
-        var handler = new ArchiveGroupHandler(repository);
+        var handler = NewHandler(repository);
 
         var result = await handler.HandleAsync(new ArchiveGroupCommand(group.Id, 2), CancellationToken.None);
 
@@ -83,6 +83,10 @@ public sealed class ArchiveGroupHandlerTests
         Assert.Equal("concurrency.stale", result.Error!.Code);
         Assert.Equal(GroupStatus.Active, group.Status);
     }
+
+    // Day 52: the handler also checks schedule rules; no rule exists in these Day 44 cases.
+    private static ArchiveGroupHandler NewHandler(FakeGroupRepository groups) =>
+        new(new FakeClock(), new FakeCentreTimeZoneProvider(), groups, new FakeScheduleRuleRepository());
 
     private static Group NewGroup() =>
         Group.Create(NileCentreId, "Grade 10 A", Guid.CreateVersion7(), Guid.CreateVersion7(), 20).Value;

@@ -100,7 +100,7 @@ public sealed class AssignGroupTeacherHandlerTests
         var groups = new FakeGroupRepository();
         groups.Existing.Add(group);
 
-        return new Sut(new AssignGroupTeacherHandler(groups, teachers), group, currentTeacher, otherTeacher, archivedTeacher);
+        return new Sut(new AssignGroupTeacherHandler(new FakeClock(), groups, teachers, new FakeClassSessionRepository()), group, currentTeacher, otherTeacher, archivedTeacher);
     }
 
     private sealed record Sut(
