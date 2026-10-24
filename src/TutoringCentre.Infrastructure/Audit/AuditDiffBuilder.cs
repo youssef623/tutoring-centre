@@ -96,6 +96,10 @@ internal static class AuditDiffBuilder
         bool boolValue => JsonValue.Create(boolValue),
         Guid guidValue => JsonValue.Create(guidValue.ToString()),
         Enum enumValue => JsonValue.Create(enumValue.ToString().ToLowerInvariant()),
+
+        // ISO and culture-invariant (Day 52's schedule rules): ToString() alone would follow the server's culture.
+        DateOnly dateValue => JsonValue.Create(dateValue.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+        TimeOnly timeValue => JsonValue.Create(timeValue.ToString("HH:mm", CultureInfo.InvariantCulture)),
         sbyte or byte or short or ushort or int or uint or long or ulong or float or double or decimal =>
             JsonValue.Create(Convert.ToDouble(value, CultureInfo.InvariantCulture)),
         _ => JsonValue.Create(value.ToString()),

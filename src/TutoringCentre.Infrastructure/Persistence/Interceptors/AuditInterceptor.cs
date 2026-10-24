@@ -106,6 +106,11 @@ internal sealed class AuditInterceptor : SaveChangesInterceptor
                 _ => throw new InvalidOperationException("Unreachable: filtered to Added, Modified or Deleted above."),
             };
 
+            if (!policy.Records(action))
+            {
+                continue;
+            }
+
             var propertyChanges = entry.Properties
                 .Select(property => new AuditPropertyChange(
                     property.Metadata.Name,

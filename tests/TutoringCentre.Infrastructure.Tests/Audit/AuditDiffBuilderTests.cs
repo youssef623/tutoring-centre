@@ -146,6 +146,22 @@ public sealed class AuditDiffBuilderTests
         Assert.Equal("""{"defaultLocale":{"before":null,"after":"en"}}""", document);
     }
 
+    [Fact]
+    public void Created_WritesDatesAndTimesAsInvariantIsoText()
+    {
+        var allowed = new HashSet<string>(StringComparer.Ordinal) { "EffectiveFrom", "StartTime" };
+        var changes = new[]
+        {
+            new AuditPropertyChange("EffectiveFrom", OriginalValue: null, CurrentValue: new DateOnly(2027, 4, 24), IsModified: false),
+            new AuditPropertyChange("StartTime", OriginalValue: null, CurrentValue: new TimeOnly(18, 0), IsModified: false),
+        };
+
+        var document = AuditDiffBuilder.Build(AuditAction.Created, allowed, changes);
+
+        Assert.Contains("\"effectiveFrom\":{\"before\":null,\"after\":\"2027-04-24\"}", document, StringComparison.Ordinal);
+        Assert.Contains("\"startTime\":{\"before\":null,\"after\":\"18:00\"}", document, StringComparison.Ordinal);
+    }
+
     private enum SubjectStatusStub
     {
         Active,

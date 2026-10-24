@@ -19,7 +19,9 @@
     "student_parent": "Student-parent link",
     "teacher": "Teacher",
     "group": "Group",
-    "enrollment": "Enrollment"
+    "enrollment": "Enrollment",
+    "schedule_rule": "Schedule rule",
+    "class_session": "Class session"
   },
   "action": {
     "created": "Created",

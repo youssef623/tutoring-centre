@@ -12,4 +12,6 @@ public enum AuditEntityType
     Teacher,
     Group,
     Enrollment,
+    ScheduleRule,
+    ClassSession,
 }

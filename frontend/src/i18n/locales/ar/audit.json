@@ -19,7 +19,9 @@
     "student_parent": "رابط طالب وولي أمر",
     "teacher": "معلم",
     "group": "فصل",
-    "enrollment": "تسجيل"
+    "enrollment": "تسجيل",
+    "schedule_rule": "قاعدة جدول",
+    "class_session": "حصة"
   },
   "action": {
     "created": "تم الإنشاء",

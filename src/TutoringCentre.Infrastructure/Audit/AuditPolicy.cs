@@ -1,4 +1,5 @@
 using TutoringCentre.Domain.Academics;
+using TutoringCentre.Domain.Academics.Scheduling;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Domain.Identity;
 
@@ -89,5 +90,29 @@ internal static class AuditPolicy
             {
                 nameof(Enrollment.StudentId), nameof(Enrollment.GroupId), nameof(Enrollment.Status), nameof(Enrollment.EndReason),
             }),
+
+        // Every action: who scheduled a group, and who ended its rule (EffectiveTo), and when.
+        [typeof(ScheduleRule)] = new AuditPolicyEntry(
+            AuditEntityType.ScheduleRule,
+            entity => ((ScheduleRule)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(ScheduleRule.GroupId),
+                nameof(ScheduleRule.DayOfWeek),
+                nameof(ScheduleRule.StartTime),
+                nameof(ScheduleRule.DurationMinutes),
+                nameof(ScheduleRule.Room),
+                nameof(ScheduleRule.EffectiveFrom),
+                nameof(ScheduleRule.EffectiveTo),
+            }),
+
+        // Updated only: generated sessions are derived from their audited rule, and dozens of creation rows per rule
+        // would bury the log. A cancellation (Status) or a teacher reassignment (TeacherId) is a decision, so it is
+        // recorded.
+        [typeof(ClassSession)] = new AuditPolicyEntry(
+            AuditEntityType.ClassSession,
+            entity => ((ClassSession)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal) { nameof(ClassSession.Status), nameof(ClassSession.TeacherId) },
+            Actions: new HashSet<AuditAction> { AuditAction.Updated }),
     };
 }
