@@ -13,6 +13,14 @@ import {
   useRestoreTeacher,
   type TeacherDto,
 } from "@/api/generated/tutoring-centre";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableColumn,
+  DataTableHead,
+  DataTableRow,
+} from "@/components/shared/DataTable";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PhoneText } from "@/components/shared/PhoneText";
 import { StatTile } from "@/components/shared/StatTile";
@@ -113,7 +121,7 @@ export function TeachersList({
   if (isPending) {
     return (
       <div role="status" aria-label={t("loading.label")} className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
@@ -178,125 +186,118 @@ export function TeachersList({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatTile icon={Users} label={t("stats.activeTeachers")} value={active.length} />
         <StatTile icon={UserCheck} label={t("stats.linkedAccounts")} value={linkedCount} />
         <StatTile icon={UsersRound} label={t("stats.activeGroups")} value={groupCount} />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.name")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.phone")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.account")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.activeGroups")}</th>
-              <th className="px-4 py-2.5 text-start font-medium">{t("columns.status")}</th>
-              {canManage && (
-                <th className="px-4 py-2.5 text-end font-medium">
-                  <span className="sr-only">{t("columns.actions")}</span>
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {data.items.map((teacher) => {
-              const isArchived = teacher.status === "archived";
-              const groups = Number(teacher.activeGroupCount);
+      <DataTable className="sm:min-w-[720px]">
+        <DataTableHead>
+          <DataTableColumn>{t("columns.name")}</DataTableColumn>
+          <DataTableColumn>{t("columns.phone")}</DataTableColumn>
+          <DataTableColumn>{t("columns.account")}</DataTableColumn>
+          <DataTableColumn>{t("columns.activeGroups")}</DataTableColumn>
+          {canManage && <DataTableColumn hidden>{t("columns.actions")}</DataTableColumn>}
+        </DataTableHead>
+        <DataTableBody>
+          {data.items.map((teacher) => {
+            const isArchived = teacher.status === "archived";
+            const groups = Number(teacher.activeGroupCount);
 
-              return (
-                <tr key={teacher.id} className={isArchived ? "text-muted-foreground" : undefined}>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
-                        aria-hidden="true"
-                      >
-                        {initialsOf(teacher.fullName)}
-                      </span>
-                      <span className="font-medium" dir="auto">
-                        {teacher.fullName}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{teacher.phone === null ? "—" : <PhoneText value={teacher.phone} />}</td>
-                  <td className="px-4 py-3">
-                    {teacher.userDisplayName === null ? (
-                      <span className="text-muted-foreground">{t("account.none")}</span>
-                    ) : (
-                      <Badge variant="secondary" className="gap-1">
-                        <Link2 className="size-3" aria-hidden="true" />
-                        <span dir="auto">{teacher.userDisplayName}</span>
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">{t("columns.activeGroupsCount", { count: groups, countText: String(groups) })}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={teacher.status} />
-                  </td>
-                  {canManage && (
-                    <td className="px-4 py-3 text-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={t("actions.openMenu", { name: teacher.fullName })}
-                            />
-                          }
-                        >
-                          <MoreVertical className="size-4" aria-hidden="true" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {isArchived ? (
-                            <DropdownMenuItem
-                              disabled={restoringId === teacher.id}
-                              onClick={() => {
-                                void handleRestore(teacher);
-                              }}
-                            >
-                              {t("actions.restore")}
-                            </DropdownMenuItem>
-                          ) : (
-                            <>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  onEdit(teacher);
-                                }}
-                              >
-                                {t("actions.edit")}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setAccountTarget(teacher);
-                                }}
-                              >
-                                {t("actions.account")}
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => {
-                                  setArchiveTarget(teacher);
-                                }}
-                              >
-                                {t("actions.archive")}
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
+            return (
+              <DataTableRow key={teacher.id} muted={isArchived}>
+                <DataTableCell kind="primary">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
+                      aria-hidden="true"
+                    >
+                      {initialsOf(teacher.fullName)}
+                    </span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <bdi className="font-medium">{teacher.fullName}</bdi>
+                      {isArchived && <StatusBadge status="archived" />}
+                    </span>
+                  </div>
+                </DataTableCell>
+                <DataTableCell label={t("columns.phone")}>
+                  {teacher.phone === null ? "—" : <PhoneText value={teacher.phone} />}
+                </DataTableCell>
+                <DataTableCell label={t("columns.account")}>
+                  {teacher.userDisplayName === null ? (
+                    <span className="text-muted-foreground">{t("account.none")}</span>
+                  ) : (
+                    <Badge variant="secondary" className="gap-1">
+                      <Link2 className="size-3" aria-hidden="true" />
+                      <bdi>{teacher.userDisplayName}</bdi>
+                    </Badge>
                   )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                </DataTableCell>
+                <DataTableCell label={t("columns.activeGroups")}>
+                  {t("columns.activeGroupsCount", { count: groups, countText: String(groups) })}
+                </DataTableCell>
+                {canManage && (
+                  <DataTableCell kind="actions">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={t("actions.openMenu", { name: teacher.fullName })}
+                        />
+                      }
+                    >
+                      <MoreVertical className="size-4" aria-hidden="true" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {isArchived ? (
+                        <DropdownMenuItem
+                          disabled={restoringId === teacher.id}
+                          onClick={() => {
+                            void handleRestore(teacher);
+                          }}
+                        >
+                          {t("actions.restore")}
+                        </DropdownMenuItem>
+                      ) : (
+                        <>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              onEdit(teacher);
+                            }}
+                          >
+                            {t("actions.edit")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setAccountTarget(teacher);
+                            }}
+                          >
+                            {t("actions.account")}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => {
+                              setArchiveTarget(teacher);
+                            }}
+                          >
+                            {t("actions.archive")}
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  </DataTableCell>
+                )}
+              </DataTableRow>
+            );
+          })}
+        </DataTableBody>
+      </DataTable>
 
       {accountTarget !== null && (
         <TeacherAccountDialog

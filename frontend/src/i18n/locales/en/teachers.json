@@ -2,7 +2,8 @@
   "page": {
     "title": "Teachers",
     "subtitle": "The people who teach your groups, and the staff accounts they sign in with.",
-    "showArchived": "Show archived"
+    "showArchived": "Show archived",
+    "filtersLabel": "Filter teachers"
   },
   "stats": {
     "activeTeachers": "Active teachers",

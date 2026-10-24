@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { Permissions } from "@/features/session/permissions";
+import { FilterBar } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 const DefaultPageSize = 50;
 
@@ -60,10 +62,10 @@ function AuditPageContent() {
   };
 
   return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
+    <section className="space-y-6">
+      <PageHeader title={t("page.title")} description={t("page.subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
+      <FilterBar label={t("page.filtersLabel")}>
         <div className="space-y-1.5">
           <Label htmlFor="audit-entity-type">{t("filters.entityTypeLabel")}</Label>
           <Select
@@ -111,7 +113,7 @@ function AuditPageContent() {
             }}
           />
         </div>
-      </div>
+      </FilterBar>
 
       <AuditLog filters={filters} />
     </section>

@@ -1,6 +1,8 @@
 {
   "page": {
-    "title": "Audit log"
+    "title": "Audit log",
+    "subtitle": "Every change made in this centre, newest first.",
+    "filtersLabel": "Filter the audit log"
   },
   "filters": {
     "entityTypeLabel": "Entity type",

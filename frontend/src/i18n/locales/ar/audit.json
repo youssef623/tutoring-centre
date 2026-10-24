@@ -1,6 +1,8 @@
 {
   "page": {
-    "title": "سجل النشاط"
+    "title": "سجل النشاط",
+    "subtitle": "كل تغيير تم في هذا المركز، الأحدث أولًا.",
+    "filtersLabel": "تصفية سجل النشاط"
   },
   "filters": {
     "entityTypeLabel": "نوع العنصر",

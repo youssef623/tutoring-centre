@@ -12,6 +12,8 @@ import { Permissions } from "@/features/session/permissions";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { SubjectSelect } from "@/features/subjects/SubjectSelect";
 import { TeacherSelect } from "@/features/teachers/TeacherSelect";
+import { FilterBar, FilterToggle } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export interface GroupsSearch {
   subject?: string;
@@ -60,24 +62,20 @@ function GroupsPageContent() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("page.subtitle")}</p>
-        </div>
-        <Can permission={Permissions.GroupsManage}>
-          <Button type="button" onClick={openCreate}>
-            <Plus className="size-4" aria-hidden="true" />
-            {t("actions.create")}
-          </Button>
-        </Can>
-      </div>
+      <PageHeader
+        title={t("page.title")}
+        description={t("page.subtitle")}
+        actions={
+          <Can permission={Permissions.GroupsManage}>
+            <Button type="button" onClick={openCreate}>
+              <Plus className="size-4" aria-hidden="true" />
+              {t("actions.create")}
+            </Button>
+          </Can>
+        }
+      />
 
-      <div
-        role="search"
-        aria-label={t("filters.label")}
-        className="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card p-4"
-      >
+      <FilterBar label={t("filters.label")}>
         <div className="w-full space-y-1.5 sm:w-56">
           <Label htmlFor="groups-filter-subject">{t("filters.subject")}</Label>
           <SubjectSelect
@@ -102,7 +100,7 @@ function GroupsPageContent() {
             />
           </div>
         </Can>
-        <div className="flex min-h-8 items-center gap-2">
+        <FilterToggle>
           <Switch
             id="groups-show-archived"
             checked={archived}
@@ -111,8 +109,8 @@ function GroupsPageContent() {
             }}
           />
           <Label htmlFor="groups-show-archived">{t("filters.showArchived")}</Label>
-        </div>
-        <div className="flex min-h-8 items-center gap-2">
+        </FilterToggle>
+        <FilterToggle>
           <Switch
             id="groups-free-seats"
             checked={freeSeats}
@@ -121,8 +119,8 @@ function GroupsPageContent() {
             }}
           />
           <Label htmlFor="groups-free-seats">{tEnrollments("groupsFilter.freeSeats")}</Label>
-        </div>
-      </div>
+        </FilterToggle>
+      </FilterBar>
 
       <GroupsList
         subjectId={subject}

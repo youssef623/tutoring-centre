@@ -65,7 +65,8 @@ test("owner: add, rename, archive, show archived, restore a subject", async ({ p
   await archivedRow.getByRole("button", { name: "Open actions menu" }).click();
   await page.getByRole("menuitem", { name: "Restore" }).click();
   await expect(page.getByText("Subject restored.")).toBeVisible();
-  await expect(archivedRow.getByText("Active")).toBeVisible();
+  // Active rows carry no status badge; restoring removes the "Archived" one.
+  await expect(archivedRow.getByText("Archived")).toHaveCount(0);
 });
 
 test("two centres see different subject lists, including for a teacher switching between them", async ({ page }) => {

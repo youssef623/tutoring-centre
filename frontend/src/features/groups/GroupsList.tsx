@@ -4,6 +4,14 @@ import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
 import { useListGroups } from "@/api/generated/tutoring-centre";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableColumn,
+  DataTableHead,
+  DataTableRow,
+} from "@/components/shared/DataTable";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { StatTile } from "@/components/shared/StatTile";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -47,7 +55,7 @@ export function GroupsList({
   if (isPending) {
     return (
       <div role="status" aria-label={t("loading.label")} className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
@@ -123,7 +131,7 @@ export function GroupsList({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatTile icon={UsersRound} label={t("stats.activeGroups")} value={active.length} />
         <StatTile icon={Armchair} label={t("stats.openSeats")} value={Math.max(0, capacity - enrolled)} />
         <StatTile icon={CircleSlash} label={t("stats.fullGroups")} value={fullCount} />
@@ -132,47 +140,46 @@ export function GroupsList({
       {rows.length === 0 ? (
         <EmptyState icon={CircleSlash} title={t("emptyState.noMatchTitle")} description={t("emptyState.noMatchDescription")} />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className="bg-muted/50 text-muted-foreground">
-              <tr>
-                <th className="px-4 py-2.5 text-start font-medium">{t("columns.name")}</th>
-                <th className="px-4 py-2.5 text-start font-medium">{t("columns.subject")}</th>
-                <th className="px-4 py-2.5 text-start font-medium">{t("columns.teacher")}</th>
-                <th className="px-4 py-2.5 text-start font-medium">{t("columns.seats")}</th>
-                <th className="px-4 py-2.5 text-start font-medium">{t("columns.status")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {rows.map((group) => (
-                <tr key={group.id} className={group.status === "archived" ? "text-muted-foreground" : undefined}>
-                  <td className="px-4 py-3">
-                    <Link
-                      to="/groups/$groupId"
-                      params={{ groupId: group.id }}
-                      search={{ tab: "overview" }}
-                      className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                    >
-                      <span dir="auto">{group.name}</span>
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span dir="auto">{group.subjectName}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span dir="auto">{group.teacherName}</span>
-                  </td>
-                  <td className="px-4 py-3">
+          <DataTable className="sm:min-w-[720px]">
+          <DataTableHead>
+            <DataTableColumn>{t("columns.name")}</DataTableColumn>
+            <DataTableColumn>{t("columns.subject")}</DataTableColumn>
+            <DataTableColumn>{t("columns.teacher")}</DataTableColumn>
+            <DataTableColumn>{t("columns.seats")}</DataTableColumn>
+          </DataTableHead>
+          <DataTableBody>
+            {rows.map((group) => {
+              const isArchived = group.status === "archived";
+
+              return (
+                <DataTableRow key={group.id} muted={isArchived}>
+                  <DataTableCell kind="primary">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <Link
+                        to="/groups/$groupId"
+                        params={{ groupId: group.id }}
+                        search={{ tab: "overview" }}
+                        className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                      >
+                        <bdi>{group.name}</bdi>
+                      </Link>
+                      {isArchived && <StatusBadge status="archived" />}
+                    </span>
+                  </DataTableCell>
+                  <DataTableCell label={t("columns.subject")}>
+                    <bdi>{group.subjectName}</bdi>
+                  </DataTableCell>
+                  <DataTableCell label={t("columns.teacher")}>
+                    <bdi>{group.teacherName}</bdi>
+                  </DataTableCell>
+                  <DataTableCell label={t("columns.seats")}>
                     <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={group.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </DataTableCell>
+                </DataTableRow>
+              );
+            })}
+          </DataTableBody>
+        </DataTable>
       )}
     </div>
   );

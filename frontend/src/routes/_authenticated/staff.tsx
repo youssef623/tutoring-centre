@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Can } from "@/features/session/Can";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { Permissions } from "@/features/session/permissions";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   component: StaffPage,
@@ -29,21 +30,24 @@ function StaffPageContent() {
   const [roleTarget, setRoleTarget] = useState<StaffMemberDto | null>(null);
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
-        <Can permission={Permissions.StaffManage}>
-          <Button
-            type="button"
-            onClick={() => {
-              setCreateOpen(true);
-            }}
-          >
-            <Plus className="size-4" aria-hidden="true" />
-            {t("actions.create")}
-          </Button>
-        </Can>
-      </div>
+    <section className="space-y-6">
+      <PageHeader
+        title={t("page.title")}
+        description={t("page.subtitle")}
+        actions={
+          <Can permission={Permissions.StaffManage}>
+            <Button
+              type="button"
+              onClick={() => {
+                setCreateOpen(true);
+              }}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              {t("actions.create")}
+            </Button>
+          </Can>
+        }
+      />
 
       <StaffList
         onChangeRole={(member) => {

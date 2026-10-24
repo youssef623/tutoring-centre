@@ -9,6 +9,8 @@ import { StudentsList } from "@/features/students/StudentsList";
 import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { RouteGuard } from "@/features/session/RouteGuard";
+import { FilterBar, FilterToggle } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export interface StudentsSearch {
   q?: string;
@@ -45,26 +47,29 @@ function StudentsPageContent() {
   };
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("page.title")}</h1>
-        <Can permission={Permissions.StudentsManage}>
-          <Button render={<Link to="/students/new" />}>
-            <Plus className="size-4" aria-hidden="true" />
-            {t("actions.register")}
-          </Button>
-        </Can>
-      </div>
+    <section className="space-y-6">
+      <PageHeader
+        title={t("page.title")}
+        description={t("page.subtitle")}
+        actions={
+          <Can permission={Permissions.StudentsManage}>
+            <Button render={<Link to="/students/new" />}>
+              <Plus className="size-4" aria-hidden="true" />
+              {t("actions.register")}
+            </Button>
+          </Can>
+        }
+      />
 
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="w-full max-w-xs">
+      <FilterBar label={t("page.filtersLabel")}>
+        <div className="w-full sm:max-w-xs">
           <SearchInput value={q} onChange={setQuery} label={t("page.searchLabel")} />
         </div>
-        <div className="flex items-center gap-2">
+        <FilterToggle>
           <Switch id="show-archived" checked={archived} onCheckedChange={setArchived} />
           <Label htmlFor="show-archived">{t("page.showArchived")}</Label>
-        </div>
-      </div>
+        </FilterToggle>
+      </FilterBar>
 
       <StudentsList search={q} includeArchived={archived} />
     </section>

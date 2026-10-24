@@ -24,7 +24,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableColumn,
+  DataTableHead,
+  DataTableRow,
+} from "@/components/shared/DataTable";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -139,82 +147,71 @@ export function SubjectsList({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[480px] text-start text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.name")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.status")}</th>
-              {canManage && (
-                <th className="px-4 py-2 text-start font-medium">
-                  <span className="sr-only">{t("columns.actions")}</span>
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {data.items.map((subject) => {
-              const isArchived = subject.status === "archived";
+      <DataTable className="sm:min-w-[480px]">
+        <DataTableHead>
+          <DataTableColumn>{t("columns.name")}</DataTableColumn>
+          {canManage && <DataTableColumn hidden>{t("columns.actions")}</DataTableColumn>}
+        </DataTableHead>
+        <DataTableBody>
+          {data.items.map((subject) => {
+            const isArchived = subject.status === "archived";
 
-              return (
-                <tr key={subject.id} className={isArchived ? "text-muted-foreground" : undefined}>
-                  <td className="px-4 py-2" dir="auto">
-                    {subject.name}
-                  </td>
-                  <td className="px-4 py-2">
-                    <Badge variant={isArchived ? "outline" : "default"}>
-                      {t(isArchived ? "status.archived" : "status.active")}
-                    </Badge>
-                  </td>
-                  {canManage && (
-                    <td className="px-4 py-2 text-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.openMenu")} />
-                          }
-                        >
-                          <MoreVertical className="size-4" aria-hidden="true" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {!isArchived && (
-                            <DropdownMenuItem
-                              onClick={() => {
-                                onRename(subject);
-                              }}
-                            >
-                              {t("actions.rename")}
-                            </DropdownMenuItem>
-                          )}
-                          {!isArchived && (
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setArchiveTarget(subject);
-                              }}
-                            >
-                              {t("actions.archive")}
-                            </DropdownMenuItem>
-                          )}
-                          {isArchived && (
-                            <DropdownMenuItem
-                              disabled={restoringId === subject.id}
-                              onClick={() => {
-                                void handleRestore(subject);
-                              }}
-                            >
-                              {t("actions.restore")}
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+            return (
+              <DataTableRow key={subject.id} muted={isArchived}>
+                <DataTableCell kind="primary">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <bdi>{subject.name}</bdi>
+                    {isArchived && <StatusBadge status="archived" />}
+                  </span>
+                </DataTableCell>
+                {canManage && (
+                  <DataTableCell kind="actions">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.openMenu")} />
+                        }
+                      >
+                        <MoreVertical className="size-4" aria-hidden="true" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {!isArchived && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              onRename(subject);
+                            }}
+                          >
+                            {t("actions.rename")}
+                          </DropdownMenuItem>
+                        )}
+                        {!isArchived && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setArchiveTarget(subject);
+                            }}
+                          >
+                            {t("actions.archive")}
+                          </DropdownMenuItem>
+                        )}
+                        {isArchived && (
+                          <DropdownMenuItem
+                            disabled={restoringId === subject.id}
+                            onClick={() => {
+                              void handleRestore(subject);
+                            }}
+                          >
+                            {t("actions.restore")}
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </DataTableCell>
+                )}
+              </DataTableRow>
+            );
+          })}
+        </DataTableBody>
+      </DataTable>
 
       <AlertDialog
         open={archiveTarget !== null}

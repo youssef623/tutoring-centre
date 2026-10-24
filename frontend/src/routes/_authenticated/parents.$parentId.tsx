@@ -9,6 +9,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PhoneText } from "@/components/shared/PhoneText";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableColumn,
+  DataTableHead,
+  DataTableRow,
+} from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ParentEditDialog } from "@/features/parents/ParentEditDialog";
@@ -134,22 +142,17 @@ function ParentDetailContent({ parent }: { parent: ParentDetailDto }) {
             <p className="text-sm font-medium">{t("children.emptyState")}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full min-w-[420px] text-start text-sm">
-              <thead className="bg-muted/50 text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-2 text-start font-medium">{t("children.columns.name")}</th>
-                  <th className="px-4 py-2 text-start font-medium">{t("children.columns.relationship")}</th>
-                  <th className="px-4 py-2 text-start font-medium">{t("children.columns.status")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {parent.children.map((child) => (
-                  <ChildRow key={child.studentId} child={child} />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable className="sm:min-w-[420px]">
+            <DataTableHead>
+              <DataTableColumn>{t("children.columns.name")}</DataTableColumn>
+              <DataTableColumn>{t("children.columns.relationship")}</DataTableColumn>
+            </DataTableHead>
+            <DataTableBody>
+              {parent.children.map((child) => (
+                <ChildRow key={child.studentId} child={child} />
+              ))}
+            </DataTableBody>
+          </DataTable>
         )}
       </div>
 
@@ -160,23 +163,24 @@ function ParentDetailContent({ parent }: { parent: ParentDetailDto }) {
 
 function ChildRow({ child }: { child: ParentChildDto }) {
   const { t } = useTranslation("parents");
+  const isArchived = child.status === "archived";
 
   return (
-    <tr>
-      <td className="px-4 py-2" dir="auto">
-        <Link to="/students/$studentId" params={{ studentId: child.studentId }} className="font-medium hover:underline">
-          {child.fullName}
-        </Link>
-      </td>
-      <td className="px-4 py-2">
-        <div className="flex items-center gap-2" dir="auto">
+    <DataTableRow muted={isArchived}>
+      <DataTableCell kind="primary">
+        <span className="flex flex-wrap items-center gap-2">
+          <Link to="/students/$studentId" params={{ studentId: child.studentId }} className="font-medium hover:underline">
+            <bdi>{child.fullName}</bdi>
+          </Link>
+          {isArchived && <StatusBadge status="archived" />}
+        </span>
+      </DataTableCell>
+      <DataTableCell label={t("children.columns.relationship")}>
+        <span className="flex items-center gap-2">
           {t(`relationship.${child.relationship}`)}
           {child.isPrimary && <Badge variant="outline">{t("children.primaryBadge")}</Badge>}
-        </div>
-      </td>
-      <td className="px-4 py-2">
-        <StatusBadge status={child.status} />
-      </td>
-    </tr>
+        </span>
+      </DataTableCell>
+    </DataTableRow>
   );
 }

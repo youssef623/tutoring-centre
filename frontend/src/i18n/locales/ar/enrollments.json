@@ -1,7 +1,8 @@
 {
   "seats": {
     "label": "المشغول {enrolledText} من {capacity, plural, zero {{capacityText} مقعد} one {مقعد واحد} two {مقعدين} few {{capacityText} مقاعد} many {{capacityText} مقعدًا} other {{capacityText} مقعد}}",
-    "full": "مكتملة"
+    "full": "مكتملة",
+    "almostFull": "شبه مكتملة"
   },
   "roster": {
     "loadingLabel": "جارٍ تحميل قائمة الطلاب",

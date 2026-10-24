@@ -9,7 +9,8 @@
     "settings": "الإعدادات",
     "audit": "سجل النشاط",
     "openMenu": "فتح القائمة",
-    "closeMenu": "إغلاق القائمة"
+    "closeMenu": "إغلاق القائمة",
+    "home": "الصفحة الرئيسية لحصة"
   },
   "header": {
     "activeCentre": "المركز النشط"
@@ -27,6 +28,25 @@
   "dashboard": {
     "welcome": "مرحبًا، {name}",
     "activeCentre": "أنت تعمل في {centreName}.",
-    "placeholder": "المزيد من أدوات إدارة مركزك قريبًا."
+    "actions": {
+      "registerStudent": "تسجيل طالب",
+      "students": "الطلاب",
+      "groups": "المجموعات"
+    },
+    "loadingLabel": "جارٍ تحميل النظرة العامة",
+    "errorTitle": "تعذّر تحميل النظرة العامة",
+    "stats": {
+      "activeGroups": "المجموعات النشطة",
+      "seatsTaken": "المقاعد المشغولة",
+      "openSeats": "المقاعد المتاحة",
+      "fullGroups": "المجموعات المكتملة"
+    },
+    "fillingUp": {
+      "title": "مجموعات تقترب من الاكتمال",
+      "description": "المجموعات النشطة التي شُغل 80% أو أكثر من مقاعدها.",
+      "viewAll": "كل المجموعات",
+      "empty": "لا توجد مجموعة قريبة من الاكتمال.",
+      "noGroups": "لا توجد مجموعات نشطة بعد."
+    }
   }
 }

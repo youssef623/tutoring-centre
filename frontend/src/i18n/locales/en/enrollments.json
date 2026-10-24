@@ -1,7 +1,8 @@
 {
   "seats": {
     "label": "{enrolledText} of {capacity, plural, one {{capacityText} seat} other {{capacityText} seats}} taken",
-    "full": "Full"
+    "full": "Full",
+    "almostFull": "Almost full"
   },
   "roster": {
     "loadingLabel": "Loading the roster",

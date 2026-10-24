@@ -1,7 +1,9 @@
 {
   "page": {
     "title": "Subjects",
-    "showArchived": "Show archived"
+    "showArchived": "Show archived",
+    "subtitle": "The subjects your centre teaches; every group belongs to one.",
+    "filtersLabel": "Filter subjects"
   },
   "columns": {
     "name": "Name",

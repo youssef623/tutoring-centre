@@ -34,6 +34,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableColumn,
+  DataTableHead,
+  DataTableRow,
+} from "@/components/shared/DataTable";
 
 export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMemberDto) => void }) {
   const { t } = useTranslation("staff");
@@ -134,89 +142,78 @@ export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMember
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[640px] text-start text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.name")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.email")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.role")}</th>
-              <th className="px-4 py-2 text-start font-medium">{t("columns.status")}</th>
-              <th className="px-4 py-2 text-start font-medium">
-                <span className="sr-only">{t("columns.actions")}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {data.items.map((member) => {
-              const isInactive = member.status === "inactive";
+      <DataTable className="sm:min-w-[640px]">
+        <DataTableHead>
+          <DataTableColumn>{t("columns.name")}</DataTableColumn>
+          <DataTableColumn>{t("columns.email")}</DataTableColumn>
+          <DataTableColumn>{t("columns.role")}</DataTableColumn>
+          <DataTableColumn hidden>{t("columns.actions")}</DataTableColumn>
+        </DataTableHead>
+        <DataTableBody>
+          {data.items.map((member) => {
+            const isInactive = member.status === "inactive";
 
-              return (
-                <tr key={member.membershipId} className={isInactive ? "text-muted-foreground" : undefined}>
-                  <td className="px-4 py-2">
-                    <span className="flex items-center gap-2">
-                      <span dir="auto">{member.displayName}</span>
-                      {member.isCurrentUser && <Badge variant="secondary">{t("you")}</Badge>}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2" dir="ltr">
-                    {member.email}
-                  </td>
-                  <td className="px-4 py-2">{tAuth(`roles.${String(member.role)}`)}</td>
-                  <td className="px-4 py-2">
-                    <Badge variant={isInactive ? "outline" : "default"}>
-                      {t(isInactive ? "status.inactive" : "status.active")}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-2 text-end">
-                    {!member.isCurrentUser && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.openMenu")} />
-                          }
-                        >
-                          <MoreVertical className="size-4" aria-hidden="true" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {!isInactive && (
-                            <DropdownMenuItem
-                              onClick={() => {
-                                onChangeRole(member);
-                              }}
-                            >
-                              {t("actions.changeRole")}
-                            </DropdownMenuItem>
-                          )}
-                          {!isInactive && (
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setDeactivateTarget(member);
-                              }}
-                            >
-                              {t("actions.deactivate")}
-                            </DropdownMenuItem>
-                          )}
-                          {isInactive && (
-                            <DropdownMenuItem
-                              disabled={reactivatingId === member.membershipId}
-                              onClick={() => {
-                                void handleReactivate(member);
-                              }}
-                            >
-                              {t("actions.reactivate")}
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+            return (
+              <DataTableRow key={member.membershipId} muted={isInactive}>
+                <DataTableCell kind="primary">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <bdi>{member.displayName}</bdi>
+                    {member.isCurrentUser && <Badge variant="secondary">{t("you")}</Badge>}
+                    {isInactive && <Badge variant="outline">{t("status.inactive")}</Badge>}
+                  </span>
+                </DataTableCell>
+                <DataTableCell label={t("columns.email")} className="[overflow-wrap:anywhere]">
+                  <bdi>{member.email}</bdi>
+                </DataTableCell>
+                <DataTableCell label={t("columns.role")}>{tAuth(`roles.${String(member.role)}`)}</DataTableCell>
+                <DataTableCell kind="actions">
+                  {!member.isCurrentUser && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.openMenu")} />
+                        }
+                      >
+                        <MoreVertical className="size-4" aria-hidden="true" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {!isInactive && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              onChangeRole(member);
+                            }}
+                          >
+                            {t("actions.changeRole")}
+                          </DropdownMenuItem>
+                        )}
+                        {!isInactive && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setDeactivateTarget(member);
+                            }}
+                          >
+                            {t("actions.deactivate")}
+                          </DropdownMenuItem>
+                        )}
+                        {isInactive && (
+                          <DropdownMenuItem
+                            disabled={reactivatingId === member.membershipId}
+                            onClick={() => {
+                              void handleReactivate(member);
+                            }}
+                          >
+                            {t("actions.reactivate")}
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </DataTableCell>
+              </DataTableRow>
+            );
+          })}
+        </DataTableBody>
+      </DataTable>
 
       <AlertDialog
         open={deactivateTarget !== null}
