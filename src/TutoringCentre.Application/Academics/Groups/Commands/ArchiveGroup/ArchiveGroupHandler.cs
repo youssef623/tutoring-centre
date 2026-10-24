@@ -4,19 +4,33 @@ using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Application.Academics.Groups.Commands.ArchiveGroup;
 
-/// <summary>Orchestrates: scoped lookup → the state transition. The row is never deleted.</summary>
+/// <summary>
+/// Orchestrates: locked lookup with the active count → version check → no active enrollment → the state
+/// transition. The row is never deleted. Takes the same group lock as enrolling, so no enrollment can land
+/// between the count and the archive.
+/// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
 internal sealed class ArchiveGroupHandler(IGroupRepository groups) : ICommandHandler<ArchiveGroupCommand, Unit>
 {
     public async Task<Result<Unit>> HandleAsync(ArchiveGroupCommand command, CancellationToken cancellationToken)
     {
-        var group = await groups.GetByIdAsync(command.GroupId, command.Version, cancellationToken);
-        if (group is null)
+        var locked = await groups.GetForEnrollmentAsync(command.GroupId, cancellationToken);
+        if (locked is null)
         {
             return Result<Unit>.Failure(GroupErrors.NotFound());
         }
 
-        var archived = group.Archive();
+        if (!groups.IsAtVersion(locked.Group, command.Version))
+        {
+            return Result<Unit>.Failure(GroupErrors.Stale());
+        }
+
+        if (locked.ActiveEnrollmentCount > 0)
+        {
+            return Result<Unit>.Failure(GroupErrors.HasActiveEnrollments());
+        }
+
+        var archived = locked.Group.Archive();
         return archived.IsFailure ? Result<Unit>.Failure(archived.Error!) : Result<Unit>.Success(Unit.Value);
     }
 }

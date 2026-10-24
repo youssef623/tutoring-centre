@@ -180,7 +180,7 @@ an acceptable fix for a real violation.
 - [ADR 0008 — Audit log written in the command's own transaction](../adr/0008-audit-log-in-transaction.md)
 - [ADR 0009 — Azure Container Apps and OIDC](../adr/0009-azure-container-apps-and-oidc.md)
 - [ADR 0010 — Student aggregate and value objects (draft)](../adr/0010-student-aggregate-and-value-objects.md)
-- [ADR 0011 — Pessimistic lock for enrollment capacity (draft)](../adr/0011-pessimistic-lock-for-enrollment-capacity.md)
+- [ADR 0011 — Pessimistic lock for enrollment capacity](../adr/0011-pessimistic-lock-for-enrollment-capacity.md)
 - [API conventions](api-conventions.md)
 - [Authentication: login, sessions, CSRF, revocation](authentication.md)
 - [Tenant isolation: the role model, and layers 1–4](tenancy.md)

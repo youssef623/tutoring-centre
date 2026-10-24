@@ -15,6 +15,13 @@ internal static class GroupErrors
         ErrorKind.Conflict,
         new Dictionary<string, string[]> { ["name"] = ["A group with this name already exists."] });
 
+    /// <summary>Matches the Conflict the save reports for a stale row version, for the locked loads that compare it in the handler.</summary>
+    public static Error Stale() =>
+        Error.Conflict("concurrency.stale", "This record was changed by someone else. Reload and try again.");
+
+    public static Error HasActiveEnrollments() =>
+        Error.Rule("group.has_active_enrollments", "This group still has enrolled students.");
+
     public static Error SubjectArchived() => Error.Rule("group.subject_archived", "This subject is archived.");
 
     public static Error TeacherArchived() => Error.Rule("group.teacher_archived", "This teacher is archived.");

@@ -4,21 +4,28 @@ using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Application.Academics.Groups.Commands.ChangeGroupCapacity;
 
-/// <summary>Orchestrates: scoped lookup → the range rule on the entity. Its own command so a later lock stays local to it.</summary>
+/// <summary>
+/// Orchestrates: locked lookup with the active count → version check → the range and shrink rules on the entity.
+/// Takes the same group lock as enrolling (ADR 0011): an unlocked load would let a concurrent enrollment slip in
+/// between the count and the shrink and leave more students than seats.
+/// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
 internal sealed class ChangeGroupCapacityHandler(IGroupRepository groups) : ICommandHandler<ChangeGroupCapacityCommand, Unit>
 {
     public async Task<Result<Unit>> HandleAsync(ChangeGroupCapacityCommand command, CancellationToken cancellationToken)
     {
-        var group = await groups.GetByIdAsync(command.GroupId, command.Version, cancellationToken);
-        if (group is null)
+        var locked = await groups.GetForEnrollmentAsync(command.GroupId, cancellationToken);
+        if (locked is null)
         {
             return Result<Unit>.Failure(GroupErrors.NotFound());
         }
 
-        // No enrollments can exist yet: Task 48.8 replaces this 0 with the real active count, read under the
-        // group's row lock.
-        var changed = group.ChangeCapacity(command.Capacity, activeEnrollmentCount: 0);
+        if (!groups.IsAtVersion(locked.Group, command.Version))
+        {
+            return Result<Unit>.Failure(GroupErrors.Stale());
+        }
+
+        var changed = locked.Group.ChangeCapacity(command.Capacity, locked.ActiveEnrollmentCount);
         return changed.IsFailure ? Result<Unit>.Failure(changed.Error!) : Result<Unit>.Success(Unit.Value);
     }
 }
