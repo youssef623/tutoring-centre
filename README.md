@@ -92,7 +92,9 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    Maadi Learning Hub gets Mathematics and Physics — visible from the app's Subjects page (below) once signed
    in, along with a set of demo students and the parents linked to them. Nile also gets two teachers, "كريم
    فتحي" (linked to `teacher@both.test`) and "منى السيد", and four groups — the linked teacher teaches exactly
-   one of them; Maadi gets one teacher linked to the same account and two groups.
+   one of them; Maadi gets one teacher linked to the same account and two groups. The groups come with demo
+   enrollments, and Nile's two-seat group "رياضيات - المجموعة ب" is left one seat short of full, ready to show
+   what happens to the last seat.
 
 6. **Run the frontend** in a second terminal, then open http://localhost:5173 — signed out, this redirects to
    `/login`; sign in with any seeded email above and the password you chose in step 5. From the sidebar,
@@ -103,8 +105,11 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    to four parents; a parent's own page edits their contact details and lists every child linked to them.
    **Teachers** lists the centre's teachers (an owner adds, edits, archives them and links one to a staff
    account; a secretary reads), and **Groups** lists the centre's groups with seats, filterable by subject and
-   teacher, each with its own page (rename, capacity, teacher, archive). A teacher signed in as
-   `teacher@both.test` sees only the groups they teach — a different set per selected centre. An
+   teacher, each with its own page (rename, capacity, teacher, archive). A group's **Roster** tab lists its
+   students and seats; a secretary or owner enrolls a student found by search, transfers one to another group
+   of the same subject, or withdraws one, and a full group refuses politely. A student's page lists their
+   current and past groups and can enroll them from there. A teacher signed in as `teacher@both.test` sees only
+   the groups they teach — a different set per selected centre — and their rosters, read-only. An
    owner also sees **Staff** (add, change role, deactivate, reactivate), **Settings** (centre name, default
    language) and **Audit log** (filterable, infinite-scroll history of every change above); a new staff member
    is forced through a password change on first sign-in.
@@ -184,7 +189,7 @@ flowchart TD
 - [ADR 0008 — Audit log written in the command's own transaction](docs/adr/0008-audit-log-in-transaction.md)
 - [ADR 0009 — Azure Container Apps and OIDC](docs/adr/0009-azure-container-apps-and-oidc.md)
 - [ADR 0010 — Student aggregate and value objects](docs/adr/0010-student-aggregate-and-value-objects.md)
-- [ADR 0011 — Pessimistic lock for enrollment capacity (draft)](docs/adr/0011-pessimistic-lock-for-enrollment-capacity.md)
+- [ADR 0011 — Pessimistic lock for enrollment capacity](docs/adr/0011-pessimistic-lock-for-enrollment-capacity.md)
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Tenant isolation: the role model, and all four layers](docs/architecture/tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)

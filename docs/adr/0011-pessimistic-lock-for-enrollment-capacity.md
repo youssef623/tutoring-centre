@@ -1,7 +1,8 @@
 # ADR 0011: Pessimistic lock for enrollment capacity
 
-- **Status:** Accepted (Day 48: `IGroupRepository.GetForEnrollmentAsync` and `LastSeatConcurrencyTests`)
-- **Date:** 2026-10-23
+- **Status:** Accepted (Day 48: `IGroupRepository.GetForEnrollmentAsync` and `LastSeatConcurrencyTests`);
+  final on Day 50, with the HTTP and browser evidence listed under "Evidence"
+- **Date:** 2026-10-23 (accepted), 2026-10-24 (final)
 
 ## Context
 
@@ -106,6 +107,49 @@ A transfer locks **only its target group**: only the target's capacity is at ris
 loses a seat. Every command therefore takes at most one group lock, so two opposite transfers (A to B and B to A)
 can never wait on each other in a cycle, and no lock ordering rule is needed. An earlier draft of this ADR
 expected a transfer to lock both groups in a fixed order; locking only the target removes the need.
+
+**What the user sees.** Because the server is the only judge of the last seat, the browser treats its own seat
+count as advisory: the roster and the groups list show the server's `enrolledCount`, the "Enroll student" button
+is disabled at capacity only as a courtesy, and nothing is updated optimistically. A `409 group.full` is an
+ordinary outcome of two people working at once — the dialog stays open, says "This group is full", and the
+roster and group are refetched — never an error screen (Day 50, `useEnrollmentMutations`).
+
+**What it costs.** A writer waits while another writer of the same group holds the lock, so a burst of enrollments
+into one popular group is processed one at a time. Every future command that decides from the count (a waiting
+list, a per-subject limit) must go through `GetForEnrollmentAsync` too, or it reintroduces the race; the
+concurrency tests below only cover the commands that exist today.
+
+## Evidence
+
+These fail when the `FOR UPDATE` in `GroupRepository.GetForEnrollmentAsync` is removed (checked on Day 50 by
+removing it, running them, and restoring it):
+
+- `tests/TutoringCentre.Infrastructure.Tests/Academics/LastSeatConcurrencyTests.cs` (real PostgreSQL):
+  - `TenParallelEnrollmentsIntoTheLastSeat_ExactlyOneSucceedsAndNineGetGroupFull_AcrossTwentyRepetitions`
+  - `FiftyParallelEnrollmentsIntoASingleSeatGroup_ExactlyOneSucceeds`
+  - `EnrollAndShrinkInParallel_NeverLeaveMoreStudentsThanSeats`
+- `tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs`:
+  - `TenParallelEnrollRequestsIntoTheLastSeat_ExactlyOne201AndNine409GroupFull_AcrossFiveRepetitions` (the same
+    race through the whole HTTP pipeline, ending in `409` with `code: group.full`)
+
+These pin the neighbouring rules and pass with or without the lock, because something else enforces them:
+
+- `LastSeatConcurrencyTests.TheSameStudentEnrolledTwiceInParallel_OneSucceedsAndTheOtherGetsAlreadyEnrolled` —
+  the partial unique index `ux_enrollments_active_student_group`, not the lock.
+- `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTransferTests.cs`:
+  `Transfer_IntoAFullTarget_ReturnsGroupFullAndLeavesBothGroupsUnchanged` (the Domain's `group.full` on a
+  sequential transfer) and `TwoOppositeTransfersInParallel_BothCompleteWithoutDeadlock_AcrossTwentyRepetitions`
+  (the "one lock per command" consequence: no lock cycle, so no ordering rule). The second guards against a
+  future change that locks both groups, rather than against removing the lock.
+
+And the client side of the decision, that a refusal is a normal state rather than a failure:
+
+- `frontend/src/features/enrollments/EnrollStudentDialog.test.tsx`:
+  "409 group.full keeps the dialog open with its message and refetches the roster and the group"
+- `frontend/src/features/enrollments/TransferDialog.test.tsx`:
+  "409 group.full keeps the student, shows the message and refetches the target list"
+- `frontend/e2e/enrollment.spec.ts`: "secretary: fills a two-seat group, sees a full group refuse politely,
+  transfers and withdraws" — two browser windows, one takes the last seat, the other is told "This group is full".
 
 This ADR was drafted before the implementation, on purpose: the sequence above is the design Day 48 implemented
 against, and it was accepted once that implementation and its concurrency tests existed.
