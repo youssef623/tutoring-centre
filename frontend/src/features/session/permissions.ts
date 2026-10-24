@@ -14,6 +14,8 @@ export const Permissions = {
   GroupsManage: "groups.manage",
   EnrollmentsView: "enrollments.view",
   EnrollmentsManage: "enrollments.manage",
+  ScheduleView: "schedule.view",
+  ScheduleManage: "schedule.manage",
 } as const;
 
 export type Permission = (typeof Permissions)[keyof typeof Permissions];

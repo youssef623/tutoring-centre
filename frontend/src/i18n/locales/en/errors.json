@@ -102,7 +102,8 @@
       "archived": "This group is archived and accepts no enrollments.",
       "full": "This group is full. No seats are left.",
       "capacity_below_enrolled": "Capacity cannot be lower than the number of students already enrolled.",
-      "has_active_enrollments": "This group still has enrolled students. Transfer or withdraw them first."
+      "has_active_enrollments": "This group still has enrolled students. Transfer or withdraw them first.",
+      "has_active_schedule": "This group still has an active schedule. End it first."
     },
     "enrollment": {
       "centre_required": "A centre is required.",
@@ -115,6 +116,22 @@
       "already_enrolled": "This student is already enrolled in this group.",
       "same_group": "The student is already in this group. Choose a different group.",
       "subject_mismatch": "A transfer must be to a group of the same subject."
+    },
+    "schedule": {
+      "centre_required": "A centre is required.",
+      "group_required": "A group is required.",
+      "duration_invalid": "Duration must be 30-240 minutes in steps of 5.",
+      "start_time_invalid": "Start time must be on a 5-minute boundary.",
+      "room_invalid": "Room must be at most 40 characters.",
+      "rule_already_ended": "This schedule has already ended.",
+      "rule_end_invalid": "A schedule cannot end before the date it starts.",
+      "session_already_cancelled": "This session is already cancelled.",
+      "session_in_past": "A session that has started cannot be cancelled.",
+      "teacher_double_booked": "The teacher already has a session at this time.",
+      "group_double_booked": "This group already has a session at this time.",
+      "rule_not_found": "This schedule could not be found.",
+      "session_not_found": "This session could not be found.",
+      "range_invalid": "The end date must be on or after the start date."
     },
     "concurrency": {
       "stale": "This record was changed by someone else. Reload and try again."
