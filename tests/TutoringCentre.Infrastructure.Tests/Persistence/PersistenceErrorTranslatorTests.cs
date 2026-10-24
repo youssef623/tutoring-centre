@@ -123,13 +123,66 @@ public sealed class PersistenceErrorTranslatorTests
         Assert.Null(result);
     }
 
-    private static DbUpdateException UniqueViolation(string constraintName)
+    [Fact]
+    public void TryTranslate_ExclusionViolationOnTeacherOverlap_ReturnsTeacherDoubleBookedConflict()
+    {
+        var exception = ExclusionViolation("ex_class_sessions_teacher_overlap");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailure);
+        Assert.Equal("schedule.teacher_double_booked", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
+        Assert.DoesNotContain("ex_class_sessions", result.Error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TryTranslate_ExclusionViolationOnGroupOverlap_ReturnsGroupDoubleBookedConflict()
+    {
+        var exception = ExclusionViolation("ex_class_sessions_group_overlap");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailure);
+        Assert.Equal("schedule.group_double_booked", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
+    }
+
+    [Fact]
+    public void TryTranslate_ExclusionViolationOnUnlistedConstraint_IsNotTranslated()
+    {
+        var exception = ExclusionViolation("ex_something_nobody_registered");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void TryTranslate_UniqueViolationOnSessionRuleDate_IsNotTranslated()
+    {
+        var exception = UniqueViolation("ux_class_sessions_rule_date");
+
+        var result = PersistenceErrorTranslator.TryTranslate(exception, NullLogger.Instance);
+
+        Assert.Null(result);
+    }
+
+    private static DbUpdateException ExclusionViolation(string constraintName) =>
+        ConstraintViolation("23P01", "conflicting key value violates exclusion constraint", constraintName);
+
+    private static DbUpdateException UniqueViolation(string constraintName) =>
+        ConstraintViolation("23505", "duplicate key value violates unique constraint", constraintName);
+
+    private static DbUpdateException ConstraintViolation(string sqlState, string messageText, string constraintName)
     {
         var postgresException = new PostgresException(
-            messageText: "duplicate key value violates unique constraint",
+            messageText: messageText,
             severity: "ERROR",
             invariantSeverity: "ERROR",
-            sqlState: "23505",
+            sqlState: sqlState,
             detail: null,
             hint: null,
             position: 0,
