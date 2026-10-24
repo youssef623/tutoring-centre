@@ -383,3 +383,21 @@ teacher scope as groups, applied by the read services) and `enrollments.manage` 
 who is in their groups, which they need for attendance, but never enroll or withdraw anyone: enrollment drives
 fees, so only office roles change it. Enrollment changes are audited (`studentId`, `groupId`, `status`,
 `endReason`).
+### Endpoints (Day 49)
+
+| Method | Route | Use case | Permission |
+| --- | --- | --- | --- |
+| `POST` | `/groups/{groupId}/enrollments` | `EnrollStudentCommand` | `enrollments.manage` |
+| `GET` | `/groups/{groupId}/roster` | `GetGroupRosterQuery` | `enrollments.view` (scoped) |
+| `GET` | `/students/{studentId}/enrollments` | `ListStudentEnrollmentsQuery` | `enrollments.view` (scoped) |
+| `POST` | `/enrollments/{id}/withdraw` | `WithdrawEnrollmentCommand` | `enrollments.manage` |
+| `POST` | `/enrollments/{id}/transfer` | `TransferEnrollmentCommand` | `enrollments.manage` |
+
+Enrolling is a nested resource of the group: the group comes from the route only (a `groupId` in the body is an
+unknown field, `400 request.malformed`), and the `201`'s `Location` points at the roster, because a new
+enrollment has no page of its own. The student's enrollment list sits under `/students` because that is where a
+client looks, but it is an enrollment read with enrollment's permission; `GET /students/{id}` does not embed it.
+Withdraw and transfer are version-guarded actions, never an HTTP `DELETE`: an ended enrollment stays as history.
+Transfer is one endpoint dispatching one command, so ending the old enrollment and starting the new one commit
+in one transaction (`200` with the new enrollment's ID). The 404 names the first missing or foreign thing in the
+handler's lookup order — group, then student; enrollment, then target group.

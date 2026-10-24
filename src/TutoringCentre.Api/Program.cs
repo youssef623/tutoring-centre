@@ -191,6 +191,7 @@ api.MapAuthEndpoints();
 api.MapSubjectEndpoints();
 api.MapTeacherEndpoints();
 api.MapGroupEndpoints();
+api.MapEnrollmentEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();
