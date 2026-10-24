@@ -161,6 +161,35 @@ export interface CreateTeacherResponse {
   id: string;
 }
 
+export type EnrollmentEndReason = typeof EnrollmentEndReason[keyof typeof EnrollmentEndReason] | null;
+
+
+export const EnrollmentEndReason = {
+  withdrawn: 'withdrawn',
+  transferred: 'transferred',
+} as const;
+
+export type EnrollmentStatus = typeof EnrollmentStatus[keyof typeof EnrollmentStatus];
+
+
+export const EnrollmentStatus = {
+  active: 'active',
+  ended: 'ended',
+} as const;
+
+export interface EnrollmentVersionRequest {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface EnrollStudentRequest {
+  studentId: string;
+}
+
+export interface EnrollStudentResponse {
+  id: string;
+}
+
 export type GroupStatus = typeof GroupStatus[keyof typeof GroupStatus];
 
 
@@ -187,6 +216,25 @@ export interface GroupDto {
 
 export interface GroupListResponse {
   items: GroupDto[];
+}
+
+export interface RosterEntryDto {
+  enrollmentId: string;
+  studentId: string;
+  studentName: string;
+  enrolledAt: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface GroupRosterDto {
+  groupId: string;
+  groupName: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  capacity: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  enrolledCount: number | string;
+  items: RosterEntryDto[];
 }
 
 export interface GroupVersionRequest {
@@ -409,6 +457,25 @@ export interface StudentDetailDto {
   parents: StudentParentDto[];
 }
 
+export interface StudentEnrollmentDto {
+  enrollmentId: string;
+  groupId: string;
+  groupName: string;
+  subjectName: string;
+  teacherName: string;
+  status: EnrollmentStatus;
+  enrolledAt: string;
+  /** @nullable */
+  endedAt: string | null;
+  endReason: null | EnrollmentEndReason;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface StudentEnrollmentListResponse {
+  items: StudentEnrollmentDto[];
+}
+
 export interface StudentListItemDto {
   id: string;
   fullName: string;
@@ -496,6 +563,16 @@ export interface TeacherListResponse {
 export interface TeacherVersionRequest {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   version: number | string;
+}
+
+export interface TransferEnrollmentRequest {
+  targetGroupId: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface TransferEnrollmentResponse {
+  id: string;
 }
 
 export interface UpdateCentreSettingsRequest {
@@ -3016,6 +3093,445 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRestoreGroupMutationOptions(options), queryClient);
+    }
+
+export const getEnrollStudentUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/enrollments`
+}
+
+export const enrollStudent = async (groupId: string,
+    enrollStudentRequest: EnrollStudentRequest, options?: Parameters<typeof apiFetch>[1]): Promise<EnrollStudentResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EnrollStudentResponse>(getEnrollStudentUrl(groupId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(enrollStudentRequest)
+  }
+);}
+
+
+
+
+
+export const getEnrollStudentMutationKey = () => ['enrollStudent'] as const;
+
+export const getEnrollStudentMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrollStudent>>, TError,EnrollStudentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enrollStudent>>, TError,EnrollStudentMutationVariables, TContext> => {
+
+const mutationKey = getEnrollStudentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enrollStudent>>, EnrollStudentMutationVariables> = (props) => {
+          const {groupId,data} = props ?? {};
+
+          return  enrollStudent(groupId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnrollStudentMutationResult = NonNullable<Awaited<ReturnType<typeof enrollStudent>>>
+    export type EnrollStudentMutationBody = EnrollStudentRequest
+    export type EnrollStudentMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type EnrollStudentMutationVariables = {groupId: string;data: EnrollStudentRequest}
+
+    export const useEnrollStudent = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrollStudent>>, TError,EnrollStudentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof enrollStudent>>,
+        TError,
+        EnrollStudentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getEnrollStudentMutationOptions(options), queryClient);
+    }
+
+export const getGetGroupRosterUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/roster`
+}
+
+export const getGroupRoster = async (groupId: string, options?: Parameters<typeof apiFetch>[1]): Promise<GroupRosterDto> => {
+
+  return apiFetch<GroupRosterDto>(getGetGroupRosterUrl(groupId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGroupRosterQueryKey = (groupId: string,) => {
+    return [
+    `/api/groups/${groupId}/roster`
+    ] as const;
+    }
+
+
+export const getGetGroupRosterQueryOptions = <TData = Awaited<ReturnType<typeof getGroupRoster>>, TError = ProblemDetails>(groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroupRoster>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGroupRosterQueryKey(groupId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGroupRoster>>> = ({ signal }) => getGroupRoster(groupId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: groupId !== null && groupId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGroupRoster>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetGroupRosterQueryResult = NonNullable<Awaited<ReturnType<typeof getGroupRoster>>>
+export type GetGroupRosterQueryError = ProblemDetails
+
+
+export function useGetGroupRoster<TData = Awaited<ReturnType<typeof getGroupRoster>>, TError = ProblemDetails>(
+ groupId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroupRoster>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGroupRoster>>,
+          TError,
+          Awaited<ReturnType<typeof getGroupRoster>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetGroupRoster<TData = Awaited<ReturnType<typeof getGroupRoster>>, TError = ProblemDetails>(
+ groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroupRoster>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGroupRoster>>,
+          TError,
+          Awaited<ReturnType<typeof getGroupRoster>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetGroupRoster<TData = Awaited<ReturnType<typeof getGroupRoster>>, TError = ProblemDetails>(
+ groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroupRoster>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetGroupRoster<TData = Awaited<ReturnType<typeof getGroupRoster>>, TError = ProblemDetails>(
+ groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getGroupRoster>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetGroupRosterQueryOptions(groupId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListStudentEnrollmentsUrl = (studentId: string,) => {
+
+
+
+
+  return `/api/students/${studentId}/enrollments`
+}
+
+export const listStudentEnrollments = async (studentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<StudentEnrollmentListResponse> => {
+
+  return apiFetch<StudentEnrollmentListResponse>(getListStudentEnrollmentsUrl(studentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStudentEnrollmentsQueryKey = (studentId: string,) => {
+    return [
+    `/api/students/${studentId}/enrollments`
+    ] as const;
+    }
+
+
+export const getListStudentEnrollmentsQueryOptions = <TData = Awaited<ReturnType<typeof listStudentEnrollments>>, TError = ProblemDetails>(studentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentEnrollments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStudentEnrollmentsQueryKey(studentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStudentEnrollments>>> = ({ signal }) => listStudentEnrollments(studentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studentId !== null && studentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStudentEnrollments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStudentEnrollmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listStudentEnrollments>>>
+export type ListStudentEnrollmentsQueryError = ProblemDetails
+
+
+export function useListStudentEnrollments<TData = Awaited<ReturnType<typeof listStudentEnrollments>>, TError = ProblemDetails>(
+ studentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentEnrollments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStudentEnrollments>>,
+          TError,
+          Awaited<ReturnType<typeof listStudentEnrollments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStudentEnrollments<TData = Awaited<ReturnType<typeof listStudentEnrollments>>, TError = ProblemDetails>(
+ studentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentEnrollments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStudentEnrollments>>,
+          TError,
+          Awaited<ReturnType<typeof listStudentEnrollments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStudentEnrollments<TData = Awaited<ReturnType<typeof listStudentEnrollments>>, TError = ProblemDetails>(
+ studentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentEnrollments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStudentEnrollments<TData = Awaited<ReturnType<typeof listStudentEnrollments>>, TError = ProblemDetails>(
+ studentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStudentEnrollments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStudentEnrollmentsQueryOptions(studentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWithdrawEnrollmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/enrollments/${id}/withdraw`
+}
+
+export const withdrawEnrollment = async (id: string,
+    enrollmentVersionRequest: EnrollmentVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getWithdrawEnrollmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(enrollmentVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getWithdrawEnrollmentMutationKey = () => ['withdrawEnrollment'] as const;
+
+export const getWithdrawEnrollmentMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawEnrollment>>, TError,WithdrawEnrollmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof withdrawEnrollment>>, TError,WithdrawEnrollmentMutationVariables, TContext> => {
+
+const mutationKey = getWithdrawEnrollmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof withdrawEnrollment>>, WithdrawEnrollmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  withdrawEnrollment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WithdrawEnrollmentMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawEnrollment>>>
+    export type WithdrawEnrollmentMutationBody = EnrollmentVersionRequest
+    export type WithdrawEnrollmentMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type WithdrawEnrollmentMutationVariables = {id: string;data: EnrollmentVersionRequest}
+
+    export const useWithdrawEnrollment = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawEnrollment>>, TError,WithdrawEnrollmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof withdrawEnrollment>>,
+        TError,
+        WithdrawEnrollmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWithdrawEnrollmentMutationOptions(options), queryClient);
+    }
+
+export const getTransferEnrollmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/enrollments/${id}/transfer`
+}
+
+export const transferEnrollment = async (id: string,
+    transferEnrollmentRequest: TransferEnrollmentRequest, options?: Parameters<typeof apiFetch>[1]): Promise<TransferEnrollmentResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TransferEnrollmentResponse>(getTransferEnrollmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(transferEnrollmentRequest)
+  }
+);}
+
+
+
+
+
+export const getTransferEnrollmentMutationKey = () => ['transferEnrollment'] as const;
+
+export const getTransferEnrollmentMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferEnrollment>>, TError,TransferEnrollmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transferEnrollment>>, TError,TransferEnrollmentMutationVariables, TContext> => {
+
+const mutationKey = getTransferEnrollmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transferEnrollment>>, TransferEnrollmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  transferEnrollment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransferEnrollmentMutationResult = NonNullable<Awaited<ReturnType<typeof transferEnrollment>>>
+    export type TransferEnrollmentMutationBody = TransferEnrollmentRequest
+    export type TransferEnrollmentMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type TransferEnrollmentMutationVariables = {id: string;data: TransferEnrollmentRequest}
+
+    export const useTransferEnrollment = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferEnrollment>>, TError,TransferEnrollmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof transferEnrollment>>,
+        TError,
+        TransferEnrollmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTransferEnrollmentMutationOptions(options), queryClient);
     }
 
 export const getCreateParentUrl = () => {

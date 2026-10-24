@@ -427,3 +427,58 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 ### ("كريم فتحي"). GET /api/groups/{id} of any other group — expect 404 group.not_found, never 403. Any write
 ### (steps 43, 45–49) — expect 403 auth.permission_denied, even on the teacher's own group.
 GET {{baseUrl}}/api/groups
+### Manual walkthrough of the enrollment API (Day 49), continuing owner@nile.test's (or secretary@nile.test's) session
+### from step 12. Copy a seeded group "id" from step 42 and a student "id" from step 31 first.
+@enrollGroupId = replace-with-a-group-id-from-step-42
+@enrollStudentId = replace-with-a-student-id-from-step-31
+
+### 51. Enroll the student — expect 201, Location: /api/groups/{groupId}/roster, body { "id" }. Again — expect 409
+### enrollment.already_enrolled. Adding "groupId" to the body — expect 400 request.malformed: the group comes from the
+### route only. A full group — expect 409 group.full; an archived group or student — expect 422 group.archived /
+### enrollment.student_archived.
+# @name enrollStudent
+POST {{baseUrl}}/api/groups/{{enrollGroupId}}/enrollments
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "studentId": "{{enrollStudentId}}"
+}
+
+### 52. The group's roster via the Location header — expect 200, { "groupId", "groupName", "capacity", "enrolledCount",
+### "items": [ { "enrollmentId", "studentId", "studentName", "enrolledAt", "version" } ] }, ordered by student name,
+### names only. As teacher@both.test (step 50's session): 200 for the linked teacher's own group, 404 group.not_found
+### for any other group.
+GET {{baseUrl}}{{enrollStudent.response.headers.Location}}
+
+### 53. The student's enrollments — expect 200, { "items": [ { "enrollmentId", "groupId", "groupName", "subjectName",
+### "teacherName", "status", "enrolledAt", "endedAt", "endReason", "version" } ] }, active first, then ended.
+GET {{baseUrl}}/api/students/{{enrollStudentId}}/enrollments
+
+### 54. Transfer it to another group of the same subject — copy the "enrollmentId" and "version" from step 52 and a
+### target group "id" from step 42 first — expect 200, body { "id" } of the new enrollment; the old one ends with
+### endReason "transferred". A group of another subject — expect 422 enrollment.subject_mismatch; the same group —
+### 422 enrollment.same_group; a full target — 409 group.full, and the student stays in the source group.
+@enrollmentId = replace-with-the-enrollmentId-from-step-52
+@enrollmentVersion = replace-with-the-version-from-step-52
+@transferTargetGroupId = replace-with-a-same-subject-group-id
+POST {{baseUrl}}/api/enrollments/{{enrollmentId}}/transfer
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "targetGroupId": "{{transferTargetGroupId}}",
+  "version": {{enrollmentVersion}}
+}
+
+### 55. Withdraw an active enrollment — re-run step 52 (on the group it is now in) to refresh @enrollmentId and
+### @enrollmentVersion — expect 204; the roster no longer lists the student and step 53 shows the row ended with
+### endReason "withdrawn". Again — expect 422 enrollment.already_ended; a stale version — 409 concurrency.stale.
+### There is no DELETE: an ended enrollment stays as history.
+POST {{baseUrl}}/api/enrollments/{{enrollmentId}}/withdraw
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{enrollmentVersion}}
+}

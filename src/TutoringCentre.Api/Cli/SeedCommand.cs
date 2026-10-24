@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TutoringCentre.Application.Academics.Enrollments.Commands.EnrollStudent;
+using TutoringCentre.Application.Academics.Groups;
 using TutoringCentre.Application.Academics.Groups.Commands.CreateGroup;
+using TutoringCentre.Application.Academics.Groups.Queries.ListGroups;
 using TutoringCentre.Application.Academics.Parents;
 using TutoringCentre.Application.Academics.Parents.Queries.LookupParentByPhone;
 using TutoringCentre.Application.Academics.Students;
@@ -83,6 +86,26 @@ public static class SeedCommand
         new("nile-centre", "رياضيات - المجموعة ب", "رياضيات", "منى السيد", 2),
         new("maadi-hub", "Mathematics - Group A", "Mathematics", "Karim Fathy", 20),
         new("maadi-hub", "Physics - Group A", "Physics", "Karim Fathy", 20),
+    ];
+
+    // Nile: 25 enrollments across its four groups. The two-seat group gets exactly one, so the last-seat demo
+    // can fill it live and then show group.full; nobody sits in both mathematics groups, so a transfer between
+    // them is possible. Maadi: 6. Every student named here is one of the seeded families' children.
+    private static readonly SeedEnrollment[] Enrollments =
+    [
+        new("nile-centre", "رياضيات - المجموعة أ",
+        [
+            "أحمد محمود", "سارة محمود", "إبراهيم علي", "فاطمة حسن", "يوسف حسن",
+            "مصطفى السيد", "نور الدين أحمد", "ريم طارق", "كريم عادل", "هبة وليد",
+        ]),
+        new("nile-centre", "رياضيات - المجموعة ب", ["ياسمين علي"]),
+        new("nile-centre", "فيزياء - المجموعة أ",
+        [
+            "أحمد محمود", "سارة محمود", "إبراهيم علي", "فاطمة حسن", "يوسف حسن", "مصطفى السيد", "ريم طارق", "عمر خالد",
+        ]),
+        new("nile-centre", "كيمياء - المجموعة أ", ["سارة محمود", "ياسمين علي", "فاطمة حسن", "نور الدين أحمد", "كريم عادل", "هبة وليد"]),
+        new("maadi-hub", "Mathematics - Group A", ["James Wilson", "Emma Clark", "Oliver Brown", "Sophia Davis"]),
+        new("maadi-hub", "Physics - Group A", ["Lucas Miller", "Mia Anderson"]),
     ];
 
     /// <returns>0 when every centre exists afterwards; 1 when any command failed for another reason.</returns>
@@ -246,7 +269,92 @@ public static class SeedCommand
             exitCode = 1;
         }
 
+        if (!await SeedEnrollmentsAsync(services, centreIdsBySlug, logger))
+        {
+            exitCode = 1;
+        }
+
         return exitCode;
+    }
+
+    /// <summary>
+    /// Enrollments through <see cref="EnrollStudentCommand"/>, the same command the enroll endpoint dispatches,
+    /// as <see cref="SystemActor"/> of each centre. Groups and students are resolved by name through their list
+    /// queries. Idempotent: <c>enrollment.already_enrolled</c> and <c>group.full</c> count as already seeded.
+    /// Every write gets its own scope, so a refused command never leaves tracked changes behind.
+    /// </summary>
+    /// <returns>True when every enrollment exists afterwards.</returns>
+    [SuppressMessage(
+        "Performance",
+        "CA1848:Use the LoggerMessage delegates",
+        Justification = "A handful of one-off log lines in a short-lived CLI command; a source-generated delegate is unwarranted here.")]
+    [SuppressMessage(
+        "Performance",
+        "CA1873:Avoid potentially expensive logging",
+        Justification = "The logged arguments (names, slug, error code) are plain strings already in hand; nothing expensive is being guarded against.")]
+    private static async Task<bool> SeedEnrollmentsAsync(IServiceProvider services, Dictionary<string, Guid> centreIdsBySlug, ILogger logger)
+    {
+        var succeeded = true;
+
+        foreach (var seedEnrollment in Enrollments)
+        {
+            if (!centreIdsBySlug.TryGetValue(seedEnrollment.CentreSlug, out var centreId))
+            {
+                logger.LogError("Seed: centre {Slug} does not exist; cannot seed its enrollments", seedEnrollment.CentreSlug);
+                succeeded = false;
+                continue;
+            }
+
+            Guid? groupId;
+            await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+            {
+                var groups = await dispatcher.QueryAsync<ListGroupsQuery, IReadOnlyList<GroupDto>>(
+                    new ListGroupsQuery(null, null, true), CancellationToken.None);
+                groupId = groups.IsSuccess ? groups.Value.FirstOrDefault(group => group.Name == seedEnrollment.GroupName)?.Id : null;
+            }
+
+            if (groupId is null)
+            {
+                logger.LogError("Seed: group {Name} in {Slug} does not exist; cannot seed its enrollments", seedEnrollment.GroupName, seedEnrollment.CentreSlug);
+                succeeded = false;
+                continue;
+            }
+
+            foreach (var studentName in seedEnrollment.StudentNames)
+            {
+                await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
+                var search = await dispatcher.QueryAsync<ListStudentsQuery, StudentPageDto>(
+                    new ListStudentsQuery(studentName, true, null, 5), CancellationToken.None);
+                var studentId = search.IsSuccess ? search.Value.Items.FirstOrDefault(item => item.FullName == studentName)?.Id : null;
+                if (studentId is null)
+                {
+                    logger.LogError("Seed: student {Name} in {Slug} does not exist; cannot enroll", studentName, seedEnrollment.CentreSlug);
+                    succeeded = false;
+                    continue;
+                }
+
+                var result = await dispatcher.SendAsync<EnrollStudentCommand, EnrollStudentResult>(
+                    new EnrollStudentCommand(groupId.Value, studentId.Value), CancellationToken.None);
+
+                if (result.IsSuccess)
+                {
+                    logger.LogInformation("Seed: enrolled {Student} in {Group} in {Slug}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug);
+                }
+                else if (result.Error?.Code is "enrollment.already_enrolled" or "group.full")
+                {
+                    logger.LogInformation(
+                        "Seed: {Student} in {Group} in {Slug} already seeded ({ErrorCode})", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error.Code);
+                }
+                else
+                {
+                    logger.LogError(
+                        "Seed: enrolling {Student} in {Group} in {Slug} failed with {ErrorCode}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error?.Code);
+                    succeeded = false;
+                }
+            }
+        }
+
+        return succeeded;
     }
 
     /// <summary>
@@ -409,6 +517,8 @@ public static class SeedCommand
     private sealed record SeedTeacher(string CentreSlug, string FullName, bool LinkTwoCentreTeacher);
 
     private sealed record SeedGroup(string CentreSlug, string Name, string SubjectName, string TeacherName, int Capacity);
+
+    private sealed record SeedEnrollment(string CentreSlug, string GroupName, string[] StudentNames);
 
     private sealed record SeedCentre(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale);
 
