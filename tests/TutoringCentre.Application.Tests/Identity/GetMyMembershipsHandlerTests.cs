@@ -51,7 +51,7 @@ public sealed class GetMyMembershipsHandlerTests
         var centreId = Guid.CreateVersion7();
         var actorContext = new CurrentActorContext();
         actorContext.Set(new StaffActor(userId, centreId, StaffRole.Teacher));
-        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Teacher);
+        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Teacher, "Africa/Cairo");
         var readService = new FakeMembershipReadService
         {
             Profile = new StaffProfileDto(userId, "Teacher", "teacher@both.test", "en", [membership], MustChangePassword: false),
@@ -77,7 +77,7 @@ public sealed class GetMyMembershipsHandlerTests
         var centreId = Guid.CreateVersion7();
         var actorContext = new CurrentActorContext();
         actorContext.Set(new StaffActor(userId, centreId, StaffRole.Secretary));
-        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Secretary);
+        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Secretary, "Africa/Cairo");
         var readService = new FakeMembershipReadService
         {
             Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [membership], MustChangePassword: false),

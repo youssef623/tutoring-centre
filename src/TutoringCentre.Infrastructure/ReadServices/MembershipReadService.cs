@@ -32,7 +32,7 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
             from membership in db.Set<Membership>().AsNoTracking()
             where membership.UserId == userId && membership.Status == MembershipStatus.Active
             join centre in db.Set<Centre>().AsNoTracking() on membership.CentreId equals centre.Id
-            select new MembershipDto(centre.Id, centre.Name, centre.Slug, membership.Role))
+            select new MembershipDto(centre.Id, centre.Name, centre.Slug, membership.Role, centre.TimeZoneId))
             .ToListAsync(ct);
 
         return new StaffProfileDto(user.Id, user.DisplayName, user.Email ?? string.Empty, user.PreferredLocale, memberships, user.MustChangePassword);

@@ -1,8 +1,10 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
-import { Link } from "@tanstack/react-router";
+import { Link, useMatches } from "@tanstack/react-router";
+import { cn } from "cn";
 import {
   BookOpen,
+  CalendarRange,
   GraduationCap,
   History,
   LayoutDashboard,
@@ -24,12 +26,15 @@ import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { useSignOut } from "@/features/session/useSignOut";
 import { initialsOf } from "@/lib/initials";
+import "@/features/shell/routeStaticData";
 
 export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
   const { t: tShell } = useTranslation("shell");
   const { t: tAuth } = useTranslation("auth");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const activeCentre = me.memberships.find((membership) => membership.centreId === me.activeCentreId);
+  // Every page reads at max-w-5xl; a route asks for more with `staticData.layout` (the timetable's seven columns).
+  const isWide = useMatches({ select: (matches) => matches.some((match) => match.staticData.layout === "wide") });
 
   return (
     <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
@@ -84,7 +89,7 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
             <UserMenu me={me} />
           </header>
           <main className="flex-1 p-4 md:p-6">
-            <div className="mx-auto w-full max-w-5xl">{children}</div>
+            <div className={cn("mx-auto w-full", isWide ? "max-w-7xl" : "max-w-5xl")}>{children}</div>
           </main>
         </div>
       </div>
@@ -142,6 +147,12 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link to="/groups" className={linkClassName} onClick={onNavigate}>
           <UsersRound className="size-4" aria-hidden="true" />
           {t("nav.groups")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.ScheduleView}>
+        <Link to="/timetable" className={linkClassName} onClick={onNavigate}>
+          <CalendarRange className="size-4" aria-hidden="true" />
+          {t("nav.timetable")}
         </Link>
       </Can>
       <Can permission={Permissions.StaffView}>

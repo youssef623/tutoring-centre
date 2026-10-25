@@ -31,4 +31,14 @@ public interface IClassSessionRepository
 
     /// <summary>Tracks new sessions; the dispatcher saves them.</summary>
     void AddRange(IEnumerable<ClassSession> sessions);
+
+    /// <summary>
+    /// Holds each teacher's schedule lock for the rest of the current transaction, waiting for any other holder
+    /// (Day 53). Every handler that gives a teacher sessions takes it first, so two colliding writes for one teacher
+    /// run one after the other: the second meets the first's committed sessions and the exclusion constraint answers
+    /// it with a double-booking conflict, instead of both inserting at once and PostgreSQL ending one in a deadlock.
+    /// Taken in ascending ID order whatever order is given, so two writers needing the same teachers cannot deadlock
+    /// on the locks themselves. Released by the dispatcher's commit or rollback.
+    /// </summary>
+    Task LockTeacherSchedulesAsync(IEnumerable<Guid> teacherIds, CancellationToken ct);
 }

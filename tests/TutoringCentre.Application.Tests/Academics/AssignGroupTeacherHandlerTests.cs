@@ -116,6 +116,11 @@ public sealed class AssignGroupTeacherHandlerTests
         Assert.All(past, session => Assert.Equal(currentTeacher.Id, session.TeacherId));
         Assert.All(futureScheduled, session => Assert.Equal(otherTeacher.Id, session.TeacherId));
         Assert.Equal(currentTeacher.Id, cancelled.TeacherId);
+
+        // Both teachers' schedule locks are taken.
+        Assert.Equal(
+            new[] { currentTeacher.Id, otherTeacher.Id }.Order(),
+            sessions.Locked.Select(locked => locked.TeacherId).Order());
     }
 
     private static Sut CreateSut()

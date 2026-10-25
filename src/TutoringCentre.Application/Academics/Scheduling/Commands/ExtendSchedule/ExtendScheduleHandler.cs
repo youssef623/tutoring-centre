@@ -34,15 +34,24 @@ internal sealed class ExtendScheduleHandler(
                 "through", $"The schedule can be extended from today to at most {ScheduleHorizon.MaxExtendDaysAhead} days ahead."));
         }
 
-        var created = 0;
+        var active = new List<(ScheduleRule Rule, Guid TeacherId)>();
         foreach (var rule in await rules.ListActiveAsync(today, cancellationToken))
         {
             // ListActiveAsync returns only rules of active groups, so the group is there to read its teacher from.
             var group = await groups.FindAsync(rule.GroupId, cancellationToken)
                 ?? throw new InvalidOperationException($"Schedule rule {rule.Id} has no visible group.");
+            active.Add((rule, group.TeacherId));
+        }
 
+        // Every teacher who may receive sessions, before any is generated: a concurrent schedule write for one of
+        // them is then refused by the constraint, not ended in a deadlock.
+        await sessions.LockTeacherSchedulesAsync(active.Select(entry => entry.TeacherId), cancellationToken);
+
+        var created = 0;
+        foreach (var (rule, teacherId) in active)
+        {
             var existing = (await sessions.ListExistingDatesAsync(rule.Id, today, command.Through, cancellationToken)).ToHashSet();
-            var missing = SessionGenerator.Generate(rule, group.TeacherId, zone, today, command.Through)
+            var missing = SessionGenerator.Generate(rule, teacherId, zone, today, command.Through)
                 .Where(session => !existing.Contains(session.LocalDate))
                 .ToList();
 

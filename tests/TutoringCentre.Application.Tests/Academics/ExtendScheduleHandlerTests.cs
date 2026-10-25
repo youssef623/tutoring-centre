@@ -79,6 +79,16 @@ public sealed class ExtendScheduleHandlerTests
         Assert.All(sut.Sessions.Added, session => Assert.Equal(newTeacherId, session.TeacherId));
     }
 
+    [Fact]
+    public async Task HandleAsync_TakesTheTeachersScheduleLocksBeforeAddingAnySession()
+    {
+        var sut = CreateSut();
+
+        await sut.Handler.HandleAsync(new ExtendScheduleCommand(Saturday10April), CancellationToken.None);
+
+        Assert.Equal([(sut.Group.TeacherId, 0)], sut.Sessions.Locked);
+    }
+
     private static void AssertRangeInvalid(Result result, Sut sut)
     {
         Assert.True(result.IsFailure);

@@ -53,6 +53,22 @@ The 500 body never contains the exception's message, type or stack trace — onl
 
 `ConfigureHttpJsonOptions` sets `UnmappedMemberHandling.Disallow` (an unknown field in a request body is a 400, not silently ignored) and a camelCase `JsonStringEnumConverter`. `RouteHandlerOptions.ThrowOnBadRequest = true` makes a malformed body throw `BadHttpRequestException` in every environment, so it always reaches `GlobalExceptionHandler` and comes back as `request.malformed` rather than an empty, unexplained 400.
 
+## Dates, times and instants (Day 53)
+
+Each value says which kind of time it is, and each kind has exactly one shape on the wire:
+
+| Kind | CLR type | Wire shape | Example | Meaning |
+|---|---|---|---|---|
+| Calendar date | `DateOnly` | `YYYY-MM-DD` | `2027-04-24` | A day in the centre's own calendar (a rule's `effectiveFrom`, a session's `localDate`, the timetable's `weekStart`). No zone. |
+| Local time of day | `TimeOnly` | `HH:mm`, 24-hour | `18:00` | A wall-clock time in the centre's zone (a rule's `startTime`). No seconds, no offset. |
+| Instant | `DateTimeOffset` | ISO 8601 in UTC with `Z` | `2027-04-24T16:00:00Z` | One moment (a session's `startsAt`/`endsAt`, `enrolledAt`, an audit entry's `occurredAt`). |
+| Weekday | `DayOfWeek` | lower-case English name | `saturday` | Like every other enum. |
+
+- Human schedules are sent as **local** values only — a weekday, a time, a duration and dates — and the server converts them in the centre's zone, applying that zone's rules for each date (Egypt's summer time included). A request never carries an offset or a UTC instant for a rule: `"18:00:00"`, `"18:00+02:00"` or `"2027-04-20T00:00:00Z"` where a time or date is expected is a 400 `request.malformed`.
+- Moments come back as UTC instants, together with the zone to show them in where a client must render them (`GET /api/timetable` returns `timeZoneId`; every membership on `GET /api/me` carries its centre's `timeZoneId`). Clients format instants in that zone, never the browser's, and group sessions by the server's `localDate`, never by the browser-local date of `startsAt`.
+- `HourMinuteTimeOnlyJsonConverter` reads and writes `HH:mm` exactly; `UtcInstantJsonConverter` writes every instant in UTC with `Z` (reading accepts any ISO 8601 offset). `DateOnly` uses the framework's own `yyyy-MM-dd`. Query string dates (`weekStart`) bind from `YYYY-MM-DD`.
+- Because a custom converter hides the JSON shape from the OpenAPI schema exporter, a schema transformer in `Program.cs` states it: `TimeOnly` is `{ type: string, format: time }` and `DateTimeOffset` is `{ type: string, format: date-time }`, so the generated client types all three as strings.
+
 ## Correlation IDs
 
 `CorrelationIdMiddleware` runs first in the pipeline. A client-supplied `X-Correlation-Id` header is accepted only if it is 1–64 characters of letters, digits, `.`, `_` or `-`; otherwise a new one is generated. Either way, the value is: pushed onto the Serilog `LogContext` (so every log line for the request carries it), stored on `HttpContext.Items` (so `ProblemResult` can put it in error bodies), and written back on the response header in `OnStarting` (so it survives a response that `GlobalExceptionHandler` clears and rewrites).
@@ -133,3 +149,9 @@ business rule to refuse.
 | `student.already_archived`, `student.not_archived`, `student.archived_read_only` | Rule → 422 | Students |
 | `student.parent_already_linked`, `student.too_many_parents`, `student.parent_not_linked`, `student.last_parent`, `student.primary_parent_required`, `student.already_primary` | Rule → 422, except `student.parent_not_linked` which is NotFound → 404 (unlink/make-primary addressing a parent id that is not, or no longer, linked) | Students |
 | `concurrency.stale` | Conflict → 409 | Shared with Month 2; now also students (`version`/`xmin` on the student row, which guards its parent links too) |
+| `schedule.duration_invalid`, `schedule.start_time_invalid`, `schedule.room_invalid` | Validation → 400 on `errors.durationMinutes` / `errors.startTime` / `errors.room` | Schedules (Days 52–53); a duration outside 30–240 or a room over 40 characters is caught first by the validator, as `validation.failed` on the same field |
+| `schedule.rule_not_found`, `schedule.session_not_found` | NotFound → 404 | Schedules; the one answer for an unknown ID and another centre's |
+| `schedule.teacher_double_booked`, `schedule.group_double_booked` | Conflict → 409 | Schedules; the two exclusion constraints, translated. Also `PUT /api/groups/{id}/teacher` when the new teacher is busy at one of the group's future sessions |
+| `schedule.range_invalid` | Rule → 422 on the named date field | Schedules; `effectiveFrom` more than 366 days ahead, or `through` outside today to 92 days ahead (today in the centre's zone) |
+| `schedule.rule_already_ended`, `schedule.rule_end_invalid`, `schedule.session_already_cancelled`, `schedule.session_in_past` | Rule → 422 | Schedules |
+| `group.has_active_schedule` | Rule → 422 | `POST /api/groups/{id}/archive` while a rule is still in effect (Day 52) |

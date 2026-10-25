@@ -22,6 +22,7 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
+import { Route as AuthenticatedTimetableRouteImport } from './routes/_authenticated/timetable'
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedParentsParentIdRouteImport } from './routes/_authenticated/parents.$parentId'
@@ -93,6 +94,11 @@ const AuthenticatedTeachersRoute = AuthenticatedTeachersRouteImport.update({
   path: '/teachers',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedTimetableRoute = AuthenticatedTimetableRouteImport.update({
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedGroupsIndexRoute =
   AuthenticatedGroupsIndexRouteImport.update({
     id: '/',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
+  '/timetable': typeof AuthenticatedTimetableRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/staff': typeof AuthenticatedStaffRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
+  '/timetable': typeof AuthenticatedTimetableRoute
   '/': typeof AuthenticatedIndexRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
+  '/_authenticated/timetable': typeof AuthenticatedTimetableRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/subjects'
     | '/teachers'
+    | '/timetable'
     | '/groups/$groupId'
     | '/parents/$parentId'
     | '/students/$studentId'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/staff'
     | '/subjects'
     | '/teachers'
+    | '/timetable'
     | '/'
     | '/groups/$groupId'
     | '/parents/$parentId'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/_authenticated/students'
     | '/_authenticated/subjects'
     | '/_authenticated/teachers'
+    | '/_authenticated/timetable'
     | '/_authenticated/'
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/parents/$parentId'
@@ -353,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeachersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/timetable': {
+      id: '/_authenticated/timetable'
+      path: '/timetable'
+      fullPath: '/timetable'
+      preLoaderRoute: typeof AuthenticatedTimetableRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/groups/': {
       id: '/_authenticated/groups/'
       path: '/'
@@ -436,6 +455,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
   AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
   AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
+  AuthenticatedTimetableRoute: typeof AuthenticatedTimetableRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedParentsParentIdRoute: typeof AuthenticatedParentsParentIdRoute
 }
@@ -448,6 +468,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedStudentsRoute: AuthenticatedStudentsRouteWithChildren,
   AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
   AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
+  AuthenticatedTimetableRoute: AuthenticatedTimetableRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedParentsParentIdRoute: AuthenticatedParentsParentIdRoute,
 }

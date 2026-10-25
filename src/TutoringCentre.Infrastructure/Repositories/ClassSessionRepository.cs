@@ -56,4 +56,20 @@ internal sealed class ClassSessionRepository(AppDbContext db) : IClassSessionRep
         ArgumentNullException.ThrowIfNull(sessions);
         db.Set<ClassSession>().AddRange(sessions);
     }
+
+    public async Task LockTeacherSchedulesAsync(IEnumerable<Guid> teacherIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(teacherIds);
+
+        // Allow-listed raw SQL (QueryFilterBypassTests): an advisory lock has no LINQ form. Transaction-scoped, so the
+        // dispatcher's commit or rollback releases it and nothing can leak to the next request on this connection.
+        // The key is a 64-bit hash of a namespaced teacher ID: a collision between two teachers only makes their
+        // writes wait for each other. One statement per teacher, in ascending order, so the acquisition order is
+        // fixed by this loop rather than left to the planner. Interpolated, so the ID is a parameter, never SQL text.
+        foreach (var teacherId in teacherIds.Distinct().Order())
+        {
+            var key = $"teacher-schedule:{teacherId}";
+            await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))", ct);
+        }
+    }
 }

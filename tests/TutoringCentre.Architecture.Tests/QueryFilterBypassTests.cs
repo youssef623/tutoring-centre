@@ -31,7 +31,8 @@ public sealed class QueryFilterBypassTests
     // the membership repository (Task 29.3: locks identity.memberships' active-owner rows with SELECT ... FOR
     // UPDATE — a locking clause PostgreSQL does not allow EF's LINQ translation to express), and the group
     // repository (Task 48.1: GetForEnrollmentAsync locks one academics.groups row with SELECT ... FOR UPDATE
-    // before counting its active enrollments).
+    // before counting its active enrollments), and the class-session repository (Day 53: LockTeacherSchedulesAsync
+    // takes a transaction-scoped advisory lock per teacher, which reads no table and has no LINQ form).
     private static readonly string[] AllowListedFiles =
     [
         "src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs",
@@ -39,6 +40,7 @@ public sealed class QueryFilterBypassTests
         "src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs",
         "src/TutoringCentre.Infrastructure/Repositories/MembershipRepository.cs",
         "src/TutoringCentre.Infrastructure/Repositories/GroupRepository.cs",
+        "src/TutoringCentre.Infrastructure/Repositories/ClassSessionRepository.cs",
     ];
 
     private const string MigrationsDirectoryPrefix = "src/TutoringCentre.Infrastructure/Persistence/Migrations/";

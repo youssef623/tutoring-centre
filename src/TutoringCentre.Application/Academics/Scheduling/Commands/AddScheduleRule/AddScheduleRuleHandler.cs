@@ -58,6 +58,9 @@ internal sealed class AddScheduleRuleHandler(
             return Result<AddScheduleRuleResult>.Failure(created.Error!);
         }
 
+        // Serialises colliding writes for this teacher, so a concurrent one is refused by the constraint, not a deadlock.
+        await sessions.LockTeacherSchedulesAsync([group.TeacherId], cancellationToken);
+
         // Never before today: a rule that took effect in the past only produces sessions from now on.
         var from = command.EffectiveFrom > today ? command.EffectiveFrom : today;
         var to = today.AddDays(ScheduleHorizon.Days - 1);

@@ -17,7 +17,7 @@ function me(role: "owner" | "teacher", permissions: string[]) {
     preferredLocale: "en",
     activeCentreId: "c-nile",
     activeRole: role,
-    memberships: [{ centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role }],
+    memberships: [{ centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role, timeZoneId: "Africa/Cairo" }],
     permissions,
   };
 }
@@ -27,6 +27,7 @@ const ownerMe = me("owner", [
   "enrollments.view",
   "groups.manage",
   "groups.view",
+  "schedule.view",
   "students.view",
   "subjects.view",
   "teachers.manage",
@@ -72,6 +73,7 @@ describe("GroupDetailPage", () => {
       http.get(`${groupUrl}/roster`, () =>
         HttpResponse.json({ groupId: "g-1", groupName: "Physics A", capacity: 20, enrolledCount: 0, items: [] }),
       ),
+      http.get(`${groupUrl}/schedule-rules`, () => HttpResponse.json({ items: [] })),
     );
   });
 
@@ -112,7 +114,8 @@ describe("GroupDetailPage", () => {
     await waitFor(() => {
       expect(router.state.location.search).toMatchObject({ tab: "schedule" });
     });
-    expect(await screen.findByText("Schedule coming soon")).toBeInTheDocument();
+    // Day 53: the Schedule tab is no longer a placeholder; with no rules it shows its empty state.
+    expect(await screen.findByText("No weekly sessions yet")).toBeInTheDocument();
   });
 
   it("rename sends the new name with the loaded version", async () => {
@@ -216,6 +219,24 @@ describe("GroupDetailPage", () => {
 
     expect(
       await screen.findByText("Capacity cannot be lower than the number of students already enrolled."),
+    ).toBeInTheDocument();
+  });
+
+  it("changing to a teacher busy at one of the group's sessions says so and keeps the current teacher", async () => {
+    server.use(http.put(`${groupUrl}/teacher`, () => problem(409, "schedule.teacher_double_booked", "Double booked.")));
+
+    renderRouter("/groups/g-1");
+    fireEvent.click(await screen.findByRole("button", { name: "Change teacher" }, { timeout: 3000 }));
+    const dialog = await screen.findByRole("dialog");
+    expect(await within(dialog).findByText("Amina Hassan")).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("combobox", { name: "Teacher" }));
+    const option = await screen.findByRole("option", { name: "Mona Said" });
+    fireEvent.pointerDown(option);
+    fireEvent.click(option);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    expect(
+      await screen.findByText("That teacher already has a session at one of this group's times. The group keeps its current teacher."),
     ).toBeInTheDocument();
   });
 

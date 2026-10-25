@@ -11,7 +11,6 @@ import {
   Presentation,
   SearchX,
   Users,
-  UsersRound,
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -44,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssignGroupTeacherDialog, ChangeGroupCapacityDialog, RenameGroupDialog } from "@/features/groups/GroupEditDialogs";
 import { GroupRosterTab } from "@/features/enrollments/GroupRosterTab";
 import { SeatMeter } from "@/features/enrollments/SeatMeter";
+import { GroupScheduleTab } from "@/features/schedule/GroupScheduleTab";
 import { showGroupError } from "@/features/groups/showGroupError";
 import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
@@ -160,8 +160,11 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
   const { t } = useTranslation("groups");
   const { tab: requestedTab } = Route.useSearch();
   const canViewRoster = useCan(Permissions.EnrollmentsView);
-  // Without enrollments.view there is no Roster tab, so a pasted "?tab=roster" falls back to the overview.
-  const tab = requestedTab === "roster" && !canViewRoster ? "overview" : requestedTab;
+  const canViewSchedule = useCan(Permissions.ScheduleView);
+  // Without enrollments.view there is no Roster tab, and without schedule.view no Schedule tab, so a pasted
+  // "?tab=roster" or "?tab=schedule" falls back to the overview.
+  const tab =
+    (requestedTab === "roster" && !canViewRoster) || (requestedTab === "schedule" && !canViewSchedule) ? "overview" : requestedTab;
   const navigate = useNavigate({ from: Route.fullPath });
   const queryClient = useQueryClient();
   const archiveMutation = useArchiveGroup();
@@ -328,10 +331,12 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
               {t("tabs.roster")}
             </TabsTrigger>
           )}
-          <TabsTrigger value="schedule">
-            <CalendarDays aria-hidden="true" />
-            {t("tabs.schedule")}
-          </TabsTrigger>
+          {canViewSchedule && (
+            <TabsTrigger value="schedule">
+              <CalendarDays aria-hidden="true" />
+              {t("tabs.schedule")}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview">
@@ -375,13 +380,11 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
           </TabsContent>
         )}
 
-        <TabsContent value="schedule">
-          <TabPlaceholder
-            icon={CalendarDays}
-            title={t("placeholders.scheduleTitle")}
-            description={t("placeholders.scheduleDescription")}
-          />
-        </TabsContent>
+        {canViewSchedule && (
+          <TabsContent value="schedule">
+            <GroupScheduleTab group={group} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <Can permission={Permissions.GroupsManage}>
@@ -410,23 +413,5 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
         </AlertDialog>
       </Can>
     </section>
-  );
-}
-
-function TabPlaceholder({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: typeof UsersRound;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-12 text-center">
-      <Icon className="size-8 text-muted-foreground" aria-hidden="true" />
-      <p className="text-sm font-semibold">{title}</p>
-      <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
-    </div>
   );
 }
