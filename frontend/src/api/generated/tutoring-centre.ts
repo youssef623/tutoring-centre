@@ -24,6 +24,35 @@ import type {
 } from '@tanstack/react-query';
 
 import { apiFetch } from '../apiFetch';
+export type DayOfWeek = typeof DayOfWeek[keyof typeof DayOfWeek];
+
+
+export const DayOfWeek = {
+  sunday: 'sunday',
+  monday: 'monday',
+  tuesday: 'tuesday',
+  wednesday: 'wednesday',
+  thursday: 'thursday',
+  friday: 'friday',
+  saturday: 'saturday',
+} as const;
+
+export interface AddScheduleRuleRequest {
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  durationMinutes: number | string;
+  /** @nullable */
+  room?: string | null;
+  effectiveFrom: string;
+}
+
+export interface AddScheduleRuleResponse {
+  id: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  sessionsCreated: number | string;
+}
+
 export interface AntiforgeryTokenResponse {
   token: string;
 }
@@ -108,6 +137,14 @@ export interface ChangeStaffRoleRequest {
   version: number | string;
 }
 
+export type ClassSessionStatus = typeof ClassSessionStatus[keyof typeof ClassSessionStatus];
+
+
+export const ClassSessionStatus = {
+  scheduled: 'scheduled',
+  cancelled: 'cancelled',
+} as const;
+
 export interface CreateGroupRequest {
   name: string;
   subjectId: string;
@@ -161,6 +198,12 @@ export interface CreateTeacherResponse {
   id: string;
 }
 
+export interface EndScheduleRuleRequest {
+  lastDate: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
 export type EnrollmentEndReason = typeof EnrollmentEndReason[keyof typeof EnrollmentEndReason] | null;
 
 
@@ -188,6 +231,15 @@ export interface EnrollStudentRequest {
 
 export interface EnrollStudentResponse {
   id: string;
+}
+
+export interface ExtendScheduleRequest {
+  through: string;
+}
+
+export interface ExtendScheduleResponse {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  sessionsCreated: number | string;
 }
 
 export type GroupStatus = typeof GroupStatus[keyof typeof GroupStatus];
@@ -292,6 +344,7 @@ export interface MembershipDto {
   centreName: string;
   centreSlug: string;
   role: StaffRole;
+  timeZoneId: string;
 }
 
 export interface MeDto {
@@ -404,8 +457,32 @@ export interface RenameSubjectRequest {
   version: number | string;
 }
 
+export interface ScheduleRuleDto {
+  id: string;
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  durationMinutes: number | string;
+  /** @nullable */
+  room: string | null;
+  effectiveFrom: string;
+  /** @nullable */
+  effectiveTo: string | null;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface ScheduleRuleListResponse {
+  items: ScheduleRuleDto[];
+}
+
 export interface SelectCentreRequest {
   centreId: string;
+}
+
+export interface SessionVersionRequest {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
 }
 
 export interface SetTeacherAccountRequest {
@@ -565,6 +642,29 @@ export interface TeacherVersionRequest {
   version: number | string;
 }
 
+export interface TimetableSessionDto {
+  id: string;
+  groupId: string;
+  groupName: string;
+  subjectName: string;
+  teacherId: string;
+  teacherName: string;
+  localDate: string;
+  startsAt: string;
+  endsAt: string;
+  /** @nullable */
+  room: string | null;
+  status: ClassSessionStatus;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface TimetableDto {
+  timeZoneId: string;
+  weekStart: string;
+  sessions: TimetableSessionDto[];
+}
+
 export interface TransferEnrollmentRequest {
   targetGroupId: string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
@@ -619,6 +719,12 @@ export type ListGroupsParams = {
 subjectId?: string;
 teacherId?: string;
 includeArchived?: boolean;
+};
+
+export type GetTimetableParams = {
+weekStart?: string;
+groupId?: string;
+teacherId?: string;
 };
 
 export type ListStudentsParams = {
@@ -3532,6 +3638,534 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getTransferEnrollmentMutationOptions(options), queryClient);
+    }
+
+export const getListGroupScheduleRulesUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/schedule-rules`
+}
+
+export const listGroupScheduleRules = async (groupId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ScheduleRuleListResponse> => {
+
+  return apiFetch<ScheduleRuleListResponse>(getListGroupScheduleRulesUrl(groupId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListGroupScheduleRulesQueryKey = (groupId: string,) => {
+    return [
+    `/api/groups/${groupId}/schedule-rules`
+    ] as const;
+    }
+
+
+export const getListGroupScheduleRulesQueryOptions = <TData = Awaited<ReturnType<typeof listGroupScheduleRules>>, TError = ProblemDetails>(groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroupScheduleRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListGroupScheduleRulesQueryKey(groupId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listGroupScheduleRules>>> = ({ signal }) => listGroupScheduleRules(groupId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: groupId !== null && groupId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listGroupScheduleRules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListGroupScheduleRulesQueryResult = NonNullable<Awaited<ReturnType<typeof listGroupScheduleRules>>>
+export type ListGroupScheduleRulesQueryError = ProblemDetails
+
+
+export function useListGroupScheduleRules<TData = Awaited<ReturnType<typeof listGroupScheduleRules>>, TError = ProblemDetails>(
+ groupId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroupScheduleRules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listGroupScheduleRules>>,
+          TError,
+          Awaited<ReturnType<typeof listGroupScheduleRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListGroupScheduleRules<TData = Awaited<ReturnType<typeof listGroupScheduleRules>>, TError = ProblemDetails>(
+ groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroupScheduleRules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listGroupScheduleRules>>,
+          TError,
+          Awaited<ReturnType<typeof listGroupScheduleRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListGroupScheduleRules<TData = Awaited<ReturnType<typeof listGroupScheduleRules>>, TError = ProblemDetails>(
+ groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroupScheduleRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListGroupScheduleRules<TData = Awaited<ReturnType<typeof listGroupScheduleRules>>, TError = ProblemDetails>(
+ groupId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listGroupScheduleRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListGroupScheduleRulesQueryOptions(groupId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddScheduleRuleUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/schedule-rules`
+}
+
+export const addScheduleRule = async (groupId: string,
+    addScheduleRuleRequest: AddScheduleRuleRequest, options?: Parameters<typeof apiFetch>[1]): Promise<AddScheduleRuleResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AddScheduleRuleResponse>(getAddScheduleRuleUrl(groupId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(addScheduleRuleRequest)
+  }
+);}
+
+
+
+
+
+export const getAddScheduleRuleMutationKey = () => ['addScheduleRule'] as const;
+
+export const getAddScheduleRuleMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addScheduleRule>>, TError,AddScheduleRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addScheduleRule>>, TError,AddScheduleRuleMutationVariables, TContext> => {
+
+const mutationKey = getAddScheduleRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addScheduleRule>>, AddScheduleRuleMutationVariables> = (props) => {
+          const {groupId,data} = props ?? {};
+
+          return  addScheduleRule(groupId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddScheduleRuleMutationResult = NonNullable<Awaited<ReturnType<typeof addScheduleRule>>>
+    export type AddScheduleRuleMutationBody = AddScheduleRuleRequest
+    export type AddScheduleRuleMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type AddScheduleRuleMutationVariables = {groupId: string;data: AddScheduleRuleRequest}
+
+    export const useAddScheduleRule = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addScheduleRule>>, TError,AddScheduleRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addScheduleRule>>,
+        TError,
+        AddScheduleRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddScheduleRuleMutationOptions(options), queryClient);
+    }
+
+export const getEndScheduleRuleUrl = (id: string,) => {
+
+
+
+
+  return `/api/schedule-rules/${id}/end`
+}
+
+export const endScheduleRule = async (id: string,
+    endScheduleRuleRequest: EndScheduleRuleRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getEndScheduleRuleUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(endScheduleRuleRequest)
+  }
+);}
+
+
+
+
+
+export const getEndScheduleRuleMutationKey = () => ['endScheduleRule'] as const;
+
+export const getEndScheduleRuleMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endScheduleRule>>, TError,EndScheduleRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof endScheduleRule>>, TError,EndScheduleRuleMutationVariables, TContext> => {
+
+const mutationKey = getEndScheduleRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof endScheduleRule>>, EndScheduleRuleMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  endScheduleRule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EndScheduleRuleMutationResult = NonNullable<Awaited<ReturnType<typeof endScheduleRule>>>
+    export type EndScheduleRuleMutationBody = EndScheduleRuleRequest
+    export type EndScheduleRuleMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type EndScheduleRuleMutationVariables = {id: string;data: EndScheduleRuleRequest}
+
+    export const useEndScheduleRule = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endScheduleRule>>, TError,EndScheduleRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof endScheduleRule>>,
+        TError,
+        EndScheduleRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getEndScheduleRuleMutationOptions(options), queryClient);
+    }
+
+export const getExtendScheduleUrl = () => {
+
+
+
+
+  return `/api/schedule/extend`
+}
+
+export const extendSchedule = async (extendScheduleRequest: ExtendScheduleRequest, options?: Parameters<typeof apiFetch>[1]): Promise<ExtendScheduleResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ExtendScheduleResponse>(getExtendScheduleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(extendScheduleRequest)
+  }
+);}
+
+
+
+
+
+export const getExtendScheduleMutationKey = () => ['extendSchedule'] as const;
+
+export const getExtendScheduleMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof extendSchedule>>, TError,ExtendScheduleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof extendSchedule>>, TError,ExtendScheduleMutationVariables, TContext> => {
+
+const mutationKey = getExtendScheduleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof extendSchedule>>, ExtendScheduleMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  extendSchedule(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExtendScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof extendSchedule>>>
+    export type ExtendScheduleMutationBody = ExtendScheduleRequest
+    export type ExtendScheduleMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type ExtendScheduleMutationVariables = {data: ExtendScheduleRequest}
+
+    export const useExtendSchedule = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof extendSchedule>>, TError,ExtendScheduleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof extendSchedule>>,
+        TError,
+        ExtendScheduleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getExtendScheduleMutationOptions(options), queryClient);
+    }
+
+export const getGetTimetableUrl = (params?: GetTimetableParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/timetable?${stringifiedParams}` : `/api/timetable`
+}
+
+export const getTimetable = async (params?: GetTimetableParams, options?: Parameters<typeof apiFetch>[1]): Promise<TimetableDto> => {
+
+  return apiFetch<TimetableDto>(getGetTimetableUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTimetableQueryKey = (params?: GetTimetableParams,) => {
+    return [
+    `/api/timetable`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTimetableQueryOptions = <TData = Awaited<ReturnType<typeof getTimetable>>, TError = HttpValidationProblemDetails | ProblemDetails>(params?: GetTimetableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimetable>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTimetableQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTimetable>>> = ({ signal }) => getTimetable(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTimetable>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTimetableQueryResult = NonNullable<Awaited<ReturnType<typeof getTimetable>>>
+export type GetTimetableQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetTimetable<TData = Awaited<ReturnType<typeof getTimetable>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params: undefined |  GetTimetableParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimetable>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimetable>>,
+          TError,
+          Awaited<ReturnType<typeof getTimetable>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimetable<TData = Awaited<ReturnType<typeof getTimetable>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetTimetableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimetable>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimetable>>,
+          TError,
+          Awaited<ReturnType<typeof getTimetable>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimetable<TData = Awaited<ReturnType<typeof getTimetable>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetTimetableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimetable>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTimetable<TData = Awaited<ReturnType<typeof getTimetable>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetTimetableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimetable>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTimetableQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCancelSessionUrl = (id: string,) => {
+
+
+
+
+  return `/api/sessions/${id}/cancel`
+}
+
+export const cancelSession = async (id: string,
+    sessionVersionRequest: SessionVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getCancelSessionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sessionVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getCancelSessionMutationKey = () => ['cancelSession'] as const;
+
+export const getCancelSessionMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSession>>, TError,CancelSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelSession>>, TError,CancelSessionMutationVariables, TContext> => {
+
+const mutationKey = getCancelSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelSession>>, CancelSessionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelSession(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelSessionMutationResult = NonNullable<Awaited<ReturnType<typeof cancelSession>>>
+    export type CancelSessionMutationBody = SessionVersionRequest
+    export type CancelSessionMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CancelSessionMutationVariables = {id: string;data: SessionVersionRequest}
+
+    export const useCancelSession = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSession>>, TError,CancelSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelSession>>,
+        TError,
+        CancelSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelSessionMutationOptions(options), queryClient);
     }
 
 export const getCreateParentUrl = () => {
