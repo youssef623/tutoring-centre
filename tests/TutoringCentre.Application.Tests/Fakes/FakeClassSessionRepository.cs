@@ -36,4 +36,13 @@ public sealed class FakeClassSessionRepository : IClassSessionRepository
             .ToList());
 
     public void AddRange(IEnumerable<ClassSession> sessions) => Added.AddRange(sessions);
+
+    /// <summary>The teachers whose schedule lock was taken, in call order, and how many sessions were added by then.</summary>
+    public List<(Guid TeacherId, int AddedBefore)> Locked { get; } = [];
+
+    public Task LockTeacherSchedulesAsync(IEnumerable<Guid> teacherIds, CancellationToken ct)
+    {
+        Locked.AddRange(teacherIds.Select(teacherId => (teacherId, Added.Count)));
+        return Task.CompletedTask;
+    }
 }

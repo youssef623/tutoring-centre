@@ -83,6 +83,17 @@ public sealed class AddScheduleRuleHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_TakesTheTeachersScheduleLockBeforeAddingAnySession()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.Handler.HandleAsync(Command(sut.Group.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess, result.Error?.Message);
+        Assert.Equal([(sut.Group.TeacherId, 0)], sut.Sessions.Locked);
+    }
+
+    [Fact]
     public async Task HandleAsync_RuleThatTookEffectInThePast_GeneratesNoDateBeforeToday()
     {
         var sut = CreateSut();

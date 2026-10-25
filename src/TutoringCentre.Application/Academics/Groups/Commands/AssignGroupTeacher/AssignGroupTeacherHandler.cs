@@ -42,6 +42,10 @@ internal sealed class AssignGroupTeacherHandler(
             return Result<Unit>.Failure(GroupErrors.TeacherArchived());
         }
 
+        // Both teachers, before either's sessions change: a concurrent schedule write for the new teacher is then
+        // refused by the constraint, not ended in a deadlock.
+        await sessions.LockTeacherSchedulesAsync([group.TeacherId, teacher.Id], cancellationToken);
+
         var assigned = group.AssignTeacher(teacher.Id);
         if (assigned.IsFailure)
         {
