@@ -234,7 +234,7 @@ public sealed class AuditTrailTests(PostgresFixture fixture) : StaffProbeTestBas
 
         await using var scope = seedProvider.CreateAsyncScope();
         var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentIdentitySeeder>();
-        var seedResult = await seeder.SeedAsync(CancellationToken.None);
+        var seedResult = await seeder.SeedAsync(includeSetupCentreOwner: false, CancellationToken.None);
 
         Assert.True(seedResult.IsSuccess, seedResult.Error?.Message);
         Assert.True(await Fixture.ScalarAsync<long>("select count(*) from identity.memberships") > 0);
