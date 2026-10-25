@@ -68,6 +68,14 @@ public sealed class GetAuditLogValidatorTests
     [InlineData("subject")]
     [InlineData("membership")]
     [InlineData("centre")]
+    [InlineData("parent")]
+    [InlineData("student")]
+    [InlineData("student_parent")]
+    [InlineData("teacher")]
+    [InlineData("group")]
+    [InlineData("enrollment")]
+    [InlineData("schedule_rule")]
+    [InlineData("class_session")]
     public void Validate_WithKnownEntityType_Succeeds(string entityType)
     {
         var result = _validator.Validate(new GetAuditLogQuery(entityType, null, null, null, null, null, 50));

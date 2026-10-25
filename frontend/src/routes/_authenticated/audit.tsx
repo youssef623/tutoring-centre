@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { AuditLog, type AuditFilters } from "@/features/audit/AuditLog";
+import { AuditEntityTypes, type AuditEntityType } from "@/features/audit/auditFormatting";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,13 +13,13 @@ import { PageHeader } from "@/components/shared/PageHeader";
 const DefaultPageSize = 50;
 
 export interface AuditSearch {
-  entityType?: "subject" | "membership" | "centre";
+  entityType?: AuditEntityType;
   from?: string;
   to?: string;
   pageSize?: number;
 }
 
-const KnownEntityTypes = new Set(["subject", "membership", "centre"]);
+const KnownEntityTypes = new Set<string>(AuditEntityTypes);
 
 export const Route = createFileRoute("/_authenticated/audit")({
   validateSearch: (search: Record<string, unknown>): AuditSearch => {
@@ -81,9 +82,11 @@ function AuditPageContent() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("filters.entityTypeAll")}</SelectItem>
-              <SelectItem value="subject">{t("entityType.subject")}</SelectItem>
-              <SelectItem value="membership">{t("entityType.membership")}</SelectItem>
-              <SelectItem value="centre">{t("entityType.centre")}</SelectItem>
+              {AuditEntityTypes.map((entityType) => (
+                <SelectItem key={entityType} value={entityType}>
+                  {t(`entityType.${entityType}`)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

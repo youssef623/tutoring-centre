@@ -9,10 +9,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatAuditValue } from "@/features/audit/auditFormatting";
+import { formatAuditValue, type AuditEntityType } from "@/features/audit/auditFormatting";
 
 export interface AuditFilters {
-  entityType?: "subject" | "membership" | "centre";
+  entityType?: AuditEntityType;
   from?: string;
   to?: string;
   pageSize: number;
