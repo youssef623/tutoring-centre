@@ -53,6 +53,9 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         Assert.False(string.IsNullOrEmpty(body.RootElement.GetProperty("activeCentreId").GetString()));
         Assert.Equal("nile-centre", body.RootElement.GetProperty("memberships")[0].GetProperty("centreSlug").GetString());
 
+        // Day 53: every membership names its centre's zone, so any role can work out "today" in the centre's calendar.
+        Assert.Equal("Africa/Cairo", body.RootElement.GetProperty("memberships")[0].GetProperty("timeZoneId").GetString());
+
         // The login response itself must carry the auto-selected centre's permissions, not the pre-selection
         // (empty) snapshot — a client that renders straight off the login response, without a follow-up
         // GET /api/me, must still see the correct permission-gated UI.

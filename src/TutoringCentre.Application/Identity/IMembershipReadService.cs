@@ -27,8 +27,12 @@ public sealed record StaffProfileDto(
     IReadOnlyList<MembershipDto> Memberships,
     bool MustChangePassword);
 
-/// <summary>One active membership, as seen from the owning user's profile.</summary>
-public sealed record MembershipDto(Guid CentreId, string CentreName, string CentreSlug, StaffRole Role);
+/// <summary>
+/// One active membership, as seen from the owning user's profile. <see cref="TimeZoneId"/> is the centre's IANA zone
+/// (Day 53), so a client knows "today" in the centre's calendar for any role, not only for those who may read the
+/// centre's settings.
+/// </summary>
+public sealed record MembershipDto(Guid CentreId, string CentreName, string CentreSlug, StaffRole Role, string TimeZoneId);
 
 /// <summary>The user's active membership in one specific centre — the tenant gate's answer.</summary>
 public sealed record ActiveMembershipDto(Guid CentreId, string CentreName, StaffRole Role);

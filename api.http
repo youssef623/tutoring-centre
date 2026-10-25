@@ -482,3 +482,80 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 {
   "version": {{enrollmentVersion}}
 }
+
+### Manual walkthrough of the schedule API (Day 53), continuing secretary@nile.test's (or owner@nile.test's) session
+### from step 12. Rules carry local values only: a lower-case weekday, "HH:mm" in the centre's time, "YYYY-MM-DD"
+### dates. Sessions come back as UTC instants ending in "Z", with the centre's timeZoneId. Copy a seeded group "id"
+### from step 42 first, and the date of the coming Saturday.
+@scheduleGroupId = replace-with-a-group-id-from-step-42
+@scheduleFrom = replace-with-today-as-yyyy-mm-dd
+@weekStart = replace-with-a-saturday-as-yyyy-mm-dd
+
+### 56. Add a weekly rule — expect 201, Location: /api/groups/{groupId}/schedule-rules, body { "id", "sessionsCreated" }.
+### The same time on another group of the same teacher — expect 409 schedule.teacher_double_booked; again on this
+### group — 409 schedule.group_double_booked. A "teacherId" or "centreId" in the body, "18:00:00", "18:00+02:00" or a
+### UTC instant for effectiveFrom — expect 400 request.malformed. "18:02" — 400 schedule.start_time_invalid on
+### errors.startTime; durationMinutes 20 — 400 on errors.durationMinutes. An archived group — 422 group.archived.
+POST {{baseUrl}}/api/groups/{{scheduleGroupId}}/schedule-rules
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "dayOfWeek": "saturday",
+  "startTime": "18:00",
+  "durationMinutes": 90,
+  "room": "Room 1",
+  "effectiveFrom": "{{scheduleFrom}}"
+}
+
+### 57. The group's rules — expect 200, { "items": [ { "id", "dayOfWeek", "startTime" ("HH:mm"), "durationMinutes",
+### "room", "effectiveFrom", "effectiveTo", "version" } ] }, ended rules included. As teacher@both.test (step 50's
+### session): 200 for the linked teacher's own group, 404 group.not_found for any other group.
+GET {{baseUrl}}/api/groups/{{scheduleGroupId}}/schedule-rules
+
+### 58. End the rule after a last date — copy its "id" and "version" from step 57 first — expect 204; later sessions
+### are cancelled. Again — 422 schedule.rule_already_ended; a date before effectiveFrom — 422
+### schedule.rule_end_invalid; a stale version — 409 concurrency.stale; an unknown or other centre's ID — 404
+### schedule.rule_not_found.
+@scheduleRuleId = replace-with-a-rule-id-from-step-57
+@scheduleRuleVersion = replace-with-its-version
+POST {{baseUrl}}/api/schedule-rules/{{scheduleRuleId}}/end
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "lastDate": "{{weekStart}}",
+  "version": {{scheduleRuleVersion}}
+}
+
+### 59. Generate the centre's sessions further ahead — expect 200, { "sessionsCreated" }; repeat — 0 (idempotent).
+### A date in the past or more than 92 days ahead — 422 schedule.range_invalid on errors.through. No centre ID: the
+### actor's centre. As a teacher — 403.
+POST {{baseUrl}}/api/schedule/extend
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "through": "{{weekStart}}"
+}
+
+### 60. One week of sessions — expect 200, { "timeZoneId", "weekStart", "sessions": [ { "id", "groupId", "groupName",
+### "subjectName", "teacherId", "teacherName", "localDate", "startsAt", "endsAt", "room", "status", "version" } ] },
+### cancelled sessions included. Optional &groupId= and &teacherId= narrow it. No weekStart — 400 on
+### errors.weekStart (never defaulted from the server's clock). As teacher@both.test: only the linked teacher's own
+### sessions; &teacherId= of another teacher — an empty list.
+GET {{baseUrl}}/api/timetable?weekStart={{weekStart}}
+
+### 61. Cancel one future session — copy a session "id" and "version" from step 60 — expect 204; step 60 then shows
+### it with status "cancelled". Again — 422 schedule.session_already_cancelled; a session that has started — 422
+### schedule.session_in_past; a stale version — 409 concurrency.stale; another centre's session — 404
+### schedule.session_not_found. There is no DELETE: a cancelled session stays as history.
+@sessionId = replace-with-a-session-id-from-step-60
+@sessionVersion = replace-with-its-version
+POST {{baseUrl}}/api/sessions/{{sessionId}}/cancel
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{sessionVersion}}
+}

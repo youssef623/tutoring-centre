@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -76,6 +77,10 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     // Unknown members fail the request (400 request.malformed) instead of being silently ignored.
     options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    // Local times of day travel as "HH:mm" only and instants leave as UTC with "Z" (Day 53); DateOnly's default
+    // "yyyy-MM-dd" already matches the contract.
+    options.SerializerOptions.Converters.Add(new HourMinuteTimeOnlyJsonConverter());
+    options.SerializerOptions.Converters.Add(new UtcInstantJsonConverter());
 });
 
 // Outside Development, minimal APIs answer a bad request body with an empty 400 instead of throwing.
@@ -83,12 +88,33 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 
 builder.Services.AddOpenApi(options =>
+{
     options.AddDocumentTransformer((document, _, _) =>
     {
         // Identical document on every machine and in CI: no host-specific server URLs, so the staleness check is reliable.
         document.Servers = [];
         return Task.CompletedTask;
-    }));
+    });
+
+    // A custom converter hides the JSON shape from the schema exporter, which then emits at most the format with no
+    // type; the client generator would type the value as unknown. State what the two converters write: a string.
+    // Nullable properties keep the "null" member the exporter gives every other nullable; a query parameter's schema
+    // has none, as before.
+    options.AddSchemaTransformer((schema, context, _) =>
+    {
+        var nullableOf = Nullable.GetUnderlyingType(context.JsonTypeInfo.Type);
+        var type = nullableOf ?? context.JsonTypeInfo.Type;
+        if (type == typeof(TimeOnly) || type == typeof(DateTimeOffset))
+        {
+            schema.Type = nullableOf is not null && context.ParameterDescription is null
+                ? JsonSchemaType.String | JsonSchemaType.Null
+                : JsonSchemaType.String;
+            schema.Format = type == typeof(TimeOnly) ? "time" : "date-time";
+        }
+
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
@@ -192,6 +218,7 @@ api.MapSubjectEndpoints();
 api.MapTeacherEndpoints();
 api.MapGroupEndpoints();
 api.MapEnrollmentEndpoints();
+api.MapScheduleEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();
