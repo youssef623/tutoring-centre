@@ -26,6 +26,19 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
     public void SeedGate_Production_WithDemoEnabled_IsAllowed() =>
         Assert.True(SeedGate.IsAllowed(FakeEnvironment("Production"), new DemoOptions { Enabled = true }));
 
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Testing")]
+    public void SeedGate_OutsideProduction_IncludesTheSetupCentre(string environmentName) =>
+        Assert.True(SeedGate.IncludesSetupCentre(FakeEnvironment(environmentName)));
+
+    [Fact]
+    public void SeedGate_Production_NeverIncludesTheSetupCentre_EvenOnADemoInstance()
+    {
+        Assert.True(SeedGate.IsAllowed(FakeEnvironment("Production"), new DemoOptions { Enabled = true }));
+        Assert.False(SeedGate.IncludesSetupCentre(FakeEnvironment("Production")));
+    }
+
     private static FakeHostEnvironment FakeEnvironment(string environmentName) => new(environmentName);
 
     private sealed class FakeHostEnvironment(string environmentName) : IHostEnvironment
@@ -37,17 +50,46 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunAsync_CalledTwice_CreatesExactlyTheTwoDemoCentres()
+    public async Task RunAsync_CalledTwice_CreatesExactlyTheTwoDemoCentresAndTheEmptySetupCentre()
     {
         var firstExitCode = await SeedCommand.RunAsync(factory.Services);
         var secondExitCode = await SeedCommand.RunAsync(factory.Services);
 
         Assert.Equal(0, firstExitCode);
         Assert.Equal(0, secondExitCode);
-        Assert.Equal(2, await factory.ScalarAsync<long>("select count(*) from platform.centres"));
+
+        // The tests run as Testing, so the setup centre (Development and Testing only) is here too.
+        Assert.Equal(3, await factory.ScalarAsync<long>("select count(*) from platform.centres"));
         Assert.Equal(
-            "maadi-hub,nile-centre",
+            "giza-new,maadi-hub,nile-centre",
             await factory.ScalarAsync<string>("select string_agg(slug, ',' order by slug) from platform.centres"));
+    }
+
+    [Fact]
+    public async Task RunAsync_LeavesTheSetupCentreEmpty_ExceptForItsOneOwner()
+    {
+        Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
+
+        Assert.Equal(
+            "owner@giza.test:owner:active",
+            await factory.ScalarAsync<string>(
+                """
+                select string_agg(u.email || ':' || m.role || ':' || m.status, ',') from identity.memberships m
+                join identity.users u on u.id = m.user_id
+                join platform.centres c on c.id = m.centre_id
+                where c.slug = 'giza-new'
+                """));
+        Assert.Equal(
+            0,
+            await factory.ScalarAsync<long>(
+                """
+                select (select count(*) from academics.subjects t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.teachers t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.groups t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.students t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.parents t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.schedule_rules t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                """));
     }
 
     [Fact]
@@ -58,8 +100,16 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
 
         Assert.Equal(0, firstExitCode);
         Assert.Equal(0, secondExitCode);
-        Assert.Equal(5, await factory.ScalarAsync<long>("select count(*) from identity.users"));
-        Assert.Equal(6, await factory.ScalarAsync<long>("select count(*) from identity.memberships"));
+        // The five demo users and their six memberships, plus the setup centre's one owner (Testing).
+        Assert.Equal(6, await factory.ScalarAsync<long>("select count(*) from identity.users"));
+        Assert.Equal(7, await factory.ScalarAsync<long>("select count(*) from identity.memberships"));
+        Assert.Equal(
+            5,
+            await factory.ScalarAsync<long>(
+                """
+                select count(distinct m.user_id) from identity.memberships m
+                join platform.centres c on c.id = m.centre_id where c.slug in ('nile-centre', 'maadi-hub')
+                """));
         Assert.Equal(
             1,
             await factory.ScalarAsync<long>("select count(*) from identity.memberships where status = 'inactive'"));

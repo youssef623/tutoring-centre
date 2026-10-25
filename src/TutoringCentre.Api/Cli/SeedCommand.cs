@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TutoringCentre.Application.Academics.Enrollments.Commands.EnrollStudent;
 using TutoringCentre.Application.Academics.Groups;
@@ -45,6 +46,11 @@ public static class SeedCommand
         new("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar),
         new("Maadi Learning Hub", "maadi-hub", "Africa/Cairo", SupportedLocale.En),
     ];
+
+    // Empty on purpose: no subjects, staff (beyond its owner), students or groups, so the full-setup journey builds
+    // everything itself through the UI. Development and Testing only (SeedGate.IncludesSetupCentre).
+    private static readonly SeedCentre SetupCentre =
+        new("مركز الجيزة الجديد", DevelopmentIdentitySeeder.SetupCentreSlug, "Africa/Cairo", SupportedLocale.Ar);
 
     private static readonly SeedSubjects[] Subjects =
     [
@@ -147,8 +153,9 @@ public static class SeedCommand
 
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("TutoringCentre.Api.Cli.SeedCommand");
         var exitCode = 0;
+        var includeSetupCentre = SeedGate.IncludesSetupCentre(services.GetRequiredService<IHostEnvironment>());
 
-        foreach (var centre in Centres)
+        foreach (var centre in includeSetupCentre ? [.. Centres, SetupCentre] : Centres)
         {
             // One scope per command: its own actor, unit of work and DbContext.
             await using var scope = services.CreateAsyncScope();
@@ -177,7 +184,7 @@ public static class SeedCommand
         await using (var scope = services.CreateAsyncScope())
         {
             var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentIdentitySeeder>();
-            var result = await seeder.SeedAsync(CancellationToken.None);
+            var result = await seeder.SeedAsync(includeSetupCentre, CancellationToken.None);
 
             if (result.IsSuccess)
             {

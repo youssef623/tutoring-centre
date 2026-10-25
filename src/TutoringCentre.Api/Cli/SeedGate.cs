@@ -18,4 +18,15 @@ public static class SeedGate
 
         return environment.IsDevelopment() || environment.IsEnvironment("Testing") || demoOptions.Enabled;
     }
+
+    /// <summary>
+    /// Whether the seed also creates the empty setup centre and its owner (Task 54.2), which only the full-setup
+    /// journey uses: Development and Testing only, never a demo instance, whatever Demo:Enabled says.
+    /// </summary>
+    public static bool IncludesSetupCentre(IHostEnvironment environment)
+    {
+        ArgumentNullException.ThrowIfNull(environment);
+
+        return environment.IsDevelopment() || environment.IsEnvironment("Testing");
+    }
 }
