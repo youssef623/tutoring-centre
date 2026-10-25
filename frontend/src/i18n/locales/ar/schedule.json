@@ -1,0 +1,146 @@
+{
+  "weekdays": {
+    "saturday": "السبت",
+    "sunday": "الأحد",
+    "monday": "الاثنين",
+    "tuesday": "الثلاثاء",
+    "wednesday": "الأربعاء",
+    "thursday": "الخميس",
+    "friday": "الجمعة"
+  },
+  "durations": {
+    "minutes": "{minutes, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+    "hoursAndMinutes": "{hours, plural, zero {# ساعة} one {ساعة واحدة} two {ساعتان} few {# ساعات} many {# ساعة} other {# ساعة}}{minutes, plural, =0 {} one { ودقيقة واحدة} two { ودقيقتان} few { و# دقائق} many { و# دقيقة} other { و# دقيقة}}"
+  },
+  "timeZoneNote": "المواعيد بتوقيت المركز ({zone}).",
+  "rules": {
+    "loadingLabel": "جارٍ تحميل الحصص الأسبوعية",
+    "errorTitle": "تعذّر تحميل الحصص الأسبوعية",
+    "errorReference": "المرجع: {correlationId}",
+    "emptyTitle": "لا توجد حصص أسبوعية بعد",
+    "emptyDescription": "تتكرر الحصة الأسبوعية في اليوم والموعد نفسيهما كل أسبوع، وتُملأ بها الجدول لأربعة أسابيع قادمة.",
+    "emptyDescriptionReadOnly": "عندما تضيف الإدارة حصة أسبوعية لهذه المجموعة، تظهر هنا وفي الجدول.",
+    "columns": {
+      "day": "اليوم",
+      "time": "الموعد",
+      "room": "القاعة",
+      "effective": "سارية",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "noRoom": "بدون قاعة",
+    "effectiveOpen": "من {from}",
+    "effectiveRange": "من {from} إلى {to}",
+    "status": {
+      "active": "سارية",
+      "upcoming": "تبدأ {date}",
+      "ending": "تنتهي {date}",
+      "ended": "انتهت"
+    }
+  },
+  "actions": {
+    "add": "إضافة حصة أسبوعية",
+    "end": "إنهاء",
+    "endLabel": "إنهاء حصة {day} الساعة {time}",
+    "extend": "تمديد الجدول",
+    "openSessionMenu": "إجراءات {group} الساعة {time}",
+    "cancelSession": "إلغاء الحصة"
+  },
+  "addDisabled": {
+    "archived": "هذه المجموعة مؤرشفة. استعدها لإضافة حصص أسبوعية."
+  },
+  "addDialog": {
+    "title": "إضافة حصة أسبوعية",
+    "description": "يُدرّس معلم المجموعة، {teacher}، كل الحصص.",
+    "dayLabel": "اليوم",
+    "dayPlaceholder": "اختر يومًا",
+    "timeLabel": "موعد البدء",
+    "hourLabel": "الساعة",
+    "minuteLabel": "الدقيقة",
+    "periodLabel": "صباحًا أو مساءً",
+    "am": "ص",
+    "pm": "م",
+    "durationLabel": "المدة",
+    "roomLabel": "القاعة (اختياري)",
+    "roomPlaceholder": "مثال: قاعة 2",
+    "startDateLabel": "تبدأ في",
+    "startDateHint": "تُنشأ الحصص بدءًا من هذا التاريخ للأسابيع الأربعة القادمة.",
+    "submit": "إضافة الحصة الأسبوعية"
+  },
+  "endDialog": {
+    "title": "إنهاء حصة {day} الساعة {time}؟",
+    "body": "تُلغى الحصص التالية لآخر تاريخ. تبقى الحصص السابقة كما هي.",
+    "lastDateLabel": "آخر تاريخ",
+    "lastDateHint": "ليس قبل {date}، يوم بدء سريانها.",
+    "confirm": "إنهاء الحصة الأسبوعية"
+  },
+  "cancelDialog": {
+    "title": "إلغاء حصة {group} يوم {date} الساعة {time}؟",
+    "body": "تبقى الحصة في الجدول مع علامة «ملغاة».",
+    "keep": "الإبقاء على الحصة",
+    "confirm": "إلغاء الحصة"
+  },
+  "extendDialog": {
+    "title": "تمديد الجدول",
+    "description": "يُنشئ حصص كل الحصص الأسبوعية السارية حتى تاريخ محدد. تبقى الحصص الموجودة كما هي.",
+    "throughLabel": "إنشاء الحصص حتى",
+    "throughHint": "من اليوم حتى {max}.",
+    "submit": "تمديد"
+  },
+  "form": {
+    "cancel": "إلغاء"
+  },
+  "validation": {
+    "dayRequired": "اختر يومًا.",
+    "timeRequired": "اختر موعد البدء.",
+    "durationRange": "اختر مدة بين 30 دقيقة و4 ساعات.",
+    "roomTooLong": "يجب ألا يزيد اسم القاعة على 40 حرفًا.",
+    "dateRequired": "أدخل تاريخًا.",
+    "lastDateBeforeStart": "لا يمكن أن يكون آخر تاريخ قبل {date}.",
+    "throughRange": "اختر تاريخًا من اليوم حتى {max}."
+  },
+  "outcomes": {
+    "teacherDoubleBooked": "لدى معلم المجموعة حصة أخرى في هذا الموعد. اختر يومًا أو موعدًا آخر.",
+    "groupDoubleBooked": "لدى هذه المجموعة حصة أخرى في هذا الموعد. اختر يومًا أو موعدًا آخر.",
+    "extendTeacherDoubleBooked": "تتداخل الآن حصتان أسبوعيتان لمعلم واحد. راجع الحصص الأسبوعية للمعلم وأنهِ إحداهما.",
+    "extendGroupDoubleBooked": "تتداخل الآن حصتان أسبوعيتان لمجموعة واحدة. راجع الحصص الأسبوعية للمجموعة وأنهِ إحداهما.",
+    "groupArchived": "هذه المجموعة مؤرشفة ولا يمكن جدولتها.",
+    "rangeInvalid": "هذا التاريخ خارج النطاق المسموح به.",
+    "ruleAlreadyEnded": "انتهت هذه الحصة الأسبوعية بالفعل. تم تحديث القائمة.",
+    "ruleEndInvalid": "لا يمكن أن يكون آخر تاريخ قبل يوم بدء سريانها.",
+    "ruleNotFound": "لم تعد هذه الحصة الأسبوعية موجودة. تم تحديث القائمة.",
+    "sessionAlreadyCancelled": "أُلغيت هذه الحصة بالفعل. تم تحديث الجدول.",
+    "sessionInPast": "بدأت هذه الحصة بالفعل ولا يمكن إلغاؤها. تم تحديث الجدول.",
+    "sessionNotFound": "لم تعد هذه الحصة موجودة. تم تحديث الجدول.",
+    "stale": "عدّل شخص آخر هذا العنصر. تم التحديث؛ حاول مرة أخرى."
+  },
+  "toasts": {
+    "scheduled": "{count, plural, =0 {أُضيفت الحصة الأسبوعية. أول حصة لها بعد أكثر من أربعة أسابيع.} one {جُدولت حصة واحدة} two {جُدولت حصتان} few {جُدولت # حصص} many {جُدولت # حصة} other {جُدولت # حصة}}",
+    "ended": "انتهت الحصة الأسبوعية",
+    "cancelled": "أُلغيت الحصة",
+    "extended": "{count, plural, =0 {الجدول محدّث بالفعل} one {أُنشئت حصة واحدة} two {أُنشئت حصتان} few {أُنشئت # حصص} many {أُنشئت # حصة} other {أُنشئت # حصة}}"
+  },
+  "timetable": {
+    "title": "جدول الحصص",
+    "subtitle": "حصص الأسبوع بتوقيت المركز.",
+    "weekLabel": "أسبوع {range}",
+    "previousWeek": "الأسبوع السابق",
+    "nextWeek": "الأسبوع التالي",
+    "thisWeek": "هذا الأسبوع",
+    "filtersLabel": "عوامل تصفية الجدول",
+    "groupFilter": "المجموعة",
+    "allGroups": "كل المجموعات",
+    "teacherFilter": "المعلم",
+    "allTeachers": "كل المعلمين",
+    "loadingLabel": "جارٍ تحميل الجدول",
+    "errorTitle": "تعذّر تحميل الجدول",
+    "emptyTitle": "لا توجد حصص هذا الأسبوع",
+    "emptyDescription": "تظهر الحصص هنا عندما تكون للمجموعة حصص أسبوعية.",
+    "emptyManageHint": "أضف حصصًا أسبوعية من تبويب «الجدول» في صفحة المجموعة، أو مدّد الجدول لملء الأسابيع التالية.",
+    "today": "اليوم",
+    "noSessionsDay": "لا توجد حصص",
+    "sessionCount": "{count, plural, zero {لا حصص} one {حصة واحدة} two {حصتان} few {# حصص} many {# حصة} other {# حصة}}",
+    "cancelled": "ملغاة",
+    "room": "قاعة {room}"
+  }
+}

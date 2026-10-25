@@ -8,6 +8,7 @@ import enrollmentsAr from "./locales/ar/enrollments.json";
 import errorsAr from "./locales/ar/errors.json";
 import groupsAr from "./locales/ar/groups.json";
 import parentsAr from "./locales/ar/parents.json";
+import scheduleAr from "./locales/ar/schedule.json";
 import settingsAr from "./locales/ar/settings.json";
 import shellAr from "./locales/ar/shell.json";
 import staffAr from "./locales/ar/staff.json";
@@ -22,6 +23,7 @@ import enrollmentsEn from "./locales/en/enrollments.json";
 import errorsEn from "./locales/en/errors.json";
 import groupsEn from "./locales/en/groups.json";
 import parentsEn from "./locales/en/parents.json";
+import scheduleEn from "./locales/en/schedule.json";
 import settingsEn from "./locales/en/settings.json";
 import shellEn from "./locales/en/shell.json";
 import staffEn from "./locales/en/staff.json";
@@ -90,6 +92,7 @@ void i18next
         teachers: teachersEn,
         groups: groupsEn,
         enrollments: enrollmentsEn,
+        schedule: scheduleEn,
       },
       ar: {
         common: commonAr,
@@ -106,11 +109,12 @@ void i18next
         teachers: teachersAr,
         groups: groupsAr,
         enrollments: enrollmentsAr,
+        schedule: scheduleAr,
       },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

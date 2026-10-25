@@ -71,10 +71,6 @@
     "roster": "Roster",
     "schedule": "Schedule"
   },
-  "placeholders": {
-    "scheduleTitle": "Schedule coming soon",
-    "scheduleDescription": "This group's weekly sessions will be shown here."
-  },
   "archivedBanner": {
     "title": "This group is archived",
     "description": "An archived group is read-only. Restore it to rename it, change its capacity or change its teacher."
@@ -116,7 +112,9 @@
   },
   "ruleErrors": {
     "capacityBelowEnrolled": "Capacity cannot be lower than the number of students already enrolled.",
-    "hasActiveEnrollments": "This group still has enrolled students. Transfer or withdraw them before archiving."
+    "hasActiveEnrollments": "This group still has enrolled students. Transfer or withdraw them before archiving.",
+    "teacherDoubleBooked": "That teacher already has a session at one of this group's times. The group keeps its current teacher.",
+    "hasActiveSchedule": "This group still has a weekly session in effect. End it on the Schedule tab before archiving."
   },
   "toasts": {
     "created": "Group created.",
