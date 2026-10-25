@@ -175,8 +175,8 @@ public sealed class ScheduleEndpointTests(ApiFactory factory) : IAsyncLifetime
         Assert.True(body.GetProperty("errors").GetProperty("durationMinutes").GetArrayLength() > 0);
     }
 
-    // Out of range is caught by the Day 52 validator before the entity, so the code is the generic validation one
-    // (later.md); the field is what the client maps to its input, and that is the contract asserted here.
+    // Out of range reaches the entity (Day 54: the validator no longer repeats its rules), so the answer carries the
+    // entity's own code on the field the client maps to its input.
     [Theory]
     [InlineData(20)]
     [InlineData(245)]
@@ -187,8 +187,7 @@ public sealed class ScheduleEndpointTests(ApiFactory factory) : IAsyncLifetime
 
         using var response = await PostAsync(owner.Client, $"/api/groups/{groupId}/schedule-rules", Rule(durationMinutes: durationMinutes));
 
-        var body = (await ReadJsonAsync(response)).RootElement;
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await AssertProblemAsync(response, HttpStatusCode.BadRequest, "schedule.duration_invalid");
         Assert.True(body.GetProperty("errors").GetProperty("durationMinutes").GetArrayLength() > 0);
         Assert.Equal(0, await CountRulesAsync(groupId));
     }
@@ -201,9 +200,9 @@ public sealed class ScheduleEndpointTests(ApiFactory factory) : IAsyncLifetime
 
         using var response = await PostAsync(owner.Client, $"/api/groups/{groupId}/schedule-rules", Rule(room: new string('r', 41)));
 
-        var body = (await ReadJsonAsync(response)).RootElement;
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await AssertProblemAsync(response, HttpStatusCode.BadRequest, "schedule.room_invalid");
         Assert.True(body.GetProperty("errors").GetProperty("room").GetArrayLength() > 0);
+        Assert.Equal(0, await CountRulesAsync(groupId));
     }
 
     [Fact]
