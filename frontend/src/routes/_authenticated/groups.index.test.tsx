@@ -194,6 +194,15 @@ describe("GroupsPage", () => {
     });
   });
 
+  it("the subject and teacher selects show their hint until something is chosen", async () => {
+    renderRouter("/groups");
+    fireEvent.click((await screen.findAllByRole("button", { name: "Create group" }, { timeout: 3000 }))[0] as HTMLElement);
+    const dialog = await screen.findByRole("dialog");
+
+    expect(await within(dialog).findByText("Choose a subject")).toBeInTheDocument();
+    expect(await within(dialog).findByText("Choose a teacher")).toBeInTheDocument();
+  });
+
   it("create maps group.name_taken onto the name field", async () => {
     server.use(
       http.post(groupsUrl, () =>

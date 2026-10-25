@@ -43,9 +43,16 @@ export function SubjectSelect({
       disabled={disabled || isPending}
     >
       <SelectTrigger id={id} className={className} aria-invalid={invalid} aria-describedby={describedBy}>
-        <SelectValue placeholder={t(isPending ? "selects.loading" : "selects.subjectPlaceholder")}>
+        <SelectValue>
           {(selected: string | null) =>
-            selected === null ? null : selected === AllValue ? allLabel : <span dir="auto">{nameOf(selected)}</span>
+            // The render function replaces Base UI's placeholder entirely, so "nothing chosen" renders the hint itself.
+            selected === null ? (
+              <span className="text-muted-foreground">{t(isPending ? "selects.loading" : "selects.subjectPlaceholder")}</span>
+            ) : selected === AllValue ? (
+              allLabel
+            ) : (
+              <span dir="auto">{nameOf(selected)}</span>
+            )
           }
         </SelectValue>
       </SelectTrigger>
