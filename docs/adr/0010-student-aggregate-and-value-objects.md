@@ -84,3 +84,11 @@ through `Student`'s own methods; there is no faster path that writes a link row 
 Application layer (Day 39–40), backed by Day 38's composite-key convention for the same reason
 `docs/architecture/tenancy.md`'s Layer 4 gives for any cross-aggregate reference: the Domain knows the shape
 of a valid link, not whether the other side of it exists.
+
+## Outcome (Day 54)
+
+Implemented as decided, with no revision to the decision above: Day 38 stored the three entities with the
+composite-key convention, Days 39–40 added the handlers (all parent-link changes go through `Student`'s own
+methods, and the Application confirms a `ParentId` belongs to the acting centre), Day 41 the endpoints and Day 42
+the screens. `PhoneNumber` and `SearchText` are reused by `Teacher` (Day 43), as anticipated. The details are in
+`docs/architecture/academics.md`.

@@ -1,9 +1,38 @@
-# Academics: students, parents, teachers, groups and enrollments (Days 37–47)
+# Academics: students, parents, teachers, groups, enrollments and the schedule (Days 37–54)
 
 The Domain model behind registering a student and the parents a centre contacts about them, how that model is
 stored, the use cases and endpoints built on it, and the two screens that use them. Teachers and groups
-(Days 43–46) and enrollments (Day 47) follow in their own sections at the end. Written from the implementation; every name and rule
-below is checked against the code, not the plan that produced it.
+(Days 43–46) and enrollments (Days 47–50) follow in their own sections at the end; the schedule (Days 51–53) has its
+own document, `docs/architecture/scheduling.md`. Written from the implementation; every name and rule below is
+checked against the code, not the plan that produced it.
+
+## Module map (end of Month 3)
+
+Academics is one module (`docs/architecture/overview.md`, "Modules"): one Application namespace,
+`TutoringCentre.Application.Academics`, and one Domain namespace, `TutoringCentre.Domain.Academics`, with a folder
+per feature. Subjects (Month 2) live here too.
+
+| Feature | Application folder | Domain types | Tables (`academics.`) | Permissions |
+| --- | --- | --- | --- | --- |
+| Students | `Students` | `Student`, `StudentParentLink` | `students`, `student_parents` | `students.view`, `students.manage` |
+| Parents | `Parents` | `Parent` | `parents` | `students.view`, `students.manage` |
+| Teachers | `Teachers` | `Teacher` | `teachers` | `teachers.view`, `teachers.manage` |
+| Groups | `Groups` | `Group` | `groups` | `groups.view`, `groups.manage` |
+| Enrollments | `Enrollments` | `Enrollment` | `enrollments` | `enrollments.view`, `enrollments.manage` |
+| Schedule | `Scheduling` | `ScheduleRule`, `ClassSession`, `SessionGenerator` (`Domain.Academics.Scheduling`) | `schedule_rules`, `class_sessions` | `schedule.view`, `schedule.manage` |
+
+Inside the module the features reference each other freely, by ID and through their own ports: an enrollment names
+a student and a group, a group a subject and a teacher, a session a group, its teacher and its rule, and every such
+reference is a composite key to the same centre's row. Two facts the module needs belong to other modules, and it
+asks for them only through their published contracts:
+
+- **`IStaffDirectory`** (Identity, Day 43): whether a staff account is an active Teacher of the acting centre, before
+  a teacher record is linked to it. A bool, nothing more.
+- **`ICentreTimeZoneProvider`** (Platform, Day 51): the acting centre's time zone, which every schedule use case
+  needs to know what "today" is and to turn local rules into instants. A `TimeZoneInfo`, nothing more.
+
+`ModuleBoundaryRuleTests` enforces that these two contracts, plus requests and their DTOs, are the only way
+Academics reaches Identity or Platform.
 
 ## Entities
 

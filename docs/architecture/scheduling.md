@@ -1,10 +1,10 @@
-# Scheduling: rules, sessions and the session generator (Day 51)
+# Scheduling: rules, sessions and the session generator (Days 51–54)
 
 How a group's weekly timetable is modelled, and how it becomes dated sessions with exact instants, including on
-the two nights a year when Egypt changes its clocks. Today this is Domain code plus one cross-module contract;
-nothing is persisted or exposed yet (tables, constraints and use cases arrive on Day 52, endpoints and screens on
-Day 53). Written from the implementation and its tests; the test table below is quoted from
-`SessionGeneratorTests`, and if the two ever disagree the test is the source of truth.
+the two nights a year when Egypt changes its clocks: the Domain model and generator (Day 51), the tables and
+the exclusion constraints that forbid double-booking, the use cases (Day 52), the endpoints and screens (Day 53)
+and the demo seed's weekly rules (Day 54). Written from the implementation and its tests; the generator table
+below is quoted from `SessionGeneratorTests`, and if the two ever disagree the test is the source of truth.
 
 ## The time model in one paragraph
 
@@ -48,7 +48,7 @@ same style as `Subject` and `Enrollment`: a private constructor, a factory, `Res
 
 **`ClassSession`** holds `GroupId`, `TeacherId`, `ScheduleRuleId`, `LocalDate`, `StartsAt`, `EndsAt`, `Room` and
 `Status` (`ClassSessionStatus`: `Scheduled`, `Cancelled`). `(ScheduleRuleId, LocalDate)` is its natural key, which
-is what will make generating the same range twice harmless (Day 52 makes that a unique index).
+is what makes generating the same range twice harmless (the unique index `ux_class_sessions_rule_date`).
 
 - Its factory, `ClassSession.Schedule`, is `internal`: the only public way to obtain a session is
   `SessionGenerator.Generate`, so no handler can invent one with instants of its own. The Domain project grants
@@ -96,7 +96,7 @@ days of hours would put every session after a clock change an hour off: across 3
 
 What the generator does not decide: "today" (the caller passes the range, from `CentreCalendar.Today`), which
 dates already have sessions (the caller filters on rule and `LocalDate`), and overlap with other sessions of the
-same teacher or group (exclusion constraints, Day 52).
+same teacher or group (the exclusion constraints below).
 
 ## The centre time-zone contract
 
@@ -153,6 +153,131 @@ that some wrong conversion breaks. The restore left no trace in the diff.
 40 and 41 characters), `OccursOn` around the effective range and both `End` rules. `ClassSessionTests` cover
 cancel and reassign on generator-built sessions. `CentreTimeZoneProviderTests` prove the lookup follows the actor
 (a Europe/London centre beside the two Cairo ones) and the scope cache; `CentreCalendarTests` the New Year case.
+
+## Storage (Day 52)
+
+Migration `AddSchedule` (`20261024105240`), the fifth and last Month 3 migration. It first runs
+`create extension if not exists btree_gist`, which the exclusion constraints need for `=` on `uuid` inside a GiST
+index. Both tables are tenant-owned (`ConfigureTenantOwned`: `centre_id`, `fk_<table>_centres`,
+`ux_<table>_centre_id_id`), carry forced row-level security, and grant `tutoring_app` `SELECT`, `INSERT` and
+`UPDATE` but never `DELETE`: rules are ended and sessions cancelled, never removed. Both have `created_at`,
+`updated_at` and `xmin` as the row version.
+
+**`academics.schedule_rules`**: `group_id`, `day_of_week` (`smallint`, 0 = Sunday as in .NET), `start_time`
+(`time`), `duration_minutes`, `room` (`varchar(40)`, nullable), `effective_from` and `effective_to` (`date`, the
+second nullable).
+
+- `fk_schedule_rules_groups`: `(centre_id, group_id)` to `groups(centre_id, id)`.
+- `ck_schedule_rules_day` (0–6) and `ck_schedule_rules_duration` (30–240); index `ix_schedule_rules_centre_group`.
+
+**`academics.class_sessions`**: `group_id`, `teacher_id`, `schedule_rule_id`, `local_date`, `starts_at` and
+`ends_at` (`timestamptz`), `room`, `status` (`varchar(10)`).
+
+- Composite keys to the same centre's group, teacher and rule (`fk_class_sessions_groups`,
+  `fk_class_sessions_teachers`, `fk_class_sessions_rules`).
+- `ux_class_sessions_rule_date` (unique on `schedule_rule_id, local_date`): the natural key.
+- `ck_class_sessions_status` (`scheduled`, `cancelled`) and `ck_class_sessions_range` (`ends_at > starts_at`).
+- `ex_class_sessions_group_overlap` and `ex_class_sessions_teacher_overlap`, each
+  `exclude using gist (centre_id with =, <group_id or teacher_id> with =, tstzrange(starts_at, ends_at, '[)') with &&) where (status = 'scheduled')`.
+  Half-open, so a session ending at 19:00 and one starting at 19:00 do not collide; partial, so a cancelled
+  session frees its slot; `centre_id` first, so one centre's sessions never meet another's
+  (`docs/architecture/tenancy.md`). The group constraint is created first: PostgreSQL reports the first violated
+  index in creation order, and "this group already meets then" is the more precise answer when both apply.
+- Indexes for the reads: `ix_class_sessions_centre_date` (`centre_id, local_date, starts_at`, the timetable),
+  `ix_class_sessions_centre_group_date` and `ix_class_sessions_centre_teacher`.
+
+`ConstraintErrorCatalog` (Infrastructure) translates a violation of the two exclusion constraints into
+`409 schedule.group_double_booked` ("This group already has a session at this time.") and
+`409 schedule.teacher_double_booked` ("The teacher already has a session at this time."). That translation is the
+only overlap check in the system: no handler queries for overlaps, so there is no read-then-insert window to race.
+
+## Use cases (Days 52–53)
+
+| Request | Permission | What it does |
+| --- | --- | --- |
+| `AddScheduleRuleCommand(groupId, dayOfWeek, startTime, durationMinutes, room, effectiveFrom)` | `schedule.manage` | Creates the rule and generates its sessions from the later of today and `effectiveFrom` through the horizon, with the group's current teacher. `effectiveFrom` at most 366 days ahead (`schedule.range_invalid`); an archived group answers `group.archived`. |
+| `EndScheduleRuleCommand(scheduleRuleId, lastDate, version)` | `schedule.manage` | Sets `EffectiveTo` and, in the same transaction, cancels the rule's later sessions that are still scheduled and have not started. Earlier sessions are untouched. |
+| `ExtendScheduleCommand(through)` | `schedule.manage` | For every rule in effect on an active group, generates the missing sessions from today through `through` (today to today + 92 days). Idempotent: dates that already have a session of the rule, scheduled or cancelled, are skipped, so a cancelled date is never refilled. One transaction for the centre. |
+| `CancelSessionCommand(sessionId, version)` | `schedule.manage` | Cancels one session before it starts (`schedule.session_in_past` once it has). The rule keeps going; the slot is free again. |
+| `ListGroupScheduleRulesQuery(groupId)` | `schedule.view` | The group's rules, ended ones included. Scoped on the group's teacher. |
+| `GetTimetableQuery(weekStart, groupId?, teacherId?)` | `schedule.view` | Seven local dates from `weekStart`: every session, cancelled ones included, ordered by start, with the centre's IANA zone beside the UTC instants. Scoped on each session's own teacher. |
+
+Two existing group use cases changed with the schedule (Day 52). `AssignGroupTeacherCommand` moves the group's
+future scheduled sessions to the new teacher (`ClassSession.ReassignTeacher`), and the exclusion constraint refuses
+the change when the new teacher is busy then (`409 schedule.teacher_double_booked`; the group keeps its current
+teacher). `ArchiveGroupCommand` refuses while a rule is still in effect (`group.has_active_schedule`).
+
+**Serialising writes per teacher (Day 53).** Two colliding writes for one teacher in the same instant could end in
+a PostgreSQL deadlock (`40P01`) instead of the exclusion violation, because each inserts into the GiST index before
+checking it. `IClassSessionRepository.LockTeacherSchedulesAsync` takes sorted, transaction-scoped advisory locks for
+every teacher a command may give sessions to, before any session changes; `AddScheduleRule`, `ExtendSchedule` and
+`AssignGroupTeacher` call it. The second writer then waits and is refused by the constraint with a 409
+(`ScheduleDoubleBookingHttpTests`).
+
+Every change is audited: a rule on every action, a session only when it is updated (a cancellation or a teacher
+reassignment; `docs/architecture/audit.md`).
+
+## The horizon
+
+`ScheduleHorizon` (Application) holds three limits, all in calendar days of the centre's zone:
+
+- `Days = 28`: adding a rule generates today through today + 27, four weeks, which holds every weekday exactly
+  four times.
+- `MaxEffectiveFromDaysAhead = 366`: how far ahead a new rule may start.
+- `MaxExtendDaysAhead = 92`: how far `ExtendScheduleCommand` may reach.
+
+"Today" is always `CentreCalendar.Today(clock, zone)`, never the server's date. Nothing extends the schedule on
+its own yet: after four weeks the timetable runs out unless someone presses "Extend schedule" on the Timetable
+page (`later.md`).
+
+## What Month 4's job will call
+
+The nightly job planned for Month 4 needs no new use case. For each centre it dispatches
+`ExtendScheduleCommand(through: today + 28)` as `SystemActor(centreId)`, the same way the seed CLI dispatches its
+per-centre commands. The command is already one centre per call, idempotent, all-or-nothing per centre, and takes
+the per-teacher locks, so it can run beside staff edits. Iterating every centre is the part that does not exist
+yet (`later.md`, "tenant-less background jobs").
+
+## Endpoints (Day 53)
+
+| Method | Route | Request | Success |
+| --- | --- | --- | --- |
+| `GET` | `/api/groups/{groupId}/schedule-rules` | `ListGroupScheduleRulesQuery` | 200 |
+| `POST` | `/api/groups/{groupId}/schedule-rules` | `AddScheduleRuleCommand` | 201, `{ id, sessionsCreated }` |
+| `POST` | `/api/schedule-rules/{id}/end` | `EndScheduleRuleCommand` | 204 |
+| `POST` | `/api/schedule/extend` | `ExtendScheduleCommand` | 200, `{ sessionsCreated }` |
+| `GET` | `/api/timetable?weekStart=&groupId=&teacherId=` | `GetTimetableQuery` | 200, `{ timeZoneId, weekStart, sessions }` |
+| `POST` | `/api/sessions/{id}/cancel` | `CancelSessionCommand` | 204 |
+
+The endpoints only bind and dispatch. Weekdays travel as lower-case names (`"saturday"`), local times as `"HH:mm"`,
+dates as `"YYYY-MM-DD"`, instants as UTC. The server never formats a time for display.
+
+## Frontend (Day 53)
+
+Under `frontend/src/features/schedule`, all text in the `schedule` namespace in both languages:
+
+- **Schedule tab** on the group page (`GroupScheduleTab`, `ScheduleRulesTable`), shown with `schedule.view`; the
+  "Add weekly session" and "End" actions only with `schedule.manage`. `AddScheduleRuleDialog` uses a 12-hour,
+  three-select time picker (hour, minute, AM or PM) that reads left to right in both languages, a length select
+  and a first date that defaults to the centre's today; a 409 is shown in the dialog in words and leaves it open.
+- **Timetable** (`/timetable`: `TimetablePage`, `TimetableGrid`, `WeekNavigator`, `SessionCard`): a week that
+  starts on Saturday, seven columns from the `lg` breakpoint and a stacked list below it, `?week=` in the URL, group
+  and teacher filters (the teacher one only with `teachers.view`), cancelled sessions kept in place and labelled.
+  "Extend schedule" and each session's "Cancel session" only with `schedule.manage`.
+- **`centreTime`** (`centreTime.ts`) is the one place times become text: every function takes the centre's zone
+  from the response, never the browser's, so a laptop set to another zone still shows Cairo's wall clock.
+
+## The demo schedule (Day 54)
+
+The seed command adds eight weekly rules through `AddScheduleRuleCommand`, as `SystemActor(centreId)`, one scope
+per write: six in Nile across its four groups and two in Maadi, Monday to Thursday only (the API tests and the
+journeys schedule their own sessions on Saturdays and Sundays, some on the same groups). `EffectiveFrom` is the
+seed day in the centre's zone, never a calendar date in code, so a freshly seeded instance always shows this week
+and the next three. A rule is skipped when its group already has one with the same weekday and start time (read
+through `ListGroupScheduleRulesQuery`), so a second run adds nothing. A `schedule.*_double_booked` answer is never
+treated as "already seeded": the seed's rules are chosen not to collide, so one means the seed's own data (or data
+left in the database by hand) is wrong, and the command exits with code 1. `SeedCommandTests` asserts 6 and 2
+rules, 24 and 8 sessions, every rule starting on the seed day, and that a second run changes no count anywhere.
 
 ## Permissions
 

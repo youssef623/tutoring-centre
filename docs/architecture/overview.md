@@ -9,7 +9,7 @@
 | Invalid input | `Result` failure, kind `Validation` | slug `"Bad Slug"` → `centre.slug_invalid` |
 | Something requested doesn't exist | `NotFound` | unknown centre (from Week 2) |
 | Conflicts with existing data | `Conflict` | duplicate slug (Day 9) |
-| A business rule says no | `Rule` | enrolling into a full group (Month 3) |
+| A business rule says no | `Rule` | enrolling into a full group (`group.full`) |
 | The caller isn't allowed | `Forbidden` | non-system actor creating a centre (Week 2) |
 | A bug | exception | reading `Value` of a failed `Result` |
 | An infrastructure fault | exception | database unreachable, timeout |
@@ -82,7 +82,7 @@ Query (HTTP GET, reads):
 
 **Why validation runs before BEGIN.** Invalid input needs no database work, so no transaction (and no connection) is opened for it.
 
-**Why the transaction starts before the handler, not just around SaveChanges.** Repositories will take row locks (`FOR UPDATE`) while the handler reads, and `UnitOfWork.BeginAsync` sets the PostgreSQL row-level-security tenant inside the transaction (tenancy.md, Layer 3); both must cover the whole handler, not just the save.
+**Why the transaction starts before the handler, not just around SaveChanges.** Repositories take row locks while the handler reads (since Day 48 the enrollment capacity lock, `FOR UPDATE` on the group row; since Day 53 the per-teacher advisory locks for schedule writes), and `UnitOfWork.BeginAsync` sets the PostgreSQL row-level-security tenant inside the transaction (tenancy.md, Layer 3); both must cover the whole handler, not just the save.
 
 **What happens when a query handler throws.** End the read-only transaction (roll back) and rethrow; the global handler returns 500.
 
@@ -163,6 +163,15 @@ that answers the question (a bool, an ID, never the entity or a DTO built for a 
 adapter writes any tenant predicate by hand when it queries a table the EF filter and row-level security do
 not cover (e.g. `identity.memberships`, Day 29's documented RLS exemption).
 
+Two contracts exist at the end of Month 3, both asked by Academics:
+
+| Contract | Published by | Question | Asked by |
+| --- | --- | --- | --- |
+| `TutoringCentre.Application.Identity.Contracts.IStaffDirectory` (Day 43) | Identity | `IsActiveMemberWithRoleAsync(centreId, userId, role)`: is this user an active member of this centre with exactly this role? A bool. | linking a teacher record to a staff account |
+| `TutoringCentre.Application.Centres.Contracts.ICentreTimeZoneProvider` (Day 51) | Platform | `GetForCurrentCentreAsync()`: the acting centre's time zone. A `TimeZoneInfo`, never the centre. | every schedule use case, to know "today" and to turn local rules into instants |
+
+`ModuleBoundaryRuleTests` allows exactly this `Contracts` exception and nothing else.
+
 **Shared kernel**, available to every module without counting as "another module's": the Domain and
 Application `Common` namespaces, plus exactly four cross-cutting types — `SupportedLocale`, `StaffRole`,
 `Permissions`, `RolePermissions`. The list is deliberately short; growing it to make a test pass is not
@@ -179,13 +188,15 @@ an acceptable fix for a real violation.
 - [ADR 0007 — Code-defined permissions](../adr/0007-code-defined-permissions.md)
 - [ADR 0008 — Audit log written in the command's own transaction](../adr/0008-audit-log-in-transaction.md)
 - [ADR 0009 — Azure Container Apps and OIDC](../adr/0009-azure-container-apps-and-oidc.md)
-- [ADR 0010 — Student aggregate and value objects (draft)](../adr/0010-student-aggregate-and-value-objects.md)
+- [ADR 0010 — Student aggregate and value objects](../adr/0010-student-aggregate-and-value-objects.md)
 - [ADR 0011 — Pessimistic lock for enrollment capacity](../adr/0011-pessimistic-lock-for-enrollment-capacity.md)
+- [ADR 0012 — Sessions as generated instants](../adr/0012-sessions-as-generated-instants.md)
 - [API conventions](api-conventions.md)
 - [Authentication: login, sessions, CSRF, revocation](authentication.md)
 - [Tenant isolation: the role model, and layers 1–4](tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](authorization.md)
 - [Audit: how a change becomes an audit row, atomically](audit.md)
-- [Academics: students and parents](academics.md)
+- [Academics: students, parents, teachers, groups and enrollments](academics.md)
+- [Scheduling: rules, sessions and the session generator](scheduling.md)
 - [Deployment: topology, pipeline, secrets inventory](deployment.md)
 - [Live verification](../operations/live-verification.md) and [runbook](../operations/runbook.md)

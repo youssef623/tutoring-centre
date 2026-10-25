@@ -11,6 +11,13 @@ CI, on the local production stack from Day 34. Sections marked **(designed, not 
 Azure topology and pipeline the manual specifies, documented so the work that remains is exactly these
 sections, done for real, once a subscription exists.
 
+**Status at the end of Month 3 (2026-10-26).** Unchanged: cloud deployment is still not set up, and Month 3 added
+none. No Azure (or other cloud) resource exists, `deploy.yml` does not exist, and Month 2's Days 35–36 remain open
+(`later.md`). Everything Month 3 built (students, parents, teachers, groups, enrollments, the schedule, and five
+migrations ending with `AddSchedule`, which needs the `btree_gist` extension) runs locally, in CI and on the local
+production stack only; the Month 3 verification was walked on a freshly seeded local instance
+(`docs/operations/month3-local-verification.md`), not on a deployed one.
+
 ## Topology
 
 **(built)** — the local production stack, `compose.prod.yaml`:

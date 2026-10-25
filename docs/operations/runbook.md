@@ -4,6 +4,10 @@ Commands that work when followed literally. Each section was either run for real
 the local production stack — no Azure subscription is provisioned, see `docs/architecture/deployment.md`) or
 is marked **not executed**, with the reason, rather than left to guesswork.
 
+**End of Month 3 (2026-10-26).** Cloud deployment is still not set up, so every "Deploy" and Azure step below
+remains **not executed**; Month 3 added no deployment step. The Month 3 checks were run against a freshly seeded
+local instance instead (`docs/operations/month3-local-verification.md`).
+
 ## 1. Deploy
 
 **Not executed.** `deploy.yml` is not written in this slice: every step depends on a resource (registry,
