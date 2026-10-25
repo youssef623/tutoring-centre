@@ -77,10 +77,11 @@ public sealed class ScheduleUseCaseTests(PostgresFixture fixture) : ScheduleTest
 
         Assert.Single(outcomes, outcome => outcome == Success);
 
-        // Each transaction inserts into the GiST index before checking it, so two truly simultaneous inserts can
-        // each see the other's uncommitted row and wait on it; PostgreSQL then aborts one as a deadlock instead of
-        // reporting the exclusion violation. Either way the loser stores nothing (later.md, Day 52).
-        Assert.Contains(Assert.Single(outcomes, outcome => outcome != Success), new[] { "schedule.teacher_double_booked", Deadlock });
+        // Each transaction inserts into the GiST index before checking it, so without serialisation two truly
+        // simultaneous inserts could each wait on the other's uncommitted row and end in a deadlock (Day 52). Since
+        // Day 53 the handler takes the teacher's advisory lock first, so the loser always waits, then meets the
+        // committed row and is refused by the constraint: never a deadlock.
+        Assert.Equal("schedule.teacher_double_booked", Assert.Single(outcomes, outcome => outcome != Success));
         Assert.Equal(1, await CountAsync("select count(*) from academics.schedule_rules"));
         Assert.Equal(4, await SessionCountAsync());
     }
