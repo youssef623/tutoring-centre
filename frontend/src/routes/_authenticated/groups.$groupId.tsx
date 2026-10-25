@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssignGroupTeacherDialog, ChangeGroupCapacityDialog, RenameGroupDialog } from "@/features/groups/GroupEditDialogs";
@@ -149,7 +150,7 @@ function GroupNotFound() {
       </span>
       <h1 className="text-xl font-semibold tracking-tight">{t("notFound.title")}</h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("notFound.description")}</p>
-      <Button render={<Link to="/groups" />}>{t("notFound.backToList")}</Button>
+      <Link to="/groups" className={buttonVariants()}>{t("notFound.backToList")}</Link>
     </div>
   );
 }

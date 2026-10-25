@@ -11,6 +11,7 @@ import {
 } from "@/api/generated/tutoring-centre";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DataTable,
@@ -91,9 +92,9 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
           <p className="text-sm font-medium">{t("emptyState.title")}</p>
           <p className="text-sm text-muted-foreground">{t("emptyState.description")}</p>
           {canManage && (
-            <Button render={<Link to="/students/new" />} className="mt-3">
+            <Link to="/students/new" className={buttonVariants({ className: "mt-3" })}>
               {t("actions.register")}
-            </Button>
+            </Link>
           )}
         </div>
       );

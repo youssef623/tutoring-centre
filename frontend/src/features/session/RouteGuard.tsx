@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { useCan } from "./useCan";
 import type { Permission } from "./permissions";
 
@@ -22,7 +22,7 @@ export function RouteGuard({ permission, children }: { permission: Permission; c
         <ShieldAlert className="size-10 text-muted-foreground" aria-hidden="true" />
         <h1 className="text-xl font-semibold tracking-tight">{t("noAccess.title")}</h1>
         <p className="max-w-sm text-sm text-muted-foreground">{t("noAccess.description")}</p>
-        <Button render={<Link to="/" />}>{t("noAccess.backToDashboard")}</Button>
+        <Link to="/" className={buttonVariants()}>{t("noAccess.backToDashboard")}</Link>
       </div>
     );
   }

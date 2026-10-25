@@ -17,6 +17,7 @@ import {
 import { eligibleStaffForTeacher } from "@/features/teachers/eligibleStaff";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   Dialog,
   DialogContent,
@@ -156,9 +157,9 @@ export function TeacherAccountDialog({
               <UserPlus className="size-5 text-muted-foreground" aria-hidden="true" />
               <p className="text-sm font-medium">{t("account.noEligibleTitle")}</p>
               <p className="text-sm text-muted-foreground">{t("account.noEligibleDescription")}</p>
-              <Button variant="outline" size="sm" render={<Link to="/staff" />}>
+              <Link to="/staff" className={buttonVariants({ variant: "outline", size: "sm" })}>
                 {t("account.goToStaff")}
-              </Button>
+              </Link>
               {fieldError !== null && (
                 <p role="alert" className="text-sm text-destructive">
                   {fieldError}

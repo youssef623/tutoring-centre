@@ -7,6 +7,7 @@ import { messageFor } from "@/api/errorMessages";
 import { useGetParent, type ParentChildDto, type ParentDetailDto } from "@/api/generated/tutoring-centre";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Badge } from "@/components/ui/badge";
 import { PhoneText } from "@/components/shared/PhoneText";
 import {
@@ -99,7 +100,7 @@ function ParentNotFound() {
       <SearchX className="size-10 text-muted-foreground" aria-hidden="true" />
       <h1 className="text-xl font-semibold tracking-tight">{t("notFound.title")}</h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("notFound.description")}</p>
-      <Button render={<Link to="/students" />}>{t("notFound.backToStudents")}</Button>
+      <Link to="/students" className={buttonVariants()}>{t("notFound.backToStudents")}</Link>
     </div>
   );
 }

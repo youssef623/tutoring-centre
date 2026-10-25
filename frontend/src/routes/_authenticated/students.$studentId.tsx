@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { PhoneText } from "@/components/shared/PhoneText";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -116,7 +117,7 @@ function StudentNotFound() {
       <SearchX className="size-10 text-muted-foreground" aria-hidden="true" />
       <h1 className="text-xl font-semibold tracking-tight">{t("notFound.title")}</h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("notFound.description")}</p>
-      <Button render={<Link to="/students" />}>{t("notFound.backToList")}</Button>
+      <Link to="/students" className={buttonVariants()}>{t("notFound.backToList")}</Link>
     </div>
   );
 }
