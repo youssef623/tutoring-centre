@@ -265,6 +265,83 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal(31, await factory.ScalarAsync<long>("select count(*) from audit.audit_entries where entity_type = 'enrollment'"));
     }
 
+    [Fact]
+    public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoSchedulesIdempotently_FromTheSeedDay()
+    {
+        var firstExitCode = await SeedCommand.RunAsync(factory.Services);
+        var firstCounts = await DatasetCountsAsync();
+        var secondExitCode = await SeedCommand.RunAsync(factory.Services);
+
+        Assert.Equal(0, firstExitCode);
+        Assert.Equal(0, secondExitCode);
+        Assert.Equal(firstCounts, await DatasetCountsAsync());
+        Assert.Equal("maadi-hub:2,nile-centre:6", await PerCentreCountsAsync("academics.schedule_rules"));
+
+        // A four-week horizon holds each weekday exactly four times, whatever day the seed runs.
+        Assert.Equal("maadi-hub:8,nile-centre:24", await PerCentreCountsAsync("academics.class_sessions"));
+        Assert.Equal(0, await factory.ScalarAsync<long>("select count(*) from academics.class_sessions where status != 'scheduled'"));
+
+        // Relative dates only: every rule starts on the seed day in the centre's own zone, and its first session
+        // is within the week that starts then.
+        var seedDay = DateOnly.FromDateTime(
+            TimeZoneInfo.ConvertTime(factory.Time.GetUtcNow(), TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo")).DateTime);
+        Assert.Equal(
+            seedDay.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+            await factory.ScalarAsync<string>(
+                "select string_agg(distinct effective_from::text, ',') from academics.schedule_rules where effective_to is null"));
+        Assert.Equal(
+            8,
+            await factory.ScalarAsync<long>(
+                """
+                select count(distinct r.id) from academics.schedule_rules r
+                join academics.class_sessions s on s.schedule_rule_id = r.id
+                where s.local_date between r.effective_from and r.effective_from + 6
+                """));
+
+        // Every rule is the same centre as its group, and every session the same centre and teacher as its group.
+        Assert.Equal(
+            0,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.class_sessions s
+                join academics.schedule_rules r on r.id = s.schedule_rule_id
+                join academics.groups g on g.id = r.group_id
+                where s.centre_id != r.centre_id or r.centre_id != g.centre_id or s.teacher_id != g.teacher_id
+                """));
+
+        // Commands only: every seeded rule was audited like one added over HTTP.
+        Assert.Equal(8, await factory.ScalarAsync<long>("select count(*) from audit.audit_entries where entity_type = 'schedule_rule'"));
+    }
+
+    private Task<string> PerCentreCountsAsync(string table) =>
+        factory.ScalarAsync<string>(
+            $"""
+            select string_agg(slug || ':' || n, ',' order by slug) from (
+                select c.slug, count(*) as n from {table} t
+                join platform.centres c on c.id = t.centre_id
+                group by c.slug) as counts
+            """);
+
+    // Every table the seed writes, so a second run that changed anything at all shows up as a different string.
+    private Task<string> DatasetCountsAsync() =>
+        factory.ScalarAsync<string>(
+            """
+            select concat_ws(',',
+                (select count(*) from platform.centres),
+                (select count(*) from identity.users),
+                (select count(*) from identity.memberships),
+                (select count(*) from academics.subjects),
+                (select count(*) from academics.teachers),
+                (select count(*) from academics.groups),
+                (select count(*) from academics.students),
+                (select count(*) from academics.parents),
+                (select count(*) from academics.student_parents),
+                (select count(*) from academics.enrollments),
+                (select count(*) from academics.schedule_rules),
+                (select count(*) from academics.class_sessions),
+                (select count(*) from audit.audit_entries))
+            """);
+
     private Task<string> EnrollmentCountsAsync() =>
         factory.ScalarAsync<string>(
             """
