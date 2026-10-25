@@ -15,7 +15,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     private static readonly Uri MeUri = new("/api/me", UriKind.Relative);
     private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
 
-    private static readonly string[] AllTwelvePermissionsSorted =
+    private static readonly string[] AllSixteenPermissionsSorted =
     [
         "audit.view", "centre.settings.manage", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view",
         "schedule.manage", "schedule.view", "staff.manage", "staff.view",
@@ -60,7 +60,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         // (empty) snapshot — a client that renders straight off the login response, without a follow-up
         // GET /api/me, must still see the correct permission-gated UI.
         var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(AllTwelvePermissionsSorted, permissions);
+        Assert.Equal(AllSixteenPermissionsSorted, permissions);
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetMe_AsOwner_ReturnsAllTwelvePermissionsSorted()
+    public async Task GetMe_AsOwner_ReturnsAllSixteenPermissionsSorted()
     {
         using var client = CreateSessionClient();
         using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
@@ -172,7 +172,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         var me = await ReadJsonAsync(meResponse);
 
         var permissions = me.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(AllTwelvePermissionsSorted, permissions);
+        Assert.Equal(AllSixteenPermissionsSorted, permissions);
     }
 
     [Fact]
