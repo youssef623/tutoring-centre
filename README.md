@@ -153,18 +153,25 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    End-to-end journeys (real API, real PostgreSQL, a real Chromium browser) are separate: they start their
    own copies of the API and the frontend, so stop the ones from steps 4/6 first (or leave them running —
    Playwright reuses an already-running server locally). Supply the seed password from step 5 as
-   `SEED_PASSWORD`:
+   `SEED_PASSWORD`, and raise the login budget the way CI does: sign-in is limited to ten attempts a minute per
+   client address, and every local journey signs in from the same one, so a whole run (or two runs in a row) would
+   otherwise hit "Too many attempts". The budget is read by the API Playwright starts, so stop your own API from
+   step 4 first.
 
    ```powershell
    cd frontend
    $env:SEED_PASSWORD = "<the password you chose in step 5>"
+   $env:Auth__LoginRateLimit__PermitLimit = "100"
    npm run test:e2e
    ```
 
    ```bash
    cd frontend
-   SEED_PASSWORD="<the password you chose in step 5>" npm run test:e2e
+   SEED_PASSWORD="<the password you chose in step 5>" Auth__LoginRateLimit__PermitLimit=100 npm run test:e2e
    ```
+
+   The journeys leave their own data behind (unique names per run), so walk a manual check on a freshly seeded
+   database, not after a test run.
 
 8. **Run the local production stack** (the real container image, behind a TLS-terminating reverse proxy —
    the same topology a deployed environment uses, before any cloud resource exists). Add
