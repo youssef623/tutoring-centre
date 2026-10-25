@@ -25,6 +25,7 @@ import { PhoneText } from "@/components/shared/PhoneText";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Permissions } from "@/features/session/permissions";
 import { useCan } from "@/features/session/useCan";
+import { isolateLtr } from "@/lib/bidi";
 
 const PageSize = 25;
 
@@ -64,7 +65,7 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
         <AlertTitle>{t("error.title")}</AlertTitle>
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
-          {apiError.correlationId !== undefined && <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>}
+          {apiError.correlationId !== undefined && <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>}
           <Button
             type="button"
             variant="outline"

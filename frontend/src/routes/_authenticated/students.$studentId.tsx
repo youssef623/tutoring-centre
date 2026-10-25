@@ -40,6 +40,7 @@ import { Permissions } from "@/features/session/permissions";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { useCan } from "@/features/session/useCan";
+import { isolateLtr } from "@/lib/bidi";
 
 export const Route = createFileRoute("/_authenticated/students/$studentId")({
   component: StudentDetailPage,
@@ -84,7 +85,7 @@ function StudentDetailPageContent() {
           <AlertDescription className="flex flex-col gap-2">
             <p>{messageFor(apiError)}</p>
             {apiError.correlationId !== undefined && (
-              <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>
+              <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
             )}
             <Button
               type="button"

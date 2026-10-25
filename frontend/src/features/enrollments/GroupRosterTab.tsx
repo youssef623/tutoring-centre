@@ -17,6 +17,7 @@ import { WithdrawEnrollmentDialog, type EnrollmentTarget } from "@/features/enro
 import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { useCan } from "@/features/session/useCan";
+import { isolateLtr } from "@/lib/bidi";
 
 /**
  * One view, three permission levels: anyone with `enrollments.view` (including the group's own teacher) sees the
@@ -54,7 +55,7 @@ export function GroupRosterTab({ group }: { group: GroupDto }) {
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
           {apiError.correlationId !== undefined && (
-            <p>{t("roster.errorReference", { correlationId: apiError.correlationId })}</p>
+            <p>{t("roster.errorReference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
           )}
           <Button
             type="button"

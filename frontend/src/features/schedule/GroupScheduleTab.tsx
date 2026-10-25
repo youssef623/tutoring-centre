@@ -18,6 +18,7 @@ import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { useCan } from "@/features/session/useCan";
 import { useCentreTimeZone } from "@/features/session/useCentreTimeZone";
+import { isolateLtr } from "@/lib/bidi";
 
 /**
  * A group's weekly rules. Anyone with `schedule.view` (the group's own teacher included) reads them;
@@ -53,7 +54,7 @@ export function GroupScheduleTab({ group }: { group: GroupDto }) {
         <AlertTitle>{t("rules.errorTitle")}</AlertTitle>
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
-          {apiError.correlationId !== undefined && <p>{t("rules.errorReference", { correlationId: apiError.correlationId })}</p>}
+          {apiError.correlationId !== undefined && <p>{t("rules.errorReference", { correlationId: isolateLtr(apiError.correlationId) })}</p>}
           <Button
             type="button"
             variant="outline"

@@ -42,6 +42,7 @@ import {
   DataTableHead,
   DataTableRow,
 } from "@/components/shared/DataTable";
+import { isolateLtr } from "@/lib/bidi";
 
 export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMemberDto) => void }) {
   const { t } = useTranslation("staff");
@@ -113,7 +114,7 @@ export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMember
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
           {apiError.correlationId !== undefined && (
-            <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>
+            <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
           )}
           <Button
             type="button"
