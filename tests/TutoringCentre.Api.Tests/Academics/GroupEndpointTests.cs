@@ -7,8 +7,9 @@ namespace TutoringCentre.Api.Tests.Academics;
 
 /// <summary>
 /// Task 45.5: the eight group endpoints' contract through the full HTTP pipeline — status, code, body shape and
-/// headers, never messages — plus the one outcome Day 44 added to Month 2's subject archive endpoint. Every test
-/// creates its own subjects, teachers and groups, so the seeded demo data never decides a result.
+/// headers, never messages — plus the one outcome Day 44 added to Month 2's subject archive endpoint, and the two
+/// outcomes scheduling (Day 52) added to reassigning and archiving a group (Task 53.4). Every test creates its own
+/// subjects, teachers and groups, so the seeded demo data never decides a result.
 /// </summary>
 [Collection(ApiCollection.Name)]
 public sealed class GroupEndpointTests(ApiFactory factory) : IAsyncLifetime
@@ -21,7 +22,12 @@ public sealed class GroupEndpointTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    // The two schedule cases fix the clock; every other case runs on real time, as before.
+    public Task DisposeAsync()
+    {
+        factory.Time.UseRealTime();
+        return Task.CompletedTask;
+    }
 
     [Fact]
     public async Task Create_ThenGet_Returns201WithLocationThen200WithFullShape()
@@ -485,6 +491,58 @@ public sealed class GroupEndpointTests(ApiFactory factory) : IAsyncLifetime
         await AssertProblemAsync(response, HttpStatusCode.Forbidden, "auth.csrf_invalid");
         Assert.Equal(countBefore, await CountGroupsAsync(owner.Client));
     }
+
+    // Day 52's two added outcomes. The clock is fixed so the sessions involved are in the future on every run.
+    [Fact]
+    public async Task AssignTeacher_ToATeacherBusyAtOneOfTheGroupsSessions_Returns409TeacherDoubleBookedAndKeepsTeacherAndSessions()
+    {
+        factory.Time.FixAt(ScheduleNow);
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var (subjectId, teacherId) = await CreateReferencesAsync(owner.Client);
+        var busyTeacherId = await CreateTeacherAsync(owner.Client, "Busy Teacher");
+        var groupId = await CreateGroupAsync(owner.Client, "Reassign Scheduled", subjectId, teacherId);
+        var busyGroupId = await CreateGroupAsync(owner.Client, "Busy Teachers Group", subjectId, busyTeacherId);
+        await AddSaturdayRuleAsync(owner.Client, groupId, "18:00");
+        await AddSaturdayRuleAsync(owner.Client, busyGroupId, "18:30");
+        var sessionsBefore = await SnapshotGroupSessionsAsync(groupId);
+
+        using var response = await SendAsync(
+            owner.Client, HttpMethod.Put, $"/api/groups/{groupId}/teacher", new { teacherId = busyTeacherId, version = await GetVersionAsync(owner.Client, groupId) });
+
+        await AssertProblemAsync(response, HttpStatusCode.Conflict, "schedule.teacher_double_booked");
+        Assert.Equal(teacherId, (await GetGroupAsync(owner.Client, groupId)).GetProperty("teacherId").GetGuid());
+        Assert.Equal(sessionsBefore, await SnapshotGroupSessionsAsync(groupId));
+    }
+
+    [Fact]
+    public async Task Archive_WithAScheduleRuleInEffect_Returns422HasActiveSchedule()
+    {
+        factory.Time.FixAt(ScheduleNow);
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var (subjectId, teacherId) = await CreateReferencesAsync(owner.Client);
+        var groupId = await CreateGroupAsync(owner.Client, "Archive Scheduled", subjectId, teacherId);
+        await AddSaturdayRuleAsync(owner.Client, groupId, "18:00");
+
+        using var response = await SendAsync(owner.Client, HttpMethod.Post, $"/api/groups/{groupId}/archive", new { version = await GetVersionAsync(owner.Client, groupId) });
+
+        await AssertProblemAsync(response, HttpStatusCode.UnprocessableEntity, "group.has_active_schedule");
+        Assert.Equal("active", (await GetGroupAsync(owner.Client, groupId)).GetProperty("status").GetString());
+    }
+
+    // Tuesday 20 April 2027, 10:00 in Cairo; a rule from that day generates Saturdays 24 April to 15 May.
+    private static readonly DateTimeOffset ScheduleNow = new(2027, 4, 20, 8, 0, 0, TimeSpan.Zero);
+
+    private static async Task AddSaturdayRuleAsync(HttpClient client, Guid groupId, string startTime)
+    {
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, new Uri($"/api/groups/{groupId}/schedule-rules", UriKind.Relative),
+            new { dayOfWeek = "saturday", startTime, durationMinutes = 90, room = (string?)null, effectiveFrom = "2027-04-20" });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    private Task<string> SnapshotGroupSessionsAsync(Guid groupId) =>
+        factory.ScalarAsync<string>(
+            $"select count(*)::text || ':' || coalesce(string_agg(id::text || ':' || teacher_id::text || ':' || status || ':' || xmin::text, ',' order by id), '') from academics.class_sessions where group_id = '{groupId}'");
 
     private static async Task<(Guid SubjectId, Guid TeacherId)> CreateReferencesAsync(HttpClient client) =>
         (await CreateSubjectAsync(client, "Physics Endpoint"), await CreateTeacherAsync(client, "Amina Hassan"));

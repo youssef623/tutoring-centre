@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
 using Respawn.Graph;
 using Testcontainers.PostgreSql;
+using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Time;
 
 namespace TutoringCentre.Api.Tests.Fixtures;
 
@@ -24,6 +27,9 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17").Build();
     private Respawner? _respawner;
+
+    /// <summary>"Now" for the application's IClock: real time unless a test fixes it (Day 53 schedule tests).</summary>
+    public FixableTimeProvider Time { get; } = new();
 
     /// <summary>The container's own default role: a superuser. Used only to bootstrap roles and reset between tests.</summary>
     public string SuperuserConnectionString => _container.GetConnectionString();
@@ -102,6 +108,10 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         // Zero: every test re-checks the session instead of racing a background cache window (Day 16).
         builder.UseSetting("SessionValidation:CacheDuration", "00:00:00");
+
+        // Only the application's own clock is replaceable; the framework's TimeProvider (cookie expiry, antiforgery,
+        // data protection) stays real, so signing in never depends on a fixed date.
+        builder.ConfigureTestServices(services => services.AddSingleton<IClock>(new SystemClock(Time)));
 
         // Development turns these on by default; Testing does not. Missing registrations must fail the tests.
         builder.UseDefaultServiceProvider(options =>

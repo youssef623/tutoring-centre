@@ -7,12 +7,13 @@ using TutoringCentre.Api.Tests.Fixtures;
 namespace TutoringCentre.Api.Tests.Authorization;
 
 /// <summary>
-/// Task 30.8 (extended Task 32.11, Task 43.14, Task 45.9, Task 49.9): one table of role x endpoint -> expected
-/// status, executed over real HTTP against Nile's three roles, now including the seven teacher endpoints (21 more
-/// literal cases), the eight group endpoints (24 more) and the five enrollment endpoints (15 more). The matrix
-/// records the permission decision only: Teacher is allowed on the two group reads and the two enrollment reads
-/// (and reads a group it owns here), while what a teacher may see is ownership, proven separately by
-/// GroupTeacherScopeTests and EnrollmentTeacherScopeTests.
+/// Task 30.8 (extended Task 32.11, Task 43.14, Task 45.9, Task 49.9, Task 53.4): one table of role x endpoint ->
+/// expected status, executed over real HTTP against Nile's three roles, now including the seven teacher endpoints
+/// (21 more literal cases), the eight group endpoints (24 more), the five enrollment endpoints (15 more) and the six
+/// schedule endpoints (18 more). The matrix records the permission decision only: Teacher is allowed on the two
+/// group reads, the two enrollment reads and the two schedule reads (and reads a group it owns here), while what a
+/// teacher may see is ownership, proven separately by GroupTeacherScopeTests, EnrollmentTeacherScopeTests and
+/// ScheduleTeacherScopeTests. The schedule cases run on a fixed application clock, so no case depends on today.
 /// Allowed cases assert a non-403 success status;
 /// denied cases assert 403 auth.permission_denied and an unchanged database, compared against the exact
 /// pre-request state, not a snapshot taken after the request already ran. Values are written literally here,
@@ -72,6 +73,12 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "GET /api/students/{studentId:guid}/enrollments",
         "POST /api/enrollments/{id:guid}/withdraw",
         "POST /api/enrollments/{id:guid}/transfer",
+        "GET /api/groups/{groupId:guid}/schedule-rules",
+        "POST /api/groups/{groupId:guid}/schedule-rules",
+        "POST /api/schedule-rules/{id:guid}/end",
+        "POST /api/schedule/extend",
+        "GET /api/timetable",
+        "POST /api/sessions/{id:guid}/cancel",
     ];
 
     public async Task InitializeAsync()
@@ -80,7 +87,12 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    // The schedule cases fix the clock; every other case runs on real time, as before.
+    public Task DisposeAsync()
+    {
+        factory.Time.UseRealTime();
+        return Task.CompletedTask;
+    }
 
     [Theory]
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
@@ -1017,6 +1029,163 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
             Assert.Equal(snapshotBefore, await SnapshotEnrollmentsAsync());
         }
     }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.OK)]
+    public async Task ScheduleListRules(string role, HttpStatusCode expected)
+    {
+        // The seeded Nile group the two-centre teacher owns: the teacher's 200 is the permission decision, not a scope
+        // decision; out-of-scope groups are ScheduleTeacherScopeTests' question.
+        FixScheduleClock();
+        var groupId = await GetTwoCentreTeachersOwnNileGroupIdAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/groups/{groupId}/schedule-rules", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.Created)]
+    [InlineData("secretary@nile.test", HttpStatusCode.Created)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ScheduleAddRule(string role, HttpStatusCode expected)
+    {
+        FixScheduleClock();
+        var groupId = await GetTwoCentreTeachersOwnNileGroupIdAsync();
+        var snapshotBefore = await SnapshotScheduleAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            signedIn.Client, new Uri($"/api/groups/{groupId}/schedule-rules", UriKind.Relative), MatrixRule);
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotScheduleAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ScheduleEndRule(string role, HttpStatusCode expected)
+    {
+        FixScheduleClock();
+        var ruleId = await AddRuleToTeachersOwnGroupAsOwnerAsync();
+        var version = await factory.ScalarAsync<uint>($"select xmin from academics.schedule_rules where id = '{ruleId}'");
+        var snapshotBefore = await SnapshotScheduleAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/schedule-rules/{ruleId}/end", UriKind.Relative), new { lastDate = "2027-05-01", version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotScheduleAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ScheduleExtend(string role, HttpStatusCode expected)
+    {
+        FixScheduleClock();
+        await AddRuleToTeachersOwnGroupAsOwnerAsync();
+        var snapshotBefore = await SnapshotScheduleAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            signedIn.Client, new Uri("/api/schedule/extend", UriKind.Relative), new { through = "2027-06-15" });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotScheduleAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.OK)]
+    public async Task ScheduleTimetable(string role, HttpStatusCode expected)
+    {
+        FixScheduleClock();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await signedIn.Client.GetAsync(new Uri("/api/timetable?weekStart=2027-04-24", UriKind.Relative));
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+        }
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    public async Task ScheduleCancelSession(string role, HttpStatusCode expected)
+    {
+        FixScheduleClock();
+        var ruleId = await AddRuleToTeachersOwnGroupAsOwnerAsync();
+        var sessionId = await factory.ScalarAsync<Guid>(
+            $"select id from academics.class_sessions where schedule_rule_id = '{ruleId}' order by local_date limit 1");
+        var version = await factory.ScalarAsync<uint>($"select xmin from academics.class_sessions where id = '{sessionId}'");
+        var snapshotBefore = await SnapshotScheduleAsync();
+        using var signedIn = await SignInAsync(role);
+
+        using var response = await AntiforgeryTestHelper.SendAsJsonAsync(
+            signedIn.Client, HttpMethod.Post, new Uri($"/api/sessions/{sessionId}/cancel", UriKind.Relative), new { version });
+
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(snapshotBefore, await SnapshotScheduleAsync());
+        }
+    }
+
+    private static readonly object MatrixRule =
+        new { dayOfWeek = "saturday", startTime = "18:00", durationMinutes = 90, room = (string?)null, effectiveFrom = "2027-04-20" };
+
+    // Tuesday 20 April 2027, 10:00 in Cairo: the rule above generates four Saturdays from 24 April.
+    private void FixScheduleClock() => factory.Time.FixAt(new DateTimeOffset(2027, 4, 20, 8, 0, 0, TimeSpan.Zero));
+
+    private async Task<Guid> AddRuleToTeachersOwnGroupAsOwnerAsync()
+    {
+        var groupId = await GetTwoCentreTeachersOwnNileGroupIdAsync();
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            owner.Client, new Uri($"/api/groups/{groupId}/schedule-rules", UriKind.Relative), MatrixRule);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await ReadJsonAsync(response)).RootElement.GetProperty("id").GetGuid();
+    }
+
+    private Task<string> SnapshotScheduleAsync() =>
+        factory.ScalarAsync<string>(
+            """
+            select (select count(*)::text || ':' || coalesce(string_agg(id::text || ':' || coalesce(effective_to::text, '-') || ':' || xmin::text, ',' order by id), '')
+                    from academics.schedule_rules)
+                || '|' ||
+                   (select count(*)::text || ':' || coalesce(string_agg(id::text || ':' || status || ':' || xmin::text, ',' order by id), '')
+                    from academics.class_sessions)
+            """);
 
     private async Task<(Guid EnrollmentId, Guid StudentId)> EnrollNewStudentInTeachersOwnGroupAsOwnerAsync()
     {
