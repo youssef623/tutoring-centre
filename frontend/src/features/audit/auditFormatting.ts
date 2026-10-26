@@ -2,7 +2,24 @@ import type { TFunction } from "i18next";
 
 /** Fields whose before/after values are themselves translated vocabulary, not raw text — looked up as
  * "value.<field>.<value>" in the "audit" namespace. */
-const TranslatedValueFields = new Set(["status", "relationship", "isPrimary", "endReason"]);
+const TranslatedValueFields = new Set(["status", "relationship", "isPrimary", "endReason", "dayOfWeek"]);
+
+/** Every entity type the audit log records (docs/architecture/audit.md), in the order the filter lists them. */
+export const AuditEntityTypes = [
+  "subject",
+  "membership",
+  "centre",
+  "student",
+  "parent",
+  "student_parent",
+  "teacher",
+  "group",
+  "enrollment",
+  "schedule_rule",
+  "class_session",
+] as const;
+
+export type AuditEntityType = (typeof AuditEntityTypes)[number];
 
 /**
  * Turns one changed field's raw before/after value into display text. Never returns a raw enum value or key:

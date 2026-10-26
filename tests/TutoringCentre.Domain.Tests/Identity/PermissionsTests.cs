@@ -8,7 +8,7 @@ public sealed class PermissionsTests
     private static readonly Regex KeyPattern = new("^[a-z]+(\\.[a-z]+)+$", RegexOptions.Compiled);
 
     [Fact]
-    public void All_HasTwelveDistinctKeysMatchingTheNamingPattern()
+    public void All_HasSixteenDistinctKeysMatchingTheNamingPattern()
     {
         // Act
         var keys = Permissions.All;

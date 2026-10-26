@@ -9,10 +9,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatAuditValue } from "@/features/audit/auditFormatting";
+import { formatAuditValue, type AuditEntityType } from "@/features/audit/auditFormatting";
+import { isolateLtr } from "@/lib/bidi";
 
 export interface AuditFilters {
-  entityType?: "subject" | "membership" | "centre";
+  entityType?: AuditEntityType;
   from?: string;
   to?: string;
   pageSize: number;
@@ -55,7 +56,7 @@ export function AuditLog({ filters }: { filters: AuditFilters }) {
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
           {apiError.correlationId !== undefined && (
-            <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>
+            <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
           )}
           <Button
             type="button"

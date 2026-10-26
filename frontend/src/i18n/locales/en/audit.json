@@ -45,14 +45,22 @@
     "teacherId": "Teacher",
     "capacity": "Capacity",
     "groupId": "Group",
-    "endReason": "End reason"
+    "endReason": "End reason",
+    "dayOfWeek": "Day",
+    "startTime": "Start time",
+    "durationMinutes": "Length (minutes)",
+    "room": "Room",
+    "effectiveFrom": "In effect from",
+    "effectiveTo": "In effect until"
   },
   "value": {
     "status": {
       "active": "Active",
       "archived": "Archived",
       "inactive": "Inactive",
-      "ended": "Ended"
+      "ended": "Ended",
+      "scheduled": "Scheduled",
+      "cancelled": "Cancelled"
     },
     "endReason": {
       "withdrawn": "Withdrawn",
@@ -67,6 +75,15 @@
     "isPrimary": {
       "true": "Yes",
       "false": "No"
+    },
+    "dayOfWeek": {
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday"
     }
   },
   "system": "System",

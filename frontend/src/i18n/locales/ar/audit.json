@@ -45,14 +45,22 @@
     "teacherId": "المعلم",
     "capacity": "السعة",
     "groupId": "الفصل",
-    "endReason": "سبب الانتهاء"
+    "endReason": "سبب الانتهاء",
+    "dayOfWeek": "اليوم",
+    "startTime": "موعد البدء",
+    "durationMinutes": "المدة (بالدقائق)",
+    "room": "القاعة",
+    "effectiveFrom": "سارية من",
+    "effectiveTo": "سارية حتى"
   },
   "value": {
     "status": {
       "active": "نشط",
       "archived": "مؤرشف",
       "inactive": "غير نشط",
-      "ended": "منتهٍ"
+      "ended": "منتهٍ",
+      "scheduled": "مجدولة",
+      "cancelled": "ملغاة"
     },
     "endReason": {
       "withdrawn": "انسحاب",
@@ -67,6 +75,15 @@
     "isPrimary": {
       "true": "نعم",
       "false": "لا"
+    },
+    "dayOfWeek": {
+      "saturday": "السبت",
+      "sunday": "الأحد",
+      "monday": "الاثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة"
     }
   },
   "system": "النظام",

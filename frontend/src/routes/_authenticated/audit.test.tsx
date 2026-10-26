@@ -206,6 +206,46 @@ describe("AuditPage", () => {
     });
   });
 
+  it("filters by a Month 3 entity type and labels a schedule rule's fields and weekday", async () => {
+    const requests: URLSearchParams[] = [];
+    server.use(
+      http.get(auditUrl, ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        requests.push(params);
+        return HttpResponse.json({
+          items:
+            params.get("entityType") === "schedule_rule"
+              ? [
+                  entry({
+                    action: "created",
+                    entityType: "schedule_rule",
+                    changes: [
+                      { field: "dayOfWeek", before: null, after: "saturday" },
+                      { field: "startTime", before: null, after: "18:00" },
+                      { field: "durationMinutes", before: null, after: "90" },
+                    ],
+                  }),
+                ]
+              : [],
+          nextCursor: null,
+        });
+      }),
+    );
+
+    renderRouter("/audit");
+    await screen.findByText("No activity for these filters.");
+
+    await selectOption("Entity type", "Schedule rule");
+    await waitFor(() => {
+      expect(requests.at(-1)?.get("entityType")).toBe("schedule_rule");
+    });
+
+    expect(await screen.findByText("Day:")).toBeInTheDocument();
+    expect(screen.getByText("Saturday")).toBeInTheDocument();
+    expect(screen.getByText("Start time:")).toBeInTheDocument();
+    expect(screen.getByText("Length (minutes):")).toBeInTheDocument();
+  });
+
   it("without audit.view, the no-access state is shown and no audit request is issued", async () => {
     let auditCalls = 0;
     server.use(

@@ -1,6 +1,6 @@
 # Frontend — Tutoring Centre Manager
 
-Scaffolded Day 3 with Vite + React + TypeScript. This file records the decisions that shaped the scaffold, the real structure as it stands at the end of Month 2, and the API contract the status page depends on.
+Scaffolded Day 3 with Vite + React + TypeScript. This file records the decisions that shaped the scaffold, the real structure as it stands at the end of Month 3, and the API contract the status page depends on.
 
 ## Stack
 
@@ -12,7 +12,7 @@ Scaffolded Day 3 with Vite + React + TypeScript. This file records the decisions
 - **i18next** with Arabic and English locales.
 - **Logical CSS properties** (`margin-inline-start`, `padding-inline-end`, etc.) instead of physical ones (`margin-left`, `padding-right`), so layout flips correctly for Arabic RTL instead of needing a separate RTL stylesheet.
 
-## Folder structure (end of Month 2)
+## Folder structure (end of Month 3)
 
 ```
 frontend/
@@ -22,9 +22,11 @@ frontend/
     api/            # generated API client (src/api/generated/), apiFetch, csrf
     features/       # one folder per feature (feature-based, not type-based):
                      #   auth, session (Can/useCan/useSession — see below), language, shell,
-                     #   status (system info, demo banner), subjects, staff, settings, audit
+                     #   status (system info, demo banner), dashboard, subjects, staff, settings, audit,
+                     #   students, parents, teachers, groups, enrollments, schedule (Month 3)
     components/
-      ui/           # shadcn/ui components and shared primitives
+      ui/           # shadcn/ui components and thin wrappers (Base UI select, tooltip, radio group, tabs)
+      shared/       # app components used by more than one feature (see "Shared components" below)
       brand/        # logo/wordmark
     i18n/           # i18next config and locale files (ar, en), one namespace per feature
     lib/            # small framework-free helpers (e.g. initials)
@@ -49,6 +51,42 @@ frontend/
 - **Tests mock the network with MSW,** not hooks or modules; each test renders with a fresh `QueryClient` (`src/test/render.tsx`).
 - **No `any`, no `!` non-null assertions, no `eslint-disable` comments** in feature code.
 - **Scripts that must pass before a PR:** `npm run lint`, `npm run typecheck`, `npm test -- --run`, `npm run build`.
+
+### Shared components (`components/shared`, Month 3)
+
+Used by more than one feature, so they live outside any one feature folder:
+
+- `PageHeader`, `FilterBar`, `StatTile`, `EmptyState`, `StatusBadge` and `DataTable`: the page frame, the filter
+  row, the summary tiles, the empty states, the written status badges and the table every list page uses.
+- `SearchInput` (debounced; the server does the Arabic normalization, so "احمد" finds "أحمد") and
+  `LoadMoreButton` (the "load more" action over a cursor API).
+- `PhoneInput` and `PhoneText`: a phone is typed and shown left to right, inside Arabic text too.
+- `ParentLookupField` and `useParentLookup`: the parent-phone lookup on student registration and "add parent",
+  which offers the existing parent for a known number (the sibling case) instead of creating a duplicate.
+
+`SeatMeter` (`features/enrollments`) is the one seats display ("enrolled / capacity", with "Full" written out),
+used by the groups list, the group page and the roster.
+
+### Times: `centreTime` (`features/schedule/centreTime.ts`, Day 53)
+
+The one place a time becomes text. Every function takes the centre's IANA zone (`timeZoneId`, sent by the API with
+the timetable and on the session's membership) as an argument and never reads the browser's zone, so a secretary
+abroad or a laptop set to another zone still sees Cairo's wall clock: `formatTime`, `formatTimeRange` (instants),
+`formatLocalTime`, `formatLocalTimeRange` (a weekly rule's wall-clock time, which has no instant), `todayIn` (the
+centre's date, which can differ from UTC's near midnight), and `isLocalTime`, `minutesOf`, `addMinutes`. No date
+library: `Intl` applies each instant's own offset, so 16:00Z in winter and 15:00Z in summer both read 18:00 in
+Cairo. Times read left to right in both languages (`dir="ltr"` around them). Never format a time with
+`toLocaleTimeString()` or `new Date().getHours()`: both use the browser's zone.
+
+### No role checks
+
+The frontend never branches on a role name (`role === "teacher"`): it branches only on permissions, through `Can`
+and `useCan` below, and otherwise renders whatever the API returned. A teacher's group list, roster and timetable
+are the same components as an owner's, given fewer rows by the server's teacher scope; a page whose data a
+role cannot read is wrapped in `RouteGuard`. The one place a role value appears in feature code is as data, not
+as a decision: `eligibleStaff.ts` filters the staff list for members whose role is Teacher, because that is the
+rule for which accounts may be linked to a teacher record. This mirrors the backend rule that no handler compares
+roles (`docs/architecture/authorization.md`).
 
 ### The permission hook (`features/session`)
 

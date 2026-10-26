@@ -40,6 +40,7 @@ describe("SystemInfoCard", () => {
 
     // Assert
     expect(await screen.findByText("Something went wrong. Please try again.")).toBeInTheDocument();
-    expect(screen.getByText("Reference: corr-500")).toBeInTheDocument();
+    // The id is wrapped in a left-to-right isolate so it never reorders against an Arabic label (isolateLtr).
+    expect(screen.getByText("Reference: \u2066corr-500\u2069")).toBeInTheDocument();
   });
 });

@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Permissions } from "@/features/session/permissions";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { useCan } from "@/features/session/useCan";
+import { isolateLtr } from "@/lib/bidi";
 
 export function SubjectsList({
   includeArchived,
@@ -118,7 +119,7 @@ export function SubjectsList({
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
           {apiError.correlationId !== undefined && (
-            <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>
+            <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
           )}
           <Button
             type="button"

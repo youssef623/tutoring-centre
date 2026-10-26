@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isolateLtr } from "@/lib/bidi";
 
 /** Version and migration status from GET /api/system/info through the generated client. */
 export function SystemInfoCard() {
@@ -27,7 +28,7 @@ export function SystemInfoCard() {
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
           {apiError.correlationId !== undefined && (
-            <p>{t("systemInfo.reference", { id: apiError.correlationId })}</p>
+            <p>{t("systemInfo.reference", { id: isolateLtr(apiError.correlationId) })}</p>
           )}
           <Button
             variant="outline"

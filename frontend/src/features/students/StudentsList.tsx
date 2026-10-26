@@ -11,6 +11,7 @@ import {
 } from "@/api/generated/tutoring-centre";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DataTable,
@@ -25,6 +26,7 @@ import { PhoneText } from "@/components/shared/PhoneText";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Permissions } from "@/features/session/permissions";
 import { useCan } from "@/features/session/useCan";
+import { isolateLtr } from "@/lib/bidi";
 
 const PageSize = 25;
 
@@ -64,7 +66,7 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
         <AlertTitle>{t("error.title")}</AlertTitle>
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
-          {apiError.correlationId !== undefined && <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>}
+          {apiError.correlationId !== undefined && <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>}
           <Button
             type="button"
             variant="outline"
@@ -90,9 +92,9 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
           <p className="text-sm font-medium">{t("emptyState.title")}</p>
           <p className="text-sm text-muted-foreground">{t("emptyState.description")}</p>
           {canManage && (
-            <Button render={<Link to="/students/new" />} className="mt-3">
+            <Link to="/students/new" className={buttonVariants({ className: "mt-3" })}>
               {t("actions.register")}
-            </Button>
+            </Link>
           )}
         </div>
       );

@@ -23,6 +23,7 @@ import { Permissions } from "@/features/session/permissions";
 import { useCan } from "@/features/session/useCan";
 import { useCentreTimeZone } from "@/features/session/useCentreTimeZone";
 import { TeacherSelect } from "@/features/teachers/TeacherSelect";
+import { isolateLtr } from "@/lib/bidi";
 
 export interface TimetableSearchPatch {
   week?: string;
@@ -161,7 +162,7 @@ function TimetableWeek({
         <AlertTitle>{t("timetable.errorTitle")}</AlertTitle>
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
-          {apiError.correlationId !== undefined && <p>{t("rules.errorReference", { correlationId: apiError.correlationId })}</p>}
+          {apiError.correlationId !== undefined && <p>{t("rules.errorReference", { correlationId: isolateLtr(apiError.correlationId) })}</p>}
           <Button
             type="button"
             variant="outline"

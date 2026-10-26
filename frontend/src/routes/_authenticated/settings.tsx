@@ -26,6 +26,7 @@ import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermi
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { Permissions } from "@/features/session/permissions";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { isolateLtr } from "@/lib/bidi";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -119,7 +120,7 @@ function SettingsPageContent() {
           <AlertDescription className="flex flex-col gap-2">
             <p>{messageFor(apiError)}</p>
             {apiError.correlationId !== undefined && (
-              <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>
+              <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
             )}
             <Button
               type="button"

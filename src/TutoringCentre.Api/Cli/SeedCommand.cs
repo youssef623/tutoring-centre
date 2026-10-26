@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TutoringCentre.Application.Academics.Enrollments.Commands.EnrollStudent;
 using TutoringCentre.Application.Academics.Groups;
@@ -9,6 +10,9 @@ using TutoringCentre.Application.Academics.Groups.Commands.CreateGroup;
 using TutoringCentre.Application.Academics.Groups.Queries.ListGroups;
 using TutoringCentre.Application.Academics.Parents;
 using TutoringCentre.Application.Academics.Parents.Queries.LookupParentByPhone;
+using TutoringCentre.Application.Academics.Scheduling;
+using TutoringCentre.Application.Academics.Scheduling.Commands.AddScheduleRule;
+using TutoringCentre.Application.Academics.Scheduling.Queries.ListGroupScheduleRules;
 using TutoringCentre.Application.Academics.Students;
 using TutoringCentre.Application.Academics.Students.Commands.RegisterStudent;
 using TutoringCentre.Application.Academics.Students.Queries.ListStudents;
@@ -21,8 +25,11 @@ using TutoringCentre.Application.Academics.Teachers.Commands.SetTeacherAccount;
 using TutoringCentre.Application.Academics.Teachers.Queries.GetTeacher;
 using TutoringCentre.Application.Academics.Teachers.Queries.ListTeachers;
 using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Application.Centres.Contracts;
 using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Common.Time;
 using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Domain.Common;
@@ -39,6 +46,11 @@ public static class SeedCommand
         new("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar),
         new("Maadi Learning Hub", "maadi-hub", "Africa/Cairo", SupportedLocale.En),
     ];
+
+    // Empty on purpose: no subjects, staff (beyond its owner), students or groups, so the full-setup journey builds
+    // everything itself through the UI. Development and Testing only (SeedGate.IncludesSetupCentre).
+    private static readonly SeedCentre SetupCentre =
+        new("مركز الجيزة الجديد", DevelopmentIdentitySeeder.SetupCentreSlug, "Africa/Cairo", SupportedLocale.Ar);
 
     private static readonly SeedSubjects[] Subjects =
     [
@@ -108,6 +120,24 @@ public static class SeedCommand
         new("maadi-hub", "Physics - Group A", ["Lucas Miller", "Mia Anderson"]),
     ];
 
+    // Nile: six weekly rules across its four groups; Maadi: two. No two collide: the linked teacher's Nile group
+    // meets Monday and Wednesday, the other Nile teacher's three groups take four different slots, and the same
+    // person's Maadi groups meet on days the Nile group does not. Monday to Thursday only: the API tests and the
+    // journeys schedule their own sessions on Saturdays and Sundays (some on these very groups), so the demo
+    // schedule never collides with them. Times are the centre's wall-clock times; the first date is always the
+    // seed day, never a calendar date written here.
+    private static readonly SeedScheduleRule[] ScheduleRules =
+    [
+        new("nile-centre", "رياضيات - المجموعة أ", DayOfWeek.Monday, new TimeOnly(18, 0), 90, "قاعة 1"),
+        new("nile-centre", "رياضيات - المجموعة أ", DayOfWeek.Wednesday, new TimeOnly(18, 0), 90, "قاعة 1"),
+        new("nile-centre", "فيزياء - المجموعة أ", DayOfWeek.Monday, new TimeOnly(16, 0), 90, "قاعة 2"),
+        new("nile-centre", "فيزياء - المجموعة أ", DayOfWeek.Wednesday, new TimeOnly(16, 0), 90, "قاعة 2"),
+        new("nile-centre", "كيمياء - المجموعة أ", DayOfWeek.Tuesday, new TimeOnly(17, 0), 90, "قاعة 3"),
+        new("nile-centre", "رياضيات - المجموعة ب", DayOfWeek.Thursday, new TimeOnly(18, 0), 60, "قاعة 1"),
+        new("maadi-hub", "Mathematics - Group A", DayOfWeek.Tuesday, new TimeOnly(18, 0), 90, "Room 1"),
+        new("maadi-hub", "Physics - Group A", DayOfWeek.Thursday, new TimeOnly(16, 0), 90, "Room 2"),
+    ];
+
     /// <returns>0 when every centre exists afterwards; 1 when any command failed for another reason.</returns>
     [SuppressMessage(
         "Performance",
@@ -123,8 +153,9 @@ public static class SeedCommand
 
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("TutoringCentre.Api.Cli.SeedCommand");
         var exitCode = 0;
+        var includeSetupCentre = SeedGate.IncludesSetupCentre(services.GetRequiredService<IHostEnvironment>());
 
-        foreach (var centre in Centres)
+        foreach (var centre in includeSetupCentre ? [.. Centres, SetupCentre] : Centres)
         {
             // One scope per command: its own actor, unit of work and DbContext.
             await using var scope = services.CreateAsyncScope();
@@ -153,7 +184,7 @@ public static class SeedCommand
         await using (var scope = services.CreateAsyncScope())
         {
             var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentIdentitySeeder>();
-            var result = await seeder.SeedAsync(CancellationToken.None);
+            var result = await seeder.SeedAsync(includeSetupCentre, CancellationToken.None);
 
             if (result.IsSuccess)
             {
@@ -270,6 +301,11 @@ public static class SeedCommand
         }
 
         if (!await SeedEnrollmentsAsync(services, centreIdsBySlug, logger))
+        {
+            exitCode = 1;
+        }
+
+        if (!await SeedScheduleRulesAsync(services, centreIdsBySlug, logger))
         {
             exitCode = 1;
         }
@@ -506,6 +542,113 @@ public static class SeedCommand
         return succeeded;
     }
 
+    /// <summary>
+    /// Weekly rules through <see cref="AddScheduleRuleCommand"/>, the same command the schedule endpoint
+    /// dispatches, as <see cref="SystemActor"/> of each centre; the command generates each rule's sessions through
+    /// the horizon. <c>EffectiveFrom</c> is the seed day in the centre's own zone, so the timetable always has this
+    /// week's sessions. Idempotent: a rule is skipped when its group already has one with the same weekday and
+    /// start time (read through <see cref="ListGroupScheduleRulesQuery"/>). A double-booking is never "already
+    /// seeded": the rules above are chosen not to collide, so one means the seed's own data is wrong and it fails.
+    /// </summary>
+    /// <returns>True when every rule exists afterwards.</returns>
+    [SuppressMessage(
+        "Performance",
+        "CA1848:Use the LoggerMessage delegates",
+        Justification = "A handful of one-off log lines in a short-lived CLI command; a source-generated delegate is unwarranted here.")]
+    [SuppressMessage(
+        "Performance",
+        "CA1873:Avoid potentially expensive logging",
+        Justification = "The logged arguments (names, slug, weekday, time, error code) are plain values already in hand; nothing expensive is being guarded against.")]
+    private static async Task<bool> SeedScheduleRulesAsync(IServiceProvider services, Dictionary<string, Guid> centreIdsBySlug, ILogger logger)
+    {
+        var succeeded = true;
+
+        foreach (var centreRules in ScheduleRules.GroupBy(rule => rule.CentreSlug))
+        {
+            var slug = centreRules.Key;
+            if (!centreIdsBySlug.TryGetValue(slug, out var centreId))
+            {
+                logger.LogError("Seed: centre {Slug} does not exist; cannot seed its schedules", slug);
+                succeeded = false;
+                continue;
+            }
+
+            DateOnly today;
+            Dictionary<string, Guid> groupIdsByName;
+            await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+            {
+                var zone = await scope.ServiceProvider.GetRequiredService<ICentreTimeZoneProvider>().GetForCurrentCentreAsync(CancellationToken.None);
+                today = CentreCalendar.Today(scope.ServiceProvider.GetRequiredService<IClock>(), zone);
+
+                var groups = await dispatcher.QueryAsync<ListGroupsQuery, IReadOnlyList<GroupDto>>(
+                    new ListGroupsQuery(null, null, true), CancellationToken.None);
+                if (!groups.IsSuccess)
+                {
+                    logger.LogError("Seed: listing groups in {Slug} failed", slug);
+                    succeeded = false;
+                    continue;
+                }
+
+                groupIdsByName = groups.Value.ToDictionary(group => group.Name, group => group.Id, StringComparer.Ordinal);
+            }
+
+            foreach (var seedRule in centreRules)
+            {
+                if (!groupIdsByName.TryGetValue(seedRule.GroupName, out var groupId))
+                {
+                    logger.LogError("Seed: group {Name} in {Slug} does not exist; cannot seed its schedule", seedRule.GroupName, slug);
+                    succeeded = false;
+                    continue;
+                }
+
+                await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
+                var existing = await dispatcher.QueryAsync<ListGroupScheduleRulesQuery, IReadOnlyList<ScheduleRuleDto>>(
+                    new ListGroupScheduleRulesQuery(groupId), CancellationToken.None);
+                if (!existing.IsSuccess)
+                {
+                    logger.LogError(
+                        "Seed: listing the rules of {Group} in {Slug} failed with {ErrorCode}", seedRule.GroupName, slug, existing.Error?.Code);
+                    succeeded = false;
+                    continue;
+                }
+
+                if (existing.Value.Any(rule => rule.DayOfWeek == seedRule.DayOfWeek && rule.StartTime == seedRule.StartTime))
+                {
+                    logger.LogInformation(
+                        "Seed: {Group} in {Slug} already meets on {Day} at {Time}", seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime);
+                    continue;
+                }
+
+                var result = await dispatcher.SendAsync<AddScheduleRuleCommand, AddScheduleRuleResult>(
+                    new AddScheduleRuleCommand(groupId, seedRule.DayOfWeek, seedRule.StartTime, seedRule.DurationMinutes, seedRule.Room, today),
+                    CancellationToken.None);
+
+                if (result.IsSuccess)
+                {
+                    logger.LogInformation(
+                        "Seed: {Group} in {Slug} meets on {Day} at {Time} ({Sessions} sessions)",
+                        seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Value.SessionsCreated);
+                }
+                else if (result.Error?.Code is "schedule.teacher_double_booked" or "schedule.group_double_booked")
+                {
+                    logger.LogError(
+                        "Seed: the seed's own schedule collides: {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
+                        seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error.Code);
+                    succeeded = false;
+                }
+                else
+                {
+                    logger.LogError(
+                        "Seed: scheduling {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
+                        seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error?.Code);
+                    succeeded = false;
+                }
+            }
+        }
+
+        return succeeded;
+    }
+
     private static AsyncServiceScope CreateCentreScope(IServiceProvider services, Guid centreId, out Dispatcher dispatcher)
     {
         var scope = services.CreateAsyncScope();
@@ -519,6 +662,9 @@ public static class SeedCommand
     private sealed record SeedGroup(string CentreSlug, string Name, string SubjectName, string TeacherName, int Capacity);
 
     private sealed record SeedEnrollment(string CentreSlug, string GroupName, string[] StudentNames);
+
+    private sealed record SeedScheduleRule(
+        string CentreSlug, string GroupName, DayOfWeek DayOfWeek, TimeOnly StartTime, int DurationMinutes, string Room);
 
     private sealed record SeedCentre(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale);
 

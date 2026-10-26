@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { PhoneText } from "@/components/shared/PhoneText";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +41,7 @@ import { Permissions } from "@/features/session/permissions";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { useCan } from "@/features/session/useCan";
+import { isolateLtr } from "@/lib/bidi";
 
 export const Route = createFileRoute("/_authenticated/students/$studentId")({
   component: StudentDetailPage,
@@ -84,7 +86,7 @@ function StudentDetailPageContent() {
           <AlertDescription className="flex flex-col gap-2">
             <p>{messageFor(apiError)}</p>
             {apiError.correlationId !== undefined && (
-              <p>{t("error.reference", { correlationId: apiError.correlationId })}</p>
+              <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
             )}
             <Button
               type="button"
@@ -115,7 +117,7 @@ function StudentNotFound() {
       <SearchX className="size-10 text-muted-foreground" aria-hidden="true" />
       <h1 className="text-xl font-semibold tracking-tight">{t("notFound.title")}</h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("notFound.description")}</p>
-      <Button render={<Link to="/students" />}>{t("notFound.backToList")}</Button>
+      <Link to="/students" className={buttonVariants()}>{t("notFound.backToList")}</Link>
     </div>
   );
 }

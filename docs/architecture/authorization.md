@@ -25,11 +25,20 @@ overrides.
 | `teachers.manage` | yes | no | no | create, update, link an account to, archive, restore a teacher (Day 43) |
 | `groups.view` | yes | yes | yes | list and get groups — a teacher only their own, see "Ownership" below (Days 44–45) |
 | `groups.manage` | yes | yes | no | create, rename, change capacity, assign a teacher, archive, restore a group (Days 44–45) |
+| `enrollments.view` | yes | yes | yes | a group's roster and a student's enrollments — a teacher only their own groups' (Days 47–49) |
+| `enrollments.manage` | yes | yes | no | enroll, withdraw, transfer (Days 47–49) |
+| `schedule.view` | yes | yes | yes | a group's weekly rules and the timetable — a teacher only their own groups and sessions (Days 51–53) |
+| `schedule.manage` | yes | yes | no | add and end a weekly rule, extend the schedule, cancel a session (Days 51–53) |
+
+Sixteen keys, so 48 cells, each listed one by one in `RolePermissionsTests.Holds_MatchesTheMatrixCellLiterally`.
+Owner holds all sixteen. Secretary holds eleven: every key except `staff.view`, `staff.manage`, `audit.view`,
+`centre.settings.manage` and `teachers.manage`. Teacher holds four, all reads: `subjects.view`, `groups.view`,
+`enrollments.view` and `schedule.view`.
 
 Permission keys are constants on `Permissions` (`TutoringCentre.Domain.Identity`), `<module>.<capability>`,
 lower case, dot separated — never a free string. `RolePermissions.Holds(role, permission)` is the only place
 that answers "does this role hold this permission"; an unknown role or an unknown permission key is denied,
-never default-allowed, including for Owner — Owner holds every permission because the map lists all twelve
+never default-allowed, including for Owner — Owner holds every permission because the map lists all sixteen
 against it, not because of a bypass branch. The `students.*` pair splits exactly like the others: the parent
 phone lookup used while registering a student (`POST /api/parents/lookup`) only needs `students.view` — it
 changes nothing — even though it is reachable only from a `students.manage`-gated screen today.
@@ -82,7 +91,8 @@ A whole page can need gating too, for a user who types the URL directly rather t
 link: `RouteGuard` (Day 33, same module) wraps the Staff, Settings and Audit log routes, each tied to its
 `staff.view` / `centre.settings.manage` / `audit.view` permission — and, since Day 41–42, the Students list and
 detail pages (`students.view`) and the registration page (`students.manage`), and since Day 46 the Teachers page
-(`teachers.view`) and the Groups list and group pages (`groups.view`); a student's parents card then
+(`teachers.view`) and the Groups list and group pages (`groups.view`), and since Day 53 the Timetable page
+(`schedule.view`; a group page's Roster and Schedule tabs exist only with `enrollments.view` and `schedule.view`); a student's parents card then
 hides its own manage affordances (link, unlink, make primary, add a fifth parent) the same way `Can` does
 everywhere else, never as the actual enforcement. Unlike `Can`, which renders nothing, a
 denied `RouteGuard` renders a translated "you don't have access" state with a link back to the dashboard —
@@ -112,8 +122,8 @@ Three questions, three places they're answered, one example each:
 - **Ownership — which record?** "Within an action this role may generally perform, is this the specific row
   it may act on?" Neither layer above answers this — tenancy stops at "this centre", permission stops at
   "this capability". Month 2 needed nothing finer than centre and role together; since Days 44–45 groups
-  answer it for teachers: `groups.view` lets a teacher read groups, and the teacher scope (next section)
-  decides which ones.
+  answer it for teachers, and since Days 47–53 rosters and schedules too: `groups.view`, `enrollments.view`
+  and `schedule.view` let a teacher read, and the teacher scope (next section) decides which rows.
 
 ## Ownership: the teacher scope
 
@@ -135,6 +145,16 @@ key — there is no `groups.view_own` — and it is the third check on a request
   pass it down. The endpoints (`GroupEndpoints`) hold no role or scope logic and there is no separate "my
   groups" route: one route, different results per actor, nothing to bypass by calling the "other" route.
   Filters intersect with the scope and never widen it (`?teacherId=<someone else>` returns an empty list).
+- **Rosters and schedules use the same scope (Days 47–53).** Every `IEnrollmentReadService` and
+  `IScheduleReadService` method also takes a required `TeacherScope`, applied in SQL. A roster
+  (`GET /api/groups/{id}/roster`) and a group's weekly rules (`GET /api/groups/{id}/schedule-rules`) are scoped on
+  the group's teacher: outside the scope they answer `group.not_found`, exactly like the group itself; a roster
+  carries names only, never a student's or parent's contact data, for every role. A student's enrollments (`GET /api/students/{id}/enrollments`) list only
+  the enrollments in groups the scope allows. The timetable (`GET /api/timetable`) is scoped on each session's own
+  teacher (the teacher copied onto the session when it was generated or reassigned), so a teacher sees exactly the
+  sessions they teach; the `groupId` and `teacherId` filters intersect with the scope and never widen it. Writes
+  stay 403 for a teacher (`enrollments.manage` and `schedule.manage` are office permissions), before ownership is
+  ever considered. Proven through real sessions by `EnrollmentTeacherScopeTests` and `ScheduleTeacherScopeTests`.
 - **Out of scope is 404, not 403.** A teacher reading another teacher's group gets `group.not_found`, exactly
   as for an unknown ID or another centre's group, so the response never confirms that the group exists. A
   403 would be a disclosure. Writes are different: a teacher's write to its own group is still 403

@@ -26,6 +26,19 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
     public void SeedGate_Production_WithDemoEnabled_IsAllowed() =>
         Assert.True(SeedGate.IsAllowed(FakeEnvironment("Production"), new DemoOptions { Enabled = true }));
 
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Testing")]
+    public void SeedGate_OutsideProduction_IncludesTheSetupCentre(string environmentName) =>
+        Assert.True(SeedGate.IncludesSetupCentre(FakeEnvironment(environmentName)));
+
+    [Fact]
+    public void SeedGate_Production_NeverIncludesTheSetupCentre_EvenOnADemoInstance()
+    {
+        Assert.True(SeedGate.IsAllowed(FakeEnvironment("Production"), new DemoOptions { Enabled = true }));
+        Assert.False(SeedGate.IncludesSetupCentre(FakeEnvironment("Production")));
+    }
+
     private static FakeHostEnvironment FakeEnvironment(string environmentName) => new(environmentName);
 
     private sealed class FakeHostEnvironment(string environmentName) : IHostEnvironment
@@ -37,17 +50,46 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunAsync_CalledTwice_CreatesExactlyTheTwoDemoCentres()
+    public async Task RunAsync_CalledTwice_CreatesExactlyTheTwoDemoCentresAndTheEmptySetupCentre()
     {
         var firstExitCode = await SeedCommand.RunAsync(factory.Services);
         var secondExitCode = await SeedCommand.RunAsync(factory.Services);
 
         Assert.Equal(0, firstExitCode);
         Assert.Equal(0, secondExitCode);
-        Assert.Equal(2, await factory.ScalarAsync<long>("select count(*) from platform.centres"));
+
+        // The tests run as Testing, so the setup centre (Development and Testing only) is here too.
+        Assert.Equal(3, await factory.ScalarAsync<long>("select count(*) from platform.centres"));
         Assert.Equal(
-            "maadi-hub,nile-centre",
+            "giza-new,maadi-hub,nile-centre",
             await factory.ScalarAsync<string>("select string_agg(slug, ',' order by slug) from platform.centres"));
+    }
+
+    [Fact]
+    public async Task RunAsync_LeavesTheSetupCentreEmpty_ExceptForItsOneOwner()
+    {
+        Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
+
+        Assert.Equal(
+            "owner@giza.test:owner:active",
+            await factory.ScalarAsync<string>(
+                """
+                select string_agg(u.email || ':' || m.role || ':' || m.status, ',') from identity.memberships m
+                join identity.users u on u.id = m.user_id
+                join platform.centres c on c.id = m.centre_id
+                where c.slug = 'giza-new'
+                """));
+        Assert.Equal(
+            0,
+            await factory.ScalarAsync<long>(
+                """
+                select (select count(*) from academics.subjects t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.teachers t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.groups t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.students t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.parents t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                     + (select count(*) from academics.schedule_rules t join platform.centres c on c.id = t.centre_id where c.slug = 'giza-new')
+                """));
     }
 
     [Fact]
@@ -58,8 +100,16 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
 
         Assert.Equal(0, firstExitCode);
         Assert.Equal(0, secondExitCode);
-        Assert.Equal(5, await factory.ScalarAsync<long>("select count(*) from identity.users"));
-        Assert.Equal(6, await factory.ScalarAsync<long>("select count(*) from identity.memberships"));
+        // The five demo users and their six memberships, plus the setup centre's one owner (Testing).
+        Assert.Equal(6, await factory.ScalarAsync<long>("select count(*) from identity.users"));
+        Assert.Equal(7, await factory.ScalarAsync<long>("select count(*) from identity.memberships"));
+        Assert.Equal(
+            5,
+            await factory.ScalarAsync<long>(
+                """
+                select count(distinct m.user_id) from identity.memberships m
+                join platform.centres c on c.id = m.centre_id where c.slug in ('nile-centre', 'maadi-hub')
+                """));
         Assert.Equal(
             1,
             await factory.ScalarAsync<long>("select count(*) from identity.memberships where status = 'inactive'"));
@@ -264,6 +314,83 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
         // Commands only: every seeded enrollment was audited like an enrollment made over HTTP.
         Assert.Equal(31, await factory.ScalarAsync<long>("select count(*) from audit.audit_entries where entity_type = 'enrollment'"));
     }
+
+    [Fact]
+    public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoSchedulesIdempotently_FromTheSeedDay()
+    {
+        var firstExitCode = await SeedCommand.RunAsync(factory.Services);
+        var firstCounts = await DatasetCountsAsync();
+        var secondExitCode = await SeedCommand.RunAsync(factory.Services);
+
+        Assert.Equal(0, firstExitCode);
+        Assert.Equal(0, secondExitCode);
+        Assert.Equal(firstCounts, await DatasetCountsAsync());
+        Assert.Equal("maadi-hub:2,nile-centre:6", await PerCentreCountsAsync("academics.schedule_rules"));
+
+        // A four-week horizon holds each weekday exactly four times, whatever day the seed runs.
+        Assert.Equal("maadi-hub:8,nile-centre:24", await PerCentreCountsAsync("academics.class_sessions"));
+        Assert.Equal(0, await factory.ScalarAsync<long>("select count(*) from academics.class_sessions where status != 'scheduled'"));
+
+        // Relative dates only: every rule starts on the seed day in the centre's own zone, and its first session
+        // is within the week that starts then.
+        var seedDay = DateOnly.FromDateTime(
+            TimeZoneInfo.ConvertTime(factory.Time.GetUtcNow(), TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo")).DateTime);
+        Assert.Equal(
+            seedDay.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+            await factory.ScalarAsync<string>(
+                "select string_agg(distinct effective_from::text, ',') from academics.schedule_rules where effective_to is null"));
+        Assert.Equal(
+            8,
+            await factory.ScalarAsync<long>(
+                """
+                select count(distinct r.id) from academics.schedule_rules r
+                join academics.class_sessions s on s.schedule_rule_id = r.id
+                where s.local_date between r.effective_from and r.effective_from + 6
+                """));
+
+        // Every rule is the same centre as its group, and every session the same centre and teacher as its group.
+        Assert.Equal(
+            0,
+            await factory.ScalarAsync<long>(
+                """
+                select count(*) from academics.class_sessions s
+                join academics.schedule_rules r on r.id = s.schedule_rule_id
+                join academics.groups g on g.id = r.group_id
+                where s.centre_id != r.centre_id or r.centre_id != g.centre_id or s.teacher_id != g.teacher_id
+                """));
+
+        // Commands only: every seeded rule was audited like one added over HTTP.
+        Assert.Equal(8, await factory.ScalarAsync<long>("select count(*) from audit.audit_entries where entity_type = 'schedule_rule'"));
+    }
+
+    private Task<string> PerCentreCountsAsync(string table) =>
+        factory.ScalarAsync<string>(
+            $"""
+            select string_agg(slug || ':' || n, ',' order by slug) from (
+                select c.slug, count(*) as n from {table} t
+                join platform.centres c on c.id = t.centre_id
+                group by c.slug) as counts
+            """);
+
+    // Every table the seed writes, so a second run that changed anything at all shows up as a different string.
+    private Task<string> DatasetCountsAsync() =>
+        factory.ScalarAsync<string>(
+            """
+            select concat_ws(',',
+                (select count(*) from platform.centres),
+                (select count(*) from identity.users),
+                (select count(*) from identity.memberships),
+                (select count(*) from academics.subjects),
+                (select count(*) from academics.teachers),
+                (select count(*) from academics.groups),
+                (select count(*) from academics.students),
+                (select count(*) from academics.parents),
+                (select count(*) from academics.student_parents),
+                (select count(*) from academics.enrollments),
+                (select count(*) from academics.schedule_rules),
+                (select count(*) from academics.class_sessions),
+                (select count(*) from audit.audit_entries))
+            """);
 
     private Task<string> EnrollmentCountsAsync() =>
         factory.ScalarAsync<string>(

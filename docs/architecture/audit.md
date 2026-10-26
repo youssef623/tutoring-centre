@@ -1,8 +1,11 @@
 # Audit log
 
-Every change to a subject, a membership or a centre's settings made inside a centre leaves one append-only
-row — who, when, what, and the before and after values — committed in the same transaction as the change.
-Written from the implementation (Day 31); every name and file below is checked against the code.
+Every change to an audited record made inside a centre — a subject, a staff membership, the centre's settings,
+a student, a parent and their link, a teacher, a group, an enrollment, a weekly schedule rule or a decision about
+one class session — leaves one append-only row: who, when, what, and the before and after values, committed in
+the same transaction as the change. Written from the implementation (Day 31, extended on Days 38, 43, 44, 47 and
+52); the entity table below is quoted from `AuditPolicy`, and if the two ever disagree the code is the source of
+truth.
 
 ## The flow
 
@@ -43,7 +46,7 @@ centre the change happened in:
 | `actor_type` | `varchar(10)` | `'staff'` or `'system'`. |
 | `actor_user_id` | `uuid`, nullable | The staff user; `null` for a system actor. |
 | `action` | `varchar(10)` | `'created'`, `'updated'` or `'deleted'`. |
-| `entity_type` | `varchar(60)` | `'subject'`, `'membership'`, `'centre'`, `'parent'`, `'student'` or `'student_parent'` (Day 38). `AuditEntityTypeNames` (`TutoringCentre.Infrastructure.Audit`) is the one mapping between the enum and this string, shared by the EF value converter and the read side's API output, so the two can never drift apart — needed since `StudentParent` has no simple lower-case mapping from its CLR name alone. |
+| `entity_type` | `varchar(60)` | One of the eleven names in "What is audited" below: `'subject'`, `'membership'`, `'centre'`, `'parent'`, `'student'`, `'student_parent'`, `'teacher'`, `'group'`, `'enrollment'`, `'schedule_rule'` or `'class_session'`. `AuditEntityTypeNames` (`TutoringCentre.Infrastructure.Audit`) is the one mapping between the enum and this string, shared by the EF value converter and the read side's API output, so the two can never drift apart — needed since `StudentParent` has no simple lower-case mapping from its CLR name alone. |
 | `entity_id` | `uuid` | The changed row's own id. No foreign key to it: the audited row can later be deleted (a subject is never hard-deleted today, but nothing here depends on that). |
 | `changes` | `jsonb` | `{ "<field>": { "before": ..., "after": ... } }`, allowed fields only, camelCase keys. |
 | `correlation_id` | `varchar(64)`, nullable | The request's correlation id, or `null` outside an HTTP request. |
@@ -69,20 +72,35 @@ same ceiling unless it explicitly asks for more.
 An explicit allow-list, `AuditPolicy` (`TutoringCentre.Infrastructure.Audit`) — not a deny-list: a new
 property on an audited entity is never recorded until someone adds it here on purpose.
 
-| Entity | Audited as | Centre | Fields |
-| --- | --- | --- | --- |
-| `Subject` | `subject` | Its own `CentreId` | `name`, `status` |
-| `Membership` | `membership` | Its own `CentreId` | `userId` (only ever appears on creation — nothing changes it afterward), `role`, `status` |
-| `Centre` | `centre` | Its own `Id` — it is the tenant, not scoped by one | `name`, `defaultLocale` |
-| `Parent` (Day 38) | `parent` | Its own `CentreId` | `fullName`, `phone` (masked) |
-| `Student` (Day 38) | `student` | Its own `CentreId` | `fullName`, `schoolYear`, `status`, `phone` (masked) |
-| `StudentParentLink` (Day 38) | `student_parent` | Its own `CentreId` | `studentId`, `parentId`, `relationship`, `isPrimary` |
+Eleven entity types. Every one is found by its own `CentreId` except `Centre`, which is the tenant itself and is
+found by its own `Id`.
+
+| Entity | Audited as | Fields | Masked | Actions |
+| --- | --- | --- | --- | --- |
+| `Subject` | `subject` | `name`, `status` | — | all |
+| `Membership` | `membership` | `userId` (only ever appears on creation — nothing changes it afterward), `role`, `status` | — | all |
+| `Centre` | `centre` | `name`, `defaultLocale` | — | all |
+| `Parent` (Day 38) | `parent` | `fullName`, `phone` | `phone` | all |
+| `Student` (Day 38) | `student` | `fullName`, `schoolYear`, `status`, `phone` | `phone` | all |
+| `StudentParentLink` (Day 38) | `student_parent` | `studentId`, `parentId`, `relationship`, `isPrimary` | — | all |
+| `Teacher` (Day 43) | `teacher` | `fullName`, `userId` (the linked account), `status`, `phone` | `phone` | all |
+| `Group` (Day 44) | `group` | `name`, `subjectId`, `teacherId`, `capacity`, `status` | — | all |
+| `Enrollment` (Day 47) | `enrollment` | `studentId`, `groupId`, `status`, `endReason` | — | all |
+| `ScheduleRule` (Day 52) | `schedule_rule` | `groupId`, `dayOfWeek`, `startTime`, `durationMinutes`, `room`, `effectiveFrom`, `effectiveTo` | — | all |
+| `ClassSession` (Day 52) | `class_session` | `status`, `teacherId` | — | updated only |
+
+**Action lists (Day 52).** `AuditPolicyEntry.Actions` limits which actions are written for an entity; `null`, the
+default, means every action, which is how every entity before Day 52 behaves. `ClassSession` records `updated`
+only: sessions are generated from a rule, which is audited itself, and four weeks of creation rows per rule would
+bury the log, while a cancellation (`status`) or a teacher reassignment (`teacherId`) is a decision someone made.
+The enrollment timestamps (`enrolledAt`, `endedAt`) are not fields either: the audit row carries its own
+`occurred_at`.
 
 Nothing else is audited. `AuditEntry` itself and Identity's user type (`ApplicationUser`) are never in the
 policy — a test asserts this directly (`AuditPolicyTests.Entries_NeverIncludesAuditEntriesOrIdentityUsers`).
 Normalized names, hashes, stamps, emails, passwords and tokens are never recorded, because none of them is in
 any entity's field list above — not because of a separate redaction step that could be bypassed. `SearchName`
-(`Parent`, `Student`) and `LinksRevision` (`Student`) follow the same rule: neither is an independent fact —
+(`Parent`, `Student`, `Teacher`), `NormalizedName` (`Group`) and `LinksRevision` (`Student`) follow the same rule: neither is an independent fact —
 one is derived from `FullName`, the other is persistence bookkeeping for optimistic concurrency — so neither
 is in the field list either.
 
@@ -93,7 +111,7 @@ to what it already was writes nothing, and if no allowed field really changed, n
 same lower-case strings the API already uses (`"archived"`, `"teacher"`, `"en"`, ...); GUIDs as strings.
 
 **Masked fields (Day 38).** `AuditPolicyEntry.MaskedFields` names the subset of `AllowedFields` whose values
-are never written in full — today, every audited `phone`. `AuditDiffBuilder` decides whether a field changed
+are never written in full — today, every audited `phone` (parent, student and, since Day 43, teacher). `AuditDiffBuilder` decides whether a field changed
 from the *real* tracked values first (so two different phone numbers that happen to share their last four
 digits still produce an entry — masking could never have told them apart), then, only for what is actually
 written, replaces the value with `PhoneNumber.Masked`. The audit table is append-only and this log is a
@@ -106,13 +124,17 @@ throws rather than writing silently wrong data.
 centre. This is what keeps platform bootstrap — centre creation, the development identity seeder — out of
 the log without a special case: both run with a `SystemActor` that has no centre (or, for the seeder, no
 actor set at all, which defaults to anonymous), so the match never holds and nothing is written. The same
-rule is why a centre's own settings change is audited once Day 32 adds it: the acting owner's centre equals
-the centre's own id.
+rule is why a centre's own settings change is audited (Day 32): the acting owner's centre equals the centre's own
+id. It is also why the demo seed's per-centre steps (subjects, students, teachers, groups, enrollments, schedule
+rules) are audited: each runs as `SystemActor(centreId)`, so the match holds and the row records
+`actor_type = 'system'`, exactly like the same command sent over HTTP by a staff member (`SeedCommandTests`
+asserts one `enrollment` and one `schedule_rule` entry per seeded row).
 
 ## What is not in this log
 
-- **Reads.** The log is a record of writes; nothing here captures who viewed a subject, a staff list or the
-  audit log itself.
+- **Reads.** The log is a record of writes; nothing here captures who viewed a subject, a staff list, a
+  student or parent record, or the audit log itself. Since Month 3 the system holds personal data about minors,
+  which raises the priority of read auditing (`later.md`).
 - **Platform bootstrap.** Centre creation and the development identity seeder run with no actor centre, so
   nothing they do is audited (see "the two-centre match" above) — they are logged, not audited: visible in
   the application's own structured logs like any other request, with no before/after row in this table.

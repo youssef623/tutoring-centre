@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SearchInput } from "@/components/shared/SearchInput";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { StudentsList } from "@/features/students/StudentsList";
@@ -53,10 +53,10 @@ function StudentsPageContent() {
         description={t("page.subtitle")}
         actions={
           <Can permission={Permissions.StudentsManage}>
-            <Button render={<Link to="/students/new" />}>
+            <Link to="/students/new" className={buttonVariants()}>
               <Plus className="size-4" aria-hidden="true" />
               {t("actions.register")}
-            </Button>
+            </Link>
           </Can>
         }
       />

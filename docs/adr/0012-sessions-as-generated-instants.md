@@ -1,8 +1,8 @@
 # ADR 0012: Sessions as generated instants
 
-- **Status:** Draft (Day 51: Domain model, generator and tests); to be finalised on Day 54 once sessions are
-  persisted (Day 52) and exposed (Day 53)
-- **Date:** 2026-10-24
+- **Status:** Accepted. Drafted on Day 51 with the Domain model, generator and tests; final on Day 54, once
+  sessions were persisted (Day 52) and exposed (Day 53), with the evidence listed under "Evidence (Days 52–54)"
+- **Date:** 2026-10-24 (draft), 2026-10-26 (final)
 
 ## Context
 
@@ -106,3 +106,30 @@ UTC instants. The two transition rules in this ADR are cases 6 (skipped: 22:30 U
 and 5 pin that each date gets its own offset. Replacing the conversion with a fixed `+02:00` fails cases 4, 5, 7
 and 8; a fixed `+03:00` fails case 6 (the skipped-time rule coincides with the winter offset, so only the summer
 offset can expose it). The full table is in `docs/architecture/scheduling.md`.
+
+## Evidence (Days 52–54)
+
+The decision held unchanged through persistence and the API; nothing above was revised. What each later day adds
+to the evidence:
+
+- **Stored rows (Day 52).** `academics.class_sessions` keeps `starts_at` and `ends_at` as `timestamptz` and
+  `local_date` as `date`; `academics.schedule_rules` keeps `day_of_week`, `start_time` and the effective dates, and
+  no offset anywhere. `ux_class_sessions_rule_date` is the natural key that makes regeneration a no-op, and the
+  exclusion constraints `ex_class_sessions_group_overlap` and `ex_class_sessions_teacher_overlap` make overlap a
+  database rule on those stored rows, which is the consequence this ADR predicted
+  (`docs/architecture/scheduling.md`, "Storage").
+- **The transitions survive the database.** `ScheduleDstPersistenceTests`
+  (`TutoringCentre.Infrastructure.Tests`): `SaturdayAtSixPm_IsStoredAtSixteenUtcBeforeTheChangeAndFifteenUtcAfterIt`
+  and `FridayAtHalfPastMidnight_OnTheChangeDay_IsInTheTimetableUnderItsLocalDateNotItsUtcDate` (the skipped hour,
+  read back by its local date).
+- **And the API.** `ScheduleEndpointTests.Timetable_AcrossCairosSpringChange_KeepsSaturdayAtSixInTheEvening`: the
+  timetable returns UTC instants an hour apart across 30 April 2027 that both mean 18:00 in Cairo.
+- **And the screen.** `frontend/src/features/schedule/centreTime.test.ts` formats each instant in the centre's zone,
+  never the runner's; `frontend/e2e/schedule.spec.ts` and `full-centre-setup.spec.ts` read a Saturday 18:00 rule
+  back from the timetable as 6:00–7:30 PM centre time.
+- **Regeneration is harmless.** `ExtendScheduleHandlerTests.HandleAsync_RunTwice_TheSecondRunCreatesNothing` and
+  `ScheduleUseCaseTests.ExtendSchedule_RunTwice_TheSecondRunCreatesNothing`. The demo seed (Day 54) relies on the same property: its rules
+  start on the seed day, so a fresh instance always has this week's sessions.
+
+The open consequence stays open: a session generated before a change in Egypt's time-zone law keeps the instant
+computed under the old rule, and regenerating future sessions is not built (`later.md`).

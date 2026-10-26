@@ -18,6 +18,9 @@ public sealed class DevelopmentIdentitySeeder(UserManager<ApplicationUser> userM
     /// <summary>The seeded account with a Teacher membership in both demo centres; the demo seed links it to a teacher record in each.</summary>
     public const string TwoCentreTeacherEmail = "teacher@both.test";
 
+    /// <summary>The empty centre the full-setup journey builds from nothing; seeded in Development and Testing only.</summary>
+    public const string SetupCentreSlug = "giza-new";
+
     private const string PasswordConfigurationKey = "Seed:Password";
 
     private static readonly SeedUser[] Users =
@@ -33,7 +36,12 @@ public sealed class DevelopmentIdentitySeeder(UserManager<ApplicationUser> userM
         new("inactive@nile.test", "Former Secretary", "ar", [new("nile-centre", StaffRole.Secretary, Active: false)]),
     ];
 
-    public async Task<Result> SeedAsync(CancellationToken ct)
+    /// <summary>The one owner of the empty setup centre the full-setup journey starts from (Development and Testing only).</summary>
+    private static readonly SeedUser SetupCentreOwner =
+        new("owner@giza.test", "Giza Owner", "ar", [new(SetupCentreSlug, StaffRole.Owner, Active: true)]);
+
+    /// <param name="includeSetupCentreOwner">Also seed the owner of the empty setup centre, which must exist already.</param>
+    public async Task<Result> SeedAsync(bool includeSetupCentreOwner, CancellationToken ct)
     {
         var password = configuration[PasswordConfigurationKey];
         if (string.IsNullOrWhiteSpace(password))
@@ -45,7 +53,7 @@ public sealed class DevelopmentIdentitySeeder(UserManager<ApplicationUser> userM
 
         var centreIdsBySlug = await db.Set<Centre>().ToDictionaryAsync(centre => centre.Slug, centre => centre.Id, ct);
 
-        foreach (var seedUser in Users)
+        foreach (var seedUser in includeSetupCentreOwner ? [.. Users, SetupCentreOwner] : Users)
         {
             var userId = await GetOrCreateUserAsync(seedUser, password, ct);
             if (userId is null)

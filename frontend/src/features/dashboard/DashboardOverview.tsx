@@ -7,6 +7,7 @@ import { useListGroups, type GroupDto } from "@/api/generated/tutoring-centre";
 import { StatTile } from "@/components/shared/StatTile";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SeatMeter } from "@/features/enrollments/SeatMeter";
 import { Can } from "@/features/session/Can";
@@ -23,22 +24,22 @@ export function QuickActions() {
   return (
     <div className="flex flex-wrap gap-2">
       <Can permission={Permissions.StudentsManage}>
-        <Button render={<Link to="/students/new" />}>
+        <Link to="/students/new" className={buttonVariants()}>
           <UserPlus className="size-4" aria-hidden="true" />
           {t("dashboard.actions.registerStudent")}
-        </Button>
+        </Link>
       </Can>
       <Can permission={Permissions.StudentsView}>
-        <Button variant="outline" render={<Link to="/students" />}>
+        <Link to="/students" className={buttonVariants({ variant: "outline" })}>
           <GraduationCap className="size-4" aria-hidden="true" />
           {t("dashboard.actions.students")}
-        </Button>
+        </Link>
       </Can>
       <Can permission={Permissions.GroupsView}>
-        <Button variant="outline" render={<Link to="/groups" />}>
+        <Link to="/groups" className={buttonVariants({ variant: "outline" })}>
           <UsersRound className="size-4" aria-hidden="true" />
           {t("dashboard.actions.groups")}
-        </Button>
+        </Link>
       </Can>
     </div>
   );

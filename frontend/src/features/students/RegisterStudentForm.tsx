@@ -18,6 +18,7 @@ import { useParentLookup } from "@/components/shared/useParentLookup";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { registerStudentFormSchema, type RegisterStudentFormValues } from "@/features/students/registerStudentSchema";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/shared/PhoneInput";
@@ -267,9 +268,9 @@ export function RegisterStudentForm() {
           {isSubmitting && <Loader2 className="animate-spin" aria-hidden="true" />}
           {t("actions.register")}
         </Button>
-        <Button type="button" variant="outline" render={<Link to="/students" />}>
+        <Link to="/students" className={buttonVariants({ variant: "outline" })}>
           {t("form.cancel")}
-        </Button>
+        </Link>
       </div>
     </form>
   );

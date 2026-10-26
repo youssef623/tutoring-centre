@@ -225,7 +225,13 @@ are both true and `pg_policies` shows exactly the one policy described above.
 (`RowLevelSecurityCoverageTests`) discovers every table with a `centre_id` column from PostgreSQL's own
 catalogue and fails, naming the table, if any of them lacks forced row-level security and a complete policy —
 so a future tenant table that forgets this layer fails the build rather than shipping unnoticed; its one
-documented exemption is `identity.memberships`, for the reason in the Exemptions table below. The schedule's
+documented exemption is `identity.memberships`, for the reason in the Exemptions table below. At the end of
+Month 3 it finds ten tenant tables, every one with forced row-level security and the `tenant_isolation` policy:
+two from Month 2 (`academics.subjects`, `audit.audit_entries`) and eight from Month 3 (`academics.students`,
+`academics.parents`, `academics.student_parents`, `academics.teachers`, `academics.groups`,
+`academics.enrollments`, `academics.schedule_rules`, `academics.class_sessions`). Each Month 3 table also has its
+own raw-SQL proof (`StudentParentRowLevelSecurityTests`, `TeacherRowLevelSecurityTests`,
+`GroupRowLevelSecurityTests`, `EnrollmentRowLevelSecurityTests`, `ScheduleRowLevelSecurityTests`). The schedule's
 Week 4 demo (`database/demos/week4-rls.sql`) reproduces the same four results with no application code
 involved at all: `psql`, as the real runtime role, inside a transaction seeded and rolled back by the
 superuser.
@@ -274,6 +280,34 @@ the principal side. Since production has no tenant-to-tenant relationship to che
 child pair local to the test keeps that last assertion non-vacuous — the same reason Layer 2's model test
 needed its own throwaway probe. Mapping the child with a single-column foreign key instead of the composite
 one fails the test, naming the exact relationship that is wrong.
+
+## Month 3: the convention on production tables
+
+Month 3 is where Layer 4 stops being a probe. Every reference between two tenant-owned rows is a composite foreign
+key ending in the referenced table's `ux_<table>_centre_id_id` key, so the database refuses a reference to another
+centre's row even for the superuser: a student's parent link (`student_parents` to `students` and `parents`), a
+group's subject and teacher, an enrollment's student and group, a rule's group, and a session's group, teacher and
+rule. `TenantModelTests` checks each of them, no longer only the throwaway probe pair.
+
+**The one cross-schema key: a teacher's account.** `academics.teachers.user_id` (the staff account a teacher record
+is linked to, Day 43) does not point at `identity.users`: a user is not tenant-owned, so a key to it would accept
+any account, of any centre. It is instead the composite `fk_teachers_memberships`, `(centre_id, user_id)` to
+`identity.memberships(centre_id, user_id)` (the unique index `ux_memberships_centre_user`), `RESTRICT`. The
+database therefore accepts a link only to someone who holds a membership in the teacher's own centre. It is added
+as a raw migration operation (`AddTeachers`), because `identity.memberships` is not `ITenantOwned` and has no
+EF-declared alternate key; nothing in the `identity` schema changes. A null `user_id` ("no account linked") is
+not checked, as for any composite key. Whether the membership is active and holds the Teacher role is a business
+rule, checked in the Application through `IStaffDirectory`, not by the key. A later role change leaves the key
+valid and the link inert (`later.md`).
+
+**Exclusion constraints include the tenant.** The two constraints that forbid double-booking
+(`ex_class_sessions_group_overlap` and `ex_class_sessions_teacher_overlap`, Day 52, `btree_gist`) start with
+`centre_id with =` before the group or teacher and the time range. Teacher and group IDs are already unique across
+centres, so this changes no answer today; it is there so that one centre's sessions can never be compared with,
+or block, another centre's, whatever IDs a future change produces, and so the GiST index is partitioned by tenant
+like every other index on a tenant table. `SessionExclusionConstraintTests` covers both directions (an overlap
+inside one centre is refused; the same times and teacher ID under another centre are not) and checks in the
+catalogue that both constraints are tenant-scoped, half-open and partial on `status = 'scheduled'`.
 
 ## Exemptions
 

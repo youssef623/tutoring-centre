@@ -101,6 +101,41 @@ public sealed class AuditEndpointTests(ApiFactory factory) : IAsyncLifetime
         Assert.Contains(items, item => item.GetProperty("action").GetString() == "updated");
     }
 
+    [Theory]
+    [InlineData("parent")]
+    [InlineData("student")]
+    [InlineData("student_parent")]
+    [InlineData("teacher")]
+    [InlineData("group")]
+    [InlineData("enrollment")]
+    [InlineData("schedule_rule")]
+    public async Task Get_FilteredByAMonthThreeEntityType_ReturnsOnlyThatTypesEntries(string entityType)
+    {
+        // The seed writes every one of these in Nile as SystemActor(centreId), so each filter has entries to find.
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+
+        using var response = await owner.Client.GetAsync(new Uri($"/api/audit?entityType={entityType}", UriKind.Relative));
+        var body = await ReadJsonAsync(response);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var items = body.RootElement.GetProperty("items").EnumerateArray().ToList();
+        Assert.NotEmpty(items);
+        Assert.All(items, item => Assert.Equal(entityType, item.GetProperty("entityType").GetString()));
+    }
+
+    [Fact]
+    public async Task Get_FilteredByClassSession_IsAcceptedEvenWithNoEntries()
+    {
+        // Sessions are audited only when updated (a cancellation or a reassignment), and the seed updates none.
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+
+        using var response = await owner.Client.GetAsync(new Uri("/api/audit?entityType=class_session", UriKind.Relative));
+        var body = await ReadJsonAsync(response);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(body.RootElement.GetProperty("items").EnumerateArray());
+    }
+
     [Fact]
     public async Task Get_PageSizeOne_YieldsCursorAndSecondPageReturnsTheNextEntry()
     {

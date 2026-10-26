@@ -78,7 +78,10 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    dotnet run --project src/TutoringCentre.Api -- seed
    ```
 
-   This creates two centres and five staff accounts, all sharing the password you just set:
+   This creates two demo centres and five staff accounts, all sharing the password you just set. In Development
+   (and in the test suites) it also creates a third, empty centre, `giza-new` ("مركز الجيزة الجديد"), with one
+   owner and nothing else: the full-setup journey builds a whole centre there from the UI. It is never created on a
+   Production demo instance.
 
    | Email | Role | Centre(s) |
    |---|---|---|
@@ -87,6 +90,7 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    | `teacher@both.test` | Teacher | Nile Tutoring Centre, Maadi Learning Hub |
    | `secretary@nile.test` | Secretary | Nile Tutoring Centre |
    | `inactive@nile.test` | Secretary (inactive membership) | Nile Tutoring Centre |
+   | `owner@giza.test` | Owner | مركز الجيزة الجديد (`giza-new`, Development and tests only, empty) |
 
    Each centre is also seeded with its own subjects — Nile Tutoring Centre gets رياضيات، فيزياء and كيمياء;
    Maadi Learning Hub gets Mathematics and Physics — visible from the app's Subjects page (below) once signed
@@ -94,7 +98,10 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    فتحي" (linked to `teacher@both.test`) and "منى السيد", and four groups — the linked teacher teaches exactly
    one of them; Maadi gets one teacher linked to the same account and two groups. The groups come with demo
    enrollments, and Nile's two-seat group "رياضيات - المجموعة ب" is left one seat short of full, ready to show
-   what happens to the last seat.
+   what happens to the last seat. Every group also has a weekly schedule (six rules in Nile, two in Maadi, Monday
+   to Thursday) that starts on the day you seed, so the Timetable always shows this week's sessions and the next
+   three weeks'. In total: 5 subjects, 3 teachers, 6 groups, 18 students, 15 parents, 31 enrollments and 8 weekly
+   rules with 32 sessions.
 
 6. **Run the frontend** in a second terminal, then open http://localhost:5173 — signed out, this redirects to
    `/login`; sign in with any seeded email above and the password you chose in step 5. From the sidebar,
@@ -109,7 +116,11 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    students and seats; a secretary or owner enrolls a student found by search, transfers one to another group
    of the same subject, or withdraws one, and a full group refuses politely. A student's page lists their
    current and past groups and can enroll them from there. A teacher signed in as `teacher@both.test` sees only
-   the groups they teach — a different set per selected centre — and their rosters, read-only. An
+   the groups they teach — a different set per selected centre — and their rosters, read-only. A group's
+   **Schedule** tab lists its weekly sessions; a secretary or owner adds one ("Saturday 18:00 for 90 minutes",
+   which fills the next four weeks) or ends one, and a time the group or its teacher is already busy is refused
+   in words. **Timetable** shows a week of sessions in the centre's own time (Cairo), filterable by group and
+   teacher; a secretary or owner cancels a single session or extends the schedule further ahead. An
    owner also sees **Staff** (add, change role, deactivate, reactivate), **Settings** (centre name, default
    language) and **Audit log** (filterable, infinite-scroll history of every change above); a new staff member
    is forced through a password change on first sign-in.
@@ -119,6 +130,17 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    npm ci
    npm run dev
    ```
+
+   What each demo account sees after signing in:
+
+   | Account | Sees | Can change |
+   |---|---|---|
+   | `owner@nile.test` | Everything in Nile: subjects, students and parents, teachers, groups with rosters and schedules, the timetable, staff, settings and the audit log | Everything in Nile |
+   | `owner@maadi.test` | The same for Maadi, and nothing of Nile | Everything in Maadi |
+   | `secretary@nile.test` | Nile's subjects, students and parents, teachers (read-only), groups, rosters, schedules and the timetable; no Staff, Settings or Audit log | Subjects, students and parents, groups, enrollments and schedules; not teachers or staff |
+   | `teacher@both.test` | After choosing a centre: its subjects, and only the groups it teaches there (one in Nile, two in Maadi) with their rosters (names only), schedules and sessions on the timetable; no Students, Teachers or Staff | Nothing |
+   | `inactive@nile.test` | Cannot select Nile: the membership is inactive | Nothing |
+   | `owner@giza.test` | An empty centre, ready to be set up from scratch (Development only) | Everything in that centre |
 
 7. **Run the tests**
 
@@ -131,18 +153,25 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    End-to-end journeys (real API, real PostgreSQL, a real Chromium browser) are separate: they start their
    own copies of the API and the frontend, so stop the ones from steps 4/6 first (or leave them running —
    Playwright reuses an already-running server locally). Supply the seed password from step 5 as
-   `SEED_PASSWORD`:
+   `SEED_PASSWORD`, and raise the login budget the way CI does: sign-in is limited to ten attempts a minute per
+   client address, and every local journey signs in from the same one, so a whole run (or two runs in a row) would
+   otherwise hit "Too many attempts". The budget is read by the API Playwright starts, so stop your own API from
+   step 4 first.
 
    ```powershell
    cd frontend
    $env:SEED_PASSWORD = "<the password you chose in step 5>"
+   $env:Auth__LoginRateLimit__PermitLimit = "100"
    npm run test:e2e
    ```
 
    ```bash
    cd frontend
-   SEED_PASSWORD="<the password you chose in step 5>" npm run test:e2e
+   SEED_PASSWORD="<the password you chose in step 5>" Auth__LoginRateLimit__PermitLimit=100 npm run test:e2e
    ```
+
+   The journeys leave their own data behind (unique names per run), so walk a manual check on a freshly seeded
+   database, not after a test run.
 
 8. **Run the local production stack** (the real container image, behind a TLS-terminating reverse proxy —
    the same topology a deployed environment uses, before any cloud resource exists). Add
@@ -190,10 +219,12 @@ flowchart TD
 - [ADR 0009 — Azure Container Apps and OIDC](docs/adr/0009-azure-container-apps-and-oidc.md)
 - [ADR 0010 — Student aggregate and value objects](docs/adr/0010-student-aggregate-and-value-objects.md)
 - [ADR 0011 — Pessimistic lock for enrollment capacity](docs/adr/0011-pessimistic-lock-for-enrollment-capacity.md)
+- [ADR 0012 — Sessions as generated instants](docs/adr/0012-sessions-as-generated-instants.md)
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Tenant isolation: the role model, and all four layers](docs/architecture/tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)
-- [Academics: students, parents, teachers and groups — the Domain model, storage, use cases, endpoints and screens](docs/architecture/academics.md)
+- [Academics: students, parents, teachers, groups and enrollments — the Domain model, storage, use cases, endpoints and screens](docs/architecture/academics.md)
+- [Scheduling: weekly rules, generated sessions, double-booking constraints and daylight saving](docs/architecture/scheduling.md)
 - [Audit: how a change becomes an audit row, atomically](docs/architecture/audit.md)
 - [Deployment: topology, pipeline, secrets inventory, and what's not provisioned yet](docs/architecture/deployment.md)
 - [Live verification checklist](docs/operations/live-verification.md) and [runbook](docs/operations/runbook.md)
@@ -201,4 +232,4 @@ flowchart TD
 
 ## Quality gates
 
-Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, eleven Playwright end-to-end journeys against a real API and PostgreSQL, a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
+Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, nineteen Playwright end-to-end journeys against a real API and PostgreSQL (one of them sets up a whole centre from an empty one, in Arabic, through the UI alone), a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
