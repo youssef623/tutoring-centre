@@ -6,10 +6,138 @@
     "centre": {
       "name_required": "Centre name is required.",
       "name_too_long": "Centre name must be at most 120 characters.",
+      "name_invalid": "Centre name must be 1-120 characters.",
       "slug_invalid": "The web address may only contain lowercase letters, digits and single hyphens.",
       "time_zone_invalid": "The time zone is not recognised.",
       "slug_taken": "A centre with this web address already exists.",
       "create_forbidden": "Only the platform can create centres."
+    },
+    "tenant": {
+      "not_selected": "Please select a centre to continue."
+    },
+    "auth": {
+      "permission_denied": "You do not have permission to do this.",
+      "password_change_required": "Please change your password before continuing.",
+      "current_password_invalid": "The current password you entered is incorrect.",
+      "password_too_weak": "This password does not meet the requirements.",
+      "rate_limited": "Too many attempts. Please wait a minute and try again.",
+      "invalid_credentials": "Incorrect email or password.",
+      "not_authenticated": "Please sign in to continue."
+    },
+    "staff": {
+      "already_member": "This person is already a member of this centre.",
+      "last_owner": "This centre must keep at least one owner.",
+      "cannot_change_self": "You cannot change your own role.",
+      "not_found": "This staff member could not be found.",
+      "email_invalid": "Enter a valid email address."
+    },
+    "membership": {
+      "role_unchanged": "The role is already this value.",
+      "inactive": "This membership is inactive.",
+      "already_active": "This membership is already active.",
+      "already_inactive": "This membership is already inactive.",
+      "centre_required": "A centre is required.",
+      "user_required": "A user is required."
+    },
+    "subject": {
+      "not_found": "This subject could not be found.",
+      "name_taken": "A subject with this name already exists.",
+      "name_invalid": "Subject name must be 1-80 characters.",
+      "already_archived": "This subject is already archived.",
+      "not_archived": "This subject is not archived.",
+      "archived_read_only": "An archived subject cannot be renamed until it is restored.",
+      "has_active_groups": "This subject has active groups. Archive or move them first."
+    },
+    "phone": {
+      "invalid": "Enter a valid phone number."
+    },
+    "parent": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Parent name must be 2-120 characters.",
+      "not_found": "This parent could not be found.",
+      "phone_taken": "A parent with this phone number already exists."
+    },
+    "student": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Student name must be 2-120 characters.",
+      "school_year_invalid": "School year must be at most 40 characters.",
+      "parent_required": "A parent is required.",
+      "parent_already_linked": "This parent is already linked to this student.",
+      "parent_not_linked": "This parent is not linked to this student.",
+      "too_many_parents": "A student can have at most 4 parents.",
+      "last_parent": "A student must keep at least one parent.",
+      "primary_parent_required": "Make another parent primary before removing the primary parent.",
+      "already_primary": "This parent is already the primary contact.",
+      "already_archived": "This student is already archived.",
+      "not_archived": "This student is not archived.",
+      "archived_read_only": "An archived student is read-only until it is restored.",
+      "not_found": "This student could not be found.",
+      "has_active_enrollments": "This student is still enrolled in a group. Withdraw them first."
+    },
+    "teacher": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Teacher name must be 2-120 characters.",
+      "user_required": "A user is required.",
+      "already_archived": "This teacher is already archived.",
+      "not_archived": "This teacher is not archived.",
+      "archived_read_only": "An archived teacher is read-only until it is restored.",
+      "not_found": "This teacher could not be found.",
+      "user_not_eligible": "This person is not an eligible Teacher at this centre.",
+      "account_taken": "This account is already linked to another teacher.",
+      "has_active_groups": "This teacher has active groups. Reassign or archive them first."
+    },
+    "group": {
+      "centre_required": "A centre is required.",
+      "name_invalid": "Group name must be 1-80 characters.",
+      "subject_required": "A subject is required.",
+      "teacher_required": "A teacher is required.",
+      "capacity_invalid": "Capacity must be 1-200.",
+      "already_archived": "This group is already archived.",
+      "not_archived": "This group is not archived.",
+      "archived_read_only": "An archived group is read-only until it is restored.",
+      "subject_archived": "This subject is archived.",
+      "teacher_archived": "This teacher is archived.",
+      "not_found": "This group could not be found.",
+      "name_taken": "A group with this name already exists.",
+      "archived": "This group is archived and accepts no enrollments.",
+      "full": "This group is full. No seats are left.",
+      "capacity_below_enrolled": "Capacity cannot be lower than the number of students already enrolled.",
+      "has_active_enrollments": "This group still has enrolled students. Transfer or withdraw them first.",
+      "has_active_schedule": "This group still has an active schedule. End it first."
+    },
+    "enrollment": {
+      "centre_required": "A centre is required.",
+      "student_required": "A student is required.",
+      "group_required": "A group is required.",
+      "already_ended": "This enrollment has already ended.",
+      "end_before_start": "An enrollment cannot end before it started.",
+      "not_found": "This enrollment could not be found.",
+      "student_archived": "This student is archived and cannot be enrolled.",
+      "already_enrolled": "This student is already enrolled in this group.",
+      "same_group": "The student is already in this group. Choose a different group.",
+      "subject_mismatch": "A transfer must be to a group of the same subject."
+    },
+    "schedule": {
+      "centre_required": "A centre is required.",
+      "group_required": "A group is required.",
+      "duration_invalid": "Duration must be 30-240 minutes in steps of 5.",
+      "start_time_invalid": "Start time must be on a 5-minute boundary.",
+      "room_invalid": "Room must be at most 40 characters.",
+      "rule_already_ended": "This schedule has already ended.",
+      "rule_end_invalid": "A schedule cannot end before the date it starts.",
+      "session_already_cancelled": "This session is already cancelled.",
+      "session_in_past": "A session that has started cannot be cancelled.",
+      "teacher_double_booked": "The teacher already has a session at this time.",
+      "group_double_booked": "This group already has a session at this time.",
+      "rule_not_found": "This schedule could not be found.",
+      "session_not_found": "This session could not be found.",
+      "range_invalid": "The end date must be on or after the start date."
+    },
+    "concurrency": {
+      "stale": "This record was changed by someone else. Reload and try again."
+    },
+    "conflict": {
+      "duplicate": "This conflicts with existing data."
     }
   },
   "byKind": {

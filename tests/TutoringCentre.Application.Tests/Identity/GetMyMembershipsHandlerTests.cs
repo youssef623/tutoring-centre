@@ -51,10 +51,10 @@ public sealed class GetMyMembershipsHandlerTests
         var centreId = Guid.CreateVersion7();
         var actorContext = new CurrentActorContext();
         actorContext.Set(new StaffActor(userId, centreId, StaffRole.Teacher));
-        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Teacher);
+        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Teacher, "Africa/Cairo");
         var readService = new FakeMembershipReadService
         {
-            Profile = new StaffProfileDto(userId, "Teacher", "teacher@both.test", "en", [membership]),
+            Profile = new StaffProfileDto(userId, "Teacher", "teacher@both.test", "en", [membership], MustChangePassword: false),
         };
         var handler = new GetMyMembershipsHandler(actorContext, readService);
 
@@ -66,6 +66,32 @@ public sealed class GetMyMembershipsHandlerTests
         Assert.Equal(centreId, result.Value.ActiveCentreId);
         Assert.Equal(StaffRole.Teacher, result.Value.ActiveRole);
         Assert.Single(result.Value.Memberships);
+        Assert.Equal(["enrollments.view", "groups.view", "schedule.view", "subjects.view"], result.Value.Permissions);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SecretaryWithActiveCentre_ReportsSortedPermissions()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var centreId = Guid.CreateVersion7();
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new StaffActor(userId, centreId, StaffRole.Secretary));
+        var membership = new MembershipDto(centreId, "Nile Centre", "nile-centre", StaffRole.Secretary, "Africa/Cairo");
+        var readService = new FakeMembershipReadService
+        {
+            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [membership], MustChangePassword: false),
+        };
+        var handler = new GetMyMembershipsHandler(actorContext, readService);
+
+        // Act
+        var result = await handler.HandleAsync(new GetMyMembershipsQuery(), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            ["enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"],
+            result.Value.Permissions);
     }
 
     [Fact]
@@ -79,7 +105,7 @@ public sealed class GetMyMembershipsHandlerTests
         var readService = new FakeMembershipReadService
         {
             // The actor still claims staleCentreId, but the freshly read profile no longer lists it as active.
-            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", []),
+            Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [], MustChangePassword: false),
         };
         var handler = new GetMyMembershipsHandler(actorContext, readService);
 
@@ -90,5 +116,6 @@ public sealed class GetMyMembershipsHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Null(result.Value.ActiveCentreId);
         Assert.Null(result.Value.ActiveRole);
+        Assert.Empty(result.Value.Permissions);
     }
 }

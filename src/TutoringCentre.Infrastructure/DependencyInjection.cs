@@ -1,14 +1,27 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using TutoringCentre.Application.Academics.Enrollments;
+using TutoringCentre.Application.Academics.Parents;
+using TutoringCentre.Application.Academics.Students;
+using TutoringCentre.Application.Academics.Groups;
+using TutoringCentre.Application.Academics.Scheduling;
+using TutoringCentre.Application.Academics.Subjects;
+using TutoringCentre.Application.Academics.Teachers;
+using TutoringCentre.Application.Audit;
 using TutoringCentre.Application.Centres;
+using TutoringCentre.Application.Centres.Contracts;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Identity;
+using TutoringCentre.Application.Identity.Contracts;
 using TutoringCentre.Application.Platform;
+using TutoringCentre.Application.Staff;
+using TutoringCentre.Infrastructure.Centres;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
@@ -22,7 +35,9 @@ namespace TutoringCentre.Infrastructure;
 public static class DependencyInjection
 {
     private const string PostgresConnectionStringName = "Postgres";
+    private const string PostgresMigrationsConnectionStringName = "PostgresMigrations";
     private const string PostgresHealthCheckName = "postgres";
+    private const string PostgresRolePrivilegeHealthCheckName = "postgres-runtime-role";
 
     // A static array avoids allocating a new one per call (analyzer CA1861 under latest-recommended).
     private static readonly string[] ReadinessTags = ["ready"];
@@ -42,6 +57,7 @@ public static class DependencyInjection
         services.AddSingleton<IClock, SystemClock>();
 
         var connectionString = configuration.GetConnectionString(PostgresConnectionStringName);
+        var migrationsConnectionString = configuration.GetConnectionString(PostgresMigrationsConnectionStringName);
         var healthChecks = services.AddHealthChecks();
 
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -55,31 +71,90 @@ public static class DependencyInjection
         else
         {
             healthChecks.AddNpgSql(connectionString, name: PostgresHealthCheckName, tags: ReadinessTags);
+
+            // A tripwire, not a connectivity check: fails readiness if the runtime connection ever turns out to
+            // be a superuser, BYPASSRLS, or the owner role, any of which would make RLS unenforceable.
+            healthChecks.AddCheck(
+                PostgresRolePrivilegeHealthCheckName,
+                new RuntimeRolePrivilegeHealthCheck(connectionString),
+                tags: ReadinessTags);
         }
 
-        // Persistence. The interceptor is stateless (it only needs the singleton clock), so one instance is enough.
+        // Persistence. Timestamps and the tenant guard are stateless (the guard reads AppDbContext.CurrentCentreId
+        // off the context being saved rather than holding a dependency of its own), so one instance each is enough.
+        // Audit depends on the per-scope actor and correlation context, so it is scoped, not singleton.
         services.AddSingleton<TimestampInterceptor>();
+        services.AddScoped<AuditInterceptor>();
+        services.AddSingleton<TenantWriteGuardInterceptor>();
 
         services
             .AddOptions<DatabaseOptions>()
-            .Configure(options => options.ConnectionString = connectionString ?? string.Empty)
+            .Configure(options =>
+            {
+                options.ConnectionString = connectionString ?? string.Empty;
+                options.MigrationsConnectionString = migrationsConnectionString;
+            })
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddDbContext<AppDbContext>((serviceProvider, options) => options
-            .UseNpgsql(
+        // Runtime registration: every request resolves AppDbContext through this, on the tutoring_app connection
+        // only. MigrationRunner and the design-time factory build their own short-lived context on the owner
+        // connection instead of resolving this one, so the owner connection is never available through DI.
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+        {
+            AppDbContextOptionsConfigurator.Configure(
+                options,
                 serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString,
-                npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", Schemas.Platform))
-            .UseSnakeCaseNamingConvention()
-            .AddInterceptors(serviceProvider.GetRequiredService<TimestampInterceptor>()));
+                serviceProvider.GetRequiredService<TimestampInterceptor>(),
+                serviceProvider.GetRequiredService<AuditInterceptor>(),
+                serviceProvider.GetRequiredService<TenantWriteGuardInterceptor>());
+        });
+
+        // The key ring that encrypts the session and antiforgery cookies, persisted in the same database
+        // (Task 34.6) instead of the container's own file system, so every instance reads the same keys and a
+        // cookie survives a restart or a redeploy. Registered here, not in the Api's AuthenticationSetup,
+        // because only Program and the CLI may reference Infrastructure (ApiRuleTests) — AppDbContext is an
+        // Infrastructure type. The application name is unchanged from Month 1: changing it would invalidate
+        // every existing cookie.
+        services.AddDataProtection().SetApplicationName("TutoringCentre").PersistKeysToDbContext<AppDbContext>();
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<ICentreRepository, CentreRepository>();
+        services.AddScoped<ICentreReadService, CentreReadService>();
+        services.AddScoped<ICentreTimeZoneProvider, CentreTimeZoneProvider>();
+
+        services.AddScoped<ISubjectRepository, SubjectRepository>();
+        services.AddScoped<ISubjectReadService, SubjectReadService>();
+
+        services.AddScoped<ITeacherRepository, TeacherRepository>();
+        services.AddScoped<ITeacherReadService, TeacherReadService>();
+        services.AddScoped<IGroupRepository, GroupRepository>();
+        services.AddScoped<IGroupReadService, GroupReadService>();
+
+        services.AddScoped<IParentRepository, ParentRepository>();
+        services.AddScoped<IParentReadService, ParentReadService>();
+
+        services.AddScoped<IStudentRepository, StudentRepository>();
+        services.AddScoped<IStudentReadService, StudentReadService>();
+
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+        services.AddScoped<IEnrollmentReadService, EnrollmentReadService>();
+
+        services.AddScoped<IScheduleRuleRepository, ScheduleRuleRepository>();
+        services.AddScoped<IClassSessionRepository, ClassSessionRepository>();
+        services.AddScoped<IScheduleReadService, ScheduleReadService>();
+
+        services.AddScoped<IMembershipRepository, MembershipRepository>();
+        services.AddScoped<IStaffReadService, StaffReadService>();
+        services.AddScoped<IStaffDirectory, StaffDirectory>();
+        services.AddScoped<ITeacherScopeProvider, TeacherScopeProvider>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
+
+        services.AddScoped<IAuditReadService, AuditReadService>();
 
         // Identity core only: no SignInManager, no Identity UI, no role services (there are no role tables —
         // a role belongs to a user in a centre, not globally). Cookie/sign-in wiring is Day 15.
@@ -101,6 +176,7 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<AppDbContext>();
         services.AddScoped<DevelopmentIdentitySeeder>();
         services.AddScoped<IAuthenticationService, IdentityAuthenticationService>();
+        services.AddScoped<IStaffAccountService, StaffAccountService>();
 
         return services;
     }

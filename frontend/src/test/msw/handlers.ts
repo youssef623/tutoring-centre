@@ -8,6 +8,7 @@ export const handlers = [
       applicationVersion: "1.0.0",
       latestMigration: "20261012_InitialPlatform",
       databaseUpToDate: true,
+      demoMode: false,
     }),
   ),
   // No session by default; tests that need a signed-in user override this with server.use(...).

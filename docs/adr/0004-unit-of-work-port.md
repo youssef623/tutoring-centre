@@ -23,3 +23,16 @@ Application defines `IUnitOfWork` (`src/TutoringCentre.Application/Common/Ports/
 - Queries are read-only by construction, proven by `tests/TutoringCentre.Infrastructure.Tests/Persistence/ReadOnlyQueryTests.cs` (SQLSTATE 25006).
 - Handlers are unit-testable with a fake unit of work and fake repositories (`tests/TutoringCentre.Application.Tests/Fakes/`).
 - The port is deliberately minimal; nested transactions are refused. Needs beyond this (for example row-level-security session settings in Month 2) extend `BeginAsync`, not the handlers.
+
+## Addendum: 2026-10-09 — `SaveChangesAsync` returns a `Result`
+
+Month 1 left a known gap: `SaveChangesAsync` returned `Task`, so a failure only the database could detect at
+write time — a lost uniqueness race, a stale optimistic-concurrency version — had no way to come back as
+anything but an exception (recorded against the centre-slug race test, Day 9). Task 25.3 changes the port to
+`Task<Result> SaveChangesAsync(CancellationToken ct)`. The dispatcher now inspects that result exactly like a
+handler's: on failure it rolls back and returns `Result<TResponse>.Failure` carrying the save's error (pipeline
+case C14, `docs/notes/pipeline-cases.md`); it commits only once the save has actually succeeded. The real
+adapter (`UnitOfWork`, Infrastructure) translates the two expected database failure families — unique
+violations and concurrency conflicts — into that `Result` (Task 25.4); every other database failure still
+throws and still ends in rollback and an unhandled exception, unchanged from the original decision above. No
+EF Core or Npgsql type crosses into Application: the port still speaks only `Result`.

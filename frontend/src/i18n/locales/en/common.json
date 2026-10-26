@@ -1,7 +1,22 @@
 {
   "retry": "Retry",
+  "close": "Close",
+  "loadMore": "Load more",
+  "comingSoon": "This page is on its way.",
+  "search": {
+    "label": "Search",
+    "placeholder": "Search",
+    "clear": "Clear search"
+  },
+  "status": {
+    "active": "Active",
+    "archived": "Archived"
+  },
   "language": {
     "arabic": "العربية",
     "english": "English"
+  },
+  "demoBanner": {
+    "message": "Demo environment — data may be reset. Do not enter real personal data."
   }
 }

@@ -15,6 +15,14 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
     private static readonly Uri MeUri = new("/api/me", UriKind.Relative);
     private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
 
+    private static readonly string[] AllSixteenPermissionsSorted =
+    [
+        "audit.view", "centre.settings.manage", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view",
+        "schedule.manage", "schedule.view", "staff.manage", "staff.view",
+        "students.manage", "students.view", "subjects.manage", "subjects.view",
+        "teachers.manage", "teachers.view",
+    ];
+
     public async Task InitializeAsync()
     {
         await factory.ResetAsync();
@@ -44,6 +52,33 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal("owner", body.RootElement.GetProperty("activeRole").GetString());
         Assert.False(string.IsNullOrEmpty(body.RootElement.GetProperty("activeCentreId").GetString()));
         Assert.Equal("nile-centre", body.RootElement.GetProperty("memberships")[0].GetProperty("centreSlug").GetString());
+
+        // Day 53: every membership names its centre's zone, so any role can work out "today" in the centre's calendar.
+        Assert.Equal("Africa/Cairo", body.RootElement.GetProperty("memberships")[0].GetProperty("timeZoneId").GetString());
+
+        // The login response itself must carry the auto-selected centre's permissions, not the pre-selection
+        // (empty) snapshot — a client that renders straight off the login response, without a follow-up
+        // GET /api/me, must still see the correct permission-gated UI.
+        var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
+        Assert.Equal(AllSixteenPermissionsSorted, permissions);
+    }
+
+    [Fact]
+    public async Task Login_AsSecretaryWithOneCentre_AutoSelectsAndReturnsItsPermissions()
+    {
+        using var client = CreateSessionClient();
+
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client,
+            LoginUri,
+            new { email = "secretary@nile.test", password = ApiFactory.TestSeedPassword });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await ReadJsonAsync(response);
+        Assert.Equal("secretary", body.RootElement.GetProperty("activeRole").GetString());
+
+        var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
+        Assert.Equal(["enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
     }
 
     [Fact]
@@ -60,6 +95,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(JsonValueKind.Null, body.RootElement.GetProperty("activeCentreId").ValueKind);
         Assert.Equal(2, body.RootElement.GetProperty("memberships").GetArrayLength());
+        Assert.Empty(body.RootElement.GetProperty("permissions").EnumerateArray());
     }
 
     [Fact]
@@ -120,6 +156,56 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         using var meResponse = await client.GetAsync(MeUri);
         var me = await ReadJsonAsync(meResponse);
         Assert.Equal(maadiHubCentreId.ToString(), me.RootElement.GetProperty("activeCentreId").GetString());
+    }
+
+    [Fact]
+    public async Task GetMe_AsOwner_ReturnsAllSixteenPermissionsSorted()
+    {
+        using var client = CreateSessionClient();
+        using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword }))
+        {
+            Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        }
+
+        using var meResponse = await client.GetAsync(MeUri);
+        var me = await ReadJsonAsync(meResponse);
+
+        var permissions = me.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
+        Assert.Equal(AllSixteenPermissionsSorted, permissions);
+    }
+
+    [Fact]
+    public async Task GetMe_AsSecretary_ReturnsStudentsAndSubjectsPermissionsSorted()
+    {
+        using var client = CreateSessionClient();
+        using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "secretary@nile.test", password = ApiFactory.TestSeedPassword }))
+        {
+            Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        }
+
+        using var meResponse = await client.GetAsync(MeUri);
+        var me = await ReadJsonAsync(meResponse);
+
+        var permissions = me.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
+        Assert.Equal(["enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
+    }
+
+    [Fact]
+    public async Task GetMe_AsTwoCentreTeacherBeforeSelectingACentre_ReturnsNoPermissions()
+    {
+        using var client = CreateSessionClient();
+        using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "teacher@both.test", password = ApiFactory.TestSeedPassword }))
+        {
+            Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        }
+
+        using var meResponse = await client.GetAsync(MeUri);
+        var me = await ReadJsonAsync(meResponse);
+
+        Assert.Empty(me.RootElement.GetProperty("permissions").EnumerateArray());
     }
 
     [Fact]

@@ -1,0 +1,57 @@
+{
+  "loading": {
+    "detailLabel": "Loading parent"
+  },
+  "error": {
+    "reference": "Reference: {correlationId}"
+  },
+  "detailError": {
+    "title": "This parent could not be loaded"
+  },
+  "notFound": {
+    "title": "Parent not found",
+    "description": "This parent does not exist, or you don't have access to it.",
+    "backToStudents": "Back to students"
+  },
+  "card": {
+    "phoneLabel": "Phone"
+  },
+  "children": {
+    "title": "Children",
+    "columns": {
+      "name": "Name",
+      "relationship": "Relationship",
+      "status": "Status"
+    },
+    "primaryBadge": "Primary contact",
+    "emptyState": "No students linked"
+  },
+  "relationship": {
+    "father": "Father",
+    "mother": "Mother",
+    "guardian": "Guardian",
+    "other": "Other"
+  },
+  "actions": {
+    "edit": "Edit"
+  },
+  "dialogs": {
+    "editTitle": "Edit parent"
+  },
+  "form": {
+    "fullNameLabel": "Full name",
+    "phoneLabel": "Phone",
+    "phoneChangeNotice": "Changing the phone also changes how future registrations find this parent by number.",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "toasts": {
+    "updated": "Parent updated."
+  },
+  "validation": {
+    "fullNameRequired": "Parent name is required.",
+    "fullNameTooLong": "Parent name must be at most 120 characters.",
+    "phoneRequired": "Phone is required.",
+    "phoneTooLong": "Phone number must be at most 30 characters."
+  }
+}

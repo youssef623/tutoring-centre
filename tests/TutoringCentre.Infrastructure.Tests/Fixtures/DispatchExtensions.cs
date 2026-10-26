@@ -9,20 +9,27 @@ namespace TutoringCentre.Infrastructure.Tests.Fixtures;
 public static class DispatchExtensions
 {
     public static Task<Result<TResponse>> SendAsAsync<TCommand, TResponse>(
-        this PostgresFixture fixture, Actor actor, TCommand command)
+        this PostgresFixture fixture, Actor actor, TCommand command, string? correlationId = null)
         where TCommand : ICommand<TResponse>
     {
         ArgumentNullException.ThrowIfNull(fixture);
-        return fixture.Services.SendAsAsync<TCommand, TResponse>(actor, command);
+        return fixture.Services.SendAsAsync<TCommand, TResponse>(actor, command, correlationId);
     }
 
     public static async Task<Result<TResponse>> SendAsAsync<TCommand, TResponse>(
-        this IServiceProvider provider, Actor actor, TCommand command)
+        this IServiceProvider provider, Actor actor, TCommand command, string? correlationId = null)
         where TCommand : ICommand<TResponse>
     {
         ArgumentNullException.ThrowIfNull(provider);
         await using var scope = provider.CreateAsyncScope();
         scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(actor);
+        if (correlationId is not null)
+        {
+            // Not an HTTP request: no CorrelationIdMiddleware to set this, so a test that needs one (Task 31.7's
+            // correlation_id assertion) sets it directly on the same scope the dispatcher runs in.
+            scope.ServiceProvider.GetRequiredService<CorrelationContext>().Set(correlationId);
+        }
+
         var dispatcher = scope.ServiceProvider.GetRequiredService<Dispatcher>();
         return await dispatcher.SendAsync<TCommand, TResponse>(command, CancellationToken.None);
     }

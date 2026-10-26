@@ -1,0 +1,60 @@
+{
+  "page": {
+    "title": "المواد",
+    "showArchived": "إظهار المؤرشفة",
+    "subtitle": "المواد التي يدرّسها مركزك؛ كل مجموعة تتبع مادة واحدة.",
+    "filtersLabel": "تصفية المواد"
+  },
+  "columns": {
+    "name": "الاسم",
+    "status": "الحالة",
+    "actions": "الإجراءات"
+  },
+  "status": {
+    "active": "نشطة",
+    "archived": "مؤرشفة"
+  },
+  "actions": {
+    "create": "إضافة مادة",
+    "rename": "إعادة التسمية",
+    "archive": "أرشفة",
+    "restore": "استعادة",
+    "openMenu": "فتح قائمة الإجراءات"
+  },
+  "dialogs": {
+    "createTitle": "إضافة مادة",
+    "renameTitle": "إعادة تسمية المادة"
+  },
+  "form": {
+    "nameLabel": "الاسم",
+    "namePlaceholder": "مثال: الرياضيات",
+    "save": "حفظ",
+    "cancel": "إلغاء"
+  },
+  "loading": {
+    "label": "جارٍ تحميل المواد"
+  },
+  "error": {
+    "title": "تعذر تحميل المواد",
+    "reference": "المرجع: {correlationId}"
+  },
+  "emptyState": {
+    "title": "لا توجد مواد بعد",
+    "description": "أضف أول مادة للبدء."
+  },
+  "confirmations": {
+    "archiveTitle": "أرشفة \"{name}\"؟",
+    "archiveBody": "لن تظهر في قوائم اختيار المواد حتى تتم استعادتها.",
+    "archiveConfirm": "أرشفة المادة"
+  },
+  "toasts": {
+    "created": "تمت إضافة المادة.",
+    "renamed": "تمت إعادة تسمية المادة.",
+    "archived": "تمت أرشفة المادة.",
+    "restored": "تمت استعادة المادة."
+  },
+  "validation": {
+    "nameRequired": "اسم المادة مطلوب.",
+    "nameTooLong": "يجب ألا يزيد اسم المادة عن 80 حرفًا."
+  }
+}

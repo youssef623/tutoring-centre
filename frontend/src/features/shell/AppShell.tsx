@@ -1,44 +1,58 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
-import { Link } from "@tanstack/react-router";
-import { Menu as MenuIcon, X } from "lucide-react";
+import { Link, useMatches } from "@tanstack/react-router";
+import { cn } from "cn";
+import {
+  BookOpen,
+  CalendarRange,
+  GraduationCap,
+  History,
+  LayoutDashboard,
+  Menu as MenuIcon,
+  Presentation,
+  Settings,
+  Users,
+  UsersRound,
+  X,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { HessaWordmark } from "@/components/brand/HessaLogo";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import type { MeDto } from "@/api/generated/tutoring-centre";
+import { Can } from "@/features/session/Can";
+import { Permissions } from "@/features/session/permissions";
 import { useSignOut } from "@/features/session/useSignOut";
-
-/** First letter of up to the first two words, for the user-menu avatar. Falls back to "?" for an empty name. */
-function initialsOf(displayName: string): string {
-  const initials = displayName
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join("");
-
-  return initials === "" ? "?" : initials;
-}
+import { initialsOf } from "@/lib/initials";
+import "@/features/shell/routeStaticData";
 
 export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
   const { t: tShell } = useTranslation("shell");
   const { t: tAuth } = useTranslation("auth");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const activeCentre = me.memberships.find((membership) => membership.centreId === me.activeCentreId);
+  // Every page reads at max-w-5xl; a route asks for more with `staticData.layout` (the timetable's seven columns).
+  const isWide = useMatches({ select: (matches) => matches.some((match) => match.staticData.layout === "wide") });
 
   return (
     <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
       <div className="flex min-h-screen">
-        <aside className="hidden w-56 shrink-0 border-e border-sidebar-border bg-sidebar p-4 text-sidebar-foreground md:block">
+        <aside className="hidden w-56 shrink-0 space-y-6 border-e border-sidebar-border bg-sidebar p-4 text-sidebar-foreground md:block">
+          <SidebarBrand />
           <SidebarNav />
         </aside>
 
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 bg-foreground/40 transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
           <Dialog.Popup className="fixed inset-y-0 start-0 flex h-full w-64 flex-col gap-4 bg-sidebar p-4 text-sidebar-foreground shadow-md transition-transform ltr:data-[ending-style]:-translate-x-full ltr:data-[starting-style]:-translate-x-full rtl:data-[ending-style]:translate-x-full rtl:data-[starting-style]:translate-x-full">
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between gap-2">
+              <SidebarBrand
+                onNavigate={() => {
+                  setMobileNavOpen(false);
+                }}
+              />
               <Dialog.Close
                 className="rounded-md p-1.5 outline-none hover:bg-sidebar-accent focus-visible:ring-3 focus-visible:ring-ring/50"
                 aria-label={tShell("nav.closeMenu")}
@@ -54,9 +68,9 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
           </Dialog.Popup>
         </Dialog.Portal>
 
-        <div className="flex flex-1 flex-col">
-          <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3 md:px-6">
-            <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 md:px-6">
+            <div className="flex min-w-0 items-center gap-2">
               <Dialog.Trigger
                 className="rounded-md p-1.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden"
                 aria-label={tShell("nav.openMenu")}
@@ -64,8 +78,8 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
                 <MenuIcon className="size-5" aria-hidden="true" />
               </Dialog.Trigger>
               {activeCentre !== undefined && (
-                <div aria-label={tShell("header.activeCentre")} className="flex items-center gap-2">
-                  <span dir="auto" className="font-medium">
+                <div aria-label={tShell("header.activeCentre")} className="flex min-w-0 items-center gap-2">
+                  <span dir="auto" className="truncate font-medium">
                     {activeCentre.centreName}
                   </span>
                   <Badge variant="secondary">{tAuth(`roles.${String(activeCentre.role)}`)}</Badge>
@@ -75,7 +89,7 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
             <UserMenu me={me} />
           </header>
           <main className="flex-1 p-4 md:p-6">
-            <div className="mx-auto w-full max-w-5xl">{children}</div>
+            <div className={cn("mx-auto w-full", isWide ? "max-w-7xl" : "max-w-5xl")}>{children}</div>
           </main>
         </div>
       </div>
@@ -83,19 +97,82 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
   );
 }
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+/** The product's name and mark, linking home; the same lockup as the sign-in page, sized for the sidebar. */
+function SidebarBrand({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation("shell");
 
   return (
+    <Link
+      to="/"
+      onClick={onNavigate}
+      aria-label={t("nav.home")}
+      className="flex w-fit items-center rounded-md px-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      <HessaWordmark className="[&_svg]:size-8" />
+    </Link>
+  );
+}
+
+function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation("shell");
+
+  const linkClassName =
+    "flex items-center gap-2.5 rounded-md border-s-2 border-s-transparent px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:border-s-sidebar-primary data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
+
+  return (
     <nav className="space-y-1">
-      <Link
-        to="/"
-        className="block rounded-md border-s-2 border-s-transparent px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:border-s-sidebar-primary data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground"
-        activeOptions={{ exact: true }}
-        onClick={onNavigate}
-      >
+      <Link to="/" className={linkClassName} activeOptions={{ exact: true }} onClick={onNavigate}>
+        <LayoutDashboard className="size-4" aria-hidden="true" />
         {t("nav.dashboard")}
       </Link>
+      <Can permission={Permissions.SubjectsView}>
+        <Link to="/subjects" search={{ archived: false }} className={linkClassName} onClick={onNavigate}>
+          <BookOpen className="size-4" aria-hidden="true" />
+          {t("nav.subjects")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.StudentsView}>
+        <Link to="/students" className={linkClassName} onClick={onNavigate}>
+          <GraduationCap className="size-4" aria-hidden="true" />
+          {t("nav.students")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.TeachersView}>
+        <Link to="/teachers" className={linkClassName} onClick={onNavigate}>
+          <Presentation className="size-4" aria-hidden="true" />
+          {t("nav.teachers")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.GroupsView}>
+        <Link to="/groups" className={linkClassName} onClick={onNavigate}>
+          <UsersRound className="size-4" aria-hidden="true" />
+          {t("nav.groups")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.ScheduleView}>
+        <Link to="/timetable" className={linkClassName} onClick={onNavigate}>
+          <CalendarRange className="size-4" aria-hidden="true" />
+          {t("nav.timetable")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.StaffView}>
+        <Link to="/staff" className={linkClassName} onClick={onNavigate}>
+          <Users className="size-4" aria-hidden="true" />
+          {t("nav.staff")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.CentreSettingsManage}>
+        <Link to="/settings" className={linkClassName} onClick={onNavigate}>
+          <Settings className="size-4" aria-hidden="true" />
+          {t("nav.settings")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.AuditView}>
+        <Link to="/audit" className={linkClassName} onClick={onNavigate}>
+          <History className="size-4" aria-hidden="true" />
+          {t("nav.audit")}
+        </Link>
+      </Can>
     </nav>
   );
 }
@@ -107,14 +184,16 @@ function UserMenu({ me }: { me: MeDto }) {
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="flex items-center gap-2 rounded-md py-1.5 ps-1.5 pe-3 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
+      <Menu.Trigger className="flex shrink-0 items-center gap-2 rounded-md py-1.5 ps-1.5 pe-1.5 sm:pe-3 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
         <span
           className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground"
           aria-hidden="true"
         >
           {initialsOf(me.displayName)}
         </span>
-        <span dir="auto">{me.displayName}</span>
+        <span dir="auto" className="sr-only sm:not-sr-only">
+          {me.displayName}
+        </span>
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner align="end" sideOffset={4}>
@@ -127,6 +206,12 @@ function UserMenu({ me }: { me: MeDto }) {
                 {t("userMenu.switchCentre")}
               </Menu.Item>
             )}
+            <Menu.Item
+              className="cursor-pointer rounded-md px-3 py-1.5 text-sm outline-none data-[highlighted]:bg-muted"
+              render={<Link to="/change-password" />}
+            >
+              {t("userMenu.changePassword")}
+            </Menu.Item>
             <div className="px-3 py-1.5">
               <LanguageSwitcher />
             </div>

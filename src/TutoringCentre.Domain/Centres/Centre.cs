@@ -37,13 +37,13 @@ public sealed partial class Centre : Entity
 
     public static Result<Centre> Create(string name, string slug, string timeZoneId, SupportedLocale defaultLocale)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        var (nameOutcome, trimmedName) = ValidateNameRule(name);
+        if (nameOutcome == NameValidationOutcome.Empty)
         {
             return Result<Centre>.Failure(Error.Validation("centre.name_required", "Centre name is required."));
         }
 
-        var trimmedName = name.Trim();
-        if (trimmedName.Length > NameMaxLength)
+        if (nameOutcome == NameValidationOutcome.TooLong)
         {
             return Result<Centre>.Failure(
                 Error.Validation("centre.name_too_long", "Centre name must be at most 120 characters."));
@@ -66,6 +66,52 @@ public sealed partial class Centre : Entity
         }
 
         return Result<Centre>.Success(new Centre(trimmedName, slug, timeZoneId, defaultLocale));
+    }
+
+    /// <summary>
+    /// Changes the editable settings: name and default locale. Slug and time zone have no mutator. Reuses
+    /// <see cref="Create"/>'s name rule rather than duplicating it; a violation is always reported as
+    /// <c>centre.name_invalid</c> here, regardless of which way the shared rule failed. When both values
+    /// already equal the current ones, nothing changes (and no property is touched, so Infrastructure's audit
+    /// interceptor sees no modification to record).
+    /// </summary>
+    public Result UpdateSettings(string name, SupportedLocale defaultLocale)
+    {
+        var (nameOutcome, trimmedName) = ValidateNameRule(name);
+        if (nameOutcome != NameValidationOutcome.Valid)
+        {
+            var fields = new Dictionary<string, string[]> { ["name"] = ["Centre name must be 1-120 characters."] };
+            return Result.Failure(Error.Validation("centre.name_invalid", "Centre name must be 1-120 characters.", fields));
+        }
+
+        if (Name == trimmedName && DefaultLocale == defaultLocale)
+        {
+            return Result.Success();
+        }
+
+        Name = trimmedName;
+        DefaultLocale = defaultLocale;
+        return Result.Success();
+    }
+
+    private enum NameValidationOutcome
+    {
+        Valid,
+        Empty,
+        TooLong,
+    }
+
+    private static (NameValidationOutcome Outcome, string Trimmed) ValidateNameRule(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return (NameValidationOutcome.Empty, string.Empty);
+        }
+
+        var trimmed = name.Trim();
+        return trimmed.Length > NameMaxLength
+            ? (NameValidationOutcome.TooLong, trimmed)
+            : (NameValidationOutcome.Valid, trimmed);
     }
 
     // Lowercase letters and digits; single hyphens only between words. \z (not $): $ would also accept a trailing newline.

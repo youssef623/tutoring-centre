@@ -156,3 +156,65 @@
     @apply font-sans;
     }
 }
+/*
+ * List tables (components/shared/DataTable). From 640px up they are ordinary tables; below it each row becomes a
+ * card: the primary cell (the name) and the actions share the first line, every other cell is a "label  value"
+ * line using its column name from data-label. Unlayered on purpose, so it overrides the cells' padding utilities.
+ * The column headers stay in the accessibility tree (visually hidden, not display:none), and the components set
+ * explicit table roles because changing a table's display can otherwise drop its semantics.
+ */
+@media (width < 40rem) {
+  .data-table,
+  .data-table tbody {
+    display: block;
+  }
+
+  .data-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .data-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 0.75rem;
+    row-gap: 0.375rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .data-table tbody td {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .data-table tbody td[data-cell="primary"] {
+    grid-column: 1;
+    align-items: center;
+  }
+
+  .data-table tbody td[data-cell="actions"] {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    align-self: start;
+  }
+
+  .data-table tbody td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 6.5rem;
+    font-size: 0.75rem;
+    color: var(--color-muted-foreground);
+  }
+
+  .data-table tbody td:empty {
+    display: none;
+  }
+}

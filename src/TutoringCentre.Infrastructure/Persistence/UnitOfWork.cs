@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Domain.Academics;
+using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Infrastructure.Persistence;
 
@@ -11,12 +14,15 @@ namespace TutoringCentre.Infrastructure.Persistence;
 internal sealed class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _db;
+    private readonly ILogger<UnitOfWork> _logger;
     private IDbContextTransaction? _transaction;
 
-    public UnitOfWork(AppDbContext db)
+    public UnitOfWork(AppDbContext db, ILogger<UnitOfWork> logger)
     {
         ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(logger);
         _db = db;
+        _logger = logger;
     }
 
     public async Task BeginAsync(bool readOnly, CancellationToken ct)
@@ -34,6 +40,8 @@ internal sealed class UnitOfWork : IUnitOfWork
             try
             {
                 // Must be the first statement in the transaction; PostgreSQL then rejects any write (SQLSTATE 25006).
+                // Also must precede the setting below: PostgreSQL refuses SET TRANSACTION once any other statement,
+                // including a SELECT, has run in the transaction.
                 await _db.Database.ExecuteSqlRawAsync("SET TRANSACTION READ ONLY", ct);
             }
             catch
@@ -42,9 +50,85 @@ internal sealed class UnitOfWork : IUnitOfWork
                 throw;
             }
         }
+
+        // Row-level security (Task 21.3) reads this every statement the transaction runs. Set explicitly on every
+        // transaction, never left to inherit from a previous request on this pooled connection: empty when the
+        // actor has no centre, never a value the server did not itself validate. Transaction-local (third
+        // argument true) — a rollback undoes it like any other change, so it can never leak into whatever request
+        // reuses this connection next. Parameterised: the centre id never touches the SQL text.
+        var centreId = _db.CurrentCentreId?.ToString() ?? string.Empty;
+        await _db.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_centre', {0}, true)",
+            [centreId],
+            ct);
     }
 
-    public async Task SaveChangesAsync(CancellationToken ct) => await _db.SaveChangesAsync(ct);
+    public async Task<Result> SaveChangesAsync(CancellationToken ct)
+    {
+        ReconcileOrphanedStudentParentLinks();
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+            return Result.Success();
+        }
+        catch (Exception exception) when (exception is DbUpdateConcurrencyException or DbUpdateException)
+        {
+            // The dispatcher rolls back (and clears the change tracker, same as any other failure) once it
+            // sees this Result; an untranslated failure (FK, check, anything else) is rethrown unchanged.
+            var translated = PersistenceErrorTranslator.TryTranslate(exception, _logger);
+            if (translated is null)
+            {
+                throw;
+            }
+
+            return translated;
+        }
+    }
+
+    /// <summary>
+    /// Student.RemoveParent only takes a link out of the aggregate's own in-memory collection; the foreign key
+    /// to Student stays Restrict, never cascade at the database level (Task 38.2), so EF does not infer
+    /// deletion from a severed required relationship on its own — the row would otherwise linger, unchanged,
+    /// in the database. Runs for every tracked Student, not just the one the current handler touched, so this
+    /// holds regardless of which use case removed the link.
+    /// </summary>
+    /// <remarks>
+    /// AutoDetectChangesEnabled is turned off for the scan itself: <c>ChangeTracker.Entries&lt;T&gt;()</c> runs
+    /// a full DetectChanges pass first, and that pass is exactly what throws "the association ... has been
+    /// severed" the moment it notices the collection no longer holds a link whose foreign key is still
+    /// required — before this method gets a chance to mark that link Deleted instead. With detection off, the
+    /// scan sees the tracker's last-known state (the FK still intact) while still reading each Student's
+    /// *current* in-memory Parents collection (a plain property read, unaffected by the flag), so the diff
+    /// still finds the right orphans. Once an orphan is explicitly Deleted, EF's own fixer leaves it alone on
+    /// the next real detection, so turning detection back on afterwards is safe.
+    /// </remarks>
+    private void ReconcileOrphanedStudentParentLinks()
+    {
+        var changeTracker = _db.ChangeTracker;
+        var wasDetectingChanges = changeTracker.AutoDetectChangesEnabled;
+        changeTracker.AutoDetectChangesEnabled = false;
+        try
+        {
+            foreach (var studentEntry in changeTracker.Entries<Student>())
+            {
+                var stillLinked = studentEntry.Entity.Parents.Select(link => link.Id).ToHashSet();
+                foreach (var linkEntry in changeTracker.Entries<StudentParentLink>())
+                {
+                    if (linkEntry.State != EntityState.Deleted
+                        && linkEntry.Entity.StudentId == studentEntry.Entity.Id
+                        && !stillLinked.Contains(linkEntry.Entity.Id))
+                    {
+                        linkEntry.State = EntityState.Deleted;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            changeTracker.AutoDetectChangesEnabled = wasDetectingChanges;
+        }
+    }
 
     public async Task CommitAsync(CancellationToken ct)
     {

@@ -79,3 +79,483 @@ X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
 
 ### 10. GET /api/me — expect 401
 GET {{baseUrl}}/api/me
+
+### Manual walkthrough of the subjects API (Day 26): the six Subject endpoints against a real session.
+
+### 11. Fetch a fresh CSRF token (the session from step 9 ended) — expect 200
+# @name antiforgerySubjects
+GET {{baseUrl}}/api/auth/antiforgery
+
+### 12. Log in as owner@nile.test — expect 200, active centre nile-centre
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "email": "owner@nile.test",
+  "password": "{{$dotenv password}}"
+}
+
+### 13. List subjects — expect 200, { "items": [ { "id", "name", "status", "version" } ] } for Nile only
+GET {{baseUrl}}/api/subjects
+
+### 14. Create a subject — expect 201, Location: /api/subjects/{newId}, body { "id" }
+# @name createSubject
+POST {{baseUrl}}/api/subjects
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "Geography"
+}
+
+### 15. GET the created subject via the Location header — expect 200, name "Geography", status "active"
+GET {{baseUrl}}{{createSubject.response.headers.Location}}
+
+### 16. Rename it — copy the "id" from step 14 and the "version" from step 15 below first — expect 204
+@subjectId = replace-with-the-id-from-step-14
+@subjectVersion = replace-with-the-version-from-step-15
+PUT {{baseUrl}}/api/subjects/{{subjectId}}
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "World Geography",
+  "version": {{subjectVersion}}
+}
+
+### 17. Archive it with the now-stale @subjectVersion from step 16 — expect 409 concurrency.stale.
+### Re-run step 15 to read the current version, update @subjectVersion, then re-run this request — expect 204.
+POST {{baseUrl}}/api/subjects/{{subjectId}}/archive
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{subjectVersion}}
+}
+
+### 18. Restore it — re-run step 15 first to refresh @subjectVersion to the archived row's current version — expect 204
+POST {{baseUrl}}/api/subjects/{{subjectId}}/restore
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{subjectVersion}}
+}
+
+### Manual walkthrough of the staff API and password change (Day 30), continuing owner@nile.test's session from step 12.
+
+### 19. List staff — expect 200, { "items": [ { "membershipId", "userId", "displayName", "email", "role", "status", "version", "isCurrentUser" } ] }
+GET {{baseUrl}}/api/staff
+
+### 20. Create a staff member — expect 201, Cache-Control: no-store, body { "membershipId", "userId", "temporaryPassword" }
+# @name createStaff
+POST {{baseUrl}}/api/staff
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "email": "new-teacher@nile.test",
+  "displayName": "New Teacher",
+  "role": "teacher",
+  "preferredLocale": "en"
+}
+
+### 21. Change their role — copy "membershipId" from step 20 and the new member's "version" from step 19 (re-run it) first — expect 204
+@staffMembershipId = replace-with-the-membershipId-from-step-20
+@staffVersion = replace-with-the-version-from-step-19-rerun
+PUT {{baseUrl}}/api/staff/{{staffMembershipId}}/role
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "role": "secretary",
+  "version": {{staffVersion}}
+}
+
+### 22. Deactivate them — re-run step 19 first to refresh @staffVersion — expect 204
+POST {{baseUrl}}/api/staff/{{staffMembershipId}}/deactivate
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{staffVersion}}
+}
+
+### 23. Reactivate them — re-run step 19 first to refresh @staffVersion to the deactivated row's current version — expect 204
+POST {{baseUrl}}/api/staff/{{staffMembershipId}}/reactivate
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{staffVersion}}
+}
+
+### 24. Change the current user's own password — expect 204, Set-Cookie __Host-tcm.session with a new stamp and no
+### centre selected. Use the created staff member's "temporaryPassword" from step 20 as the current password if
+### you log in as them instead; here the owner changes their own seeded password.
+POST {{baseUrl}}/api/auth/change-password
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "currentPassword": "{{$dotenv password}}",
+  "newPassword": "a-new-password-that-is-long-enough"
+}
+
+### Manual walkthrough of the audit log API (Day 32), continuing owner@nile.test's session from step 12. Re-run
+### step 11/12 first if this session has ended (e.g. after step 24's password change).
+
+### 25. List the audit log, filtered to membership changes — expect 200, { "items": [...], "nextCursor" }.
+### The role change from step 21 should be the first item, with changes: [ { "field": "role", "before": "teacher", "after": "secretary" } ].
+GET {{baseUrl}}/api/audit?entityType=membership
+
+### 26. Page through the log one row at a time — expect 200 with exactly one item and a non-null "nextCursor".
+# @name auditPage1
+GET {{baseUrl}}/api/audit?pageSize=1
+
+### 27. Fetch the next page — copy "nextCursor" from step 26 first — expect 200 with the next item.
+@auditCursor = replace-with-the-nextCursor-from-step-26
+GET {{baseUrl}}/api/audit?pageSize=1&cursor={{auditCursor}}
+
+### Manual walkthrough of the centre settings API (Day 32), continuing owner@nile.test's session from step 12.
+
+### 28. GET the centre's settings — expect 200, { "name", "slug", "timeZoneId", "defaultLocale", "version" }.
+# @name centreSettings
+GET {{baseUrl}}/api/centre/settings
+
+### 29. Rename it and switch the default language — copy "version" from step 28 first — expect 204.
+@centreVersion = replace-with-the-version-from-step-28
+PUT {{baseUrl}}/api/centre/settings
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "Nile Learning Centre",
+  "defaultLocale": "en",
+  "version": {{centreVersion}}
+}
+
+### 30. GET again — expect 200, the new name, "en", and a new version. /api/me (step 2) also now shows the new name.
+GET {{baseUrl}}/api/centre/settings
+
+### Manual walkthrough of the students API (Day 41), continuing owner@nile.test's session from step 12.
+
+### 31. List students — expect 200, { "items": [...], "nextCursor" }, empty or Nile-only.
+GET {{baseUrl}}/api/students
+
+### 32. Register a student with a brand-new parent — expect 201, Location: /api/students/{newId}, body { "id", "parentId" }.
+# @name registerStudent
+POST {{baseUrl}}/api/students
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "fullName": "أحمد محمود",
+  "phone": null,
+  "schoolYear": "الصف الثالث الثانوي",
+  "parent": { "fullName": "محمود حسن", "phone": "01012345678" },
+  "relationship": "father"
+}
+
+### 33. Search for the student by a hamza-insensitive spelling of "أحمد" — expect 200, the student above in "items".
+GET {{baseUrl}}/api/students?search=%D8%A7%D8%AD%D9%85%D8%AF
+
+### 34. GET the created student via the Location header from step 32 — expect 200, one parent, isPrimary true.
+@studentId = replace-with-the-id-from-step-32
+GET {{baseUrl}}/api/students/{{studentId}}
+
+### 35. Register a sibling using the existing-parent form — copy "parentId" from step 32 — expect 201, the same parentId back.
+@firstParentId = replace-with-the-parentId-from-step-32
+POST {{baseUrl}}/api/students
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "fullName": "محمد محمود",
+  "phone": null,
+  "schoolYear": null,
+  "parent": { "id": "{{firstParentId}}" },
+  "relationship": "father"
+}
+
+### 36. Update the student — copy "version" from step 34 first — expect 204.
+@studentVersion = replace-with-the-version-from-step-34
+PUT {{baseUrl}}/api/students/{{studentId}}
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "fullName": "أحمد محمود حسن",
+  "phone": null,
+  "schoolYear": "الصف الثالث الثانوي",
+  "version": {{studentVersion}}
+}
+
+### 37. Link a second parent — re-run step 34 first to refresh @studentVersion, and register a second parent via
+### step 32's pattern (a different phone) to get a @secondParentId first — expect 204.
+@secondParentId = replace-with-a-second-parentId
+POST {{baseUrl}}/api/students/{{studentId}}/parents
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "parentId": "{{secondParentId}}",
+  "relationship": "mother",
+  "version": {{studentVersion}}
+}
+
+### 38. Make the second parent primary — re-run step 34 first to refresh @studentVersion — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/parents/{{secondParentId}}/make-primary
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}
+
+### 39. Unlink the first (now non-primary) parent — re-run step 34 first to refresh @studentVersion — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/parents/{{firstParentId}}/unlink
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}
+
+### 40. Archive the student — re-run step 34 first to refresh @studentVersion — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/archive
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}
+
+### 41. Restore it — re-run step 34 first to refresh @studentVersion to the archived row's current version — expect 204.
+POST {{baseUrl}}/api/students/{{studentId}}/restore
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{studentVersion}}
+}
+
+### Manual walkthrough of the groups API (Day 45), continuing owner@nile.test's session from step 12.
+
+### 42. List groups — expect 200, { "items": [ { "id", "name", "subjectId", "subjectName", "teacherId", "teacherName",
+### "capacity", "enrolledCount", "status", "version" } ] }: every Nile group, including the four seeded ones.
+### Optional filters: ?subjectId=...&teacherId=...&includeArchived=true.
+GET {{baseUrl}}/api/groups
+
+### 43. Create a group — copy a subject "id" from step 13 and a teacher "id" from GET /api/teachers first —
+### expect 201, Location: /api/groups/{newId}, body { "id" }. Re-running it unchanged — expect 409 group.name_taken.
+@groupSubjectId = replace-with-a-subject-id-from-step-13
+@groupTeacherId = replace-with-a-teacher-id-from-GET-/api/teachers
+# @name createGroup
+POST {{baseUrl}}/api/groups
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "فيزياء - المجموعة ج",
+  "subjectId": "{{groupSubjectId}}",
+  "teacherId": "{{groupTeacherId}}",
+  "capacity": 20
+}
+
+### 44. GET the created group via the Location header — expect 200, status "active", enrolledCount 0.
+GET {{baseUrl}}{{createGroup.response.headers.Location}}
+
+### 45. Rename it — copy the "id" from step 43 and the "version" from step 44 below first — expect 204.
+### Adding "subjectId" to this body (or to steps 46–47) — expect 400 request.malformed: the subject never changes.
+@groupId = replace-with-the-id-from-step-43
+@groupVersion = replace-with-the-version-from-step-44
+PUT {{baseUrl}}/api/groups/{{groupId}}
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "name": "فيزياء - المجموعة د",
+  "version": {{groupVersion}}
+}
+
+### 46. Change its capacity — re-run step 44 first to refresh @groupVersion — expect 204. Capacity 0 or 201 — expect
+### 400 with errors.capacity.
+PUT {{baseUrl}}/api/groups/{{groupId}}/capacity
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "capacity": 25,
+  "version": {{groupVersion}}
+}
+
+### 47. Assign another teacher — re-run step 44 first, and set @groupNewTeacherId to another Nile teacher's id —
+### expect 204. An archived teacher — expect 422 group.teacher_archived.
+@groupNewTeacherId = replace-with-another-teacher-id
+PUT {{baseUrl}}/api/groups/{{groupId}}/teacher
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "teacherId": "{{groupNewTeacherId}}",
+  "version": {{groupVersion}}
+}
+
+### 48. Archive it — re-run step 44 first to refresh @groupVersion — expect 204; again — expect 422 group.already_archived.
+POST {{baseUrl}}/api/groups/{{groupId}}/archive
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{groupVersion}}
+}
+
+### 49. Restore it — re-run step 44 first to refresh @groupVersion — expect 204 (or 422 group.subject_archived /
+### group.teacher_archived if its subject or teacher was archived in the meantime).
+POST {{baseUrl}}/api/groups/{{groupId}}/restore
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{groupVersion}}
+}
+
+### 50. The ownership guard: log in as teacher@both.test and select nile-centre (steps 3–5, with the nile-centre
+### centreId), then list groups — expect 200 with only the seeded group taught by the linked teacher record
+### ("كريم فتحي"). GET /api/groups/{id} of any other group — expect 404 group.not_found, never 403. Any write
+### (steps 43, 45–49) — expect 403 auth.permission_denied, even on the teacher's own group.
+GET {{baseUrl}}/api/groups
+### Manual walkthrough of the enrollment API (Day 49), continuing owner@nile.test's (or secretary@nile.test's) session
+### from step 12. Copy a seeded group "id" from step 42 and a student "id" from step 31 first.
+@enrollGroupId = replace-with-a-group-id-from-step-42
+@enrollStudentId = replace-with-a-student-id-from-step-31
+
+### 51. Enroll the student — expect 201, Location: /api/groups/{groupId}/roster, body { "id" }. Again — expect 409
+### enrollment.already_enrolled. Adding "groupId" to the body — expect 400 request.malformed: the group comes from the
+### route only. A full group — expect 409 group.full; an archived group or student — expect 422 group.archived /
+### enrollment.student_archived.
+# @name enrollStudent
+POST {{baseUrl}}/api/groups/{{enrollGroupId}}/enrollments
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "studentId": "{{enrollStudentId}}"
+}
+
+### 52. The group's roster via the Location header — expect 200, { "groupId", "groupName", "capacity", "enrolledCount",
+### "items": [ { "enrollmentId", "studentId", "studentName", "enrolledAt", "version" } ] }, ordered by student name,
+### names only. As teacher@both.test (step 50's session): 200 for the linked teacher's own group, 404 group.not_found
+### for any other group.
+GET {{baseUrl}}{{enrollStudent.response.headers.Location}}
+
+### 53. The student's enrollments — expect 200, { "items": [ { "enrollmentId", "groupId", "groupName", "subjectName",
+### "teacherName", "status", "enrolledAt", "endedAt", "endReason", "version" } ] }, active first, then ended.
+GET {{baseUrl}}/api/students/{{enrollStudentId}}/enrollments
+
+### 54. Transfer it to another group of the same subject — copy the "enrollmentId" and "version" from step 52 and a
+### target group "id" from step 42 first — expect 200, body { "id" } of the new enrollment; the old one ends with
+### endReason "transferred". A group of another subject — expect 422 enrollment.subject_mismatch; the same group —
+### 422 enrollment.same_group; a full target — 409 group.full, and the student stays in the source group.
+@enrollmentId = replace-with-the-enrollmentId-from-step-52
+@enrollmentVersion = replace-with-the-version-from-step-52
+@transferTargetGroupId = replace-with-a-same-subject-group-id
+POST {{baseUrl}}/api/enrollments/{{enrollmentId}}/transfer
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "targetGroupId": "{{transferTargetGroupId}}",
+  "version": {{enrollmentVersion}}
+}
+
+### 55. Withdraw an active enrollment — re-run step 52 (on the group it is now in) to refresh @enrollmentId and
+### @enrollmentVersion — expect 204; the roster no longer lists the student and step 53 shows the row ended with
+### endReason "withdrawn". Again — expect 422 enrollment.already_ended; a stale version — 409 concurrency.stale.
+### There is no DELETE: an ended enrollment stays as history.
+POST {{baseUrl}}/api/enrollments/{{enrollmentId}}/withdraw
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{enrollmentVersion}}
+}
+
+### Manual walkthrough of the schedule API (Day 53), continuing secretary@nile.test's (or owner@nile.test's) session
+### from step 12. Rules carry local values only: a lower-case weekday, "HH:mm" in the centre's time, "YYYY-MM-DD"
+### dates. Sessions come back as UTC instants ending in "Z", with the centre's timeZoneId. Copy a seeded group "id"
+### from step 42 first, and the date of the coming Saturday.
+@scheduleGroupId = replace-with-a-group-id-from-step-42
+@scheduleFrom = replace-with-today-as-yyyy-mm-dd
+@weekStart = replace-with-a-saturday-as-yyyy-mm-dd
+
+### 56. Add a weekly rule — expect 201, Location: /api/groups/{groupId}/schedule-rules, body { "id", "sessionsCreated" }.
+### The same time on another group of the same teacher — expect 409 schedule.teacher_double_booked; again on this
+### group — 409 schedule.group_double_booked. A "teacherId" or "centreId" in the body, "18:00:00", "18:00+02:00" or a
+### UTC instant for effectiveFrom — expect 400 request.malformed. "18:02" — 400 schedule.start_time_invalid on
+### errors.startTime; durationMinutes 20 — 400 on errors.durationMinutes. An archived group — 422 group.archived.
+POST {{baseUrl}}/api/groups/{{scheduleGroupId}}/schedule-rules
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "dayOfWeek": "saturday",
+  "startTime": "18:00",
+  "durationMinutes": 90,
+  "room": "Room 1",
+  "effectiveFrom": "{{scheduleFrom}}"
+}
+
+### 57. The group's rules — expect 200, { "items": [ { "id", "dayOfWeek", "startTime" ("HH:mm"), "durationMinutes",
+### "room", "effectiveFrom", "effectiveTo", "version" } ] }, ended rules included. As teacher@both.test (step 50's
+### session): 200 for the linked teacher's own group, 404 group.not_found for any other group.
+GET {{baseUrl}}/api/groups/{{scheduleGroupId}}/schedule-rules
+
+### 58. End the rule after a last date — copy its "id" and "version" from step 57 first — expect 204; later sessions
+### are cancelled. Again — 422 schedule.rule_already_ended; a date before effectiveFrom — 422
+### schedule.rule_end_invalid; a stale version — 409 concurrency.stale; an unknown or other centre's ID — 404
+### schedule.rule_not_found.
+@scheduleRuleId = replace-with-a-rule-id-from-step-57
+@scheduleRuleVersion = replace-with-its-version
+POST {{baseUrl}}/api/schedule-rules/{{scheduleRuleId}}/end
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "lastDate": "{{weekStart}}",
+  "version": {{scheduleRuleVersion}}
+}
+
+### 59. Generate the centre's sessions further ahead — expect 200, { "sessionsCreated" }; repeat — 0 (idempotent).
+### A date in the past or more than 92 days ahead — 422 schedule.range_invalid on errors.through. No centre ID: the
+### actor's centre. As a teacher — 403.
+POST {{baseUrl}}/api/schedule/extend
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "through": "{{weekStart}}"
+}
+
+### 60. One week of sessions — expect 200, { "timeZoneId", "weekStart", "sessions": [ { "id", "groupId", "groupName",
+### "subjectName", "teacherId", "teacherName", "localDate", "startsAt", "endsAt", "room", "status", "version" } ] },
+### cancelled sessions included. Optional &groupId= and &teacherId= narrow it. No weekStart — 400 on
+### errors.weekStart (never defaulted from the server's clock). As teacher@both.test: only the linked teacher's own
+### sessions; &teacherId= of another teacher — an empty list.
+GET {{baseUrl}}/api/timetable?weekStart={{weekStart}}
+
+### 61. Cancel one future session — copy a session "id" and "version" from step 60 — expect 204; step 60 then shows
+### it with status "cancelled". Again — 422 schedule.session_already_cancelled; a session that has started — 422
+### schedule.session_in_past; a stale version — 409 concurrency.stale; another centre's session — 404
+### schedule.session_not_found. There is no DELETE: a cancelled session stays as history.
+@sessionId = replace-with-a-session-id-from-step-60
+@sessionVersion = replace-with-its-version
+POST {{baseUrl}}/api/sessions/{{sessionId}}/cancel
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "version": {{sessionVersion}}
+}

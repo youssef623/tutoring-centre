@@ -13,11 +13,14 @@ internal sealed class ValidateStaffSessionHandler(IMembershipReadService readSer
     {
         var state = await readService.GetSessionStateAsync(query.UserId, query.CentreId, cancellationToken);
 
-        // False for: unknown user (no state), a changed security stamp, or (when a centre is set) an
-        // inactive membership — GetSessionStateAsync reports MembershipActive as true when no centre is given.
+        // False for: unknown user (no state), a changed security stamp, (when a centre is set) an inactive
+        // membership, or a role the session claims that no longer matches the membership's current one —
+        // GetSessionStateAsync reports MembershipActive true and CurrentRole null when no centre is given,
+        // matching a cookie that likewise carries no role without a centre (SessionPrincipalFactory).
         var isValid = state is not null
             && state.SecurityStamp == query.SecurityStamp
-            && state.MembershipActive;
+            && state.MembershipActive
+            && state.CurrentRole == query.Role;
 
         return Result<bool>.Success(isValid);
     }

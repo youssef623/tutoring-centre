@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -5,58 +6,211 @@ using Respawn;
 using Respawn.Graph;
 using Testcontainers.PostgreSql;
 using TutoringCentre.Application;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Platform;
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Persistence.Interceptors;
+using TutoringCentre.Infrastructure.Persistence.Migrations;
+using TutoringCentre.Infrastructure.Tests.Academics;
+using TutoringCentre.Infrastructure.Tests.Identity;
+using TutoringCentre.Infrastructure.Tests.Tenancy;
 
 namespace TutoringCentre.Infrastructure.Tests.Fixtures;
 
 /// <summary>
-/// One throwaway PostgreSQL 17 container per test run, migrated with the REAL migrations, reset by Respawn between tests.
-/// The container's connection string is the only one ever used — never the development database.
+/// One throwaway PostgreSQL 17 container per test run, on the same three-role split as everywhere else
+/// (Day 19): roles bootstrapped by the real db/bootstrap-roles.sh, migrated with the REAL migrations as
+/// tutoring_owner, application services registered on tutoring_app. The container's superuser connection is
+/// never used by the app under test — only to bootstrap roles and to reset between tests.
 /// </summary>
 public sealed class PostgresFixture : IAsyncLifetime
 {
+    // Test-only; match no real environment and never outlive this one throwaway container.
+    private const string OwnerPassword = "test-only-owner-password";
+    private const string AppPassword = "test-only-app-password";
+
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17").Build();
     private Respawner? _respawner;
 
+    private ServiceProvider? _probeServices;
+
     public ServiceProvider Services { get; private set; } = null!;
 
-    public string ConnectionString => _container.GetConnectionString();
+    /// <summary>
+    /// A separate container, built only on first use, where AppDbContext resolves to the SAME instance as
+    /// TenantProbeDbContext. That lets probe tests (Day 20/21) go through the real IUnitOfWork — whose
+    /// constructor asks for AppDbContext — instead of touching TenantProbeDbContext directly and skipping
+    /// UnitOfWork.BeginAsync (and, since Day 21, the app.current_centre setting row-level security depends on).
+    /// Kept separate from <see cref="Services"/> so every other test's AppDbContext resolution is unaffected.
+    /// </summary>
+    internal ServiceProvider ProbeServices => _probeServices ??=
+        CreateServiceProvider(services => services.AddScoped<AppDbContext>(provider => provider.GetRequiredService<TenantProbeDbContext>()));
+
+    /// <summary>The container's own default role: a superuser. Used only to bootstrap roles and reset between tests.</summary>
+    public string SuperuserConnectionString => _container.GetConnectionString();
+
+    /// <summary>tutoring_owner: owns the schemas, runs migrations. Never resolved through the app's DI container.</summary>
+    public string OwnerConnectionString => WithCredentials(DatabaseRoles.Owner, OwnerPassword);
+
+    /// <summary>tutoring_app: what the application under test actually connects as.</summary>
+    public string AppConnectionString => WithCredentials(DatabaseRoles.App, AppPassword);
 
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
+        await RoleBootstrap.RunAsync(_container, OwnerPassword, AppPassword);
 
+        // Accessing Services builds the host (ConfigureWebHost runs now that the container has a connection string).
         Services = CreateServiceProvider();
         await Services.ApplyMigrationsAsync();
+        await CreateProbeTableAsync();
 
-        await using var connection = new NpgsqlConnection(ConnectionString);
+        // Forced row-level security arrives Day 21, under which even tutoring_owner's delete without a tenant
+        // setting removes nothing — so the reset between tests runs as the actual Postgres superuser instead.
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
         await connection.OpenAsync();
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity"],
+            SchemasToInclude = ["platform", "identity", "academics", "probe", "audit"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
     }
 
+    /// <summary>
+    /// Creates probe.tenant_probes (Task 20.3) as tutoring_owner, outside any migration — it never ships to
+    /// production. Granted DML (not DDL) to tutoring_app, same as every real table the app writes through.
+    /// </summary>
+    private async Task CreateProbeTableAsync()
+    {
+        await using var connection = new NpgsqlConnection(OwnerConnectionString);
+        await connection.OpenAsync();
+        await using (var command = new NpgsqlCommand(
+            """
+            create schema if not exists probe;
+            create table if not exists probe.tenant_probes (
+                id uuid primary key,
+                centre_id uuid not null references platform.centres(id),
+                label varchar(50) not null,
+                unique (centre_id, id)
+            );
+            grant usage on schema probe to tutoring_app;
+            grant select, insert, update, delete on probe.tenant_probes to tutoring_app;
+
+            -- Task 21.6: a composite foreign key (centre_id, probe_id) to tenant_probes(centre_id, id), so a row
+            -- naming a real probe in a different centre is impossible to store, not just filtered out at read time.
+            create table if not exists probe.tenant_probe_children (
+                id uuid primary key,
+                centre_id uuid not null references platform.centres(id),
+                probe_id uuid not null,
+                label varchar(50) not null,
+                foreign key (centre_id, probe_id) references probe.tenant_probes (centre_id, id)
+            );
+            grant select, insert, update, delete on probe.tenant_probe_children to tutoring_app;
+            """,
+            connection))
+        {
+            await command.ExecuteNonQueryAsync();
+        }
+
+        // Task 21.3: the exact SQL a real migration would run (TenantRowLevelSecurity.BuildEnableStatements),
+        // reused rather than duplicated, so the probe table proves the production helper, not a stand-in for it.
+        foreach (var statement in TenantRowLevelSecurity.BuildEnableStatements("probe", "tenant_probes"))
+        {
+            await using var command = new NpgsqlCommand(statement, connection);
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
     public async Task DisposeAsync()
     {
+        if (_probeServices is not null)
+        {
+            await _probeServices.DisposeAsync();
+        }
+
         await Services.DisposeAsync();
         await _container.DisposeAsync();
     }
 
-    /// <summary>Builds a container identical to production's, optionally with extra test-only registrations (handlers).</summary>
-    public ServiceProvider CreateServiceProvider(Action<IServiceCollection>? configure = null)
+    /// <summary>
+    /// Builds a container identical to production's, optionally with extra test-only registrations (handlers) or
+    /// a non-default app connection string (Task 21.2's single-connection pool tests).
+    /// </summary>
+    public ServiceProvider CreateServiceProvider(Action<IServiceCollection>? configure = null, string? appConnectionString = null)
     {
+        var connectionString = appConnectionString ?? AppConnectionString;
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Postgres"] = ConnectionString })
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Postgres"] = connectionString,
+                ["ConnectionStrings:PostgresMigrations"] = OwnerConnectionString,
+            })
             .Build();
 
         var services = new ServiceCollection()
             .AddLogging()
             .AddApplication()
             .AddInfrastructure(configuration);
+
+        // Task 20.3: same connection, same interceptors as AppDbContext, never pooled — the only difference is the
+        // extra test-only TenantProbe mapping (AppDbContext.ExtendModel). Built by hand rather than AddDbContext:
+        // EF's DI activation refuses a non-generic DbContextOptions constructor parameter (AppDbContext's own)
+        // once a second DbContext type is registered in the same container, so there's no AddDbContext<TOther> to
+        // reuse here — this context is scoped exactly like AppDbContext just without that helper.
+        services.AddScoped(provider =>
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            AppDbContextOptionsConfigurator.Configure(
+                optionsBuilder,
+                connectionString,
+                provider.GetRequiredService<TimestampInterceptor>(),
+                provider.GetRequiredService<TenantWriteGuardInterceptor>());
+            return new TenantProbeDbContext(optionsBuilder.Options, provider.GetRequiredService<ICurrentActor>());
+        });
+
+        // Task 21.2: lifetime probes for app.current_centre, dispatched like any real request.
+        services.AddScoped<IQueryHandler<ReadCurrentCentreSettingQuery, string>, ReadCurrentCentreSettingQueryHandler>();
+        services.AddScoped<ICommandHandler<ReadCurrentCentreSettingCommand, string>, ReadCurrentCentreSettingCommandHandler>();
+        services.AddScoped<ICommandHandler<AlwaysFailingCommand, string>, AlwaysFailingCommandHandler>();
+
+        // Task 21.5: each depends on exactly one isolation layer (the EF filter or row-level security), never both.
+        services.AddScoped<IQueryHandler<ListProbeCentresIgnoringEfFilterQuery, List<Guid>>, ListProbeCentresIgnoringEfFilterQueryHandler>();
+        services.AddScoped<IQueryHandler<ListProbeCentresQuery, List<Guid>>, ListProbeCentresQueryHandler>();
+        services.AddScoped<IQueryHandler<ListProbeCentresByRawSqlQuery, List<Guid>>, ListProbeCentresByRawSqlQueryHandler>();
+
+        // Task 23.6: test-only requests exercising Subject through the real context, standing in for the
+        // repository and read service that arrive on Day 25.
+        services.AddScoped<ICommandHandler<AddSubjectCommand, Guid>, AddSubjectCommandHandler>();
+        services.AddScoped<IQueryHandler<ListSubjectNamesQuery, List<string>>, ListSubjectNamesQueryHandler>();
+        services.AddScoped<ICommandHandler<RenameSubjectCommand, Unit>, RenameSubjectCommandHandler>();
+        services.AddScoped<ICommandHandler<RenameSubjectThenFailCommand, Unit>, RenameSubjectThenFailCommandHandler>();
+
+        // Task 29.4: a test-only command standing in for CreateStaffCommand (Day 29.5), so the account-service
+        // rollback test can dispatch through the real transaction before that command exists.
+        services.AddScoped<ICommandHandler<EnsureAccountThenFailCommand, Unit>, EnsureAccountThenFailCommandHandler>();
+
+        // Task 38.5/38.6: test-only requests exercising the Student and Parent aggregates through the real
+        // context, standing in for the repositories and use cases that arrive on Days 39–40.
+        services.AddScoped<ICommandHandler<AddParentCommand, Guid>, AddParentCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateParentPhoneCommand, Unit>, UpdateParentPhoneCommandHandler>();
+        services.AddScoped<ICommandHandler<RegisterStudentCommand, Guid>, RegisterStudentCommandHandler>();
+        services.AddScoped<ICommandHandler<AddStudentParentCommand, Unit>, AddStudentParentCommandHandler>();
+        services.AddScoped<ICommandHandler<RemoveStudentParentCommand, Unit>, RemoveStudentParentCommandHandler>();
+        services.AddScoped<ICommandHandler<SetPrimaryStudentParentCommand, Unit>, SetPrimaryStudentParentCommandHandler>();
+        services.AddScoped<IQueryHandler<ListStudentNamesQuery, List<string>>, ListStudentNamesQueryHandler>();
+        services.AddScoped<IQueryHandler<GetStudentLinksSnapshotQuery, StudentLinksSnapshot>, GetStudentLinksSnapshotQueryHandler>();
+
+        // Task 44.4: resolves ITeacherScopeProvider inside a real dispatched read.
+        services.AddTeacherScopeProbe();
+
+        // GetSystemInfoHandler's port (Task 35.7); the real implementation is Api-only (DemoOptions), so these
+        // tenancy/tenant-isolation tests never need it to be anything but off.
+        services.AddSingleton<IDemoModeProvider, AlwaysDisabledDemoModeProvider>();
+
         configure?.Invoke(services);
 
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
@@ -67,19 +221,258 @@ public sealed class PostgresFixture : IAsyncLifetime
     /// <summary>Deletes all rows in the platform and identity schemas except the migrations history.</summary>
     public async Task ResetAsync()
     {
-        await using var connection = new NpgsqlConnection(ConnectionString);
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
         await connection.OpenAsync();
         await _respawner!.ResetAsync(connection);
     }
 
-    /// <summary>Runs a scalar SQL statement against the test database (assertions on persisted state).</summary>
-    public async Task<T> ScalarAsync<T>(string sql)
+    /// <summary>Runs a scalar SQL statement against the test database as the superuser (assertions on persisted state).</summary>
+    public Task<T> ScalarAsync<T>(string sql) => ScalarAsync<T>(SuperuserConnectionString, sql);
+
+    /// <summary>Runs a scalar SQL statement over a specific connection — e.g. <see cref="AppConnectionString"/>, to assert what tutoring_app itself can see or do.</summary>
+    public static async Task<T> ScalarAsync<T>(string connectionString, string sql)
     {
-        await using var connection = new NpgsqlConnection(ConnectionString);
+        await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand(sql, connection);
         return (T)(await command.ExecuteScalarAsync())!;
     }
 
     public Task<long> CountCentresAsync() => ScalarAsync<long>("select count(*) from platform.centres");
+
+    /// <summary>
+    /// Inserts one probe row for the given centre directly as the superuser — bypassing the filter, the guard and
+    /// EF entirely, on purpose, so filter/guard tests seed known rows that the layer under test cannot have biased.
+    /// Returns the generated id for tests that look a specific row up.
+    /// </summary>
+    public async Task<Guid> SeedProbeAsync(Guid centreId, string label)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            "insert into probe.tenant_probes (id, centre_id, label) values (@id, @centre_id, @label)", connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("label", label);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one subject row for the given centre directly as the superuser — bypassing row-level security,
+    /// the write guard and EF entirely, on purpose, so RLS tests (Task 23.4) seed rows for both centres that the
+    /// policy under test cannot have biased. Returns the generated id for tests that target a specific row.
+    /// </summary>
+    public async Task<Guid> SeedSubjectAsync(Guid centreId, string name)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.subjects (id, centre_id, name, normalized_name, status, created_at)
+            values (@id, @centre_id, @name, @normalized_name, 'active', now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("name", name);
+        command.Parameters.AddWithValue("normalized_name", name.ToUpperInvariant());
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one parent row for the given centre directly as the superuser — bypassing row-level security,
+    /// the write guard and EF entirely, on purpose, so RLS and integrity tests (Task 38.4) seed rows for both
+    /// centres that the policy under test cannot have biased. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedParentAsync(Guid centreId, string fullName, string phone)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.parents (id, centre_id, full_name, search_name, phone, created_at)
+            values (@id, @centre_id, @full_name, @search_name, @phone, now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("full_name", fullName);
+        command.Parameters.AddWithValue("search_name", fullName.ToUpperInvariant());
+        command.Parameters.AddWithValue("phone", phone);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>Inserts one student row for the given centre directly as the superuser (Task 38.4). Returns the generated id.</summary>
+    public async Task<Guid> SeedStudentAsync(Guid centreId, string fullName, string status = "active")
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.students (id, centre_id, full_name, search_name, status, links_revision, created_at)
+            values (@id, @centre_id, @full_name, @search_name, @status, 0, now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("full_name", fullName);
+        command.Parameters.AddWithValue("search_name", SearchText.Normalize(fullName));
+        command.Parameters.AddWithValue("status", status);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>Inserts one student-parent link row for the given centre directly as the superuser (Task 38.4). Returns the generated id.</summary>
+    public async Task<Guid> SeedStudentParentLinkAsync(Guid centreId, Guid studentId, Guid parentId, bool isPrimary, string relationship = "father")
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.student_parents (id, centre_id, student_id, parent_id, relationship, is_primary, created_at)
+            values (@id, @centre_id, @student_id, @parent_id, @relationship, @is_primary, now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("student_id", studentId);
+        command.Parameters.AddWithValue("parent_id", parentId);
+        command.Parameters.AddWithValue("relationship", relationship);
+        command.Parameters.AddWithValue("is_primary", isPrimary);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one minimal identity.users row directly as the superuser, so a synthetic test actor's user id is
+    /// real for <c>fk_audit_entries_users</c> (Task 31.6) — tests that only care about centre and role, not a
+    /// real sign-in, still need an actor that an audit row can reference. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedUserAsync(string displayName = "Test Actor")
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into identity.users (
+                id, display_name, preferred_locale, must_change_password,
+                email_confirmed, phone_number_confirmed, two_factor_enabled, lockout_enabled, access_failed_count)
+            values (@id, @display_name, 'en', false, false, false, false, false, 0)
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("display_name", displayName);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one audit.audit_entries row directly as the superuser — bypassing row-level security, the
+    /// append-only grant and EF entirely, on purpose, so paging/filter/isolation tests (Task 32.2) seed exact,
+    /// known rows (including their timestamp) that the read side under test cannot have biased.
+    /// </summary>
+    public async Task<Guid> SeedAuditEntryAsync(
+        Guid centreId,
+        DateTimeOffset occurredAt,
+        string entityType = "subject",
+        Guid? entityId = null,
+        Guid? actorUserId = null,
+        string action = "updated",
+        string changes = """{"name":{"before":"Before","after":"After"}}""",
+        string? correlationId = null)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into audit.audit_entries (
+                id, centre_id, occurred_at, actor_type, actor_user_id, action, entity_type, entity_id, changes, correlation_id)
+            values (
+                @id, @centre_id, @occurred_at, @actor_type, @actor_user_id, @action, @entity_type, @entity_id, @changes::jsonb, @correlation_id)
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("occurred_at", occurredAt);
+        command.Parameters.AddWithValue("actor_type", actorUserId is null ? "system" : "staff");
+        command.Parameters.AddWithValue("actor_user_id", actorUserId.HasValue ? actorUserId.Value : DBNull.Value);
+        command.Parameters.AddWithValue("action", action);
+        command.Parameters.AddWithValue("entity_type", entityType);
+        command.Parameters.AddWithValue("entity_id", entityId ?? Guid.CreateVersion7());
+        command.Parameters.AddWithValue("changes", changes);
+        command.Parameters.AddWithValue("correlation_id", correlationId is null ? DBNull.Value : correlationId);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one teacher row for the given centre directly as the superuser — bypassing row-level security,
+    /// the write guard and EF entirely, on purpose, so RLS and integrity tests (Task 43.14) seed rows for both
+    /// centres, and exercise the composite foreign key into identity.memberships and the unique index on
+    /// (centre_id, user_id), that the policy under test cannot have biased. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedTeacherAsync(Guid centreId, string fullName, Guid? userId = null)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.teachers (id, centre_id, full_name, search_name, user_id, status, created_at)
+            values (@id, @centre_id, @full_name, @search_name, @user_id, 'active', now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("full_name", fullName);
+        command.Parameters.AddWithValue("search_name", SearchText.Normalize(fullName));
+        command.Parameters.AddWithValue("user_id", userId.HasValue ? userId.Value : DBNull.Value);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    /// <summary>
+    /// Inserts one group row directly as the superuser — bypassing row-level security, the write guard and EF
+    /// entirely, on purpose, so RLS tests (Task 44.14) seed rows for both centres that the policy under test
+    /// cannot have biased. The subject and teacher must belong to the same centre. Returns the generated id.
+    /// </summary>
+    public async Task<Guid> SeedGroupAsync(Guid centreId, string name, Guid subjectId, Guid teacherId, int capacity = 20)
+    {
+        var id = Guid.CreateVersion7();
+        await using var connection = new NpgsqlConnection(SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            insert into academics.groups (id, centre_id, name, normalized_name, subject_id, teacher_id, capacity, status, created_at)
+            values (@id, @centre_id, @name, @normalized_name, @subject_id, @teacher_id, @capacity, 'active', now())
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("centre_id", centreId);
+        command.Parameters.AddWithValue("name", name);
+        command.Parameters.AddWithValue("normalized_name", SearchText.Normalize(name));
+        command.Parameters.AddWithValue("subject_id", subjectId);
+        command.Parameters.AddWithValue("teacher_id", teacherId);
+        command.Parameters.AddWithValue("capacity", capacity);
+        await command.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    private string WithCredentials(string username, string password) =>
+        new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Username = username, Password = password }.ConnectionString;
+
+    private sealed class AlwaysDisabledDemoModeProvider : IDemoModeProvider
+    {
+        public bool IsEnabled => false;
+    }
 }

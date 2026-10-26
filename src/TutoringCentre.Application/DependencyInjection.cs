@@ -15,6 +15,10 @@ public static class DependencyInjection
         services.AddScoped<CurrentActorContext>();
         services.AddScoped<ICurrentActor>(provider => provider.GetRequiredService<CurrentActorContext>());
 
+        // One correlation context per scope. ICorrelationContext resolves to the SAME instance, read-only.
+        services.AddScoped<CorrelationContext>();
+        services.AddScoped<ICorrelationContext>(provider => provider.GetRequiredService<CorrelationContext>());
+
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
         services.AddScoped<Dispatcher>();
 

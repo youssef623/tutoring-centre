@@ -13,8 +13,9 @@ public sealed class SystemInfoQueryTests(PostgresFixture fixture) : PostgresTest
         var result = await Fixture.QueryAsAsync<GetSystemInfoQuery, SystemInfoDto>(new AnonymousActor(), new GetSystemInfoQuery());
 
         Assert.True(result.IsSuccess);
-        Assert.EndsWith("_AddIdentityAndMemberships", result.Value.LatestMigration, StringComparison.Ordinal);
+        Assert.EndsWith("_AddSchedule", result.Value.LatestMigration, StringComparison.Ordinal);
         Assert.True(result.Value.DatabaseUpToDate);
         Assert.False(string.IsNullOrWhiteSpace(result.Value.ApplicationVersion));
+        Assert.False(result.Value.DemoMode);
     }
 }

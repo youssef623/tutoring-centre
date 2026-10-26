@@ -45,6 +45,51 @@ public sealed class MembershipTests
     }
 
     [Fact]
+    public void ChangeRole_WhenActive_SucceedsAndChangesTheRole()
+    {
+        // Arrange
+        var membership = Membership.Create(UserId, CentreId, StaffRole.Teacher).Value;
+
+        // Act
+        var result = membership.ChangeRole(StaffRole.Secretary);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(StaffRole.Secretary, membership.Role);
+    }
+
+    [Fact]
+    public void ChangeRole_WhenInactive_FailsAndLeavesTheRoleUnchanged()
+    {
+        // Arrange
+        var membership = Membership.Create(UserId, CentreId, StaffRole.Teacher).Value;
+        membership.Deactivate();
+
+        // Act
+        var result = membership.ChangeRole(StaffRole.Secretary);
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("membership.inactive", result.Error!.Code);
+        Assert.Equal(StaffRole.Teacher, membership.Role);
+    }
+
+    [Fact]
+    public void ChangeRole_ToTheSameRole_FailsAndLeavesTheRoleUnchanged()
+    {
+        // Arrange
+        var membership = Membership.Create(UserId, CentreId, StaffRole.Teacher).Value;
+
+        // Act
+        var result = membership.ChangeRole(StaffRole.Teacher);
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("membership.role_unchanged", result.Error!.Code);
+        Assert.Equal(StaffRole.Teacher, membership.Role);
+    }
+
+    [Fact]
     public void Deactivate_WhenActive_SucceedsAndBecomesInactive()
     {
         // Arrange

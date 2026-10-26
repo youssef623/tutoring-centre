@@ -10,7 +10,7 @@ namespace TutoringCentre.Application.Platform.Queries.GetSystemInfo;
 /// Reads go through the read service; no entities and no EF types.
 /// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService)
+internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService, IDemoModeProvider demoModeProvider)
     : IQueryHandler<GetSystemInfoQuery, SystemInfoDto>
 {
     private const string UnknownVersion = "unknown";
@@ -22,7 +22,8 @@ internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService)
         var dto = new SystemInfoDto(
             ReadApplicationVersion(),
             status.LatestAppliedMigration,
-            DatabaseUpToDate: status.PendingMigrationCount == 0);
+            DatabaseUpToDate: status.PendingMigrationCount == 0,
+            DemoMode: demoModeProvider.IsEnabled);
 
         return Result<SystemInfoDto>.Success(dto);
     }
@@ -32,13 +33,9 @@ internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService)
         var informational = typeof(GetSystemInfoHandler).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
-        if (string.IsNullOrWhiteSpace(informational))
-        {
-            return UnknownVersion;
-        }
-
-        // SourceLink appends "+<commit sha>"; the API should not leak build metadata.
-        var plusIndex = informational.IndexOf('+', StringComparison.Ordinal);
-        return plusIndex < 0 ? informational : informational[..plusIndex];
+        // The SDK appends "+<SourceRevisionId>" on its own once the Dockerfile (Task 34.2) passes
+        // -p:SourceRevisionId=<git sha> to `dotnet publish` — kept, not stripped, as of Task 34.2: this is
+        // precisely how an operator confirms which commit a running instance is actually serving.
+        return string.IsNullOrWhiteSpace(informational) ? UnknownVersion : informational;
     }
 }

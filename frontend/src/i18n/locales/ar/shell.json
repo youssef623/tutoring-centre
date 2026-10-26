@@ -1,19 +1,53 @@
 {
   "nav": {
     "dashboard": "لوحة التحكم",
+    "subjects": "المواد",
+    "students": "الطلاب",
+    "teachers": "المعلمون",
+    "groups": "المجموعات",
+    "timetable": "جدول الحصص",
+    "staff": "الموظفون",
+    "settings": "الإعدادات",
+    "audit": "سجل النشاط",
     "openMenu": "فتح القائمة",
-    "closeMenu": "إغلاق القائمة"
+    "closeMenu": "إغلاق القائمة",
+    "home": "الصفحة الرئيسية لحصة"
   },
   "header": {
     "activeCentre": "المركز النشط"
   },
   "userMenu": {
     "switchCentre": "تبديل المركز",
+    "changePassword": "تغيير كلمة المرور",
     "logout": "تسجيل الخروج"
+  },
+  "noAccess": {
+    "title": "لا تملك صلاحية الوصول إلى هذه الصفحة",
+    "description": "دورك لا يشمل هذه الصلاحية. إذا كنت تعتقد أن هذا خطأ، تواصل مع مالك المركز.",
+    "backToDashboard": "العودة إلى لوحة التحكم"
   },
   "dashboard": {
     "welcome": "مرحبًا، {name}",
     "activeCentre": "أنت تعمل في {centreName}.",
-    "placeholder": "المزيد من أدوات إدارة مركزك قريبًا."
+    "actions": {
+      "registerStudent": "تسجيل طالب",
+      "students": "الطلاب",
+      "groups": "المجموعات"
+    },
+    "loadingLabel": "جارٍ تحميل النظرة العامة",
+    "errorTitle": "تعذّر تحميل النظرة العامة",
+    "stats": {
+      "activeGroups": "المجموعات النشطة",
+      "seatsTaken": "المقاعد المشغولة",
+      "openSeats": "المقاعد المتاحة",
+      "fullGroups": "المجموعات المكتملة"
+    },
+    "fillingUp": {
+      "title": "مجموعات تقترب من الاكتمال",
+      "description": "المجموعات النشطة التي شُغل 80% أو أكثر من مقاعدها.",
+      "viewAll": "كل المجموعات",
+      "empty": "لا توجد مجموعة قريبة من الاكتمال.",
+      "noGroups": "لا توجد مجموعات نشطة بعد."
+    }
   }
 }

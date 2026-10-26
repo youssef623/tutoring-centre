@@ -1,9 +1,7 @@
-using System.Globalization;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
-using TutoringCentre.Api.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace TutoringCentre.Api.Auth;
 
@@ -24,12 +22,23 @@ public static class LoginRateLimiting
     /// </summary>
     public const string TestPartitionHeaderName = "X-Test-RateLimit-Partition";
 
-    private const int PermitLimit = 10;
-    private static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
+    private const int DefaultPermitLimit = 10;
+    private static readonly TimeSpan DefaultWindow = TimeSpan.FromMinutes(1);
 
-    public static IServiceCollection AddLoginRateLimiting(this IServiceCollection services)
+    /// <summary>
+    /// Overridable via configuration (e.g. "Auth__LoginRateLimit__PermitLimit"/"...__WindowSeconds" env vars)
+    /// so CI's e2e job — a single trusted IP running many fixture logins per run, not a brute-force source —
+    /// can raise the budget without touching the Production/Development default or the Testing-environment
+    /// suite's hardcoded 10/minute assertion (TutoringCentre.Api.Tests only ever sees the default).
+    /// </summary>
+    public static IServiceCollection AddLoginRateLimiting(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var permitLimit = configuration.GetValue("Auth:LoginRateLimit:PermitLimit", DefaultPermitLimit);
+        var windowSeconds = configuration.GetValue("Auth:LoginRateLimit:WindowSeconds", (int)DefaultWindow.TotalSeconds);
+        var window = TimeSpan.FromSeconds(windowSeconds);
 
         services.AddRateLimiter(options =>
         {
@@ -37,30 +46,12 @@ public static class LoginRateLimiting
                 partitionKey: GetPartitionKey(httpContext),
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = PermitLimit,
-                    Window = Window,
+                    PermitLimit = permitLimit,
+                    Window = window,
                     QueueLimit = 0,
                 }));
 
-            options.OnRejected = async (context, cancellationToken) =>
-            {
-                var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var metadataRetryAfter)
-                    ? metadataRetryAfter
-                    : Window;
-
-                context.HttpContext.Response.Headers.RetryAfter =
-                    ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
-
-                var problem = new ProblemDetails
-                {
-                    Status = StatusCodes.Status429TooManyRequests,
-                    Title = "Too many requests.",
-                    Detail = "Too many login attempts. Try again later.",
-                };
-                problem.Extensions["code"] = "auth.rate_limited";
-
-                await new ProblemResult(problem).ExecuteAsync(context.HttpContext);
-            };
+            options.OnRejected = RateLimitRejection.HandleAsync;
         });
 
         return services;

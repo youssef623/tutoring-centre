@@ -2,6 +2,7 @@ using FluentValidation;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Tests.Fakes;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Application.Tests.Cqrs;
 
@@ -27,6 +28,24 @@ public sealed record TestCommand(string Name, string Slug) : ICommand<string>;
 
 public sealed record TestQuery(string Name) : IQuery<string>;
 
+/// <summary>A tenant-scoped command, for the dispatcher's layer-1 cases (C10, C12, C13).</summary>
+public sealed record TenantScopedTestCommand(string Name) : ICommand<string>, ITenantScoped;
+
+/// <summary>A tenant-scoped query, for the dispatcher's layer-1 cases (C11, C12, C13).</summary>
+public sealed record TenantScopedTestQuery(string Name) : IQuery<string>, ITenantScoped;
+
+/// <summary>A tenant-scoped, permission-requiring command, for the dispatcher's permission-step cases (C15, C16, C18).</summary>
+public sealed record PermissionRequiringTestCommand(string Name) : ICommand<string>, ITenantScoped, IRequirePermission
+{
+    public string RequiredPermission => Permissions.SubjectsManage;
+}
+
+/// <summary>A tenant-scoped, permission-requiring query, for the dispatcher's permission-step cases (C16, C19).</summary>
+public sealed record PermissionRequiringTestQuery(string Name) : IQuery<string>, ITenantScoped, IRequirePermission
+{
+    public string RequiredPermission => Permissions.SubjectsManage;
+}
+
 public sealed class TestCommandValidator : AbstractValidator<TestCommand>
 {
     public TestCommandValidator()
@@ -42,6 +61,38 @@ public sealed class TestQueryValidator : AbstractValidator<TestQuery>
     public TestQueryValidator()
     {
         RuleFor(query => query.Name).NotEmpty();
+    }
+}
+
+public sealed class TenantScopedTestCommandValidator : AbstractValidator<TenantScopedTestCommand>
+{
+    public TenantScopedTestCommandValidator()
+    {
+        RuleFor(command => command.Name).NotEmpty().WithMessage("Name is required.");
+    }
+}
+
+public sealed class TenantScopedTestQueryValidator : AbstractValidator<TenantScopedTestQuery>
+{
+    public TenantScopedTestQueryValidator()
+    {
+        RuleFor(query => query.Name).NotEmpty().WithMessage("Name is required.");
+    }
+}
+
+public sealed class PermissionRequiringTestCommandValidator : AbstractValidator<PermissionRequiringTestCommand>
+{
+    public PermissionRequiringTestCommandValidator()
+    {
+        RuleFor(command => command.Name).NotEmpty().WithMessage("Name is required.");
+    }
+}
+
+public sealed class PermissionRequiringTestQueryValidator : AbstractValidator<PermissionRequiringTestQuery>
+{
+    public PermissionRequiringTestQueryValidator()
+    {
+        RuleFor(query => query.Name).NotEmpty().WithMessage("Name is required.");
     }
 }
 
@@ -69,5 +120,41 @@ public sealed class TestQueryHandler(FakeUnitOfWork unitOfWork, HandlerBehaviour
         return behaviour.Mode == HandlerMode.Throw
             ? throw new InvalidOperationException("The query handler blew up.")
             : Task.FromResult(Result<string>.Success(query.Name));
+    }
+}
+
+public sealed class TenantScopedTestCommandHandler(FakeUnitOfWork unitOfWork) : ICommandHandler<TenantScopedTestCommand, string>
+{
+    public Task<Result<string>> HandleAsync(TenantScopedTestCommand command, CancellationToken cancellationToken)
+    {
+        unitOfWork.Calls.Add("Handle");
+        return Task.FromResult(Result<string>.Success(command.Name));
+    }
+}
+
+public sealed class TenantScopedTestQueryHandler(FakeUnitOfWork unitOfWork) : IQueryHandler<TenantScopedTestQuery, string>
+{
+    public Task<Result<string>> HandleAsync(TenantScopedTestQuery query, CancellationToken cancellationToken)
+    {
+        unitOfWork.Calls.Add("Handle");
+        return Task.FromResult(Result<string>.Success(query.Name));
+    }
+}
+
+public sealed class PermissionRequiringTestCommandHandler(FakeUnitOfWork unitOfWork) : ICommandHandler<PermissionRequiringTestCommand, string>
+{
+    public Task<Result<string>> HandleAsync(PermissionRequiringTestCommand command, CancellationToken cancellationToken)
+    {
+        unitOfWork.Calls.Add("Handle");
+        return Task.FromResult(Result<string>.Success(command.Name));
+    }
+}
+
+public sealed class PermissionRequiringTestQueryHandler(FakeUnitOfWork unitOfWork) : IQueryHandler<PermissionRequiringTestQuery, string>
+{
+    public Task<Result<string>> HandleAsync(PermissionRequiringTestQuery query, CancellationToken cancellationToken)
+    {
+        unitOfWork.Calls.Add("Handle");
+        return Task.FromResult(Result<string>.Success(query.Name));
     }
 }

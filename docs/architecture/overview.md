@@ -9,7 +9,7 @@
 | Invalid input | `Result` failure, kind `Validation` | slug `"Bad Slug"` → `centre.slug_invalid` |
 | Something requested doesn't exist | `NotFound` | unknown centre (from Week 2) |
 | Conflicts with existing data | `Conflict` | duplicate slug (Day 9) |
-| A business rule says no | `Rule` | enrolling into a full group (Month 3) |
+| A business rule says no | `Rule` | enrolling into a full group (`group.full`) |
 | The caller isn't allowed | `Forbidden` | non-system actor creating a centre (Week 2) |
 | A bug | exception | reading `Value` of a failed `Result` |
 | An infrastructure fault | exception | database unreachable, timeout |
@@ -22,51 +22,92 @@
 
 **Safety.** Codes and messages never contain internals: no stack traces, SQL, file paths or secrets.
 
-## Request pipeline (end of Week 3)
+## Request pipeline (end of Month 2)
 
 ```
 Every HTTP request:
   client
-    → Api: CorrelationIdMiddleware → request logging → exception handler → status code pages
+    → Api: UseTrustedForwardedHeaders (first, always — trusted-proxy-only; Day 34.3)
+    → UseHsts (Production only)
+    → UseSecurityHeaders (CSP, X-Content-Type-Options, etc. — every response; Day 34.5)
+    → CorrelationIdMiddleware → request logging → exception handler → status code pages
+    → UseSpaStaticFiles / static files (hashed assets; cached forever — Day 34.1)
     → UseAuthentication (session cookie decrypted; OnValidatePrincipal revalidates against the
       database, 60 s cache — docs/architecture/authentication.md)
     → ActorMiddleware (claims → StaffActor; the one place claims become an actor)
     → UseAuthorization (authenticated by default; six routes opt out with .AllowAnonymous())
-    → UseRateLimiter (the "login" policy only — POST /api/auth/login)
+    → UseRateLimiter (the "login" and "change password" policies, partitioned by the real
+      client address after forwarded-header processing — Day 34.4)
     → endpoint routing
     → AntiforgeryEndpointFilter (whole /api group; unsafe methods only — rejects before the
       handler runs, no side effects)
+    → /api/{**path} fallback: unknown API route → JSON 404
+    → MapSpaFallback: any other GET → index.html (anonymous; no-op when no build is present)
+    → /{**path} fallback: anything still unmatched → anonymous JSON 404
 
 Command (HTTP POST/PUT/DELETE, CLI, jobs):
     → endpoint (bind only)
     → Dispatcher.SendAsync<TCommand, TResponse>
         1. validate (FluentValidation: shape only)            failure → Result.Failure(validation), nothing opened
-        2. [Month 2: tenant resolution + permission checks plug in here, before the transaction]
-        3. IUnitOfWork.BeginAsync(readOnly: false)
-        4. handler: authorize → Domain rules → repository tracks changes (no SaveChanges)
-        5. failure result → Rollback;  success → SaveChanges once → Commit
+        2. CheckTenantScope — only for an ITenantScoped command (tenancy.md, Layer 1):
+             no actor            → Error.Unauthenticated("auth.not_authenticated")   401, nothing opened
+             actor has no centre → Error.Forbidden("tenant.not_selected")            403, nothing opened
+        3. CheckPermission — only for an IRequirePermission command (authorization.md):
+             system actor                        → allowed
+             staff actor whose role holds it      → allowed
+             anything else                        → Error.Forbidden("auth.permission_denied")  403, nothing opened
+        4. IUnitOfWork.BeginAsync(readOnly: false)             sets app.current_centre inside the transaction (tenancy.md, Layer 3)
+        5. handler: authorize → Domain rules → repository tracks changes (no SaveChanges)
+        6. failure result → Rollback;  success → SaveChanges once → Commit
            exception → Rollback (CancellationToken.None) → rethrow → global exception handler (generic 500, logged once)
+           — this is also the failed-save path for a tenant violation that reaches SaveChanges: EF's
+             own composite-key immutability (tenancy.md, Layer 4) or, failing that,
+             TenantWriteGuardInterceptor throwing TenantViolationException (tenancy.md, Layer 2) —
+             neither is expected to fire given step 2 and the query filter, but both are a last-resort
+             exception, not a Result failure, because a request should never have reached them at all
     → Result → ResultHttpExtensions → JSON or Problem Details
 
 Query (HTTP GET, reads):
     → Dispatcher.QueryAsync<TQuery, TResponse>
         1. validate
-        2. [Month 2: tenant + permission steps]
-        3. IUnitOfWork.BeginAsync(readOnly: true)             PostgreSQL: SET TRANSACTION READ ONLY
-        4. handler: read service → DTOs (no entities, no repositories)
-        5. Commit (never SaveChanges)
+        2. CheckTenantScope — same rule and errors as the command pipeline's step 2
+        3. CheckPermission — same rule and errors as the command pipeline's step 3
+        4. IUnitOfWork.BeginAsync(readOnly: true)             PostgreSQL: SET TRANSACTION READ ONLY, then app.current_centre
+        5. handler: read service → DTOs (no entities, no repositories) — rows outside the actor's
+             centre are already invisible, filtered by EF's global query filter (tenancy.md, Layer 2)
+             and, independently, by PostgreSQL row-level security (tenancy.md, Layer 3)
+        6. Commit (never SaveChanges)
     → Result → ResultHttpExtensions
 ```
 
 **Why validation runs before BEGIN.** Invalid input needs no database work, so no transaction (and no connection) is opened for it.
 
-**Why the transaction starts before the handler, not just around SaveChanges.** Repositories will take row locks (`FOR UPDATE`) while the handler reads, and Month 2 sets the PostgreSQL row-level-security tenant inside the transaction; both must cover the whole handler, not just the save.
+**Why the transaction starts before the handler, not just around SaveChanges.** Repositories take row locks while the handler reads (since Day 48 the enrollment capacity lock, `FOR UPDATE` on the group row; since Day 53 the per-teacher advisory locks for schedule writes), and `UnitOfWork.BeginAsync` sets the PostgreSQL row-level-security tenant inside the transaction (tenancy.md, Layer 3); both must cover the whole handler, not just the save.
 
 **What happens when a query handler throws.** End the read-only transaction (roll back) and rethrow; the global handler returns 500.
 
 **Who calls SaveChanges.** Only the command pipeline, exactly once, after a successful handler; queries never call it.
 
-**Where tenant and permission checks go.** After validation, before BEGIN, in both pipelines (Month 2). Idempotency for marked commands comes later (Month 6).
+**Two write paths exist entirely outside the dispatcher**, and therefore outside tenant isolation, the
+permission step, the audit interceptor and the single-transaction guarantee above — each one legitimately so,
+because each belongs to a framework that owns its own persistence:
+
+1. **ASP.NET Core Identity** (`UserManager<ApplicationUser>`, used directly by
+   `IdentityAuthenticationService`, `StaffAccountService` and `ResetPasswordCommand`) writes password hashes,
+   lockout counters and the security stamp straight through Identity's own store. These are not Application
+   commands and never go through `Dispatcher` — there is no `ITenantScoped`, `IRequirePermission` or audited
+   change here to enforce in the first place, since the rows it touches (`identity.users`) are not
+   centre-scoped (`docs/architecture/tenancy.md`'s Exemptions table).
+2. **The Data Protection key ring** (`platform.data_protection_keys`, Task 34.6) is written by the framework
+   itself, inside `Microsoft.AspNetCore.DataProtection.EntityFrameworkCore`, whenever a new key is generated —
+   platform-level, shared across every centre and every instance, with no single tenant it could belong to
+   (same Exemptions table).
+
+Neither path writes a row that any of the four tenant-isolation layers, the permission matrix or the audit
+log were ever meant to cover; both are the same reasoning tenancy.md's Exemptions table already gives for why
+`identity.users` and `platform.data_protection_keys` carry no centre-based policy.
+
+**Where tenant and permission checks go.** `Dispatcher.CheckTenantScope`, after validation and before `BeginAsync`, in both pipelines (Day 22 — see tenancy.md, Layer 1). It is a no-op for a request that does not implement `ITenantScoped`; Month 1's requests never do. `Dispatcher.CheckPermission` runs directly after it, in the same place, in both pipelines (Day 28 — see authorization.md); it is a no-op for a request that does not implement `IRequirePermission`. Idempotency for marked commands comes later (Month 6).
 
 ## Request path: `CreateCentreCommand` (CLI → table)
 
@@ -98,6 +139,44 @@ There is no HTTP endpoint for this command — on purpose.
 | 6 | `Result<SystemInfoDto>` becomes 200 JSON (or Problem Details) | `src/TutoringCentre.Api/Http/ResultHttpExtensions.cs` |
 | 7 | Frontend: generated hook → `apiFetch` → `SystemInfoCard` | `frontend/src/api/generated/tutoring-centre.ts`, `frontend/src/api/apiFetch.ts`, `frontend/src/features/status/SystemInfoCard.tsx` |
 
+## Modules (Day 30, extended Day 31)
+
+Four modules exist, by namespace:
+
+| Module | Application namespaces | Domain namespace |
+| --- | --- | --- |
+| Platform | `TutoringCentre.Application.Platform`, `TutoringCentre.Application.Centres` | `TutoringCentre.Domain.Centres` |
+| Identity | `TutoringCentre.Application.Identity`, `TutoringCentre.Application.Staff` | `TutoringCentre.Domain.Identity` |
+| Academics | `TutoringCentre.Application.Academics` | `TutoringCentre.Domain.Academics` |
+| Audit | `TutoringCentre.Application.Audit` | `TutoringCentre.Domain.Audit` (named for symmetry; Audit has no Domain types of its own — Task 31, it is read-only from the application's point of view) |
+
+**Rule.** A module reaches another only through its requests (commands, queries and their DTOs — always
+allowed) or an explicit published interface in that module's own `Contracts` namespace (Task 43.3, e.g.
+`TutoringCentre.Application.Identity.Contracts.IStaffDirectory`); it may never reach into another module's
+repository, read service, handler or validator, nor reference another module's Domain types directly.
+Enforced by four architecture tests (`ModuleBoundaryRuleTests`), without separate assemblies.
+
+**Contracts.** A `Contracts` namespace publishes a narrow question another module may ask, never a door into
+how it is answered: every type in one must be an interface or a record, and it may not itself depend on its
+own module's repositories, read services or Domain entities. A contract method returns the smallest shape
+that answers the question (a bool, an ID, never the entity or a DTO built for a different purpose), and its
+adapter writes any tenant predicate by hand when it queries a table the EF filter and row-level security do
+not cover (e.g. `identity.memberships`, Day 29's documented RLS exemption).
+
+Two contracts exist at the end of Month 3, both asked by Academics:
+
+| Contract | Published by | Question | Asked by |
+| --- | --- | --- | --- |
+| `TutoringCentre.Application.Identity.Contracts.IStaffDirectory` (Day 43) | Identity | `IsActiveMemberWithRoleAsync(centreId, userId, role)`: is this user an active member of this centre with exactly this role? A bool. | linking a teacher record to a staff account |
+| `TutoringCentre.Application.Centres.Contracts.ICentreTimeZoneProvider` (Day 51) | Platform | `GetForCurrentCentreAsync()`: the acting centre's time zone. A `TimeZoneInfo`, never the centre. | every schedule use case, to know "today" and to turn local rules into instants |
+
+`ModuleBoundaryRuleTests` allows exactly this `Contracts` exception and nothing else.
+
+**Shared kernel**, available to every module without counting as "another module's": the Domain and
+Application `Common` namespaces, plus exactly four cross-cutting types — `SupportedLocale`, `StaffRole`,
+`Permissions`, `RolePermissions`. The list is deliberately short; growing it to make a test pass is not
+an acceptable fix for a real violation.
+
 ## Decisions and conventions
 
 - [ADR 0001 — Clean Architecture](../adr/0001-clean-architecture.md)
@@ -105,5 +184,19 @@ There is no HTTP endpoint for this command — on purpose.
 - [ADR 0003 — Hand-written CQRS dispatcher](../adr/0003-custom-cqrs-dispatcher.md)
 - [ADR 0004 — Unit-of-work port](../adr/0004-unit-of-work-port.md)
 - [ADR 0005 — Encrypted cookie authentication over JWT](../adr/0005-cookie-authentication.md)
+- [ADR 0006 — Tenant isolation as defense in depth](../adr/0006-tenant-isolation.md)
+- [ADR 0007 — Code-defined permissions](../adr/0007-code-defined-permissions.md)
+- [ADR 0008 — Audit log written in the command's own transaction](../adr/0008-audit-log-in-transaction.md)
+- [ADR 0009 — Azure Container Apps and OIDC](../adr/0009-azure-container-apps-and-oidc.md)
+- [ADR 0010 — Student aggregate and value objects](../adr/0010-student-aggregate-and-value-objects.md)
+- [ADR 0011 — Pessimistic lock for enrollment capacity](../adr/0011-pessimistic-lock-for-enrollment-capacity.md)
+- [ADR 0012 — Sessions as generated instants](../adr/0012-sessions-as-generated-instants.md)
 - [API conventions](api-conventions.md)
 - [Authentication: login, sessions, CSRF, revocation](authentication.md)
+- [Tenant isolation: the role model, and layers 1–4](tenancy.md)
+- [Authorization: the permission matrix, the pipeline step, and what the UI does](authorization.md)
+- [Audit: how a change becomes an audit row, atomically](audit.md)
+- [Academics: students, parents, teachers, groups and enrollments](academics.md)
+- [Scheduling: rules, sessions and the session generator](scheduling.md)
+- [Deployment: topology, pipeline, secrets inventory](deployment.md)
+- [Live verification](../operations/live-verification.md) and [runbook](../operations/runbook.md)

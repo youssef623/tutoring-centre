@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 
 namespace TutoringCentre.Api.Auth;
 
@@ -54,9 +53,6 @@ public static class AuthenticationSetup
 
         services.AddMemoryCache();
         services.AddOptions<SessionValidationOptions>().BindConfiguration("SessionValidation");
-
-        // Local key ring in Development (the framework default); persisted keys are Month 2.
-        services.AddDataProtection().SetApplicationName("TutoringCentre");
 
         return services;
     }

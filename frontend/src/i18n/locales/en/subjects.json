@@ -1,0 +1,60 @@
+{
+  "page": {
+    "title": "Subjects",
+    "showArchived": "Show archived",
+    "subtitle": "The subjects your centre teaches; every group belongs to one.",
+    "filtersLabel": "Filter subjects"
+  },
+  "columns": {
+    "name": "Name",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "archived": "Archived"
+  },
+  "actions": {
+    "create": "Add subject",
+    "rename": "Rename",
+    "archive": "Archive",
+    "restore": "Restore",
+    "openMenu": "Open actions menu"
+  },
+  "dialogs": {
+    "createTitle": "Add subject",
+    "renameTitle": "Rename subject"
+  },
+  "form": {
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Mathematics",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "loading": {
+    "label": "Loading subjects"
+  },
+  "error": {
+    "title": "Subjects could not be loaded",
+    "reference": "Reference: {correlationId}"
+  },
+  "emptyState": {
+    "title": "No subjects yet",
+    "description": "Add your first subject to get started."
+  },
+  "confirmations": {
+    "archiveTitle": "Archive \"{name}\"?",
+    "archiveBody": "It will no longer appear in subject pickers until it is restored.",
+    "archiveConfirm": "Archive subject"
+  },
+  "toasts": {
+    "created": "Subject added.",
+    "renamed": "Subject renamed.",
+    "archived": "Subject archived.",
+    "restored": "Subject restored."
+  },
+  "validation": {
+    "nameRequired": "Subject name is required.",
+    "nameTooLong": "Subject name must be at most 80 characters."
+  }
+}

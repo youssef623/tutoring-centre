@@ -1,0 +1,119 @@
+{
+  "page": {
+    "title": "الطلاب",
+    "searchLabel": "البحث عن الطلاب",
+    "showArchived": "إظهار المؤرشفين",
+    "subtitle": "كل الطلاب المسجلين في مركزك مع ولي الأمر الأساسي.",
+    "filtersLabel": "تصفية الطلاب"
+  },
+  "columns": {
+    "name": "الاسم",
+    "schoolYear": "الصف الدراسي",
+    "primaryParent": "ولي الأمر الأساسي",
+    "parentPhone": "هاتف ولي الأمر",
+    "status": "الحالة"
+  },
+  "actions": {
+    "register": "تسجيل طالب",
+    "edit": "تعديل",
+    "archive": "أرشفة",
+    "restore": "استعادة",
+    "addParent": "إضافة ولي أمر",
+    "makePrimary": "جعله الأساسي",
+    "unlink": "إلغاء الربط"
+  },
+  "loading": {
+    "label": "جاري تحميل الطلاب",
+    "detailLabel": "جاري تحميل بيانات الطالب"
+  },
+  "error": {
+    "title": "تعذر تحميل الطلاب",
+    "reference": "المرجع: {correlationId}"
+  },
+  "detailError": {
+    "title": "تعذر تحميل بيانات هذا الطالب"
+  },
+  "notFound": {
+    "title": "الطالب غير موجود",
+    "description": "هذا الطالب غير موجود، أو ليس لديك صلاحية الوصول إليه.",
+    "backToList": "العودة إلى الطلاب"
+  },
+  "emptyState": {
+    "title": "لا يوجد طلاب حتى الآن",
+    "description": "سجّل أول طالب للبدء.",
+    "noMatchTitle": "لا يوجد طلاب مطابقون لـ \"{search}\"."
+  },
+  "detail": {
+    "phoneLabel": "الهاتف"
+  },
+  "parentsCard": {
+    "title": "أولياء الأمور",
+    "primaryBadge": "جهة الاتصال الأساسية",
+    "openMenu": "فتح قائمة الإجراءات"
+  },
+  "addParent": {
+    "link": "ربط",
+    "retryLink": "إعادة محاولة الربط",
+    "linkFailedNotice": "تم إنشاء ولي الأمر لكن تعذّر ربطه بعد. حاول الربط مرة أخرى."
+  },
+  "archivedBanner": {
+    "title": "هذا الطالب مؤرشف",
+    "description": "استعد الطالب لتعديل بياناته أو إدارة أولياء أموره."
+  },
+  "form": {
+    "studentSectionTitle": "الطالب",
+    "parentSectionTitle": "ولي الأمر",
+    "fullNameLabel": "الاسم الكامل",
+    "fullNamePlaceholder": "مثال: أحمد محمود",
+    "phoneLabel": "الهاتف (اختياري)",
+    "schoolYearLabel": "الصف الدراسي (اختياري)",
+    "schoolYearPlaceholder": "مثال: الصف الخامس",
+    "parentPhoneLabel": "هاتف ولي الأمر",
+    "parentFullNameLabel": "اسم ولي الأمر الكامل",
+    "parentFullNamePlaceholder": "مثال: محمود حسن",
+    "relationshipLabel": "صلة القرابة",
+    "save": "حفظ",
+    "cancel": "إلغاء"
+  },
+  "dialogs": {
+    "editTitle": "تعديل بيانات الطالب",
+    "addParentTitle": "إضافة ولي أمر"
+  },
+  "confirmations": {
+    "archiveTitle": "أرشفة \"{name}\"؟",
+    "archiveBody": "سيصبح للقراءة فقط حتى تتم استعادته، وستُخفى إجراءات أولياء الأمور الخاصة به.",
+    "archiveConfirm": "أرشفة الطالب",
+    "unlinkTitle": "إلغاء ربط {name}؟",
+    "unlinkBody": "لن يعود مرتبطًا بهذا الطالب. هذا لا يحذف سجله.",
+    "unlinkConfirm": "إلغاء الربط"
+  },
+  "lookup": {
+    "existingParent": "ولي أمر مسجّل مسبقًا: {name}",
+    "changeNumber": "ليس هذا الشخص؟ غيّر رقم الهاتف"
+  },
+  "relationship": {
+    "father": "الأب",
+    "mother": "الأم",
+    "guardian": "ولي الأمر",
+    "other": "آخر"
+  },
+  "toasts": {
+    "registered": "تم تسجيل الطالب.",
+    "updated": "تم تحديث بيانات الطالب.",
+    "archived": "تمت أرشفة الطالب.",
+    "restored": "تمت استعادة الطالب.",
+    "parentLinked": "تم ربط ولي الأمر.",
+    "parentMadePrimary": "تم تحديث جهة الاتصال الأساسية.",
+    "parentUnlinked": "تم إلغاء ربط ولي الأمر."
+  },
+  "validation": {
+    "fullNameRequired": "اسم الطالب مطلوب.",
+    "fullNameTooLong": "يجب ألا يتجاوز اسم الطالب 120 حرفًا.",
+    "phoneTooLong": "يجب ألا يتجاوز رقم الهاتف 30 حرفًا.",
+    "schoolYearTooLong": "يجب ألا يتجاوز الصف الدراسي 40 حرفًا.",
+    "parentPhoneRequired": "هاتف ولي الأمر مطلوب.",
+    "parentPhoneTooLong": "يجب ألا يتجاوز رقم الهاتف 30 حرفًا.",
+    "parentFullNameRequired": "اسم ولي الأمر الكامل مطلوب.",
+    "parentFullNameTooLong": "يجب ألا يتجاوز اسم ولي الأمر 120 حرفًا."
+  }
+}

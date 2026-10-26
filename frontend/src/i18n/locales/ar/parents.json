@@ -1,0 +1,57 @@
+{
+  "loading": {
+    "detailLabel": "جاري تحميل بيانات ولي الأمر"
+  },
+  "error": {
+    "reference": "المرجع: {correlationId}"
+  },
+  "detailError": {
+    "title": "تعذر تحميل بيانات ولي الأمر هذا"
+  },
+  "notFound": {
+    "title": "ولي الأمر غير موجود",
+    "description": "ولي الأمر هذا غير موجود، أو ليس لديك صلاحية الوصول إليه.",
+    "backToStudents": "العودة إلى الطلاب"
+  },
+  "card": {
+    "phoneLabel": "الهاتف"
+  },
+  "children": {
+    "title": "الأبناء",
+    "columns": {
+      "name": "الاسم",
+      "relationship": "صلة القرابة",
+      "status": "الحالة"
+    },
+    "primaryBadge": "جهة الاتصال الأساسية",
+    "emptyState": "لا يوجد طلاب مرتبطون"
+  },
+  "relationship": {
+    "father": "الأب",
+    "mother": "الأم",
+    "guardian": "ولي الأمر",
+    "other": "آخر"
+  },
+  "actions": {
+    "edit": "تعديل"
+  },
+  "dialogs": {
+    "editTitle": "تعديل بيانات ولي الأمر"
+  },
+  "form": {
+    "fullNameLabel": "الاسم الكامل",
+    "phoneLabel": "الهاتف",
+    "phoneChangeNotice": "تغيير الهاتف يغيّر أيضًا الرقم الذي تُستخدم به عمليات التسجيل المستقبلية للعثور على ولي الأمر هذا.",
+    "save": "حفظ",
+    "cancel": "إلغاء"
+  },
+  "toasts": {
+    "updated": "تم تحديث بيانات ولي الأمر."
+  },
+  "validation": {
+    "fullNameRequired": "اسم ولي الأمر مطلوب.",
+    "fullNameTooLong": "يجب ألا يتجاوز اسم ولي الأمر 120 حرفًا.",
+    "phoneRequired": "الهاتف مطلوب.",
+    "phoneTooLong": "يجب ألا يتجاوز رقم الهاتف 30 حرفًا."
+  }
+}

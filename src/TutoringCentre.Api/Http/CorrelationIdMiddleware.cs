@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Serilog.Context;
+using TutoringCentre.Application.Common.Security;
 
 namespace TutoringCentre.Api.Http;
 
@@ -14,7 +16,7 @@ internal sealed class CorrelationIdMiddleware(RequestDelegate next)
     public const string HeaderName = "X-Correlation-Id";
     private const int MaxLength = 64;
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, CorrelationContext correlationContext)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -22,6 +24,11 @@ internal sealed class CorrelationIdMiddleware(RequestDelegate next)
         var correlationId = IsValid(supplied) ? supplied : Guid.NewGuid().ToString("N");
 
         context.Items[HttpContextKeys.CorrelationId] = correlationId;
+        correlationContext.Set(correlationId);
+
+        // Task 35.6: the same reference shown to the user in a toast, findable on the request's trace when
+        // telemetry is enabled. A no-op (no listener) when telemetry is off, so this costs nothing by default.
+        Activity.Current?.SetTag("correlation.id", correlationId);
 
         // OnStarting, not an immediate header write: the exception handler clears the response before writing a 500.
         context.Response.OnStarting(() =>

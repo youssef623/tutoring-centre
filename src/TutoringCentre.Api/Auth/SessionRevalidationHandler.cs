@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Identity.Queries.ValidateStaffSession;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Api.Auth;
 
@@ -32,17 +33,20 @@ internal static class SessionRevalidationHandler
         var centreId = Guid.TryParse(context.Principal?.FindFirstValue(SessionClaimNames.CentreId), out var parsedCentreId)
             ? parsedCentreId
             : (Guid?)null;
+        var role = Enum.TryParse<StaffRole>(context.Principal?.FindFirstValue(SessionClaimNames.Role), out var parsedRole)
+            ? parsedRole
+            : (StaffRole?)null;
 
         var services = context.HttpContext.RequestServices;
         var cache = services.GetRequiredService<IMemoryCache>();
         var options = services.GetRequiredService<IOptions<SessionValidationOptions>>().Value;
-        var cacheKey = ($"session-valid", userId, stamp, centreId);
+        var cacheKey = ($"session-valid", userId, stamp, centreId, role);
 
         if (!cache.TryGetValue(cacheKey, out bool isValid))
         {
             var dispatcher = services.GetRequiredService<Dispatcher>();
             var result = await dispatcher.QueryAsync<ValidateStaffSessionQuery, bool>(
-                new ValidateStaffSessionQuery(userId, stamp, centreId), context.HttpContext.RequestAborted);
+                new ValidateStaffSessionQuery(userId, stamp, centreId, role), context.HttpContext.RequestAborted);
             isValid = result.IsSuccess && result.Value;
 
             if (isValid && options.CacheDuration > TimeSpan.Zero)

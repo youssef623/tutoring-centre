@@ -6,7 +6,7 @@ public abstract class PostgresTestBase(PostgresFixture fixture) : IAsyncLifetime
 {
     protected PostgresFixture Fixture { get; } = fixture;
 
-    public Task InitializeAsync() => Fixture.ResetAsync();
+    public virtual Task InitializeAsync() => Fixture.ResetAsync();
 
     public Task DisposeAsync() => Task.CompletedTask;
 }

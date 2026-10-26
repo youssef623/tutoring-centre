@@ -37,4 +37,15 @@ internal static class AntiforgeryTestHelper
     public static Task<HttpResponseMessage> PostAsJsonAsync<TValue>(
         HttpClient client, Uri uri, TValue value, string? rateLimitPartition = null) =>
         PostAsync(client, uri, JsonContent.Create(value), rateLimitPartition);
+
+    /// <summary>Same as <see cref="PostAsync"/> but for any unsafe method (e.g. PUT) that needs the antiforgery header.</summary>
+    public static async Task<HttpResponseMessage> SendAsJsonAsync<TValue>(
+        HttpClient client, HttpMethod method, Uri uri, TValue value, string? rateLimitPartition = null)
+    {
+        var token = await GetCsrfTokenAsync(client);
+        using var request = new HttpRequestMessage(method, uri) { Content = JsonContent.Create(value) };
+        request.Headers.Add(AntiforgerySetup.HeaderName, token);
+        request.Headers.Add(LoginRateLimiting.TestPartitionHeaderName, rateLimitPartition ?? Guid.NewGuid().ToString());
+        return await client.SendAsync(request);
+    }
 }

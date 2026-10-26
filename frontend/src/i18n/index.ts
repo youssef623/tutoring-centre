@@ -1,16 +1,36 @@
 import i18next from "i18next";
 import ICU from "i18next-icu";
 import { initReactI18next } from "react-i18next";
+import auditAr from "./locales/ar/audit.json";
 import authAr from "./locales/ar/auth.json";
 import commonAr from "./locales/ar/common.json";
+import enrollmentsAr from "./locales/ar/enrollments.json";
 import errorsAr from "./locales/ar/errors.json";
+import groupsAr from "./locales/ar/groups.json";
+import parentsAr from "./locales/ar/parents.json";
+import scheduleAr from "./locales/ar/schedule.json";
+import settingsAr from "./locales/ar/settings.json";
 import shellAr from "./locales/ar/shell.json";
+import staffAr from "./locales/ar/staff.json";
 import statusAr from "./locales/ar/status.json";
+import studentsAr from "./locales/ar/students.json";
+import subjectsAr from "./locales/ar/subjects.json";
+import teachersAr from "./locales/ar/teachers.json";
+import auditEn from "./locales/en/audit.json";
 import authEn from "./locales/en/auth.json";
 import commonEn from "./locales/en/common.json";
+import enrollmentsEn from "./locales/en/enrollments.json";
 import errorsEn from "./locales/en/errors.json";
+import groupsEn from "./locales/en/groups.json";
+import parentsEn from "./locales/en/parents.json";
+import scheduleEn from "./locales/en/schedule.json";
+import settingsEn from "./locales/en/settings.json";
 import shellEn from "./locales/en/shell.json";
+import staffEn from "./locales/en/staff.json";
 import statusEn from "./locales/en/status.json";
+import studentsEn from "./locales/en/students.json";
+import subjectsEn from "./locales/en/subjects.json";
+import teachersEn from "./locales/en/teachers.json";
 
 const StorageKey = "tcm.lang";
 type SupportedLanguage = "ar" | "en";
@@ -57,12 +77,44 @@ void i18next
   .use(initReactI18next)
   .init({
     resources: {
-      en: { common: commonEn, status: statusEn, errors: errorsEn, auth: authEn, shell: shellEn },
-      ar: { common: commonAr, status: statusAr, errors: errorsAr, auth: authAr, shell: shellAr },
+      en: {
+        common: commonEn,
+        status: statusEn,
+        errors: errorsEn,
+        auth: authEn,
+        shell: shellEn,
+        subjects: subjectsEn,
+        students: studentsEn,
+        parents: parentsEn,
+        staff: staffEn,
+        settings: settingsEn,
+        audit: auditEn,
+        teachers: teachersEn,
+        groups: groupsEn,
+        enrollments: enrollmentsEn,
+        schedule: scheduleEn,
+      },
+      ar: {
+        common: commonAr,
+        status: statusAr,
+        errors: errorsAr,
+        auth: authAr,
+        shell: shellAr,
+        subjects: subjectsAr,
+        students: studentsAr,
+        parents: parentsAr,
+        staff: staffAr,
+        settings: settingsAr,
+        audit: auditAr,
+        teachers: teachersAr,
+        groups: groupsAr,
+        enrollments: enrollmentsAr,
+        schedule: scheduleAr,
+      },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

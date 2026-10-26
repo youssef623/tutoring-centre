@@ -20,7 +20,7 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
         var user = await db.Set<ApplicationUser>()
             .AsNoTracking()
             .Where(u => u.Id == userId)
-            .Select(u => new { u.Id, u.DisplayName, u.Email, u.PreferredLocale })
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.PreferredLocale, u.MustChangePassword })
             .SingleOrDefaultAsync(ct);
 
         if (user is null)
@@ -32,10 +32,10 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
             from membership in db.Set<Membership>().AsNoTracking()
             where membership.UserId == userId && membership.Status == MembershipStatus.Active
             join centre in db.Set<Centre>().AsNoTracking() on membership.CentreId equals centre.Id
-            select new MembershipDto(centre.Id, centre.Name, centre.Slug, membership.Role))
+            select new MembershipDto(centre.Id, centre.Name, centre.Slug, membership.Role, centre.TimeZoneId))
             .ToListAsync(ct);
 
-        return new StaffProfileDto(user.Id, user.DisplayName, user.Email ?? string.Empty, user.PreferredLocale, memberships);
+        return new StaffProfileDto(user.Id, user.DisplayName, user.Email ?? string.Empty, user.PreferredLocale, memberships, user.MustChangePassword);
     }
 
     public async Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct) =>
@@ -59,10 +59,21 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
             return null;
         }
 
-        var membershipActive = centreId is null || await db.Set<Membership>()
-            .AsNoTracking()
-            .AnyAsync(m => m.UserId == userId && m.CentreId == centreId && m.Status == MembershipStatus.Active, ct);
+        if (centreId is null)
+        {
+            return new SessionStateDto(stamp, MembershipActive: true, CurrentRole: null);
+        }
 
-        return new SessionStateDto(stamp, membershipActive);
+        var membership = await db.Set<Membership>()
+            .AsNoTracking()
+            .Where(m => m.UserId == userId && m.CentreId == centreId)
+            .Select(m => new { m.Status, m.Role })
+            .SingleOrDefaultAsync(ct);
+
+        var membershipActive = membership is not null && membership.Status == MembershipStatus.Active;
+        return new SessionStateDto(stamp, membershipActive, membership?.Role);
     }
+
+    public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) =>
+        db.Set<ApplicationUser>().AsNoTracking().Where(u => u.Id == userId).Select(u => u.MustChangePassword).SingleOrDefaultAsync(ct);
 }

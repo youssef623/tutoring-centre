@@ -1,0 +1,6 @@
+node_modules
+
+# Playwright (Task 35.8): reports and traces. Traces are off in playwright.config.ts (never retain the demo
+# password), but this stays in case that ever changes locally during debugging.
+playwright-report
+test-results

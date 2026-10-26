@@ -1,0 +1,119 @@
+{
+  "page": {
+    "title": "Students",
+    "searchLabel": "Search students",
+    "showArchived": "Show archived",
+    "subtitle": "Every student registered at your centre, with their primary parent.",
+    "filtersLabel": "Filter students"
+  },
+  "columns": {
+    "name": "Name",
+    "schoolYear": "School year",
+    "primaryParent": "Primary parent",
+    "parentPhone": "Parent phone",
+    "status": "Status"
+  },
+  "actions": {
+    "register": "Register student",
+    "edit": "Edit",
+    "archive": "Archive",
+    "restore": "Restore",
+    "addParent": "Add parent",
+    "makePrimary": "Make primary",
+    "unlink": "Unlink"
+  },
+  "loading": {
+    "label": "Loading students",
+    "detailLabel": "Loading student"
+  },
+  "error": {
+    "title": "Students could not be loaded",
+    "reference": "Reference: {correlationId}"
+  },
+  "detailError": {
+    "title": "This student could not be loaded"
+  },
+  "notFound": {
+    "title": "Student not found",
+    "description": "This student does not exist, or you don't have access to it.",
+    "backToList": "Back to students"
+  },
+  "emptyState": {
+    "title": "No students yet",
+    "description": "Register your first student to get started.",
+    "noMatchTitle": "No students match \"{search}\"."
+  },
+  "detail": {
+    "phoneLabel": "Phone"
+  },
+  "parentsCard": {
+    "title": "Parents",
+    "primaryBadge": "Primary contact",
+    "openMenu": "Open actions menu"
+  },
+  "addParent": {
+    "link": "Link",
+    "retryLink": "Retry link",
+    "linkFailedNotice": "The parent now exists but could not be linked yet. Try linking again."
+  },
+  "archivedBanner": {
+    "title": "This student is archived",
+    "description": "Restore the student to edit their details or manage their parents."
+  },
+  "form": {
+    "studentSectionTitle": "Student",
+    "parentSectionTitle": "Parent or guardian",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "e.g. Ahmed Mahmoud",
+    "phoneLabel": "Phone (optional)",
+    "schoolYearLabel": "School year (optional)",
+    "schoolYearPlaceholder": "e.g. Grade 5",
+    "parentPhoneLabel": "Parent's phone",
+    "parentFullNameLabel": "Parent's full name",
+    "parentFullNamePlaceholder": "e.g. Mahmoud Hassan",
+    "relationshipLabel": "Relationship",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "dialogs": {
+    "editTitle": "Edit student",
+    "addParentTitle": "Add parent"
+  },
+  "confirmations": {
+    "archiveTitle": "Archive \"{name}\"?",
+    "archiveBody": "They will become read-only until restored, and their parent actions will be hidden.",
+    "archiveConfirm": "Archive student",
+    "unlinkTitle": "Unlink {name}?",
+    "unlinkBody": "They will no longer be linked to this student. This does not delete their record.",
+    "unlinkConfirm": "Unlink"
+  },
+  "lookup": {
+    "existingParent": "Existing parent: {name}",
+    "changeNumber": "Not this person? Change the number"
+  },
+  "relationship": {
+    "father": "Father",
+    "mother": "Mother",
+    "guardian": "Guardian",
+    "other": "Other"
+  },
+  "toasts": {
+    "registered": "Student registered.",
+    "updated": "Student updated.",
+    "archived": "Student archived.",
+    "restored": "Student restored.",
+    "parentLinked": "Parent linked.",
+    "parentMadePrimary": "Primary contact updated.",
+    "parentUnlinked": "Parent unlinked."
+  },
+  "validation": {
+    "fullNameRequired": "Student name is required.",
+    "fullNameTooLong": "Student name must be at most 120 characters.",
+    "phoneTooLong": "Phone number must be at most 30 characters.",
+    "schoolYearTooLong": "School year must be at most 40 characters.",
+    "parentPhoneRequired": "Parent's phone is required.",
+    "parentPhoneTooLong": "Phone number must be at most 30 characters.",
+    "parentFullNameRequired": "Parent's full name is required.",
+    "parentFullNameTooLong": "Parent's full name must be at most 120 characters."
+  }
+}

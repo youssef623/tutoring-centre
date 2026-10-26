@@ -11,6 +11,8 @@ public sealed class FakeMembershipReadService : IMembershipReadService
 
     public SessionStateDto? SessionState { get; set; }
 
+    public bool MustChangePassword { get; set; }
+
     public Task<StaffProfileDto?> GetProfileAsync(Guid userId, CancellationToken ct) => Task.FromResult(Profile);
 
     public Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct) =>
@@ -18,4 +20,6 @@ public sealed class FakeMembershipReadService : IMembershipReadService
 
     public Task<SessionStateDto?> GetSessionStateAsync(Guid userId, Guid? centreId, CancellationToken ct) =>
         Task.FromResult(SessionState);
+
+    public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) => Task.FromResult(MustChangePassword);
 }
