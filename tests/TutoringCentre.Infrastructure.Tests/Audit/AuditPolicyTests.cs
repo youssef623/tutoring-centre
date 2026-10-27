@@ -1,5 +1,6 @@
 using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Academics.Scheduling;
+using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Domain.Common;
 using TutoringCentre.Domain.Identity;
@@ -13,9 +14,10 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlyElevenAuditedTypes()
+    public void Entries_HasExactlyTwelveAuditedTypes()
     {
-        Assert.Equal(11, AuditPolicy.Entries.Count);
+        Assert.Equal(12, AuditPolicy.Entries.Count);
+        Assert.Contains(typeof(AttendanceRecord), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(ScheduleRule), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(ClassSession), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Enrollment), AuditPolicy.Entries.Keys);
@@ -27,6 +29,27 @@ public sealed class AuditPolicyTests
         Assert.Contains(typeof(StudentParentLink), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Teacher), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Group), AuditPolicy.Entries.Keys);
+    }
+
+    [Fact]
+    public void AttendanceRecord_OnlyUpdates_WithExactlyTheContractFields()
+    {
+        var entry = AuditPolicy.Entries[typeof(AttendanceRecord)];
+        Assert.Equal(AuditEntityType.AttendanceRecord, entry.EntityType);
+        Assert.Equal(new HashSet<string> { "Status", "Source", "CorrectionCount", "correctionReason" }, entry.AllowedFields);
+        Assert.Equal(new HashSet<AuditAction> { AuditAction.Updated }, entry.Actions);
+        Assert.Empty(entry.MaskedFields);
+        var now = new DateTimeOffset(2026, 12, 5, 16, 0, 0, TimeSpan.Zero);
+        var record = AttendanceRecord.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            AttendanceStatus.Present, AttendanceSource.Manual, null, new(now, now.AddHours(1), false), now).Value;
+        Assert.Equal(record.CentreId, entry.ResolveCentreId(record));
+        Assert.False(entry.Records(AuditAction.Created));
+        Assert.True(entry.Records(AuditAction.Updated));
+        Assert.False(entry.Records(AuditAction.Deleted));
+        Assert.Equal("attendance_record", AuditEntityTypeNames.ToDatabase(entry.EntityType));
+        Assert.Equal(entry.EntityType, AuditEntityTypeNames.FromDatabase("attendance_record"));
+        Assert.True(AuditEntityTypeNames.TryParse("attendance_record", out var parsed));
+        Assert.Equal(entry.EntityType, parsed);
     }
 
     [Fact]

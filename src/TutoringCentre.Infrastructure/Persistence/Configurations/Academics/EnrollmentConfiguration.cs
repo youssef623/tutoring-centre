@@ -41,6 +41,8 @@ internal sealed class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollm
         builder.Property(enrollment => enrollment.Id).ValueGeneratedNever(); // UUIDv7 is assigned by the Domain
 
         builder.ConfigureTenantOwned(TableName);
+        builder.HasAlternateKey(enrollment => new { enrollment.CentreId, enrollment.Id, enrollment.StudentId })
+            .HasName("ux_enrollments_centre_id_student");
 
         builder.Property(enrollment => enrollment.StudentId).IsRequired();
         builder.Property(enrollment => enrollment.GroupId).IsRequired();

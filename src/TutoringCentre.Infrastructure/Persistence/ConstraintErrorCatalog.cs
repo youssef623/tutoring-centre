@@ -46,6 +46,9 @@ internal static class ConstraintErrorCatalog
             ErrorKind.Conflict,
             new Dictionary<string, string[]> { ["name"] = ["A group with this name already exists."] }),
 
+        ["ux_attendance_records_session_student"] = () =>
+            Error.Conflict("attendance.concurrent_mark", "Attendance changed while this record was being marked. Refresh and try again."),
+
         // The partial index allows one active enrollment per student and group; a race loser gets the same
         // Conflict as the enroll handler's own check (Day 48).
         ["ux_enrollments_active_student_group"] = () =>

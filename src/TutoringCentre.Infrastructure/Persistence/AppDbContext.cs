@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence.Conventions;
@@ -39,6 +42,14 @@ public class AppDbContext : IdentityUserContext<ApplicationUser, Guid>, IDataPro
 
     /// <summary>The Data Protection key ring (Task 34.6) — platform-level, not tenant-owned, no RLS.</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(configurationBuilder);
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.Conventions.Replace<ForeignKeyIndexConvention>(provider =>
+            new AttendanceIndexConvention(provider.GetRequiredService<ProviderConventionSetBuilderDependencies>()));
+    }
 
     protected sealed override void OnModelCreating(ModelBuilder builder)
     {

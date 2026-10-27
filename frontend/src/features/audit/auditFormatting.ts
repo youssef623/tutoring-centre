@@ -17,6 +17,7 @@ export const AuditEntityTypes = [
   "enrollment",
   "schedule_rule",
   "class_session",
+  "attendance_record",
 ] as const;
 
 export type AuditEntityType = (typeof AuditEntityTypes)[number];

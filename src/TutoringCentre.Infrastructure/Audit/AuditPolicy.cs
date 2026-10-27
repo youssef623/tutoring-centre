@@ -1,5 +1,6 @@
 using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Academics.Scheduling;
+using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Domain.Identity;
 
@@ -105,6 +106,16 @@ internal static class AuditPolicy
                 nameof(ScheduleRule.EffectiveFrom),
                 nameof(ScheduleRule.EffectiveTo),
             }),
+
+        [typeof(AttendanceRecord)] = new AuditPolicyEntry(
+            AuditEntityType.AttendanceRecord,
+            entity => ((AttendanceRecord)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(AttendanceRecord.Status), nameof(AttendanceRecord.Source),
+                nameof(AttendanceRecord.CorrectionCount), "correctionReason",
+            },
+            Actions: new HashSet<AuditAction> { AuditAction.Updated }),
 
         // Updated only: generated sessions are derived from their audited rule, and dozens of creation rows per rule
         // would bury the log. A cancellation (Status) or a teacher reassignment (TeacherId) is a decision, so it is

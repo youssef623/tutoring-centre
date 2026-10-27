@@ -58,6 +58,17 @@ public sealed class PersistenceErrorTranslatorTests
     }
 
     [Fact]
+    public void TryTranslate_DuplicateAttendance_ReturnsConcurrentMarkConflict()
+    {
+        var result = PersistenceErrorTranslator.TryTranslate(
+            UniqueViolation("ux_attendance_records_session_student"), NullLogger.Instance);
+        Assert.NotNull(result);
+        Assert.True(result.IsFailure);
+        Assert.Equal("attendance.concurrent_mark", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
+    }
+
+    [Fact]
     public void TryTranslate_UniqueViolationOnOnePrimaryIndex_IsNotTranslated()
     {
         var exception = UniqueViolation("ux_student_parents_one_primary");
