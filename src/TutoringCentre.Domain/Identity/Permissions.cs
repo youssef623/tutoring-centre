@@ -20,6 +20,10 @@ public static class Permissions
     public const string ScheduleView = "schedule.view";
     public const string ScheduleManage = "schedule.manage";
 
+    public const string AttendanceView = "attendance.view";
+    public const string AttendanceMark = "attendance.mark";
+    public const string AttendanceCorrect = "attendance.correct";
+
     public static IReadOnlyCollection<string> All { get; } = new[]
     {
         SubjectsView,
@@ -38,5 +42,8 @@ public static class Permissions
         EnrollmentsManage,
         ScheduleView,
         ScheduleManage,
+        AttendanceView,
+        AttendanceMark,
+        AttendanceCorrect,
     };
 }

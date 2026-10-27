@@ -23,6 +23,9 @@ public static class RolePermissions
             Permissions.EnrollmentsManage,
             Permissions.ScheduleView,
             Permissions.ScheduleManage,
+            Permissions.AttendanceView,
+            Permissions.AttendanceMark,
+            Permissions.AttendanceCorrect,
         },
         [StaffRole.Secretary] = new HashSet<string>
         {
@@ -37,6 +40,9 @@ public static class RolePermissions
             Permissions.EnrollmentsManage,
             Permissions.ScheduleView,
             Permissions.ScheduleManage,
+            Permissions.AttendanceView,
+            Permissions.AttendanceMark,
+            Permissions.AttendanceCorrect,
         },
         [StaffRole.Teacher] = new HashSet<string>
         {
@@ -46,6 +52,9 @@ public static class RolePermissions
             Permissions.EnrollmentsView,
             // Own groups only, by the same ownership scope; read-only, no schedule.manage.
             Permissions.ScheduleView,
+            // Session ownership is enforced by the attendance use cases (Day 57).
+            Permissions.AttendanceView,
+            Permissions.AttendanceMark,
         },
     };
 
