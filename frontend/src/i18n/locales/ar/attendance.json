@@ -1,0 +1,17 @@
+{
+  "status": {
+    "Present": "حاضر",
+    "Late": "متأخر",
+    "Absent": "غائب",
+    "Excused": "بعذر"
+  },
+  "source": {
+    "Manual": "يدوي",
+    "Qr": "رمز QR"
+  },
+  "windowState": {
+    "NotOpen": "لم تفتح بعد",
+    "Open": "مفتوحة",
+    "Closed": "مغلقة"
+  }
+}

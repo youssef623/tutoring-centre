@@ -138,6 +138,20 @@
     },
     "conflict": {
       "duplicate": "This conflicts with existing data."
+    },
+    "attendance": {
+      "session_cancelled": "Attendance cannot be changed for a cancelled session.",
+      "session_not_open": "Attendance opens 30 minutes before the session starts.",
+      "window_closed": "The attendance window has closed. Use a correction to change a recorded status.",
+      "record_corrected": "This record has been corrected. Use a correction to change it again.",
+      "correction_too_early": "Attendance can only be corrected once the session has started.",
+      "correction_reason_invalid": "Enter a correction reason containing 3 to 200 characters.",
+      "correction_unchanged": "A correction must change the attendance status.",
+      "reference_required": "All required references must be provided.",
+      "not_found": "The attendance record was not found.",
+      "session_not_found": "The session was not found.",
+      "student_not_in_session": "This student is not enrolled for this session.",
+      "concurrent_mark": "Attendance changed while you were editing. Refresh and try again."
     }
   },
   "byKind": {

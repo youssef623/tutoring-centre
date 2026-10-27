@@ -4,6 +4,16 @@ import { messageFor } from "./errorMessages";
 import type { ApiError, ErrorKind } from "./errors";
 
 describe("messageFor", () => {
+  it.each([
+    ["en", "attendance.window_closed", "rule", 422, "The attendance window has closed. Use a correction to change a recorded status."],
+    ["en", "attendance.correction_reason_invalid", "validation", 400, "Enter a correction reason containing 3 to 200 characters."],
+    ["ar", "attendance.window_closed", "rule", 422, "انتهت فترة تسجيل الحضور. استخدم التصحيح لتغيير حالة مسجلة."],
+    ["ar", "attendance.correction_reason_invalid", "validation", 400, "أدخل سببًا للتصحيح يتكون من 3 إلى 200 حرف."],
+  ] as const)("translates %s %s", async (language, code, kind, status, expected) => {
+    await i18next.changeLanguage(language);
+    expect(messageFor({ kind, code, status, message: "server prose" })).toBe(expected);
+  });
+
   afterEach(async () => {
     // Leave i18next in English so other test files are unaffected.
     await i18next.changeLanguage("en");
