@@ -1,53 +1,48 @@
-# src/TutoringCentre.Api/Auth/SessionValidationOptions.cs
+# `src/TutoringCentre.Api/Auth/SessionValidationOptions.cs`
 
 ## Purpose
 
-Typed options for the revalidation cache duration.
+Source summary (intent, not independent execution proof): Bound from configuration key SessionValidation:CacheDuration (e.g. "00:01:00"). Zero disables caching.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. Bound from configuration section `SessionValidation` in `AuthenticationSetup` and read by `SessionRevalidationHandler`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/SessionValidationOptions.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 9 lines and 369 bytes. Source hash: `7ed7bf9c90360a53dab10fd33ce354c60b64d72ffb2ecb19a0a538927ff761a7`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`DefaultCacheDuration = TimeSpan.FromSeconds(60)` (6) and `CacheDuration { get; set; } = DefaultCacheDuration` (8). Doc: key `SessionValidation:CacheDuration` (e.g. `"00:01:00"`); zero disables caching. `ApiFactory` sets it to `00:00:00` so tests see revocation on the very next request.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Options pattern and ValidateOnStart
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-The options pattern binds configuration into a typed class and can validate it. `ValidateOnStart` runs that validation when the host starts, so a bad configuration stops the app immediately instead of failing on first use.
+- [Line 4](../../../../../src/TutoringCentre.Api/Auth/SessionValidationOptions.cs#L4): `public sealed class SessionValidationOptions`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks).)
+## Used by: verified name references
 
-#### Where it appears in this file
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-Options class.
+- [src/TutoringCentre.Api/Auth/AuthenticationSetup.cs:55](../../../../../src/TutoringCentre.Api/Auth/AuthenticationSetup.cs#L55)
+- [src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs:42](../../../../../src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs#L42)
 
-#### How it works here
+## Current source excerpt
 
-Whole file.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+namespace TutoringCentre.Api.Auth;
 
-Tunable security/performance trade-off.
+/// <summary>Bound from configuration key SessionValidation:CacheDuration (e.g. "00:01:00"). Zero disables caching.</summary>
+public sealed class SessionValidationOptions
+{
+    public static readonly TimeSpan DefaultCacheDuration = TimeSpan.FromSeconds(60);
 
-## Data and Control Flow
+    public TimeSpan CacheDuration { get; set; } = DefaultCacheDuration;
+}
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-`SessionValidation:CacheDuration` (TimeSpan string).
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs`](SessionRevalidationHandler.cs.md)
-- [`src/TutoringCentre.Api/Auth/AuthenticationSetup.cs`](AuthenticationSetup.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs`](../../../tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

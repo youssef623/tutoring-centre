@@ -1,51 +1,88 @@
-# tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs
+# `tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs`
 
 ## Purpose
 
-Tests `Result`/`Result<T>` invariants.
+Declares `ResultTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Domain.Tests; tests `Domain/Common/Result.cs`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 46 lines and 1,269 bytes. Source hash: `5915a71963c4c48ff71078454d2b6b205fbf55c53db66c10041f3c8a06db1477`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Success_HasNoErrorAndExposesValue`; `Failure_ExposesItsError`; `Value_OnFailure_ThrowsInvalidOperationException` (reading value of a failure is a bug); `Failure_WithNullError_ThrowsArgumentNullException` (`Result.Failure(null!)` - `null!` bypasses nullable annotations deliberately). Not tested: the 'success with error' constructor guard (unreachable through factories).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### The Result pattern (failures as values)
+- Line 1: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+- [Line 5](../../../../../tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs#L5): `public sealed class ResultTests`
+- [Line 10](../../../../../tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs#L10): `public void Success_HasNoErrorAndExposesValue()`
+- [Line 23](../../../../../tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs#L23): `public void Failure_ExposesItsError()`
+- [Line 33](../../../../../tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs#L33): `public void Value_OnFailure_ThrowsInvalidOperationException()`
+- [Line 41](../../../../../tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs#L41): `public void Failure_WithNullError_ThrowsArgumentNullException()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Result invariants.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-All four tests.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Domain.Common;
 
-Guards the foundation of the failure model.
+namespace TutoringCentre.Domain.Tests.Common;
 
-## Data and Control Flow
+public sealed class ResultTests
+{
+    private static readonly Error SampleError = Error.Validation("test.invalid", "Invalid input.");
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    [Fact]
+    public void Success_HasNoErrorAndExposesValue()
+    {
+        // Arrange / Act
+        var result = Result<int>.Success(42);
 
-## Configuration and Environment
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsFailure);
+        Assert.Null(result.Error);
+        Assert.Equal(42, result.Value);
+    }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    [Fact]
+    public void Failure_ExposesItsError()
+    {
+        var result = Result<int>.Failure(SampleError);
 
-## Gotchas and Issues
+        Assert.True(result.IsFailure);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(SampleError, result.Error);
+    }
 
-No bugs or surprises found while reading this file.
+    [Fact]
+    public void Value_OnFailure_ThrowsInvalidOperationException()
+    {
+        var result = Result<int>.Failure(SampleError);
 
-## Related Files
+        Assert.Throws<InvalidOperationException>(() => result.Value);
+    }
 
-- [`src/TutoringCentre.Domain/Common/Result.cs`](../../../src/TutoringCentre.Domain/Common/Result.cs.md)
+    [Fact]
+    public void Failure_WithNullError_ThrowsArgumentNullException()
+    {
+        // null! deliberately passes null through the non-nullable parameter to test the guard.
+        Assert.Throws<ArgumentNullException>(() => Result.Failure(null!));
+    }
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

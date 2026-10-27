@@ -1,52 +1,70 @@
-# tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj
+# `tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj`
 
 ## Purpose
 
-Project file for Application unit tests; references Application and the DI package used to build a service provider in `DispatcherTests`.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-tests/. Needs `InternalsVisibleTo` granted by `Application.csproj` to access `internal` handlers/validators.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 29 lines and 965 bytes. Source hash: `06ff4b00a4202c9d85ededbc57c3a76a3668623185d49efae1e44cb9d9bc2efc`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Every test project sets `IsPackable=false` (never published as a NuGet package), adds `<Using Include="Xunit" />` (a global using so test files need no `using Xunit;`), and references `coverlet.collector`, `Microsoft.NET.Test.Sdk`, `xunit` and `xunit.runner.visualstudio` (with `IncludeAssets`/`PrivateAssets` so the runner is not flowed). Versions come from `Directory.Packages.props`. No code coverage step runs in CI even though `coverlet.collector` is referenced. Extra: `Microsoft.Extensions.DependencyInjection` (concrete container) so `DispatcherTests` can call `new ServiceCollection()...BuildServiceProvider()`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### xUnit mechanics (facts, theories, collections, fixtures)
+- Line 12: `<PackageReference Include="coverlet.collector">`
+- Line 16: `<PackageReference Include="Microsoft.Extensions.DependencyInjection" />`
+- Line 17: `<PackageReference Include="Microsoft.NET.Test.Sdk" />`
+- Line 18: `<PackageReference Include="xunit" />`
+- Line 19: `<PackageReference Include="xunit.runner.visualstudio">`
+- Line 26: `<ProjectReference Include="..\..\src\TutoringCentre.Application\TutoringCentre.Application.csproj" />`
 
-#### What it means
+## Walkthrough and declaration map
 
-`[Fact]` is a test; `[Theory]` + `[InlineData]` runs one test with several inputs. A *collection fixture* (`ICollectionFixture<T>` + `[Collection]`) shares one expensive object (a database container) across test classes and serialises them; `IAsyncLifetime` runs async setup/teardown.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Packages.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Items.
+```text
+<Project Sdk="Microsoft.NET.Sdk">
 
-#### Why it matters here
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
-Test discovery.
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 
-## Data and Control Flow
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TutoringCentre.Application\TutoringCentre.Application.csproj" />
+  </ItemGroup>
 
-## Configuration and Environment
+</Project>
+```
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/TutoringCentre.Application.csproj`](../../src/TutoringCentre.Application/TutoringCentre.Application.csproj.md)
-- [`tests/TutoringCentre.Application.Tests/Cqrs/DispatcherTests.cs`](Cqrs/DispatcherTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

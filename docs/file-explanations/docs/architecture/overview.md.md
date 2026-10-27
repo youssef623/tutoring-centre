@@ -1,59 +1,64 @@
-# docs/architecture/overview.md
+# `docs/architecture/overview.md`
 
 ## Purpose
 
-Explains the failure model (Result vs exceptions), the full request pipeline (middleware, authentication, actor, authorization, rate limiting, CSRF filter, dispatcher), the full path of `CreateCentreCommand` from CLI to table, the path of `GET /api/system/info` from HTTP to table, and links the ADRs.
+Documentation covering Architecture overview; Failures: results vs exceptions; Request pipeline (end of Month 2); Request path: `CreateCentreCommand` (CLI → table); Request path: `GET /api/system/info` (HTTP → table). Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Documentation. Source of truth for `Dispatcher.cs` behaviour and for `docs/notes/pipeline-cases.md`.
+Category: **documentation**. [Open current file](../../../architecture/overview.md). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 202 lines and 15,762 bytes. Source hash: `da5b375e9905740f5ef9eee41513b2c1a262b2e31d713866e6a87eee352c82c7`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-**Failures: results vs exceptions** - table mapping situations to mechanisms; kinds (closed set), codes (`<feature>.<reason>`), messages (developer-only), safety (no internals). **Request pipeline (end of Week 3)** (replaces the earlier 'Dispatcher design' ASCII section): an ASCII flow of every HTTP request - `CorrelationIdMiddleware`, request logging, exception handler, status code pages, `UseAuthentication` (cookie decrypted; `OnValidatePrincipal` revalidates against the database with a 60 s cache), `ActorMiddleware`, `UseAuthorization` (authenticated by default; six routes opt out), `UseRateLimiter` (the `login` policy only), endpoint routing, `AntiforgeryEndpointFilter` (whole `/api` group, unsafe methods only) - followed by the command pipeline (`Dispatcher.SendAsync`: validate, [tenant and permission checks plug in here in Month 2], `BeginAsync(readOnly: false)`, handler, rollback or save once and commit) and the query pipeline (`QueryAsync`: validate, read-only transaction, read service to DTOs, commit); why validation runs before BEGIN; why the transaction starts before the handler (row locks `FOR UPDATE`, Month-2 row-level-security tenant setting must cover the whole handler); what happens when a query handler throws; who calls SaveChanges; where tenant/permission checks go (after validation, before BEGIN - not implemented). **Request path: CreateCentreCommand** - 11-step table of files; **Request path: `GET /api/system/info`** - 7-step table from correlation id through the endpoint, the query pipeline, the handler and read service, result mapping, to the frontend (generated hook, `apiFetch`, `SystemInfoCard`); **Decisions and conventions** - links to ADR 0001-0005, API conventions and the authentication document. I verified every referenced file exists and the order matches `Program.cs`, `SeedCommand.cs`, `Dispatcher.cs`, `CreateCentreHandler.cs`.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### CQRS and the dispatcher pipeline
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+- [Line 154](../../../architecture/overview.md#L154): `allowed) or an explicit published interface in that module's own Contracts namespace (Task 43.3, e.g.`
+- [Line 160](../../../architecture/overview.md#L160): `how it is answered: every type in one must be an interface or a record, and it may not itself depend on its`
+- [Line 170](../../../architecture/overview.md#L170): `| TutoringCentre.Application.Identity.Contracts.IStaffDirectory (Day 43) | Identity | IsActiveMemberWithRoleAsync(centreId, userId, role): is this user an active member of this centre with exactly this role? A bool. | linking a teacher record to a staff account |`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Dispatcher design section.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Describes `Dispatcher.SendAsync/QueryAsync`.
+```text
+# Architecture overview
 
-#### Why it matters here
+## Failures: results vs exceptions
 
-Documented reasons for the transaction placement.
+**Rule.** Expected business outcomes are `Result` failures returned as values. Bugs and infrastructure faults are exceptions, handled once by a global handler.
 
-## Data and Control Flow
+| Situation | Mechanism | Example |
+| --- | --- | --- |
+| Invalid input | `Result` failure, kind `Validation` | slug `"Bad Slug"` → `centre.slug_invalid` |
+| Something requested doesn't exist | `NotFound` | unknown centre (from Week 2) |
+| Conflicts with existing data | `Conflict` | duplicate slug (Day 9) |
+| A business rule says no | `Rule` | enrolling into a full group (`group.full`) |
+| The caller isn't allowed | `Forbidden` | non-system actor creating a centre (Week 2) |
+| A bug | exception | reading `Value` of a failed `Result` |
+| An infrastructure fault | exception | database unreachable, timeout |
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+**Kinds.** `Validation`, `NotFound`, `Conflict`, `Rule`, `Forbidden` — a closed set. The Api maps each kind to exactly one HTTP status (Day 11); adding a kind is an API-contract change.
 
-## Configuration and Environment
+**Codes.** `<feature>.<reason>`: lowercase feature, snake_case reason — `centre.slug_invalid`, `centre.name_too_long`. Codes are a public contract that the frontend translates; renaming one is a breaking change.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+**Messages** are for developers and logs. Users see translated text chosen by the code.
 
-## Gotchas and Issues
+**Safety.** Codes and messages never contain internals: no stack traces, SQL, file paths or secrets.
 
-Mentions 'Day 7/9/11', 'Month 2/3/6', 'Week 2' from a plan not in the repo.
+```
 
-## Related Files
+The excerpt stops at line 24; use the original file for the remaining 178 lines.
 
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md)
-- [`docs/notes/pipeline-cases.md`](../notes/pipeline-cases.md.md)
-- [`src/TutoringCentre.Api/Cli/SeedCommand.cs`](../../src/TutoringCentre.Api/Cli/SeedCommand.cs.md)
-- [`docs/architecture/api-conventions.md`](api-conventions.md.md)
-- [`docs/architecture/authentication.md`](authentication.md.md)
-- [`docs/adr/0003-custom-cqrs-dispatcher.md`](../adr/0003-custom-cqrs-dispatcher.md.md)
-- [`docs/adr/0004-unit-of-work-port.md`](../adr/0004-unit-of-work-port.md.md)
-- [`docs/adr/0005-cookie-authentication.md`](../adr/0005-cookie-authentication.md.md)
-- [`src/TutoringCentre.Api/Auth/AuthenticationSetup.cs`](../../src/TutoringCentre.Api/Auth/AuthenticationSetup.cs.md)
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

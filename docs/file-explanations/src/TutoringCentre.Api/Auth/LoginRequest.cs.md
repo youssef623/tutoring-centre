@@ -1,72 +1,80 @@
-# src/TutoringCentre.Api/Auth/LoginRequest.cs
+# `src/TutoringCentre.Api/Auth/LoginRequest.cs`
 
 ## Purpose
 
-The login request model and its FluentValidation validator, kept with the endpoint because login is not a CQRS command.
+Source summary (intent, not independent execution proof): Login is not a CQRS command: the request model and its validator live with the endpoint, not Application.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. `LoginAsync` instantiates `LoginRequestValidator` directly; the record is bound from the JSON body and published in OpenAPI.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/LoginRequest.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 34 lines and 1,500 bytes. Source hash: `d203fd55fc4ad5d4e4e869c259f3b88942b655edaace53c98d6fa74a057d0be4`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record LoginRequest(string Email, string Password);` `LoginRequestValidator : AbstractValidator<LoginRequest>` (`internal`): `Email` `NotEmpty().EmailAddress().MaximumLength(256)`; `Password` `NotEmpty().MaximumLength(128)` (constants 11-12). Doc: shape checks only; login accepts whatever password was set, with no composition rules (the password length policy lives in Identity options, Infrastructure). Because it is not registered through the Application assembly scan, the dispatcher never runs it.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Two-tier validation
+- Line 1: `using FluentValidation;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
+- [Line 6](../../../../../src/TutoringCentre.Api/Auth/LoginRequest.cs#L6): `public sealed record LoginRequest(string Email, string Password);`
+- [Line 9](../../../../../src/TutoringCentre.Api/Auth/LoginRequest.cs#L9): `internal sealed class LoginRequestValidator : AbstractValidator<LoginRequest>`
+- [Line 14](../../../../../src/TutoringCentre.Api/Auth/LoginRequest.cs#L14): `public LoginRequestValidator()`
+- [Line 22](../../../../../src/TutoringCentre.Api/Auth/LoginRequest.cs#L22): `public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);`
+- [Line 25](../../../../../src/TutoringCentre.Api/Auth/LoginRequest.cs#L25): `internal sealed class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>`
+- [Line 29](../../../../../src/TutoringCentre.Api/Auth/LoginRequest.cs#L29): `public ChangePasswordRequestValidator()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Shape-only validation.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:91](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L91)
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:183](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L183)
 
-Validator class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Cheap rejection before any credential work.
+```csharp
+using FluentValidation;
 
-### Records, immutability and primary constructors
+namespace TutoringCentre.Api.Auth;
 
-#### What it means
+/// <summary>Login is not a CQRS command: the request model and its validator live with the endpoint, not Application.</summary>
+public sealed record LoginRequest(string Email, string Password);
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+/// <summary>Shape checks only; login accepts whatever password was set, no composition rules here.</summary>
+internal sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
+{
+    private const int EmailMaxLength = 256;
+    private const int PasswordMaxLength = 128;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+    public LoginRequestValidator()
+    {
+        RuleFor(request => request.Email).NotEmpty().EmailAddress().MaximumLength(EmailMaxLength);
+        RuleFor(request => request.Password).NotEmpty().MaximumLength(PasswordMaxLength);
+    }
+}
 
-#### Where it appears in this file
+/// <summary>Change-password is not a CQRS command either (ADR 0005), for the same reason login is not.</summary>
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
-Request record.
+/// <summary>Shape checks only; the password policy itself is enforced by Identity inside the authentication port.</summary>
+internal sealed class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
+{
+    private const int PasswordMaxLength = 128;
 
-#### How it works here
+    public ChangePasswordRequestValidator()
+    {
+        RuleFor(request => request.CurrentPassword).NotEmpty().MaximumLength(PasswordMaxLength);
+        RuleFor(request => request.NewPassword).NotEmpty().MaximumLength(PasswordMaxLength);
+    }
+}
+```
 
-Line 6.
+## Before modifying this file
 
-#### Why it matters here
-
-Immutable body model.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Validator is created with `new` per request (not from DI), unlike CQRS validators.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/RequestValidation.cs`](RequestValidation.cs.md)
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](AuthEndpoints.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,34 +1,66 @@
-# later.md
+# `later.md`
 
 ## Purpose
 
-Parking lot for ideas deliberately postponed, with the reason and the earliest sensible time.
+Documentation covering Later. Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Root documentation note; referenced by no code. Entries refer to `compose.yaml` and the dispatcher design in `docs/architecture/overview.md`.
+Category: **documentation**. [Open current file](../../later.md). [Complete file index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 59 lines and 32,297 bytes. Source hash: `471f2c79dba52907e347f4b1aa23ad1a33d659452f293b8b3c62f9d0d801166b`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-A table with columns Date / Idea / Why not now / Earliest. Row 1 (2026-10-02): pgAdmin in `compose.yaml` - not needed yet, 'Task 2.5 says no extra services'. Row 2 (2026-10-02): idempotency keys on marked commands - the dispatcher is a single-request, single-transaction pipeline so retries are not a problem yet; earliest 'Month 6'. Shows the author's habit of recording deferrals instead of building speculatively.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-This file introduces no concept that needs a tutorial beyond what its walkthrough already explains.
+## Walkthrough and declaration map
 
-## Data and Control Flow
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+- [Line 12](../../later.md#L12): `| 2026-10-10 | Auditing reads (who viewed a subject, the staff list, or the audit log itself) | Day 31's audit log is a record of writes only; read-auditing is a different mechanism (every query, not every save) with its own performance and storage cost | When a real compliance or security requirement calls for a read trail, not before |`
+- [Line 38](../../later.md#L38): `| 2026-10-24 | SubjectSelect passes a render function as SelectValue children that returns null for no value, so Base UI never shows the "Choose a subject" placeholder: with nothing chosen the trigger is an empty box (seen in CreateGroupDialog and the Day 50 enroll-in-a-group picker) | Pre-existing shared component from Day 46; the picker works, only the hint is missing | Next time SubjectSelect is touched: return the placeholder text when selected === null. **Done on Day 54**, in SubjectSelect and in TeacherSelect, which had the same render function (groups.index.test.tsx: "the subject and teacher selects show their hint until something is chosen") |`
+- [Line 51](../../later.md#L51): `| 2026-10-26 | No one-off extra session and no rescheduling of a single session (move one Tuesday to Wednesday). Risk: staff work around it by cancelling and adding a whole weekly rule, or by keeping the change outside the system, so the timetable and later attendance are wrong for that week | Every session comes from a weekly rule (ADR 0012); a session without a rule, or one moved away from its rule's date, needs its own natural key and generation rules | When attendance (Month 4) needs to record a make-up class, or a centre asks for it |`
+- [Line 55](../../later.md#L55): `| 2026-10-26 | A teacher record linked to a staff account keeps the link when that account's role later changes (Teacher to Secretary, say) or its membership is deactivated. Risk: an inert link that looks valid on the Teachers page; if the account later becomes a Teacher again it silently regains the old teacher's groups | The teacher scope already fails safe: it applies only to the Teacher role, and an inactive membership cannot select the centre, so the link grants nothing meanwhile. Clearing it automatically means Identity reacting to an event in Academics' data, which no contract supports yet | When role changes become frequent, or with the Month 4 outbox: clear or flag the link when the membership's role or status changes |`
+- [Line 59](../../later.md#L59): `| 2026-10-26 | The contract's checkpoint names RlsCoverageTests; the class is RowLevelSecurityCoverageTests (Infrastructure tests, Day 23), catalogue-driven, with no hard-coded table count. Likewise the module-boundary tests are ModuleBoundaryRuleTests | Names differ only cosmetically; renaming a Month 2 test is out of scope. The Month 3 checkpoint evidence counts the ten tables from the catalogue instead | If the plan's names are ever used as test filters in CI |`
 
-## Configuration and Environment
+## Used by: verified name references
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-## Gotchas and Issues
+## Current source excerpt
 
-References a plan ('Task 2.5', 'Month 6') that is not in the repository.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-## Related Files
+```text
+# Later
 
-- [`compose.yaml`](compose.yaml.md)
-- [`docs/architecture/overview.md`](docs/architecture/overview.md.md)
+Ideas that are out of scope for the current slice. Each entry: date, idea, why not now, earliest sensible slice.
+
+| Date | Idea | Why not now | Earliest |
+| --- | --- | --- | --- |
+| 2026-10-02 | pgAdmin (or another admin tool) in compose.yaml | Not needed to build or test anything yet; Task 2.5 says no extra services | When debugging data by hand becomes frequent |
+| 2026-10-02 | Idempotency keys on marked commands | The dispatcher (Day 7) is a single-request, single-transaction pipeline; retried requests aren't a problem yet | Month 6, per `docs/architecture/overview.md`'s dispatcher design section |
+| 2026-10-08 | Flaky frontend test: `_authenticated.test.tsx` ("renders the shell with the display name and active centre when a centre is set") failed once in a full-suite clean-clone run (`findByText` timeout) but passed standalone and on an immediate full-suite rerun | Not a Week 1 defect — the file predates this week's work and the failure didn't reproduce; Day 24 is verification-only, so it's recorded rather than chased | Next time it blocks CI, or during general frontend test-suite hardening |
+| 2026-10-08 | `npm ci` reports 7 high-severity dependency vulnerabilities (`npm audit`) | Pre-existing, unrelated to Week 1 tenancy work; out of this week's scope | Next dependency-maintenance pass (Dependabot already proposes updates weekly) |
+| 2026-10-10 | Hash-chaining `audit.audit_entries` rows, or shipping them to external append-only storage, so `tutoring_owner` and a database superuser can no longer alter history undetected | Day 31's audit log already stops the one role the running application ever uses from altering a row; closing the remaining gap (migration/infrastructure-level access) is a bigger, separate piece of work with no immediate need yet | When the audit log needs to withstand a compromised or malicious database administrator, not just the application |
+| 2026-10-10 | Auditing reads (who viewed a subject, the staff list, or the audit log itself) | Day 31's audit log is a record of writes only; read-auditing is a different mechanism (every query, not every save) with its own performance and storage cost | When a real compliance or security requirement calls for a read trail, not before |
+| 2026-10-10 | Flaky frontend test: `subjects.test.tsx` ("shows a loading skeleton, then the rows") failed once in a full-suite run (`findByRole` timeout waiting for the loading status) but passed standalone and on an immediate full-suite rerun | Pre-existing timing-sensitive test in the subjects route, untouched by Day 32's audit/centre-settings work; not this day's defect | Next time it blocks CI, or during the frontend test-suite hardening already noted above for `_authenticated.test.tsx` |
+| 2026-10-10 | `error.reference` correlation-id lines in `SubjectsList`, `StaffList` and the Settings page wrap the whole translated sentence ("Reference: {id}") in no direction override at all (unlike the audit page's fixed version, which isolates only the id in `dir="ltr"`), so a hex id beginning with digits can bidi-scramble against the Arabic label depending on content | Pre-existing pattern from Day 27, outside Day 33's scope; the audit page (written fresh today) uses the correct isolated-id pattern instead | Next time any of these three pages' error state is touched, or during a dedicated RTL-bidi pass. **Done on Day 54** for those three and the eight other error states with the same pattern (students list and page, parent page, roster, schedule tab, timetable, audit page, system info): the id is wrapped in a left-to-right isolate (`isolateLtr`, `frontend/src/lib/bidi.ts`) before interpolation. `SystemInfoCard.test.tsx`'s exact-text assertion now includes the isolate characters |
+| 2026-10-10 | `platform.data_protection_keys` rows (the session/antiforgery cookie key ring, Task 34.6) are stored unencrypted at rest; anyone with direct database access (not just the running app) can read the keys and forge a valid session cookie for any user | No cloud key-management service exists yet to wrap the key ring (Day 35 is the first Azure resource); the database itself is already the trust boundary assumed everywhere else in Month 1-2 | When a cloud KMS/Key Vault is available (Day 35 or later), wrap the key ring with `ProtectKeysWithAzureKeyVault` or equivalent |
+| 2026-10-10 | Container image vulnerability scanning (e.g. Trivy/Grype, or GitHub's own container scanning) is not part of CI | Task 34.9 adds the image build and a smoke test, not a security scan; scanning tooling and its false-positive triage is its own piece of work | Before the image is first deployed somewhere internet-facing (Day 35), or the next security-hardening pass |
+| 2026-10-11 | `Content-Security-Policy`'s `style-src` carries `'unsafe-inline'` (Task 34.8), confirmed necessary against the local production stack behind Caddy | Sonner's `Toaster` (`frontend/src/routes/__root.tsx`, mounted on every route) sets its own runtime-computed offsets as inline styles on its container; the SPA is a pre-built static `index.html` with no per-request templating, so no CSP nonce is available, and the offsets vary at runtime so a fixed style hash can't cover them either | Day 35.9's deployment document, or sooner if Sonner is ever replaced with a CSP-strict alternative |
+| 2026-10-11 | Flaky frontend test: `staff.test.tsx` ("shows a loading skeleton, then the rows") failed once in a full-suite run (`findByRole` timeout waiting for the loading status) but passed standalone on an immediate rerun | Same timing-sensitive loading-skeleton pattern already recorded above for `_authenticated.test.tsx` and `subjects.test.tsx`; untouched by Day 34's work | Next time it blocks CI, or during the frontend test-suite hardening already noted above |
+| 2026-10-11 | Same loading-skeleton flake now also reproduces on `settings.test.tsx`, and hits `subjects.test.tsx`/`staff.test.tsx`/`settings.test.tsx` together in every full-suite run tried during Day 35.7, while each passes standalone every time, including with Day 35.7's `__root.tsx` change (the demo banner) reverted — ruling that change out as the cause | Confirms this is full-suite worker-pool contention, not per-test logic; same category already recorded above, just spreading | Same as above: the frontend test-suite hardening pass |
+| 2026-10-11 | Same flake again during Day 36, noticeably worse (up to 18/120 tests, now also hitting `audit.test.tsx` and a non-skeleton "Retry succeeds" case) while this machine ran low on free memory (as little as 0.3 GB at points this session) from concurrent Docker containers and `dotnet` processes; every failure was the same ~3000ms timeout pattern, and backend-only/doc-only Day 36 changes touched no frontend code | Confirms severity tracks host memory pressure, not any code change — not a new defect, the same recorded contention issue under worse-than-usual local conditions; CI's dedicated runner is the real signal, not a loaded local machine | Same as above: the frontend test-suite hardening pass |
+| 2026-10-11 | Private networking for the Azure database (no public endpoint; VNet integration or a private endpoint between Container Apps and PostgreSQL Flexible Server) | Task 35.1 explicitly deferred this; the local-first, firewall-rule-based design (Task 35.2) is adequate for a demo with one operator, and private networking is its own provisioning complexity with no Azure subscription yet to apply it to | When the deployment is no longer a demo, or before any real (non-synthetic) data ever reaches the database |
+| 2026-10-11 | Infrastructure described as a declarative template (Bicep/Terraform) instead of the Task 35.1 CLI script | A CLI script is reviewable and sufficient for one environment created by one operator; a declarative template earns its cost once there is more than one environment (staging, a second region) or more than one person provisioning | When a second environment is needed, or when the provisioning script's own idempotency becomes hard to reason about by inspection alone |
+| 2026-10-11 | Per-centre custom roles / finer-grained ownership than centre + role together (e.g. a teacher scoped to only some of a centre's groups) | `docs/architecture/authorization.md` names this directly: no Month 2 use case needs a check finer than centre and role, and building it speculatively risks a permission model nobody's real workflow needed | When a real Month 3+ use case needs ownership finer than "this centre, this role" — not before, per that document's own reasoning |
+| 2026-10-11 | Self-service password reset by email (a user who forgot their password requests a reset link themselves) | No outbound email sending exists in the system yet; today password rotation is operator-driven only (`reset-password` CLI command, Task 36.2's runbook) | When outbound email (for the WhatsApp-assistant-adjacent notification work, or any other reason) is added, so the reset flow can reuse that infrastructure rather than being the first thing to need it |
+```
+
+The excerpt stops at line 24; use the original file for the remaining 35 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

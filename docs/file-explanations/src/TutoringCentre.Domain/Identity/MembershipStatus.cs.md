@@ -1,52 +1,44 @@
-# src/TutoringCentre.Domain/Identity/MembershipStatus.cs
+# `src/TutoringCentre.Domain/Identity/MembershipStatus.cs`
 
 ## Purpose
 
-Enum: `Active` or `Inactive` - whether a membership currently grants access.
+Source summary (intent, not independent execution proof): Whether a membership currently grants access to its centre.
 
-## Where It Fits
+## Where it fits
 
-Domain/Identity. Used by `Membership`, read services (filter `Status == Active`), persisted as `'active'|'inactive'`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Identity/MembershipStatus.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 8 lines and 185 bytes. Source hash: `0207f9dc3e97d290c51876f0c7f8972f2d82a6d2dd5ed7166ee513d35039daa3`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Active, Inactive`. Deactivating a membership is how access is revoked without deleting history; the session revalidation then rejects sessions bound to it.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Identity and membership modelling
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+- [Line 4](../../../../../src/TutoringCentre.Domain/Identity/MembershipStatus.cs#L4): `public enum MembershipStatus`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Soft revocation.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Enum.
+```csharp
+namespace TutoringCentre.Domain.Identity;
 
-#### Why it matters here
+/// <summary>Whether a membership currently grants access to its centre.</summary>
+public enum MembershipStatus
+{
+    Active,
+    Inactive,
+}
+```
 
-Keeps the row (and its audit meaning) while denying access.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Identity/Membership.cs`](Membership.cs.md)
-- [`src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs`](../../TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,81 +1,86 @@
-# src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs
+# `src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs`
 
 ## Purpose
 
-Endpoint filter applied once to the whole `/api` group that requires a valid antiforgery token on every unsafe request, login included.
+Source summary (intent, not independent execution proof): Applied once to the whole /api group: every request whose method is not GET, HEAD or OPTIONS must carry a valid antiforgery token, login included — this is what stops login CSRF (an attacker signing a victim into the attacker's own account). Minimal APIs only validate antiforgery automatically for form-bound endpoints; this JSON API needs the explicit check.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth, `internal`. Attached at `Program.cs:120` with `AddEndpointFilter<AntiforgeryEndpointFilter>()`. Depends on `IAntiforgery` (framework) and `ProblemResult` via `Error.Forbidden(...).ToProblemResult()`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 42 lines and 1,769 bytes. Source hash: `2f3f8756e4f4584ff5d26a7d6fb33b17d72b1e4ddfc955a641c1fdaea960c4d8`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`IEndpointFilter.InvokeAsync(EndpointFilterInvocationContext, EndpointFilterDelegate next)` (19-41): safe methods (`GET`, `HEAD`, `OPTIONS`, in a case-insensitive `HashSet` at line 17) pass straight to `next`. For every other method it calls `antiforgery.ValidateRequestAsync(httpContext)`; an `AntiforgeryValidationException` returns `Error.Forbidden("auth.csrf_invalid", ...)` as Problem Details (403) - the endpoint handler never runs, so there are no side effects (comment line 36). Doc: minimal APIs only validate antiforgery automatically for form-bound endpoints; this JSON API needs the explicit check.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CSRF protection with antiforgery tokens
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using Microsoft.AspNetCore.Antiforgery;`
+- Line 3: `using TutoringCentre.Api.Http;`
+- Line 4: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
+- [Line 15](../../../../../src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs#L15): `internal sealed class AntiforgeryEndpointFilter(IAntiforgery antiforgery) : IEndpointFilter`
+- [Line 19](../../../../../src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs#L19): `public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The filter.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Program.cs:214](../../../../../src/TutoringCentre.Api/Program.cs#L214)
 
-Whole class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Mandatory protection with no per-endpoint attribute to forget.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Antiforgery;
+using TutoringCentre.Api.Http;
+using TutoringCentre.Domain.Common;
 
-### Middleware and the request pipeline
+namespace TutoringCentre.Api.Auth;
 
-#### What it means
+/// <summary>
+/// Applied once to the whole /api group: every request whose method is not GET, HEAD or OPTIONS must carry a
+/// valid antiforgery token, login included — this is what stops login CSRF (an attacker signing a victim into
+/// the attacker's own account). Minimal APIs only validate antiforgery automatically for form-bound endpoints;
+/// this JSON API needs the explicit check.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the endpoint filter pipeline via DI.")]
+internal sealed class AntiforgeryEndpointFilter(IAntiforgery antiforgery) : IEndpointFilter
+{
+    private static readonly HashSet<string> SafeMethods = new(StringComparer.OrdinalIgnoreCase) { "GET", "HEAD", "OPTIONS" };
 
-Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
+        var httpContext = context.HttpContext;
+        if (SafeMethods.Contains(httpContext.Request.Method))
+        {
+            return await next(context);
+        }
 
-#### Where it appears in this file
+        try
+        {
+            await antiforgery.ValidateRequestAsync(httpContext);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            // No side effects: the endpoint handler never runs.
+            return Error.Forbidden("auth.csrf_invalid", "A valid antiforgery token is required for this request.").ToProblemResult();
+        }
 
-Endpoint filter vs middleware.
-
-#### How it works here
-
-`IEndpointFilter`.
-
-#### Why it matters here
-
-It runs as part of endpoint execution (after routing, authorization and rate limiting), immediately before the handler.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    R["request to /api/*"] --> M{"method GET, HEAD or OPTIONS?"}
-    M -->|yes| N["next (no check)"]
-    M -->|no| V["antiforgery.ValidateRequestAsync"]
-    V -->|valid| N
-    V -->|AntiforgeryValidationException| F["403 auth.csrf_invalid (handler never runs)"]
+        return await next(context);
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-Header name comes from `AntiforgerySetup.HeaderName` (`X-XSRF-TOKEN`).
-
-## Gotchas and Issues
-
-Anything mapped on `app` (not on the `/api` group) is outside this protection - currently health checks, the OpenAPI document and the fallbacks, all safe methods or anonymous reads.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/AntiforgerySetup.cs`](AntiforgerySetup.cs.md)
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](AuthEndpoints.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs`](../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../Program.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

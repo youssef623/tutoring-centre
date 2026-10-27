@@ -1,99 +1,151 @@
-# src/TutoringCentre.Domain/Identity/Membership.cs
+# `src/TutoringCentre.Domain/Identity/Membership.cs`
 
 ## Purpose
 
-The entity linking one user to one centre with a role and an active/inactive status.
+Source summary (intent, not independent execution proof): A staff member's role in one centre. The only way to obtain one is `Create`, which enforces its invariants. Deliberately not `ITenantOwned`: memberships are read at login, before a tenant is selected, so they cannot be filtered by the current tenant the way centre-owned data is.
 
-## Where It Fits
+## Where it fits
 
-Domain/Identity. Created by `DevelopmentIdentitySeeder` and tests; mapped by `MembershipConfiguration`; read via `MembershipReadService`. Deliberately not `ITenantOwned`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 85 lines and 2,569 bytes. Source hash: `97157928a3f481a67b8a23cb6d40dd433841ff46f4323c6589db59fc2c93ae19`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed class Membership : Entity` (10). Private value constructor (12-18) sets `Status = Active`; private parameterless constructor for EF (21-23). Properties `UserId`, `CentreId`, `Role`, `Status` with private setters.
-- `Create(userId, centreId, role)` (33-46): `Guid.Empty` user -> `membership.user_required`; `Guid.Empty` centre -> `membership.centre_required` (both `Validation`); else a new active membership.
-- `Deactivate()` (48-57): already inactive -> `Result.Failure(Error.Rule("membership.already_inactive"))`; else status Inactive, `Result.Success()`.
-- `Activate()` (59-68): already active -> `membership.already_active` (Rule); else Active.
-Doc: not `ITenantOwned` because memberships are read at login, before a tenant is selected, so they cannot be filtered by the current tenant.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Entities, encapsulation and factory methods
+- Line 1: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An *entity* has an identity that stays the same while its data changes. *Encapsulation* keeps its state behind rules (private setters, private constructors). A *factory method* is the only public way to build one, so an invalid instance cannot exist.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
+- [Line 10](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs#L10): `public sealed class Membership : Entity`
+- [Line 12](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs#L12): `private Membership(Guid userId, Guid centreId, StaffRole role)`
+- [Line 21](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs#L21): `private Membership()`
+- [Line 33](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs#L33): `public static Result<Membership> Create(Guid userId, Guid centreId, StaffRole role)`
+- [Line 48](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs#L48): `public Result ChangeRole(StaffRole role)`
+- [Line 64](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs#L64): `public Result Deactivate()`
+- [Line 75](../../../../../src/TutoringCentre.Domain/Identity/Membership.cs#L75): `public Result Activate()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Factory + guarded state changes.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/extend_backend_purposes.py:13](../../../../onboarding-work/extend_backend_purposes.py#L13)
+- [src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffHandler.cs:35](../../../../../src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffHandler.cs#L35)
+- [src/TutoringCentre.Application/Staff/IMembershipRepository.cs:18](../../../../../src/TutoringCentre.Application/Staff/IMembershipRepository.cs#L18)
+- [src/TutoringCentre.Infrastructure/Audit/AuditEntityType.cs:7](../../../../../src/TutoringCentre.Infrastructure/Audit/AuditEntityType.cs#L7)
+- [src/TutoringCentre.Infrastructure/Audit/AuditEntityTypeNames.cs:14](../../../../../src/TutoringCentre.Infrastructure/Audit/AuditEntityTypeNames.cs#L14)
+- [src/TutoringCentre.Infrastructure/Audit/AuditPolicy.cs:25](../../../../../src/TutoringCentre.Infrastructure/Audit/AuditPolicy.cs#L25)
+- [src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs:104](../../../../../src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs#L104)
+- [src/TutoringCentre.Infrastructure/Identity/StaffDirectory.cs:19](../../../../../src/TutoringCentre.Infrastructure/Identity/StaffDirectory.cs#L19)
+- [src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs:11](../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L11)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs:160](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs#L160)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs:160](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs#L160)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs:218](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs#L218)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs:218](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs#L218)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs:218](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs#L218)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs:224](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs#L224)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs:247](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs#L247)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs:437](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs#L437)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs:510](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs#L510)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs:588](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs#L588)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261023174541_AddEnrollments.Designer.cs:668](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261023174541_AddEnrollments.Designer.cs#L668)
+- 14 further name-reference locations are omitted from this compact list.
 
-`Create`, `Deactivate`, `Activate`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Invalid memberships and double toggles are impossible; first entity with *state transitions*.
+```csharp
+using TutoringCentre.Domain.Common;
 
-### The Result pattern (failures as values)
+namespace TutoringCentre.Domain.Identity;
 
-#### What it means
+/// <summary>
+/// A staff member's role in one centre. The only way to obtain one is <see cref="Create"/>, which enforces its invariants.
+/// Deliberately not <see cref="ITenantOwned"/>: memberships are read at login, before a tenant is selected, so they
+/// cannot be filtered by the current tenant the way centre-owned data is.
+/// </summary>
+public sealed class Membership : Entity
+{
+    private Membership(Guid userId, Guid centreId, StaffRole role)
+    {
+        UserId = userId;
+        CentreId = centreId;
+        Role = role;
+        Status = MembershipStatus.Active;
+    }
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+    // For EF Core materialisation only; EF then sets every property from the row.
+    private Membership()
+    {
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+    public Guid UserId { get; private set; }
 
-#### Where it appears in this file
+    public Guid CentreId { get; private set; }
 
-Result for state changes.
+    public StaffRole Role { get; private set; }
 
-#### How it works here
+    public MembershipStatus Status { get; private set; }
 
-Return types of `Deactivate/Activate`.
+    public static Result<Membership> Create(Guid userId, Guid centreId, StaffRole role)
+    {
+        if (userId == Guid.Empty)
+        {
+            return Result<Membership>.Failure(Error.Validation("membership.user_required", "A user is required."));
+        }
 
-#### Why it matters here
+        if (centreId == Guid.Empty)
+        {
+            return Result<Membership>.Failure(Error.Validation("membership.centre_required", "A centre is required."));
+        }
 
-Business-rule failures as values (`Rule` -> HTTP 422 if ever exposed).
+        return Result<Membership>.Success(new Membership(userId, centreId, role));
+    }
 
-### UUIDv7 identifiers
+    public Result ChangeRole(StaffRole role)
+    {
+        if (Status == MembershipStatus.Inactive)
+        {
+            return Result.Failure(Error.Rule("membership.inactive", "This membership is inactive."));
+        }
 
-#### What it means
+        if (Role == role)
+        {
+            return Result.Failure(Error.Rule("membership.role_unchanged", "The role is already this value."));
+        }
 
-A UUID is a 128-bit identifier. Version 7 puts a timestamp in the leading bits, so ids sort roughly by creation time. This repo assigns ids in code at construction instead of letting the database generate them.
+        Role = role;
+        return Result.Success();
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
+    public Result Deactivate()
+    {
+        if (Status == MembershipStatus.Inactive)
+        {
+            return Result.Failure(Error.Rule("membership.already_inactive", "This membership is already inactive."));
+        }
 
-#### Where it appears in this file
+        Status = MembershipStatus.Inactive;
+        return Result.Success();
+    }
 
-Id from `Entity`.
+    public Result Activate()
+    {
+        if (Status == MembershipStatus.Active)
+        {
+            return Result.Failure(Error.Rule("membership.already_active", "This membership is already active."));
+        }
 
-#### How it works here
+        Status = MembershipStatus.Active;
+        return Result.Success();
+    }
+}
+```
 
-Base class.
+## Before modifying this file
 
-#### Why it matters here
-
-Same UUIDv7 scheme.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Nothing calls `Activate`/`Deactivate` in product code yet (only the seeder and tests) - staff-management commands are planned for Month 2.
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Common/Entity.cs`](../Common/Entity.cs.md)
-- [`src/TutoringCentre.Domain/Identity/StaffRole.cs`](StaffRole.cs.md)
-- [`src/TutoringCentre.Domain/Identity/MembershipStatus.cs`](MembershipStatus.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs`](../../TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs.md)
-- [`tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs`](../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

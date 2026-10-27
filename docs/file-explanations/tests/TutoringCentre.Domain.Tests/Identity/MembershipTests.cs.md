@@ -1,78 +1,139 @@
-# tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs
+# `tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs`
 
 ## Purpose
 
-Unit tests of the `Membership` entity: creation rules and the Activate/Deactivate state transitions.
+Declares `MembershipTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Domain.Tests/Identity. Pure in-memory tests, no database.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 134 lines and 3,953 bytes. Source hash: `ea9cb349b61c3e4794af2e5006831ee02aa48e603b94edb4b83018bb7f6b136a`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Static ids (lines 7-8). Six `[Fact]`s:
-- `Create_WithValidInput_SucceedsAsActiveWithTheGivenRole` (10-23): result success; `UserId`, `CentreId`, `Role == Teacher`, `Status == Active`.
-- `Create_WithEmptyUserId_ReturnsUserRequired` (25-34): `membership.user_required`.
-- `Create_WithEmptyCentreId_ReturnsCentreRequired` (36-45): `membership.centre_required`.
-- `Deactivate_WhenActive_SucceedsAndBecomesInactive` (47-59).
-- `Deactivate_WhenAlreadyInactive_ReturnsAlreadyInactive` (61-74): `membership.already_inactive`.
-- `Activate_WhenAlreadyActive_ReturnsAlreadyActive` (76-88): `membership.already_active`.
-Not tested here: `Activate()` on an inactive membership succeeding (only the failure branch is asserted).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Entities, encapsulation and factory methods
+- Line 1: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An *entity* has an identity that stays the same while its data changes. *Encapsulation* keeps its state behind rules (private setters, private constructors). A *factory method* is the only public way to build one, so an invalid instance cannot exist.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
+- [Line 5](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L5): `public sealed class MembershipTests`
+- [Line 11](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L11): `public void Create_WithValidInput_SucceedsAsActiveWithTheGivenRole()`
+- [Line 26](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L26): `public void Create_WithEmptyUserId_ReturnsUserRequired()`
+- [Line 37](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L37): `public void Create_WithEmptyCentreId_ReturnsCentreRequired()`
+- [Line 48](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L48): `public void ChangeRole_WhenActive_SucceedsAndChangesTheRole()`
+- [Line 62](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L62): `public void ChangeRole_WhenInactive_FailsAndLeavesTheRoleUnchanged()`
+- [Line 78](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L78): `public void ChangeRole_ToTheSameRole_FailsAndLeavesTheRoleUnchanged()`
+- [Line 93](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L93): `public void Deactivate_WhenActive_SucceedsAndBecomesInactive()`
+- [Line 107](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L107): `public void Deactivate_WhenAlreadyInactive_ReturnsAlreadyInactive()`
+- [Line 122](../../../../../tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs#L122): `public void Activate_WhenAlreadyActive_ReturnsAlreadyActive()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Factory method and guarded transitions.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`Membership.Create`, `Deactivate`, `Activate`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Domain.Identity;
 
-The entity cannot be created invalid and refuses meaningless transitions; failures are `Result` values.
+namespace TutoringCentre.Domain.Tests.Identity;
 
-### The Result pattern (failures as values)
+public sealed class MembershipTests
+{
+    private static readonly Guid UserId = Guid.CreateVersion7();
+    private static readonly Guid CentreId = Guid.CreateVersion7();
 
-#### What it means
+    [Fact]
+    public void Create_WithValidInput_SucceedsAsActiveWithTheGivenRole()
+    {
+        // Act
+        var result = Membership.Create(UserId, CentreId, StaffRole.Teacher);
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+        // Assert
+        Assert.True(result.IsSuccess);
+        var membership = result.Value;
+        Assert.Equal(UserId, membership.UserId);
+        Assert.Equal(CentreId, membership.CentreId);
+        Assert.Equal(StaffRole.Teacher, membership.Role);
+        Assert.Equal(MembershipStatus.Active, membership.Status);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+    [Fact]
+    public void Create_WithEmptyUserId_ReturnsUserRequired()
+    {
+        // Act
+        var result = Membership.Create(Guid.Empty, CentreId, StaffRole.Owner);
 
-#### Where it appears in this file
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("membership.user_required", result.Error!.Code);
+    }
 
-Error codes asserted.
+    [Fact]
+    public void Create_WithEmptyCentreId_ReturnsCentreRequired()
+    {
+        // Act
+        var result = Membership.Create(UserId, Guid.Empty, StaffRole.Owner);
 
-#### How it works here
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("membership.centre_required", result.Error!.Code);
+    }
 
-`result.Error!.Code`.
+    [Fact]
+    public void ChangeRole_WhenActive_SucceedsAndChangesTheRole()
+    {
+        // Arrange
+        var membership = Membership.Create(UserId, CentreId, StaffRole.Teacher).Value;
 
-#### Why it matters here
+        // Act
+        var result = membership.ChangeRole(StaffRole.Secretary);
 
-Stable codes like `membership.user_required` are the contract the rest of the system sees.
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(StaffRole.Secretary, membership.Role);
+    }
 
-## Data and Control Flow
+    [Fact]
+    public void ChangeRole_WhenInactive_FailsAndLeavesTheRoleUnchanged()
+    {
+        // Arrange
+        var membership = Membership.Create(UserId, CentreId, StaffRole.Teacher).Value;
+        membership.Deactivate();
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+        // Act
+        var result = membership.ChangeRole(StaffRole.Secretary);
 
-## Configuration and Environment
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("membership.inactive", result.Error!.Code);
+        Assert.Equal(StaffRole.Teacher, membership.Role);
+    }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    [Fact]
+    public void ChangeRole_ToTheSameRole_FailsAndLeavesTheRoleUnchanged()
+    {
+        // Arrange
+        var membership = Membership.Create(UserId, CentreId, StaffRole.Teacher).Value;
 
-## Gotchas and Issues
+        // Act
+        var result = membership.ChangeRole(StaffRole.Teacher);
 
-The successful `Activate()` path (inactive to active) has no test in this class.
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("membership.role_unchanged", result.Error!.Code);
+        Assert.Equal(StaffRole.Teacher, membership.Role);
+    }
+```
 
-## Related Files
+The excerpt stops at line 90; use the original file for the remaining 44 lines.
 
-- [`src/TutoringCentre.Domain/Identity/Membership.cs`](../../../src/TutoringCentre.Domain/Identity/Membership.cs.md)
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

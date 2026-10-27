@@ -1,154 +1,86 @@
-# src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs
+# `src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`
 
 ## Purpose
 
-The use case 'create a centre': authorise, check uniqueness, let the domain validate and build the entity, then track it.
+Source summary (intent, not independent execution proof): Creates a centre (tenant). Orchestrates: authorize → uniqueness → Domain rules → add. The dispatcher saves and commits.
 
-## Where It Fits
+## Where it fits
 
-Application/Centres/Commands/CreateCentre, `internal`. Resolved by `Dispatcher`; depends on `ICurrentActor`, `ICentreRepository`, `Centre.Create`, `Error`, `Result`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 42 lines and 1,939 bytes. Source hash: `d3bef3f8939ccc98f0a0bb2d9ca417a03ca1099497085765ca623f11713e8f1a`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Primary-constructor injection (9-10). `HandleAsync` (12-41):
-1. **Authorize** (17): `currentActor.Actor is not SystemActor` -> `Error.Forbidden("centre.create_forbidden", ...)`. Runs before any database read.
-2. **Uniqueness** (24): `await centres.ExistsBySlugAsync(...)` -> `Error.Conflict("centre.slug_taken", ...)`. Comment: the unique index is the real guarantee under concurrency.
-3. **Domain** (31): `Centre.Create(...)`; on failure return its error unchanged (34).
-4. **Track** (38): `centres.Add(created.Value)` - no SaveChanges (dispatcher does it).
-5. Return `CreateCentreResult(Id, Slug)` (40).
-What changes if reordered: moving step 2 before step 1 would leak 'slug exists' to unauthorised callers; calling SaveChanges inside would defeat the single-save rule.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CQRS and the dispatcher pipeline
+- Line 1: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 2: `using TutoringCentre.Application.Common.Security;`
+- Line 3: `using TutoringCentre.Domain.Centres;`
+- Line 4: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 9](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs#L9): `internal sealed class CreateCentreHandler(ICurrentActor currentActor, ICentreRepository centres)`
+- [Line 12](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs#L12): `public async Task<Result<CreateCentreResult>> HandleAsync(`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Handler.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs:18](../../../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs#L18)
 
-Class declaration.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-One class = one use case.
+```csharp
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Common;
 
-### Dependency Injection (DI) and the container
+namespace TutoringCentre.Application.Centres.Commands.CreateCentre;
 
-#### What it means
+/// <summary>Creates a centre (tenant). Orchestrates: authorize → uniqueness → Domain rules → add. The dispatcher saves and commits.</summary>
+internal sealed class CreateCentreHandler(ICurrentActor currentActor, ICentreRepository centres)
+    : ICommandHandler<CreateCentreCommand, CreateCentreResult>
+{
+    public async Task<Result<CreateCentreResult>> HandleAsync(
+        CreateCentreCommand command,
+        CancellationToken cancellationToken)
+    {
+        // 1. Authorize BEFORE any database read: creating tenants is a platform operation, not a web-user operation.
+        if (currentActor.Actor is not SystemActor)
+        {
+            return Result<CreateCentreResult>.Failure(
+                Error.Forbidden("centre.create_forbidden", "Only the platform can create centres."));
+        }
 
-A class that needs a collaborator can create it itself (`new X()`), which hard-wires the choice, or it can *receive* it, usually as a constructor parameter. That second approach is dependency injection. A DI *container* stores *registrations* ("when asked for type A, build type B with lifetime L") and performs *resolution*: it picks a constructor, resolves each parameter recursively, builds the object and caches it according to the lifetime. This is inversion of control: the class no longer decides what it depends on.
+        // 2. Uniqueness (the unique index is the real guarantee under concurrency; see Day 10's race test).
+        if (await centres.ExistsBySlugAsync(command.Slug, cancellationToken))
+        {
+            return Result<CreateCentreResult>.Failure(
+                Error.Conflict("centre.slug_taken", "A centre with this slug already exists."));
+        }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+        // 3. The Domain decides validity.
+        var created = Centre.Create(command.Name, command.Slug, command.TimeZoneId, command.DefaultLocale);
+        if (created.IsFailure)
+        {
+            return Result<CreateCentreResult>.Failure(created.Error!);
+        }
 
-#### Where it appears in this file
+        // 4. Track the new entity; NO SaveChanges here — the dispatcher saves once and commits.
+        centres.Add(created.Value);
 
-Constructor injection of `ICurrentActor`, `ICentreRepository`.
-
-#### How it works here
-
-Primary constructor parameters.
-
-#### Why it matters here
-
-Container supplies adapters; tests supply fakes.
-
-### Actor and tenancy groundwork
-
-#### What it means
-
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
-
-#### Where it appears in this file
-
-Authorization check.
-
-#### How it works here
-
-Line 17.
-
-#### Why it matters here
-
-Only the platform can create tenants.
-
-### Concurrency, TOCTOU and unique indexes
-
-#### What it means
-
-TOCTOU (time of check to time of use): code checks a condition then acts, but another request can change the condition in between. Only the database can make "no two rows share a slug" true, via a unique index; application checks just produce friendlier errors in the common case.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee](../../../../../../PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee).)
-
-#### Where it appears in this file
-
-Existence check + unique index.
-
-#### How it works here
-
-Lines 23-28.
-
-#### Why it matters here
-
-Friendly error in the common case; DB guarantees the rest.
-
-### The Result pattern (failures as values)
-
-#### What it means
-
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
-
-#### Where it appears in this file
-
-Result-returning flow.
-
-#### How it works here
-
-All returns.
-
-#### Why it matters here
-
-No exceptions for business outcomes.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant D as Dispatcher
-    participant H as CreateCentreHandler
-    participant A as ICurrentActor
-    participant R as ICentreRepository
-    participant C as Centre.Create
-    D->>H: HandleAsync(command)
-    H->>A: Actor is SystemActor?
-    H->>R: ExistsBySlugAsync
-    H->>C: Create(...)
-    H->>R: Add(centre)
-    H-->>D: Result.Success(CreateCentreResult)
+        return Result<CreateCentreResult>.Success(new CreateCentreResult(created.Value.Id, created.Value.Slug));
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-If two requests race, the loser reaches `SaveChanges` and gets a unique-violation exception, not `centre.slug_taken` (planned translation to 409). Comment references 'Day 10' plan.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Centres/ICentreRepository.cs`](../../ICentreRepository.cs.md)
-- [`src/TutoringCentre.Domain/Centres/Centre.cs`](../../../../TutoringCentre.Domain/Centres/Centre.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs`](../../../Common/Security/CurrentActorContext.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs`](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs`](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

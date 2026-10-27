@@ -1,117 +1,117 @@
-# tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs
+# `tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs`
 
 ## Purpose
 
-Reflection-based architecture rules for CQRS: exactly one handler per request, handlers sealed and non-public, query handlers never depend on repositories.
+Declares `CqrsRuleTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests. Inspects the Application assembly with plain reflection (not NetArchTest). Mirrors how `Dispatcher` resolves handlers.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 71 lines and 3,082 bytes. Source hash: `c612794effe935ed95f1c8a44f996b28a0b3e53d25857ee92dc299003e359eb2`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ApplicationTypes` (1) is `SourceAssemblies.Application.GetTypes()`.
-- `EveryCommandAndQuery_HasExactlyOneHandler` (10-25): requests = concrete classes implementing `ICommand<>` or `IQuery<>`; for every handler (a concrete class implementing `ICommandHandler<,>` or `IQueryHandler<,>`) `HandledRequests` reads the first generic argument of each handler interface; groups and counts per request; any request with count != 1 is a violation (`"Type: n handlers"`). Non-empty guard on `requests`.
-- `Handlers_AreSealedAndNotPublic` (27-38): `!IsSealed || IsPublic || IsNestedPublic` is a violation.
-- `QueryHandlers_DoNotDependOnRepositories` (40-54): for query handlers, any constructor parameter whose type is a repository interface is a violation (queries must read through read services, not repositories).
-Helpers (lines 56-70): `ConcreteClasses`, `Handlers`, `HandledRequests`, `Implements(type, openGenericInterface)`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CQRS and the dispatcher pipeline
+- Line 1: `using System.Reflection;`
+- Line 2: `using TutoringCentre.Application.Common.Cqrs;`
 
-#### What it means
+## Walkthrough and declaration map
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 6](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L6): `public sealed class CqrsRuleTests`
+- [Line 11](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L11): `public void EveryCommandAndQuery_HasExactlyOneHandler()`
+- [Line 28](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L28): `public void Handlers_AreSealedAndNotPublic()`
+- [Line 41](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L41): `public void QueryHandlers_DoNotDependOnRepositories()`
+- [Line 56](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L56): `private static IEnumerable<Type> ConcreteClasses() =>`
+- [Line 59](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L59): `private static IEnumerable<Type> Handlers() =>`
+- [Line 62](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L62): `private static IEnumerable<Type> HandledRequests(Type handler) =>`
+- [Line 69](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L69): `private static bool Implements(Type type, Type genericDefinition) =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-One request, one handler.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`EveryCommandAndQuery_HasExactlyOneHandler`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System.Reflection;
+using TutoringCentre.Application.Common.Cqrs;
 
-`Dispatcher` resolves a single handler per request type from DI; zero handlers would fail at runtime, two would make the choice ambiguous. The test moves that failure to build time.
+namespace TutoringCentre.Architecture.Tests;
 
-### Architecture rules beyond dependencies
+public sealed class CqrsRuleTests
+{
+    private static readonly Type[] ApplicationTypes = SourceAssemblies.Application.GetTypes();
 
-#### What it means
+    [Fact]
+    public void EveryCommandAndQuery_HasExactlyOneHandler()
+    {
+        var requests = ConcreteClasses().Where(type => Implements(type, typeof(ICommand<>)) || Implements(type, typeof(IQuery<>))).ToList();
+        var handlersPerRequest = Handlers()
+            .SelectMany(HandledRequests)
+            .GroupBy(request => request)
+            .ToDictionary(group => group.Key, group => group.Count());
 
-Beyond 'who references whom', tests can assert design conventions with reflection and IL scanning: every command has exactly one handler, handlers are sealed and internal, repositories live in the right project, endpoints do not touch Infrastructure.
+        Assert.NotEmpty(requests);
+        var violations = requests
+            .Where(request => handlersPerRequest.GetValueOrDefault(request) != 1)
+            .Select(request => $"{request.FullName}: {handlersPerRequest.GetValueOrDefault(request)} handlers")
+            .ToList();
+        Assert.Empty(violations);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies](../../../PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies).)
+    [Fact]
+    public void Handlers_AreSealedAndNotPublic()
+    {
+        var handlers = Handlers().ToList();
 
-#### Where it appears in this file
+        Assert.NotEmpty(handlers);
+        var violations = handlers
+            .Where(handler => !handler.IsSealed || handler.IsPublic || handler.IsNestedPublic)
+            .Select(handler => handler.FullName)
+            .ToList();
+        Assert.Empty(violations);
+    }
 
-Sealed and non-public handlers; no repositories in queries.
+    [Fact]
+    public void QueryHandlers_DoNotDependOnRepositories()
+    {
+        var queryHandlers = Handlers().Where(handler => Implements(handler, typeof(IQueryHandler<,>))).ToList();
 
-#### How it works here
+        Assert.NotEmpty(queryHandlers);
+        var violations = queryHandlers
+            .SelectMany(handler => handler
+                .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .SelectMany(constructor => constructor.GetParameters())
+                .Where(parameter => ArchitectureSupport.IsRepositoryInterface(parameter.ParameterType))
+                .Select(parameter => $"{handler.FullName} depends on {parameter.ParameterType.Name}"))
+            .ToList();
+        Assert.Empty(violations);
+    }
 
-`Handlers_AreSealedAndNotPublic` and `QueryHandlers_DoNotDependOnRepositories`.
+    private static IEnumerable<Type> ConcreteClasses() =>
+        ApplicationTypes.Where(type => type is { IsClass: true, IsAbstract: false });
 
-#### Why it matters here
+    private static IEnumerable<Type> Handlers() =>
+        ConcreteClasses().Where(type => Implements(type, typeof(ICommandHandler<,>)) || Implements(type, typeof(IQueryHandler<,>)));
 
-Handlers are an implementation detail reachable only through the Dispatcher, and the read side is kept separate from the write side.
+    private static IEnumerable<Type> HandledRequests(Type handler) =>
+        handler.GetInterfaces()
+            .Where(candidate => candidate.IsGenericType
+                && (candidate.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)
+                    || candidate.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)))
+            .Select(candidate => candidate.GetGenericArguments()[0]);
 
-### Generics and constraints
+    private static bool Implements(Type type, Type genericDefinition) =>
+        type.GetInterfaces().Any(candidate => candidate.IsGenericType && candidate.GetGenericTypeDefinition() == genericDefinition);
+}
+```
 
-#### What it means
+## Before modifying this file
 
-Generics let one definition work for many types (`Result<T>`, `ICommandHandler<TCommand,TResponse>`). Constraints (`where TCommand : ICommand<TResponse>`) restrict which types are legal so the compiler can check them; the `in` modifier (contravariance) lets a handler of a base type satisfy a derived one.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-Open generic interface matching.
-
-#### How it works here
-
-`HandledRequests` and `Implements` compare `GetGenericTypeDefinition()` with `typeof(ICommandHandler<,>)` and the other open generic interfaces.
-
-#### Why it matters here
-
-The only way to ask 'does this type implement some closed version of this generic interface' with reflection.
-
-### Architecture tests (fitness functions)
-
-#### What it means
-
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
-
-#### Where it appears in this file
-
-Reflection instead of NetArchTest.
-
-#### How it works here
-
-Whole file.
-
-#### Why it matters here
-
-Some rules (counting handlers per request) are easier to express directly in reflection than in NetArchTest's fluent API.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs`](SourceAssemblies.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs`](ArchitectureSupport.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

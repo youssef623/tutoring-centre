@@ -1,52 +1,40 @@
-# src/TutoringCentre.Api/AssemblyMarker.cs
+# `src/TutoringCentre.Api/AssemblyMarker.cs`
 
 ## Purpose
 
-Assembly handle for architecture tests.
+Source summary (intent, not independent execution proof): Lets tests locate this assembly via typeof(AssemblyMarker).Assembly. Contains no logic.
 
-## Where It Fits
+## Where it fits
 
-Api project.
+Category: **source**. [Open current file](../../../../src/TutoringCentre.Api/AssemblyMarker.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 4 lines and 180 bytes. Source hash: `5688106a8598e208a74be2f8820eff75a685c3b404f0ed65f8a3cfc3db4cb54e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`internal sealed class AssemblyMarker;` The Api's marker is not used by any current test (DependencyRuleTests scan only Domain/Application/Infrastructure).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Architecture tests (fitness functions)
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
+- [Line 4](../../../../src/TutoringCentre.Api/AssemblyMarker.cs#L4): `internal sealed class AssemblyMarker;`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-The marker.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Declaration.
+```csharp
+namespace TutoringCentre.Api;
 
-#### Why it matters here
+/// <summary>Lets tests locate this assembly via typeof(AssemblyMarker).Assembly. Contains no logic.</summary>
+internal sealed class AssemblyMarker;
+```
 
-Prepared for rules about the Api.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Unused today.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/TutoringCentre.Api.csproj`](TutoringCentre.Api.csproj.md)
-- [`tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`](../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

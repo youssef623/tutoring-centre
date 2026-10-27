@@ -1,72 +1,107 @@
-# frontend/src/components/brand/HessaLogo.tsx
+# `frontend/src/components/brand/HessaLogo.tsx`
 
 ## Purpose
 
-The Hessa brand mark and wordmark as React components (inline SVG).
+Source comment (intent): The Hessa (حصة) brand mark: a graduation cap on a rounded teal tile. Self-contained SVG with a locally-scoped gradient id so multiple instances never collide.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/components/brand. `HessaWordmark` is used on the login page header; `HessaMark` on the login page's brand panel.
+Category: **source**. [Open current file](../../../../../../frontend/src/components/brand/HessaLogo.tsx). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 62 lines and 2,040 bytes. Source hash: `d31c354f29f10b9161ef3c86cb7ca40ae44f61e860dff05962952c6d5cf32b65`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`HessaMark({ className })` (8-36): `useId()` generates a unique gradient id so several marks on a page do not collide; an `svg` 48x48 with `role="img"` and `aria-hidden="true"` (decorative); gradient stops use CSS variables with fallbacks (`var(--brand-grad-from, #14b8a6)`, `--brand-grad-to`, `--brand-grad-accent`); a rounded rectangle tile (`rx=13`), white mortarboard paths and a tassel with an amber dot. `HessaWordmark({ className, showArabic = true })` (42-62): inline-flex with the mark (`size-9`), the text `Hessa` in the heading font and, by default, the Arabic word حصة in a `<span dir="rtl">` so it reads correctly in both LTR and RTL pages.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### React components, props, state and re-rendering
+- Line 1: `import { useId } from "react";`
+- Line 2: `import { cn } from "cn";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A component is a function returning UI from props and state. When state a component depends on changes, React calls the function again (a re-render) and updates only the DOM that differs.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 8](../../../../../../frontend/src/components/brand/HessaLogo.tsx#L8): `export function HessaMark({ className }: { className?: string }) {`
+- [Line 42](../../../../../../frontend/src/components/brand/HessaLogo.tsx#L42): `export function HessaWordmark({`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Components with props and a hook.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/features/shell/AppShell.tsx:21](../../../../../../frontend/src/features/shell/AppShell.tsx#L21)
+- [frontend/src/routes/change-password.tsx:16](../../../../../../frontend/src/routes/change-password.tsx#L16)
+- [frontend/src/routes/login.tsx:17](../../../../../../frontend/src/routes/login.tsx#L17)
+- [frontend/src/routes/select-centre.tsx:25](../../../../../../frontend/src/routes/select-centre.tsx#L25)
 
-`useId` (9), props with defaults (44-47).
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`useId` is the React-provided way to get an id that is stable across renders and unique per component instance.
+```tsx
+import { useId } from "react";
+import { cn } from "cn";
 
-### Internationalisation (i18next) and RTL layout
+/**
+ * The Hessa (حصة) brand mark: a graduation cap on a rounded teal tile.
+ * Self-contained SVG with a locally-scoped gradient id so multiple instances never collide.
+ */
+export function HessaMark({ className }: { className?: string }) {
+  const gradientId = useId();
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      role="img"
+      aria-hidden="true"
+      className={cn("size-10", className)}
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="var(--brand-grad-from, #14b8a6)" />
+          <stop offset="1" stopColor="var(--brand-grad-to, #0f766e)" />
+        </linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="13" fill={`url(#${gradientId})`} />
+      {/* mortarboard */}
+      <path d="M24 12 L40 20 L24 28 L8 20 Z" fill="#fff" />
+      <path
+        d="M16 23.3 L24 27.3 L32 23.3 V30 C32 32.2 28.4 33.8 24 33.8 C19.6 33.8 16 32.2 16 30 Z"
+        fill="#fff"
+        opacity="0.9"
+      />
+      {/* tassel */}
+      <path d="M40 20 V28.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="40" cy="30.2" r="1.9" fill="var(--brand-grad-accent, #f59e0b)" />
+    </svg>
+  );
+}
 
-#### What it means
+/**
+ * Full lockup: mark + the Hessa wordmark. Arabic (حصة) is shown alongside by default so the
+ * bilingual brand reads the same in LTR and RTL.
+ */
+export function HessaWordmark({
+  className,
+  showArabic = true,
+}: {
+  className?: string;
+  showArabic?: boolean;
+}) {
+  return (
+    <span className={cn("inline-flex items-center gap-2.5", className)}>
+      <HessaMark className="size-9" />
+      <span className="flex items-baseline gap-1.5 leading-none">
+        <span className="font-heading text-xl font-semibold tracking-tight">Hessa</span>
+        {showArabic && (
+          <span dir="rtl" className="text-lg font-medium text-muted-foreground">
+            حصة
+          </span>
+        )}
+      </span>
+    </span>
+  );
+}
+```
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
-
-#### Where it appears in this file
-
-Bilingual brand text.
-
-#### How it works here
-
-`dir="rtl"` span at line 55.
-
-#### Why it matters here
-
-A direction attribute on the Arabic span keeps it right-to-left inside a left-to-right layout.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The brand text `Hessa` and `حصة` are hard-coded (not in the locale files); `import { cn } from "cn"` is the `cn` npm package, not `lib/utils.ts`.
-
-## Related Files
-
-- [`frontend/src/routes/login.tsx`](../../routes/login.tsx.md)
-- [`frontend/src/index.css`](../../index.css.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,77 +1,102 @@
-# src/TutoringCentre.Domain/Common/Error.cs
+# `src/TutoringCentre.Domain/Common/Error.cs`
 
 ## Purpose
 
-Immutable description of an expected business failure: a stable code, a developer message, a kind and optional per-field messages.
+Source summary (intent, not independent execution proof): An expected business failure. `Code` is a stable, machine-readable contract ("&lt;feature&gt;.&lt;reason&gt;", e.g. "centre.slug_invalid") that the frontend translates; `Message` is for developers and logs.
 
-## Where It Fits
+## Where it fits
 
-Domain/Common. Created in `Centre.Create`, `Membership.Create`, `CreateCentreHandler`, the identity handlers, `IdentityAuthenticationService`, `Dispatcher.ValidateAsync`, `Program.cs` (fallback routes). Mapped to HTTP by `ResultHttpExtensions.ToProblemResult`; mirrored by frontend `errors.ts`/`errorMessages.ts`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Common/Error.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 35 lines and 1,840 bytes. Source hash: `021a7446014519a640c56f84e003031697f9d0fcdd6075eb98774c74f87da4d9`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record Error(string Code, string Message, ErrorKind Kind, IReadOnlyDictionary<string,string[]>? Fields = null)` (line 14). Because it is a record, two errors with the same values are equal - `DispatcherTests` asserts `Assert.Equal(TestErrors.HandlerFailure, result.Error)`.
-Factory methods (lines 20-34): `Validation(code,message)`; `Validation(code,message,fields)` which null-checks `fields`; `NotFound`; `Conflict`; `Rule`; `Forbidden`; `Unauthenticated` (line 34, added for 401). Each sets the matching `ErrorKind`.
-Doc comment contract: `Code` is `<feature>.<reason>` (`centre.slug_invalid`), a stable machine-readable id the frontend translates; `Message` is for developers and logs. `[SuppressMessage CA1716]`: `Error` is a keyword in Visual Basic, irrelevant in this C#-only solution.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Records, immutability and primary constructors
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 14](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L14): `public sealed record Error(`
+- [Line 20](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L20): `public static Error Validation(string code, string message) => new(code, message, ErrorKind.Validation);`
+- [Line 24](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L24): `public static Error Validation(string code, string message, IReadOnlyDictionary<string, string[]> fields)`
+- [Line 30](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L30): `public static Error NotFound(string code, string message) => new(code, message, ErrorKind.NotFound);`
+- [Line 31](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L31): `public static Error Conflict(string code, string message) => new(code, message, ErrorKind.Conflict);`
+- [Line 32](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L32): `public static Error Rule(string code, string message) => new(code, message, ErrorKind.Rule);`
+- [Line 33](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L33): `public static Error Forbidden(string code, string message) => new(code, message, ErrorKind.Forbidden);`
+- [Line 34](../../../../../src/TutoringCentre.Domain/Common/Error.cs#L34): `public static Error Unauthenticated(string code, string message) => new(code, message, ErrorKind.Unauthenticated);`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The record declaration.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/e2e/auth.spec.ts:7](../../../../../frontend/e2e/auth.spec.ts#L7)
+- [frontend/e2e/enrollment.spec.ts:7](../../../../../frontend/e2e/enrollment.spec.ts#L7)
+- [frontend/e2e/first-login.spec.ts:7](../../../../../frontend/e2e/first-login.spec.ts#L7)
+- [frontend/e2e/full-centre-setup.spec.ts:7](../../../../../frontend/e2e/full-centre-setup.spec.ts#L7)
+- [frontend/e2e/schedule.spec.ts:7](../../../../../frontend/e2e/schedule.spec.ts#L7)
+- [frontend/e2e/staff-access.spec.ts:7](../../../../../frontend/e2e/staff-access.spec.ts#L7)
+- [frontend/e2e/staff-audit.spec.ts:7](../../../../../frontend/e2e/staff-audit.spec.ts#L7)
+- [frontend/e2e/students.spec.ts:7](../../../../../frontend/e2e/students.spec.ts#L7)
+- [frontend/e2e/subjects.spec.ts:7](../../../../../frontend/e2e/subjects.spec.ts#L7)
+- [frontend/e2e/teachers-groups.spec.ts:7](../../../../../frontend/e2e/teachers-groups.spec.ts#L7)
+- [frontend/src/api/apiFetch.ts:14](../../../../../frontend/src/api/apiFetch.ts#L14)
+- [frontend/src/features/schedule/GroupScheduleTab.test.tsx:43](../../../../../frontend/src/features/schedule/GroupScheduleTab.test.tsx#L43)
+- [frontend/src/features/status/api.ts:22](../../../../../frontend/src/features/status/api.ts#L22)
+- [frontend/src/main.tsx:25](../../../../../frontend/src/main.tsx#L25)
+- [frontend/src/routes/_authenticated/audit.test.tsx:41](../../../../../frontend/src/routes/_authenticated/audit.test.tsx#L41)
+- [frontend/src/routes/_authenticated/groups.$groupId.test.tsx:61](../../../../../frontend/src/routes/_authenticated/groups.$groupId.test.tsx#L61)
+- [frontend/src/routes/_authenticated/groups.index.test.tsx:58](../../../../../frontend/src/routes/_authenticated/groups.index.test.tsx#L58)
+- [frontend/src/routes/_authenticated/parents.$parentId.test.tsx:39](../../../../../frontend/src/routes/_authenticated/parents.$parentId.test.tsx#L39)
+- [frontend/src/routes/_authenticated/settings.test.tsx:37](../../../../../frontend/src/routes/_authenticated/settings.test.tsx#L37)
+- [frontend/src/routes/_authenticated/staff.test.tsx:40](../../../../../frontend/src/routes/_authenticated/staff.test.tsx#L40)
+- 202 further name-reference locations are omitted from this compact list.
 
-`public sealed record Error(...)`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Value equality, immutability, `with`-expressions and a compact declaration for a message-like type.
+```csharp
+using System.Diagnostics.CodeAnalysis;
 
-### The Result pattern (failures as values)
+namespace TutoringCentre.Domain.Common;
 
-#### What it means
+/// <summary>
+/// An expected business failure. <see cref="Code"/> is a stable, machine-readable contract
+/// ("&lt;feature&gt;.&lt;reason&gt;", e.g. "centre.slug_invalid") that the frontend translates;
+/// <see cref="Message"/> is for developers and logs.
+/// </summary>
+[SuppressMessage(
+    "Naming",
+    "CA1716:Identifiers should not match keywords",
+    Justification = "C#-only solution; 'Error' is the agreed domain term (it is reserved only in Visual Basic).")]
+public sealed record Error(
+    string Code,
+    string Message,
+    ErrorKind Kind,
+    IReadOnlyDictionary<string, string[]>? Fields = null)
+{
+    public static Error Validation(string code, string message) => new(code, message, ErrorKind.Validation);
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+    /// <summary>A validation error naming the offending fields (camelCase field name → messages); becomes the HTTP 400 "errors" object (Day 11).</summary>
+    /// <exception cref="ArgumentNullException"><paramref name="fields"/> is null.</exception>
+    public static Error Validation(string code, string message, IReadOnlyDictionary<string, string[]> fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+        return new Error(code, message, ErrorKind.Validation, fields);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+    public static Error NotFound(string code, string message) => new(code, message, ErrorKind.NotFound);
+    public static Error Conflict(string code, string message) => new(code, message, ErrorKind.Conflict);
+    public static Error Rule(string code, string message) => new(code, message, ErrorKind.Rule);
+    public static Error Forbidden(string code, string message) => new(code, message, ErrorKind.Forbidden);
+    public static Error Unauthenticated(string code, string message) => new(code, message, ErrorKind.Unauthenticated);
+}
+```
 
-#### Where it appears in this file
+## Before modifying this file
 
-Role as the failure half of `Result`.
-
-#### How it works here
-
-`Result.Failure(Error)`.
-
-#### Why it matters here
-
-Carries code + kind so the Api can choose the HTTP status without knowing business rules.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-`Fields` is a mutable-array dictionary typed as read-only; arrays inside are mutable, but nothing mutates them.
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Common/ErrorKind.cs`](ErrorKind.cs.md)
-- [`src/TutoringCentre.Domain/Common/Result.cs`](Result.cs.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../../TutoringCentre.Api/Http/ResultHttpExtensions.cs.md)
-- [`frontend/src/api/errorMessages.ts`](../../../frontend/src/api/errorMessages.ts.md)
-- [`tests/TutoringCentre.Domain.Tests/Common/ErrorTests.cs`](../../../tests/TutoringCentre.Domain.Tests/Common/ErrorTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

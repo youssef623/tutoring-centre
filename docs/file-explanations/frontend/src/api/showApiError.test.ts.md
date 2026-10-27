@@ -1,52 +1,113 @@
-# frontend/src/api/showApiError.test.ts
+# `frontend/src/api/showApiError.test.ts`
 
 ## Purpose
 
-Tests of the toast helper and of `applyFieldErrors`.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api. Mocks `sonner` with `vi.mock` and a hoisted spy.
+Category: **test**. [Open current file](../../../../../frontend/src/api/showApiError.test.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 75 lines and 2,110 bytes. Source hash: `2ba5af69315ded67a26e578904298f7fc510632f44ce1f08df849e52c2359245`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`toastError = vi.hoisted(() => vi.fn())` and `vi.mock("sonner", () => ({ toast: { error: toastError } }))` (5-6). `showApiError` tests: a conflict with an unknown code and a `correlationId` calls the toast with `This conflicts with existing data.` and `{ description: "Reference: corr-1" }`; an unexpected error without id calls it with `Something went wrong. Please try again.` and `{}`. `applyFieldErrors` tests: only the first message of *known* fields is applied (`name`), `other` is ignored; no `fieldErrors` means `setError` is never called. 4 tests.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Test doubles: fakes vs real dependencies
+- Line 1: `import { beforeEach, describe, expect, it, vi } from "vitest";`
+- Line 2: `import type { ApiError } from "./errors";`
+- Line 3: `import { applyFieldErrors, showApiError } from "./showApiError";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *fake* is a small working substitute (in-memory repository). Real-dependency (integration) tests run actual components such as PostgreSQL. Fakes are fast and focused; integration tests prove behaviour only the real system provides.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Mocking the toast library.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Lines 5-6.
+```typescript
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ApiError } from "./errors";
+import { applyFieldErrors, showApiError } from "./showApiError";
 
-#### Why it matters here
+const toastError = vi.hoisted(() => vi.fn());
+vi.mock("sonner", () => ({ toast: { error: toastError } }));
 
-`vi.hoisted` makes the spy exist before the hoisted `vi.mock` factory runs.
+describe("showApiError", () => {
+  beforeEach(() => {
+    toastError.mockClear();
+  });
 
-## Data and Control Flow
+  it("shows the translated message with a reference when a correlation id exists", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "conflict",
+      code: "centre.something_new",
+      message: "x",
+      status: 409,
+      correlationId: "corr-1",
+    };
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    // Act
+    showApiError(error);
 
-## Configuration and Environment
+    // Assert
+    expect(toastError).toHaveBeenCalledWith("This conflicts with existing data.", {
+      description: "Reference: corr-1",
+    });
+  });
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+  it("shows no description when there is no correlation id", () => {
+    // Arrange
+    const error: ApiError = { kind: "unexpected", code: "x", message: "x", status: 500 };
 
-## Gotchas and Issues
+    // Act
+    showApiError(error);
 
-No bugs or surprises found while reading this file.
+    // Assert
+    expect(toastError).toHaveBeenCalledWith("Something went wrong. Please try again.", {});
+  });
+});
 
-## Related Files
+describe("applyFieldErrors", () => {
+  it("applies the first message of known fields only", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "validation",
+      code: "validation.failed",
+      message: "x",
+      status: 400,
+      fieldErrors: { name: ["Name is required.", "Second"], other: ["Ignored"] },
+    };
+    const setError = vi.fn();
 
-- [`frontend/src/api/showApiError.ts`](showApiError.ts.md)
-- [`frontend/src/api/errorMessages.ts`](errorMessages.ts.md)
+    // Act
+    applyFieldErrors(error, setError, ["name", "email"] as const);
+
+    // Assert
+    expect(setError).toHaveBeenCalledTimes(1);
+    expect(setError).toHaveBeenCalledWith("name", { type: "server", message: "Name is required." });
+  });
+
+  it("does nothing when the error has no field errors", () => {
+    // Arrange
+    const error: ApiError = { kind: "forbidden", code: "x", message: "x", status: 403 };
+    const setError = vi.fn();
+
+    // Act
+    applyFieldErrors(error, setError, ["name"] as const);
+
+    // Assert
+    expect(setError).not.toHaveBeenCalled();
+  });
+});
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

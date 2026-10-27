@@ -1,74 +1,61 @@
-# src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs
+# `src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs`
 
 ## Purpose
 
-The message representing the intent to create a centre.
+Source summary (intent, not independent execution proof): Intent to create a centre (tenant). Only the system actor may do this. Carries exactly the four fields a caller may provide.
 
-## Where It Fits
+## Where it fits
 
-Application/Centres/Commands/CreateCentre. Built by `SeedCommand` and tests; validated by `CreateCentreValidator`; handled by `CreateCentreHandler`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 8 lines and 454 bytes. Source hash: `98577e852f858a1721a74b7f8174d82e43def420375f14b82418d946c294ad0f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record CreateCentreCommand(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale) : ICommand<CreateCentreResult>;`. Doc: carries exactly the four fields a caller may provide - no actor, no id, no timestamps (those come from context/domain/interceptor). It is `public` because the Api project constructs it.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Records, immutability and primary constructors
+- Line 1: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 2: `using TutoringCentre.Domain.Centres;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 7](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs#L7): `public sealed record CreateCentreCommand(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Positional record.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:165](../../../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L165)
+- [src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs:10](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs#L10)
+- [src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs:7](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs#L7)
+- [tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs:19](../../../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs#L19)
+- [tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs:12](../../../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs#L12)
+- [tests/TutoringCentre.Infrastructure.Tests/Academics/AuditTrailTests.cs:221](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Academics/AuditTrailTests.cs#L221)
+- [tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs:19](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs#L19)
+- [tests/TutoringCentre.Infrastructure.Tests/Centres/CentreTimeZoneProviderTests.cs:66](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreTimeZoneProviderTests.cs#L66)
+- [tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs:11](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L11)
+- [tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs:89](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L89)
+- [tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs:111](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L111)
+- [tests/TutoringCentre.Infrastructure.Tests/Identity/StaffRaceTests.cs:65](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/StaffRaceTests.cs#L65)
+- [tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeTestBase.cs:31](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeTestBase.cs#L31)
 
-Declaration.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Immutable message with value equality.
+```csharp
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Domain.Centres;
 
-### CQRS and the dispatcher pipeline
+namespace TutoringCentre.Application.Centres.Commands.CreateCentre;
 
-#### What it means
+/// <summary>Intent to create a centre (tenant). Only the system actor may do this. Carries exactly the four fields a caller may provide.</summary>
+public sealed record CreateCentreCommand(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale)
+    : ICommand<CreateCentreResult>;
+```
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-`ICommand<CreateCentreResult>`.
-
-#### How it works here
-
-Interface list.
-
-#### Why it matters here
-
-Pairs command to response for the dispatcher.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No HTTP endpoint binds this type; strict JSON (`UnmappedMemberHandling.Disallow`) would apply if one were added.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](CreateCentreHandler.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs`](CreateCentreValidator.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs`](CreateCentreResult.cs.md)
-- [`src/TutoringCentre.Api/Cli/SeedCommand.cs`](../../../../TutoringCentre.Api/Cli/SeedCommand.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

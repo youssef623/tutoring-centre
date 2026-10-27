@@ -1,54 +1,66 @@
-# frontend/src/test/msw/handlers.ts
+# `frontend/src/test/msw/handlers.ts`
 
 ## Purpose
 
-Default network behaviour for tests: a healthy API, a signed-out session and a fixed CSRF token.
+Source comment (intent): Default network behaviour for tests: a healthy API. Tests override per case with server.use(...).
 
-## Where It Fits
+## Where it fits
 
-frontend/src/test/msw. Imported by `server.ts`.
+Category: **test**. [Open current file](../../../../../../frontend/src/test/msw/handlers.ts). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 24 lines and 950 bytes. Source hash: `d845f20390268fc6ea3cd342c3eab0374be8c9300d62ac784f25ed0ebfdaa056`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`handlers` (4-23): `GET /health/ready` -> 200 `Healthy`; `GET /api/system/info` -> `{ applicationVersion: "1.0.0", latestMigration: "20261012_InitialPlatform", databaseUpToDate: true }` (now used by `SystemInfoCard.test.tsx`); `GET /api/me` -> 401 `{ title: "Unauthorized", status: 401 }` (comment: no session by default; tests that need a signed-in user override it); `GET /api/auth/antiforgery` -> `{ token: "test-csrf-token" }` (comment: every non-GET request fetches this first - `apiFetch`'s CSRF handling - and a fixed token keeps that invisible to tests that are not about CSRF).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Mocking the network with MSW
+- Line 1: `import { http, HttpResponse } from "msw";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Mock Service Worker intercepts `fetch` at the network layer, so components and hooks run unchanged while the test decides what the 'server' answers.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 4](../../../../../../frontend/src/test/msw/handlers.ts#L4): `export const handlers = [`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Default handlers.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/reconcile_backend_ledger.py:17](../../../../../onboarding-work/reconcile_backend_ledger.py#L17)
+- [frontend/src/test/msw/server.ts:2](../../../../../../frontend/src/test/msw/server.ts#L2)
+- [tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs:22](../../../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L22)
 
-Lines 4-23.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Every test starts from 'API healthy, nobody signed in'; per-test `server.use` overrides change one aspect.
+```typescript
+import { http, HttpResponse } from "msw";
 
-## Data and Control Flow
+/** Default network behaviour for tests: a healthy API. Tests override per case with server.use(...). */
+export const handlers = [
+  http.get("/health/ready", () => new HttpResponse("Healthy", { status: 200 })),
+  http.get("/api/system/info", () =>
+    HttpResponse.json({
+      applicationVersion: "1.0.0",
+      latestMigration: "20261012_InitialPlatform",
+      databaseUpToDate: true,
+      demoMode: false,
+    }),
+  ),
+  // No session by default; tests that need a signed-in user override this with server.use(...).
+  http.get("/api/me", () =>
+    HttpResponse.json(
+      { title: "Unauthorized", status: 401 },
+      { status: 401 },
+    ),
+  ),
+  // Every non-GET request fetches this first (apiFetch's CSRF handling); a fixed token keeps that invisible
+  // to tests that aren't about CSRF themselves.
+  http.get("/api/auth/antiforgery", () => HttpResponse.json({ token: "test-csrf-token" })),
+];
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The mock migration name `20261012_InitialPlatform` does not match the real latest migration (`20261004112858_AddIdentityAndMemberships`); the tests only check that the string is displayed.
-
-## Related Files
-
-- [`frontend/src/test/msw/server.ts`](server.ts.md)
-- [`frontend/src/features/status/SystemInfoCard.test.tsx`](../../features/status/SystemInfoCard.test.tsx.md)
-- [`frontend/src/api/apiFetch.test.ts`](../../api/apiFetch.test.ts.md)
-- [`frontend/src/features/session/useSession.test.ts`](../../features/session/useSession.test.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

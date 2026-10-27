@@ -1,72 +1,81 @@
-# src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs
+# `src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs`
 
 ## Purpose
 
-Infrastructure's persistence model for a staff user, extending ASP.NET Core Identity's `IdentityUser<Guid>`.
+Source summary (intent, not independent execution proof): The Identity persistence model for a staff user. This is Infrastructure's own type, not a Domain entity: nothing outside Infrastructure (other than the composition root and CLI) may reference it.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Identity. Used by `AppDbContext`, `IdentityAuthenticationService`, `DevelopmentIdentitySeeder`, `MembershipReadService`. Not visible to Application or the Api (except composition root and CLI) - enforced by `IdentityRuleTests`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 20 lines and 739 bytes. Source hash: `ffb4842034ba8c37dbf4fb3d64d0dbaa26e35182e6d3b0a83a73bae912b2f17a`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ApplicationUser : IdentityUser<Guid>` (9). Constructor sets `Id = Guid.CreateVersion7()` (11) - same UUIDv7 scheme as `Entity`. Extra columns: `DisplayName` (string, default empty), `PreferredLocale` (`"ar"`/`"en"`), `MustChangePassword` (bool; 'Month 2'). Inherited from Identity (framework): `Email`, `NormalizedEmail`, `PasswordHash`, `SecurityStamp`, `LockoutEnd`, `AccessFailedCount`, etc.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Identity and membership modelling
+- Line 1: `using Microsoft.AspNetCore.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+- [Line 9](../../../../../src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs#L9): `public sealed class ApplicationUser : IdentityUser<Guid>`
+- [Line 11](../../../../../src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs#L11): `public ApplicationUser() => Id = Guid.CreateVersion7();`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-User model.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Cli/ResetPasswordCommand.cs:31](../../../../../src/TutoringCentre.Api/Cli/ResetPasswordCommand.cs#L31)
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:420](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L420)
+- [src/TutoringCentre.Infrastructure/DependencyInjection.cs:161](../../../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs#L161)
+- [src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs:16](../../../../../src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs#L16)
+- [src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs:18](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs#L18)
+- [src/TutoringCentre.Infrastructure/Identity/StaffAccountService.cs:16](../../../../../src/TutoringCentre.Infrastructure/Identity/StaffAccountService.cs#L16)
+- [src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs:21](../../../../../src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs#L21)
+- [src/TutoringCentre.Infrastructure/Persistence/Configurations/Audit/AuditEntryConfiguration.cs:49](../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Audit/AuditEntryConfiguration.cs#L49)
+- [src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs:8](../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs#L8)
+- [src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs:34](../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L34)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs:212](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs#L212)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs:212](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs#L212)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs:270](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs#L270)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs:276](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs#L276)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs:353](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs#L353)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs:359](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs#L359)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs:382](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs#L382)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs:572](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs#L572)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs:645](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs#L645)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs:723](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs#L723)
+- 12 further name-reference locations are omitted from this compact list.
 
-Class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Identity's own columns handle credentials and lockout; the project adds profile fields.
+```csharp
+using Microsoft.AspNetCore.Identity;
 
-### UUIDv7 identifiers
+namespace TutoringCentre.Infrastructure.Identity;
 
-#### What it means
+/// <summary>
+/// The Identity persistence model for a staff user. This is Infrastructure's own type, not a Domain entity:
+/// nothing outside Infrastructure (other than the composition root and CLI) may reference it.
+/// </summary>
+public sealed class ApplicationUser : IdentityUser<Guid>
+{
+    public ApplicationUser() => Id = Guid.CreateVersion7();
 
-A UUID is a 128-bit identifier. Version 7 puts a timestamp in the leading bits, so ids sort roughly by creation time. This repo assigns ids in code at construction instead of letting the database generate them.
+    public string DisplayName { get; set; } = string.Empty;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
+    /// <summary>"ar" or "en".</summary>
+    public string PreferredLocale { get; set; } = string.Empty;
 
-#### Where it appears in this file
+    /// <summary>Forces a password change on next sign-in (Month 2).</summary>
+    public bool MustChangePassword { get; set; }
+}
+```
 
-Guid id.
+## Before modifying this file
 
-#### How it works here
-
-Line 11.
-
-#### Why it matters here
-
-Consistent identifiers.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-`ApplicationUser` is a persistence type, not a Domain entity: the Domain only knows `UserId` as a `Guid` on `Membership`.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs`](../Persistence/Configurations/Identity/ApplicationUserConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs`](IdentityAuthenticationService.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

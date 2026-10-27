@@ -1,73 +1,55 @@
-# src/TutoringCentre.Application/TutoringCentre.Application.csproj
+# `src/TutoringCentre.Application/TutoringCentre.Application.csproj`
 
 ## Purpose
 
-Project file for the use-case layer: references Domain only, plus validation and DI/logging *abstractions*.
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Referenced by Infrastructure, Api and `Application.Tests`/`Architecture.Tests`.
+Category: **configuration**. [Open current file](../../../../src/TutoringCentre.Application/TutoringCentre.Application.csproj). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 15 lines and 665 bytes. Source hash: `ba8a031af8f158d0f7207176231328ab4c0405153ae9afc5bf6d2d536ae6de2d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ProjectReference` Domain. Packages: `FluentValidation`, `FluentValidation.DependencyInjectionExtensions` (provides `AddValidatorsFromAssembly`), `Microsoft.Extensions.DependencyInjection.Abstractions` (`IServiceCollection`, `AddScoped`), `Microsoft.Extensions.Logging.Abstractions` (`ILogger<T>`). Only *Abstractions* packages are used so Application does not pick up a concrete host. `InternalsVisibleTo` for `TutoringCentre.Architecture.Tests` and `TutoringCentre.Application.Tests` (the second one lets tests construct `internal` handlers and validators directly).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Dependency inversion, ports and adapters
+- Line 3: `<ProjectReference Include="..\TutoringCentre.Domain\TutoringCentre.Domain.csproj" />`
+- Line 6: `<PackageReference Include="FluentValidation" />`
+- Line 7: `<PackageReference Include="FluentValidation.DependencyInjectionExtensions" />`
+- Line 8: `<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />`
+- Line 9: `<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Reference list.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Application -> Domain only.
+```text
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\TutoringCentre.Domain\TutoringCentre.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
+    <InternalsVisibleTo Include="TutoringCentre.Application.Tests" />
+  </ItemGroup>
+</Project>
+```
 
-#### Why it matters here
+## Before modifying this file
 
-Ports are defined here and implemented outward.
-
-### MSBuild, Central Package Management and analyzers
-
-#### What it means
-
-MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../../../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
-
-#### Where it appears in this file
-
-Versionless `PackageReference`s.
-
-#### How it works here
-
-Versions resolve from `Directory.Packages.props`.
-
-#### Why it matters here
-
-Single version source.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Application must not reference EF/ASP.NET; `DependencyRuleTests.Application_DoesNotDependOnInfrastructureApiOrFrameworks` enforces it on compiled types.
-
-## Related Files
-
-- [`Directory.Packages.props`](../../Directory.Packages.props.md)
-- [`src/TutoringCentre.Application/DependencyInjection.cs`](DependencyInjection.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`](../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

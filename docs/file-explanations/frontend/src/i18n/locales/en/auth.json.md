@@ -1,54 +1,102 @@
-# frontend/src/i18n/locales/en/auth.json
+# `frontend/src/i18n/locales/en/auth.json`
 
 ## Purpose
 
-English strings for the login page, the centre picker and role names (namespace `auth`).
+JSON data with top-level keys `login`, `panel`, `validation`, `changePassword`, `errors`, `selectCentre`, `roles`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/i18n/locales/en. Bundled by `i18n/index.ts` as namespace `auth`; the `ar` twin must have the same keys (checked by `scripts/check-i18n-keys.mjs`).
+Category: **configuration**. [Open current file](../../../../../../../frontend/src/i18n/locales/en/auth.json). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 68 lines and 2,937 bytes. Source hash: `c5e167ccb82aea107356e0b6b57e44fe478d64ff56b7c9276d480fef54cd993b`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Top-level groups: `login` (brand, eyebrow `Welcome back`, title `Sign in`, subtitle, field labels, `submit` `Sign in`, `submitting` `Signing in...`), `panel` (tagline `Run your tutoring centre with confidence.`, description, four features: attendance, groups, fees, assistant), `validation` (`emailRequired`, `emailInvalid`, `passwordRequired`), `errors` (`invalidCredentials` `Incorrect email or password.`, `rateLimited` `Too many attempts. Please wait a minute and try again.`), `selectCentre` (title, subtitle, empty-state text, logout) and `roles` (`owner` Owner, `teacher` Teacher, `secretary` Assistant). The `roles` keys match the backend `StaffRole` serialisation (`owner`, `teacher`, `secretary`).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Internationalisation (i18next) and RTL layout
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Translation resource.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "login": {
+    "brand": "Hessa",
+    "eyebrow": "Welcome back",
+    "title": "Sign in",
+    "subtitle": "Enter your details to manage your tutoring centre.",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…"
+  },
+  "panel": {
+    "tagline": "Run your tutoring centre with confidence.",
+    "description": "Students, groups, attendance, and fees — all in one calm workspace.",
+    "features": {
+      "attendance": { "title": "Attendance", "description": "Mark by hand or scan QR codes in seconds." },
+      "groups": { "title": "Groups & schedules", "description": "Organise classes, teachers, and timetables." },
+      "fees": { "title": "Fees & payments", "description": "Track dues and settle balances clearly." },
+      "assistant": { "title": "WhatsApp assistant", "description": "Parents get answers in Arabic and English." }
+    }
+  },
+  "validation": {
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "passwordRequired": "Password is required.",
+    "currentPasswordRequired": "Enter your current password.",
+    "newPasswordTooShort": "The new password must be at least 10 characters.",
+    "newPasswordSameAsCurrent": "The new password must be different from your current password.",
+    "confirmPasswordRequired": "Confirm the new password.",
+    "confirmPasswordMismatch": "The passwords don't match."
+  },
+  "changePassword": {
+    "title": "Change password",
+    "subtitle": "Choose a new password for your account.",
+    "firstLoginSubtitle": "You're signing in with a temporary password. Choose a new password to continue.",
+    "currentPasswordLabel": "Current password",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm new password",
+    "submit": "Change password",
+    "submitting": "Changing password…",
+    "toastSuccess": "Password changed."
+  },
+  "errors": {
+    "invalidCredentials": "Incorrect email or password.",
+    "rateLimited": "Too many attempts. Please wait a minute and try again."
+  },
+  "selectCentre": {
+    "title": "Choose a centre",
+    "subtitle": "{count, plural, one {You work in one centre.} other {You work in # centres.}} What you can see and do depends on your role in each.",
+    "signedInAs": "Signed in as",
+    "logout": "Log out",
+    "missingCentre": "Missing a centre? Ask its owner to invite you with this email address.",
+    "noActiveCentre": {
+      "title": "No active centre",
+      "description": "Your account isn't linked to any active centre right now. Either no centre has invited you yet, or your access was deactivated.",
+      "inviteLabel": "Ask the centre owner to invite this email",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "checkAgain": "Check again",
+      "checking": "Checking…"
+    }
+  },
+  "roles": {
+    "owner": "Owner",
+    "teacher": "Teacher",
+    "secretary": "Assistant"
+  }
+}
+```
 
-Nested keys looked up by `t("key.path")`.
+## Before modifying this file
 
-#### Why it matters here
-
-Keeping text in JSON lets the same component render in either language.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The secretary role is displayed as `Assistant` (the label differs from the enum name).
-
-## Related Files
-
-- [`frontend/src/i18n/index.ts`](../../index.ts.md)
-- [`frontend/src/i18n/locales/ar/auth.json`](../ar/auth.json.md)
-- [`frontend/src/routes/login.tsx`](../../../routes/login.tsx.md)
-- [`frontend/src/routes/select-centre.tsx`](../../../routes/select-centre.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

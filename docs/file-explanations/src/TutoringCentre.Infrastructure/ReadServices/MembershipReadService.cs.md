@@ -1,76 +1,130 @@
-# src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs
+# `src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs`
 
 ## Purpose
 
-Read-only EF projections for a staff member's profile, active memberships and session state.
+Reads profile, memberships, active-centre membership, password gate, and cookie session state. These identity rows are globally readable by the runtime role, so each operation explicitly filters the requested user. Session state includes the current role as well as security stamp and membership activity, allowing stale role claims to be rejected.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/ReadServices, `internal`, scoped. Implements `IMembershipReadService`; used by the three Identity query handlers.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 79 lines and 3,592 bytes. Source hash: `f71068c0902b8bea8c1ce6bfa4ef8e8391eed1d8d3428f0f729652f386bf1696`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Primary constructor `MembershipReadService(AppDbContext db)`. All queries use `AsNoTracking()` and filter by the given user id.
-- `GetProfileAsync` (18-39): user projection `{Id, DisplayName, Email, PreferredLocale}` with `SingleOrDefaultAsync`; null -> null; then a LINQ join `from membership in Memberships where UserId == userId && Status == Active join centre in Centres on membership.CentreId equals centre.Id select new MembershipDto(centre.Id, centre.Name, centre.Slug, membership.Role)` (`ToListAsync`).
-- `GetActiveMembershipAsync` (41-47): same join filtered by user *and* centre and Active, `SingleOrDefaultAsync` -> `ActiveMembershipDto` or null.
-- `GetSessionStateAsync` (49-67): reads the user's `SecurityStamp` (null -> null), then `membershipActive = centreId is null || await Memberships.AnyAsync(user, centre, Active)`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Repository pattern and read services
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using Microsoft.EntityFrameworkCore;`
+- Line 3: `using TutoringCentre.Application.Identity;`
+- Line 4: `using TutoringCentre.Domain.Centres;`
+- Line 5: `using TutoringCentre.Domain.Identity;`
+- Line 6: `using TutoringCentre.Infrastructure.Identity;`
+- Line 7: `using TutoringCentre.Infrastructure.Persistence;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *repository* looks like a collection of aggregates (`Add`, `ExistsBy...`) and hides how they are stored. A *read service* is a separate query-side abstraction that returns DTOs directly, so reads need not load and map domain entities.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services](../../../../PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services).)
+- [Line 16](../../../../../src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs#L16): `internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadService`
+- [Line 18](../../../../../src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs#L18): `public async Task<StaffProfileDto?> GetProfileAsync(Guid userId, CancellationToken ct)`
+- [Line 41](../../../../../src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs#L41): `public async Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct) =>`
+- [Line 49](../../../../../src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs#L49): `public async Task<SessionStateDto?> GetSessionStateAsync(Guid userId, Guid? centreId, CancellationToken ct)`
+- [Line 77](../../../../../src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs#L77): `public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Read service.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/extend_backend_purposes.py:11](../../../../onboarding-work/extend_backend_purposes.py#L11)
+- [src/TutoringCentre.Infrastructure/DependencyInjection.cs:155](../../../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs#L155)
 
-Class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-DTOs straight from SQL; no entities leave.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
+using TutoringCentre.Application.Identity;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Identity;
+using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Infrastructure.Persistence;
 
-### ORM and EF Core
+namespace TutoringCentre.Infrastructure.ReadServices;
 
-#### What it means
+/// <summary>
+/// Read side of a staff member's own profile, memberships and session state. Non-tracking projections only;
+/// every query filters by the given user ID, and profile/active-membership results include only active memberships.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadService
+{
+    public async Task<StaffProfileDto?> GetProfileAsync(Guid userId, CancellationToken ct)
+    {
+        var user = await db.Set<ApplicationUser>()
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.PreferredLocale, u.MustChangePassword })
+            .SingleOrDefaultAsync(ct);
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+        if (user is null)
+        {
+            return null;
+        }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+        var memberships = await (
+            from membership in db.Set<Membership>().AsNoTracking()
+            where membership.UserId == userId && membership.Status == MembershipStatus.Active
+            join centre in db.Set<Centre>().AsNoTracking() on membership.CentreId equals centre.Id
+            select new MembershipDto(centre.Id, centre.Name, centre.Slug, membership.Role, centre.TimeZoneId))
+            .ToListAsync(ct);
 
-#### Where it appears in this file
+        return new StaffProfileDto(user.Id, user.DisplayName, user.Email ?? string.Empty, user.PreferredLocale, memberships, user.MustChangePassword);
+    }
 
-Projections, joins, no tracking.
+    public async Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct) =>
+        await (
+            from membership in db.Set<Membership>().AsNoTracking()
+            where membership.UserId == userId && membership.CentreId == centreId && membership.Status == MembershipStatus.Active
+            join centre in db.Set<Centre>().AsNoTracking() on membership.CentreId equals centre.Id
+            select new ActiveMembershipDto(centre.Id, centre.Name, membership.Role))
+            .SingleOrDefaultAsync(ct);
 
-#### How it works here
+    public async Task<SessionStateDto?> GetSessionStateAsync(Guid userId, Guid? centreId, CancellationToken ct)
+    {
+        var stamp = await db.Set<ApplicationUser>()
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.SecurityStamp)
+            .SingleOrDefaultAsync(ct);
 
-`Select`, `join`, `AsNoTracking`.
+        if (stamp is null)
+        {
+            return null;
+        }
 
-#### Why it matters here
+        if (centreId is null)
+        {
+            return new SessionStateDto(stamp, MembershipActive: true, CurrentRole: null);
+        }
 
-The query translates to SQL joins on `identity.memberships` and `platform.centres`; `Select` into a DTO fetches only needed columns.
+        var membership = await db.Set<Membership>()
+            .AsNoTracking()
+            .Where(m => m.UserId == userId && m.CentreId == centreId)
+            .Select(m => new { m.Status, m.Role })
+            .SingleOrDefaultAsync(ct);
 
-## Data and Control Flow
+        var membershipActive = membership is not null && membership.Status == MembershipStatus.Active;
+        return new SessionStateDto(stamp, membershipActive, membership?.Role);
+    }
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) =>
+        db.Set<ApplicationUser>().AsNoTracking().Where(u => u.Id == userId).Select(u => u.MustChangePassword).SingleOrDefaultAsync(ct);
+}
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-A membership for a deleted/missing centre is impossible by the foreign key, so the inner join cannot silently drop rows.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/IMembershipReadService.cs`](../../TutoringCentre.Application/Identity/IMembershipReadService.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs`](../Persistence/Configurations/Identity/MembershipConfiguration.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs`](../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

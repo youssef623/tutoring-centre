@@ -1,54 +1,71 @@
-# tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs
+# `tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs`
 
 ## Purpose
 
-In-memory fake of `IMembershipReadService` that returns whatever the test assigned to three properties.
+Source summary (intent, not independent execution proof): In-memory stand-in for the three canned responses a handler test needs.
 
-## Where It Fits
+## Where it fits
 
-Application.Tests/Fakes. Used by the three identity handler test classes. Lets Application handlers be tested without a database.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 25 lines and 1,031 bytes. Source hash: `309919e3de5f42ea2e5e994aa5a3a6001389fa3f71f555bfdca6485b06089db8`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`FakeMembershipReadService` (6-21). Three settable properties - `Profile` (`StaffProfileDto?`), `ActiveMembership` (`ActiveMembershipDto?`), `SessionState` (`SessionStateDto?`) - and the three interface methods `GetProfileAsync`, `GetActiveMembershipAsync`, `GetSessionStateAsync`, each returning `Task.FromResult(<property>)` and ignoring its arguments. Default is `null` for all three, which is what the real service returns for unknown user / no active membership.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Test doubles: fakes vs real dependencies
+- Line 1: `using TutoringCentre.Application.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *fake* is a small working substitute (in-memory repository). Real-dependency (integration) tests run actual components such as PostgreSQL. Fakes are fast and focused; integration tests prove behaviour only the real system provides.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+- [Line 6](../../../../../tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs#L6): `public sealed class FakeMembershipReadService : IMembershipReadService`
+- [Line 16](../../../../../tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs#L16): `public Task<StaffProfileDto?> GetProfileAsync(Guid userId, CancellationToken ct) => Task.FromResult(Profile);`
+- [Line 18](../../../../../tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs#L18): `public Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct) =>`
+- [Line 21](../../../../../tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs#L21): `public Task<SessionStateDto?> GetSessionStateAsync(Guid userId, Guid? centreId, CancellationToken ct) =>`
+- [Line 24](../../../../../tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs#L24): `public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) => Task.FromResult(MustChangePassword);`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The whole class.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs:17](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L17)
+- [tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs:17](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs#L17)
+- [tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs:17](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L17)
 
-The whole class (lines 6-20).
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-A hand-written fake is enough: three canned answers, no mocking library; it ignores parameters, so a test cannot check *which* user id was asked for (the real service's filtering is tested against PostgreSQL in `MembershipReadServiceTests`).
+```csharp
+using TutoringCentre.Application.Identity;
 
-## Data and Control Flow
+namespace TutoringCentre.Application.Tests.Fakes;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>In-memory stand-in for the three canned responses a handler test needs.</summary>
+public sealed class FakeMembershipReadService : IMembershipReadService
+{
+    public StaffProfileDto? Profile { get; set; }
 
-## Configuration and Environment
+    public ActiveMembershipDto? ActiveMembership { get; set; }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    public SessionStateDto? SessionState { get; set; }
 
-## Gotchas and Issues
+    public bool MustChangePassword { get; set; }
 
-Because the fake ignores its arguments, handler tests cannot detect a handler passing the wrong `userId` or `centreId` to the read service.
+    public Task<StaffProfileDto?> GetProfileAsync(Guid userId, CancellationToken ct) => Task.FromResult(Profile);
 
-## Related Files
+    public Task<ActiveMembershipDto?> GetActiveMembershipAsync(Guid userId, Guid centreId, CancellationToken ct) =>
+        Task.FromResult(ActiveMembership);
 
-- [`src/TutoringCentre.Application/Identity/IMembershipReadService.cs`](../../../src/TutoringCentre.Application/Identity/IMembershipReadService.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs`](../Identity/GetActiveMembershipHandlerTests.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs`](../Identity/GetMyMembershipsHandlerTests.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs`](../Identity/ValidateStaffSessionHandlerTests.cs.md)
+    public Task<SessionStateDto?> GetSessionStateAsync(Guid userId, Guid? centreId, CancellationToken ct) =>
+        Task.FromResult(SessionState);
+
+    public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) => Task.FromResult(MustChangePassword);
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,74 +1,88 @@
-# frontend/src/features/status/StatusCard.test.tsx
+# `frontend/src/features/status/StatusCard.test.tsx`
 
 ## Purpose
 
-Component tests for `StatusCard` against a mocked network.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/features/status; Vitest + Testing Library + MSW. Uses `server` from `test/msw/server.ts` and `renderWithQueryClient`.
+Category: **test**. [Open current file](../../../../../../frontend/src/features/status/StatusCard.test.tsx). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 47 lines and 1,779 bytes. Source hash: `7473ecdacdd8f95e52b6d7aa594f4397c632e3262b66ae2fbbc1697af6a1b522`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Constants: `readinessUrl`, `healthy()` (200 'Healthy'), `unavailable()` (503 'Unhealthy'). Tests: (1) healthy - Arrange `server.use(http.get(url, healthy))`; Act render; Assert `findByText('API and database are reachable')`. (2) 503 - asserts 'API is running but the database is unavailable', a Retry button, and that 'Cannot reach the API' is absent (503 is an answer, not a network failure). (3) Retry - start with 503, find Retry, swap handler to healthy with `server.use`, `fireEvent.click`, assert healthy text appears. Not tested: the network-error branch, polling, loading skeleton.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Mocking the network with MSW
+- Line 1: `import { fireEvent, screen } from "@testing-library/react";`
+- Line 2: `import { http, HttpResponse } from "msw";`
+- Line 3: `import { describe, expect, it } from "vitest";`
+- Line 4: `import { server } from "@/test/msw/server";`
+- Line 5: `import { renderWithQueryClient } from "@/test/render";`
+- Line 6: `import { StatusCard } from "./StatusCard";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Mock Service Worker intercepts `fetch` at the network layer, so components and hooks run unchanged while the test decides what the 'server' answers.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Per-test handlers.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`server.use`.
+```tsx
+import { fireEvent, screen } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { describe, expect, it } from "vitest";
+import { server } from "@/test/msw/server";
+import { renderWithQueryClient } from "@/test/render";
+import { StatusCard } from "./StatusCard";
 
-#### Why it matters here
+const readinessUrl = "/health/ready";
+const healthy = () => new HttpResponse("Healthy", { status: 200 });
+const unavailable = () => new HttpResponse("Unhealthy", { status: 503 });
 
-The component and hook run unmodified.
+describe("StatusCard", () => {
+  it("shows the healthy state when the API returns 200", async () => {
+    // Arrange
+    server.use(http.get(readinessUrl, healthy));
 
-### React components, props, state and re-rendering
+    // Act
+    renderWithQueryClient(<StatusCard />);
 
-#### What it means
+    // Assert
+    expect(await screen.findByText("API and database are reachable")).toBeInTheDocument();
+  });
 
-A component is a function returning UI from props and state. When state a component depends on changes, React calls the function again (a re-render) and updates only the DOM that differs.
+  it("shows the database-unavailable state with Retry when the API returns 503", async () => {
+    server.use(http.get(readinessUrl, unavailable));
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+    renderWithQueryClient(<StatusCard />);
 
-#### Where it appears in this file
+    expect(
+      await screen.findByText("API is running but the database is unavailable"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    // 503 is an answer from the API, not a network failure.
+    expect(screen.queryByText("Cannot reach the API")).not.toBeInTheDocument();
+  });
 
-User-event simulation.
+  it("refetches and shows the healthy state after Retry", async () => {
+    server.use(http.get(readinessUrl, unavailable));
+    renderWithQueryClient(<StatusCard />);
+    const retryButton = await screen.findByRole("button", { name: "Retry" });
 
-#### How it works here
+    server.use(http.get(readinessUrl, healthy));
+    fireEvent.click(retryButton);
 
-`fireEvent.click`.
+    expect(await screen.findByText("API and database are reachable")).toBeInTheDocument();
+  });
+});
+```
 
-#### Why it matters here
+## Before modifying this file
 
-Drives the refetch path.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/features/status/StatusCard.tsx`](StatusCard.tsx.md)
-- [`frontend/src/test/render.tsx`](../../test/render.tsx.md)
-- [`frontend/src/test/msw/server.ts`](../../test/msw/server.ts.md)
-- [`frontend/src/test/setup.ts`](../../test/setup.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

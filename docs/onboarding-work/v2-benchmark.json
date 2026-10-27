@@ -1,0 +1,703 @@
+{
+  "lines": 4018,
+  "words": 57697,
+  "top_level_sections": 15,
+  "h1_total": 18,
+  "concept_count": 35,
+  "fenced_blocks": 48,
+  "mermaid_diagrams": 20,
+  "concepts": [
+    {
+      "number": "6.1",
+      "title": "Clean Architecture, dependency inversion and the composition root",
+      "words": 1532,
+      "lines": 133,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: layers, coupling, and the two directions of an arrow",
+        "#### Start from zero: what is a \"dependency\" in code?",
+        "#### What would this project look like without it?",
+        "#### What this project does instead (real code)",
+        "#### Two different arrows - compile time vs run time",
+        "#### How the compiler and the tests enforce the rule",
+        "#### Advantages",
+        "#### Disadvantages (the ADR's own list, confirmed in the code)",
+        "#### Alternatives",
+        "#### What if we removed it here?",
+        "#### Beginner traps"
+      ]
+    },
+    {
+      "number": "6.2",
+      "title": "Dependency Injection: lifetimes and scanning",
+      "words": 1871,
+      "lines": 140,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example \u2014 what happens on `dispatcher.SendAsync<CreateCentreCommand, CreateCentreResult>`",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: what the container really does",
+        "#### The idea in plain language",
+        "#### The problem, with code (hypothetical vs real)",
+        "#### Registration and resolution, step by step",
+        "#### Lifetimes with an analogy",
+        "#### What happens when something goes wrong?",
+        "#### Why constructor injection (and not setters or fields)?",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed DI from this project?"
+      ]
+    },
+    {
+      "number": "6.3",
+      "title": "CQRS and the hand-written Dispatcher",
+      "words": 1443,
+      "lines": 123,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How THIS project implements it",
+        "### Execution example (command, success) \u2014 `seed` creating \"Nile Tutoring Centre\"",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: commands, queries, mediators and pipelines",
+        "#### Start from zero",
+        "#### How far does this repo go? (be precise)",
+        "#### What is a mediator/dispatcher, and why?",
+        "#### How `Dispatcher` finds the handler (the generic-type trick)",
+        "#### The pipeline, as a picture",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What the dispatcher does **not** do (yet)",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.4",
+      "title": "The Result pattern: failures as values",
+      "words": 1182,
+      "lines": 112,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works here (`Domain/Common/Result.cs`)",
+        "### Where each category is used",
+        "### Execution example",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: two kinds of \"something went wrong\"",
+        "#### Start from zero: what is an exception, really?",
+        "#### The problem without it (hypothetical code)",
+        "#### The same thing with Result (real code, `CreateCentreHandler.cs:24-28`)",
+        "#### How the type guarantees consistency",
+        "#### Railway picture",
+        "#### What the Error carries and why",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.5",
+      "title": "Validation: two tiers",
+      "words": 853,
+      "lines": 63,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### Execution example",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: where to check, what to check, and why check twice",
+        "#### Start from zero: the trust boundary",
+        "#### Three kinds of rules, three homes",
+        "#### How FluentValidation works inside (briefly)",
+        "#### Execution example: two inputs, two different error codes",
+        "#### The \"single source of truth\" idea",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed the validator here?"
+      ]
+    },
+    {
+      "number": "6.6",
+      "title": "Entities, encapsulation and factory methods",
+      "words": 875,
+      "lines": 69,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: identity, encapsulation and keeping objects valid",
+        "#### Start from zero",
+        "#### Why two private constructors? (a classic confusion)",
+        "#### UUIDv7: what it is and what this repo does",
+        "#### Execution example",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed the factory?"
+      ]
+    },
+    {
+      "number": "6.7",
+      "title": "Unit of Work and transactions",
+      "words": 1106,
+      "lines": 92,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How THIS project implements it",
+        "### Execution example (failure path, proven by `TransactionBoundaryTests`)",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: transactions from first principles",
+        "#### Start from zero: why transactions exist (the bank-transfer story)",
+        "#### What EF Core does by default, and why this repo does not rely on it",
+        "#### What is a \"unit of work\"?",
+        "#### The life of one transaction in this repo",
+        "#### Read-only transactions",
+        "#### Isolation (what concurrent requests can see)",
+        "#### Connections and cost",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.8",
+      "title": "Repository pattern and read services",
+      "words": 628,
+      "lines": 54,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements it",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: what a repository is for, and what it is not",
+        "#### Start from zero",
+        "#### Real code",
+        "#### What happens at run time when the handler calls `centres.Add(...)`?",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.9",
+      "title": "EF Core: how the ORM actually works here",
+      "words": 1397,
+      "lines": 98,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements each piece",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: what an ORM is, and what EF Core does between your C# and the database",
+        "#### Start from zero",
+        "#### The five jobs EF Core performs in this repo",
+        "#### Query life cycle for `AnyAsync(c => c.Slug == slug)` (from `CentreRepository.ExistsBySlugAsync`)",
+        "#### The change tracker, with this repo's insert",
+        "#### Value converters and shadow properties - why they exist",
+        "#### Migrations: schema as versioned code",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed EF here?"
+      ]
+    },
+    {
+      "number": "6.10",
+      "title": "Concurrency: the slug race and why the unique index is the real guarantee",
+      "words": 735,
+      "lines": 56,
+      "headings": [
+        "### What it means",
+        "### How THIS project handles it",
+        "### Before you modify it",
+        "### Deeper dive: why \"check, then insert\" is not safe, step by step",
+        "#### Start from zero: what is concurrency?",
+        "#### The timeline that breaks \"check then insert\"",
+        "#### Why Read Committed does not help",
+        "#### The standard solution: let the database arbitrate",
+        "#### How the test proves it (and why it is written that way)",
+        "#### Options for resolving races (and what this repo chose)",
+        "#### Current gap"
+      ]
+    },
+    {
+      "number": "6.11",
+      "title": "The Actor model and the tenancy groundwork",
+      "words": 832,
+      "lines": 55,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements it (partially)",
+        "### Before you modify it",
+        "### Deeper dive: who is calling, and why identity must not come from the request",
+        "#### Four words that are easy to mix up",
+        "#### Why an `Actor` object instead of a parameter?",
+        "#### How the holder is protected",
+        "#### Tracing it in the real code",
+        "#### The tenancy plan (comments only) and why it matters",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.12",
+      "title": "HTTP, Problem Details and error handling",
+      "words": 1187,
+      "lines": 107,
+      "headings": [
+        "### What it means (web concepts used)",
+        "### How THIS project implements it",
+        "### Execution example \u2014 an invalid body to a test endpoint",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: HTTP in five minutes, and why errors get a standard shape",
+        "#### HTTP from zero",
+        "#### The problem: every endpoint inventing its own error JSON",
+        "#### What a real error looks like in this repo",
+        "#### How \"exactly one writer\" is achieved",
+        "#### Why two identifiers (`traceId`, `correlationId`)?",
+        "#### Why exceptions must never reach the client verbatim",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.13",
+      "title": "Structured logging, correlation IDs and redaction",
+      "words": 940,
+      "lines": 68,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements it",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: logs as data",
+        "#### Start from zero",
+        "#### Levels",
+        "#### Serilog concepts used",
+        "#### Correlation, step by step",
+        "#### Why `[LoggerMessage]` in `GlobalExceptionHandler`?",
+        "#### Redaction: why a \"safety net\"",
+        "#### Log injection",
+        "#### Advantages / disadvantages",
+        "#### Alternatives",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.14",
+      "title": "Options validation and health checks",
+      "words": 694,
+      "lines": 55,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements it",
+        "### Before you modify it",
+        "### Deeper dive: configuration, \"fail fast\", and what liveness/readiness protect",
+        "#### Configuration from zero",
+        "#### The options pattern",
+        "#### \"Fail fast\" and `ValidateOnStart`",
+        "#### Liveness vs readiness - the idea",
+        "#### Advantages / disadvantages",
+        "#### Alternatives",
+        "#### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.15",
+      "title": "Architecture tests (fitness functions)",
+      "words": 758,
+      "lines": 61,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements it \u2014 two complementary checks",
+        "### Before you modify it",
+        "### Deeper dive: how a test can \"see\" architecture",
+        "#### Start from zero",
+        "#### Why this repo needs two different tests",
+        "#### How the pieces work",
+        "#### Advantages",
+        "#### Disadvantages",
+        "#### Alternatives",
+        "#### What if we removed them here?"
+      ]
+    },
+    {
+      "number": "6.16",
+      "title": "Test doubles vs real-database tests",
+      "words": 1060,
+      "lines": 83,
+      "headings": [
+        "### What it means",
+        "### How THIS project implements it",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: designing a test strategy",
+        "#### Start from zero: what is a test for?",
+        "#### The test pyramid applied to this repo",
+        "#### Vocabulary: stub, fake, mock",
+        "#### Why both fakes and a real database?",
+        "#### How xUnit makes it work",
+        "#### How Testcontainers and Respawn fit",
+        "#### `WebApplicationFactory<Program>` - testing HTTP without a network",
+        "#### Determinism pitfalls the repo handles",
+        "#### Advantages / disadvantages",
+        "#### Alternatives",
+        "#### What if we removed the real-database tests here?"
+      ]
+    },
+    {
+      "number": "6.17",
+      "title": "Frontend concepts: React, server state and routing",
+      "words": 1757,
+      "lines": 90,
+      "headings": [
+        "### Components, props, state, hooks (what they mean)",
+        "### How THIS project implements it \u2014 tracing \"the page shows API status\"",
+        "### Frontend tests",
+        "### Alternatives",
+        "### Before you modify it",
+        "### Deeper dive: how React, TanStack Query and the tooling really work",
+        "#### React from zero",
+        "#### Why not just `useEffect` + `fetch`?",
+        "#### How `useQuery` works, in steps (library mechanics; behaviour verified in the repo's tests)",
+        "#### TypeScript concepts visible in the code",
+        "#### Routing and Vite",
+        "#### Styling concepts",
+        "#### Testing concepts",
+        "#### Advantages / disadvantages",
+        "#### Alternatives",
+        "#### What if we removed TanStack Query here?"
+      ]
+    },
+    {
+      "number": "6.18",
+      "title": "Foundations: interfaces, abstraction, polymorphism, inheritance and composition",
+      "words": 466,
+      "lines": 36,
+      "headings": [
+        "### What these words mean",
+        "### Why this matters in this repo",
+        "### Where each appears",
+        "### Advantages / disadvantages",
+        "### Alternatives",
+        "### Before you modify it"
+      ]
+    },
+    {
+      "number": "6.19",
+      "title": "Foundations: async/await, Tasks and cancellation",
+      "words": 468,
+      "lines": 40,
+      "headings": [
+        "### What it means",
+        "### How it looks here",
+        "### Cancellation",
+        "### `await using` and scopes",
+        "### Concurrency vs parallelism (needed for `CentreSlugRaceTests`)",
+        "### Advantages / disadvantages",
+        "### Alternatives",
+        "### What if removed here?"
+      ]
+    },
+    {
+      "number": "6.20",
+      "title": "Foundations: generics, records, immutability, nullable references and pattern matching",
+      "words": 445,
+      "lines": 30,
+      "headings": [
+        "### Generics",
+        "### Records and immutability",
+        "### Nullable reference types",
+        "### Pattern matching used in the repo",
+        "### Other modern C# idioms you will meet",
+        "### Advantages / disadvantages"
+      ]
+    },
+    {
+      "number": "6.21",
+      "title": "Foundations: exceptions, `throw;` and cleanup",
+      "words": 265,
+      "lines": 22,
+      "headings": [
+        "### What it means",
+        "### How the repo uses them (and why)",
+        "### `throw;` vs `throw ex;`",
+        "### `try/catch/finally` in `UnitOfWork`",
+        "### Advantages / disadvantages and alternatives"
+      ]
+    },
+    {
+      "number": "6.22",
+      "title": "Foundations: attributes and reflection",
+      "words": 261,
+      "lines": 23,
+      "headings": [
+        "### What it means",
+        "### Attributes in this repo and who reads them",
+        "### Reflection in the repo",
+        "### Source generators vs reflection"
+      ]
+    },
+    {
+      "number": "6.23",
+      "title": "Foundations: JSON serialization and model binding in minimal APIs",
+      "words": 279,
+      "lines": 22,
+      "headings": [
+        "### What it means",
+        "### What the repo configures (`Program.cs:51-60`)",
+        "### Trace: `POST /api/test/name` with `{ \"name\": \"Bob\", \"extra\": \"nope\" }`",
+        "### Advantages / disadvantages",
+        "### Alternatives"
+      ]
+    },
+    {
+      "number": "6.24",
+      "title": "Cookie authentication and server-side sessions",
+      "words": 1646,
+      "lines": 101,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism) *(framework behaviour \u2014 not written in this repository)*",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.25",
+      "title": "CSRF protection: double-submit antiforgery tokens",
+      "words": 1300,
+      "lines": 71,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism) *(framework behaviour)*",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.26",
+      "title": "Rate limiting, lockout and enumeration resistance",
+      "words": 1226,
+      "lines": 85,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.27",
+      "title": "Session revalidation and revocation",
+      "words": 1120,
+      "lines": 71,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.28",
+      "title": "Identity and membership modelling",
+      "words": 1181,
+      "lines": 74,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.29",
+      "title": "Authorization by default, the actor pipeline and the tenant gate",
+      "words": 1344,
+      "lines": 76,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.30",
+      "title": "Architecture rules beyond dependencies",
+      "words": 850,
+      "lines": 71,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.31",
+      "title": "Contract-first API client generation",
+      "words": 1158,
+      "lines": 74,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.32",
+      "title": "Frontend sessions, route guards and global 401 handling",
+      "words": 1189,
+      "lines": 70,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.33",
+      "title": "Forms and validation with React Hook Form and Zod",
+      "words": 793,
+      "lines": 57,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.34",
+      "title": "Internationalisation and right-to-left layout",
+      "words": 985,
+      "lines": 67,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    },
+    {
+      "number": "6.35",
+      "title": "End-to-end testing with Playwright",
+      "words": 894,
+      "lines": 61,
+      "headings": [
+        "### What it means",
+        "### The problem it solves",
+        "### How it works (mechanism)",
+        "### How THIS project implements it",
+        "### Execution example",
+        "### Why this project needs it",
+        "### Alternatives",
+        "### Important details",
+        "### What I should understand before modifying this code",
+        "### What if we removed it here?"
+      ]
+    }
+  ]
+}

@@ -1,99 +1,133 @@
-# frontend/src/api/apiFetch.test.ts
+# `frontend/src/api/apiFetch.test.ts`
 
 ## Purpose
 
-Tests of `apiFetch` and `toApiError`: success and 204 handling, Problem Details mapping, network failure, non-JSON errors, CSRF header attachment and the single retry.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api. Uses MSW (`@/test/msw/server`) so no real network is touched, and the two Problem Details fixtures in `src/api/fixtures/`.
+Category: **test**. [Open current file](../../../../../frontend/src/api/apiFetch.test.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 219 lines and 6,637 bytes. Source hash: `202c6bb647d1be67c2a01d9ccf87ea7a8cfdbbc451f893bffb8b22e79f61277a`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Four `describe` blocks, Arrange/Act/Assert comments:
-- `apiFetch` (8-98): 200 returns the parsed body; 204 returns `undefined` (DELETE); the 404 fixture becomes an `ApiRequestError` with `kind: "notFound"`, the fixture's `code`, status 404 and `correlationId`; the 400 fixture becomes `kind: "validation"`; `HttpResponse.error()` becomes `network.unreachable` status 0; an HTML 502 body becomes `kind: "unexpected"`, code `http.502`.
-- `apiFetch CSRF handling` (100-188): `beforeEach(vi.resetModules)` because the token cache in `csrf.ts` is module-level state, and each test imports a fresh `apiFetch` with `await import("./apiFetch")`. Tests: a POST carries `X-XSRF-TOKEN: test-csrf-token` (default MSW handler); a GET carries no such header; a first 403 `auth.csrf_invalid` makes `apiFetch` fetch a second token and retry, so two POST attempts, two antiforgery calls and the second request carries `token-2`; if the retry also returns 403, the error is thrown after exactly two attempts (no third).
-- `toApiError` (190-219): `it.each` maps 400/401/403/404/409/422/500 to `validation/unauthenticated/forbidden/notFound/conflict/rule/unexpected`; a problem without `code` gives `http.409` and uses `title` as the message.
-In total 18 tests (counted from the Vitest JSON run).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Mocking the network with MSW
+- Line 1: `import { http, HttpResponse } from "msw";`
+- Line 2: `import { beforeEach, describe, expect, it, vi } from "vitest";`
+- Line 3: `import problem400 from "./fixtures/problem-400.json";`
+- Line 4: `import problem404 from "./fixtures/problem-404.json";`
+- Line 5: `import { server } from "@/test/msw/server";`
+- Line 6: `import { ApiRequestError, apiFetch, toApiError } from "./apiFetch";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Mock Service Worker intercepts `fetch` at the network layer, so components and hooks run unchanged while the test decides what the 'server' answers.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Per-test handlers.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`server.use(http.get(...))` throughout.
+```typescript
+import { http, HttpResponse } from "msw";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import problem400 from "./fixtures/problem-400.json";
+import problem404 from "./fixtures/problem-404.json";
+import { server } from "@/test/msw/server";
+import { ApiRequestError, apiFetch, toApiError } from "./apiFetch";
 
-#### Why it matters here
+describe("apiFetch", () => {
+  it("returns the parsed body for a 200 response", async () => {
+    // Arrange
+    server.use(http.get("*/api/ping", () => HttpResponse.json({ message: "pong" })));
 
-Each test defines the exact server behaviour it needs; unhandled requests fail the test (`onUnhandledRequest: "error"` in `setup.ts`).
+    // Act
+    const result = await apiFetch<{ message: string }>("/api/ping");
 
-### CSRF protection with antiforgery tokens
+    // Assert
+    expect(result).toEqual({ message: "pong" });
+  });
 
-#### What it means
+  it("returns undefined for a 204 response", async () => {
+    // Arrange
+    server.use(http.delete("*/api/ping", () => new HttpResponse(null, { status: 204 })));
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+    // Act
+    const result = await apiFetch("/api/ping", { method: "DELETE" });
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
+    // Assert
+    expect(result).toBeUndefined();
+  });
 
-#### Where it appears in this file
+  it("maps the 404 Problem Details fixture to a notFound ApiError with code and correlation id", async () => {
+    // Arrange
+    server.use(http.get("*/api/missing", () => HttpResponse.json(problem404, { status: 404 })));
 
-Retry-once behaviour.
+    // Act
+    const act = apiFetch("/api/missing");
 
-#### How it works here
+    // Assert
+    await expect(act).rejects.toBeInstanceOf(ApiRequestError);
+    await expect(act).rejects.toMatchObject({
+      kind: "notFound",
+      code: problem404.code,
+      status: 404,
+      correlationId: problem404.correlationId,
+    });
+  });
 
-Lines 142-187.
+  it("maps the 400 Problem Details fixture to a validation ApiError", async () => {
+    // Arrange
+    server.use(http.post("*/api/things", () => HttpResponse.json(problem400, { status: 400 })));
 
-#### Why it matters here
+    // Act
+    const act = apiFetch("/api/things", { method: "POST", body: JSON.stringify({ name: "" }) });
 
-The two retry tests pin down the exact policy: one refresh, one retry, then surface the error.
+    // Assert
+    await expect(act).rejects.toMatchObject({
+      kind: "validation",
+      code: problem400.code,
+      status: 400,
+      correlationId: problem400.correlationId,
+    });
+  });
 
-### Problem Details (RFC 9457) and centralised error handling
+  it("maps a network failure to network.unreachable with status 0", async () => {
+    // Arrange
+    server.use(http.get("*/api/down", () => HttpResponse.error()));
 
-#### What it means
+    // Act
+    const act = apiFetch("/api/down");
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+    // Assert
+    await expect(act).rejects.toMatchObject({
+      kind: "unexpected",
+      code: "network.unreachable",
+      status: 0,
+    });
+  });
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+  it("maps a non-JSON 502 response to an unexpected ApiError", async () => {
+    // Arrange
+    server.use(
+      http.get(
+        "*/api/bad-gateway",
+        () =>
+          new HttpResponse("<html>Bad gateway</html>", {
+            status: 502,
+            headers: { "Content-Type": "text/html" },
+          }),
+      ),
+    );
+```
 
-#### Where it appears in this file
+The excerpt stops at line 90; use the original file for the remaining 129 lines.
 
-Fixtures from real responses.
+## Before modifying this file
 
-#### How it works here
-
-Lines 3-4, 31-62.
-
-#### Why it matters here
-
-`problem-400.json` and `problem-404.json` are shaped like the backend's real Problem Details (previously unused; now exercised here).
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/api/apiFetch.ts`](apiFetch.ts.md)
-- [`frontend/src/api/csrf.ts`](csrf.ts.md)
-- [`frontend/src/test/msw/handlers.ts`](../test/msw/handlers.ts.md)
-- [`frontend/src/api/fixtures/problem-400.json`](fixtures/problem-400.json.md)
-- [`frontend/src/api/fixtures/problem-404.json`](fixtures/problem-404.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

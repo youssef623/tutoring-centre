@@ -1,87 +1,137 @@
-# src/TutoringCentre.Domain/Common/Result.cs
+# `src/TutoringCentre.Domain/Common/Result.cs`
 
 ## Purpose
 
-Defines `Result` and `Result<T>`, the return types for operations that can fail for expected business reasons.
+Source summary (intent, not independent execution proof): The outcome of an operation that can fail for an expected business reason.
 
-## Where It Fits
+## Where it fits
 
-Domain/Common. Used by `Centre.Create`, every `ICommandHandler`/`IQueryHandler`, `Dispatcher`, and `Api/Http/ResultHttpExtensions`. Depends on `Error`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Common/Result.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 70 lines and 2,405 bytes. Source hash: `0c0e79416f52e29b4267468790df29e5b5dbb4d455c65ef98494c72dd6a6d640`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `class Result` (line 6): protected constructor (lines 9-24) allows only two legal states - success with `error == null`, failure with an error; otherwise throws `ArgumentException` (line 13) or `ArgumentNullException` (line 18). Properties `IsSuccess`, `IsFailure => !IsSuccess` (27), `Error` (30). Factories `Success()` (32) and `Failure(Error)` (35).
-- `sealed class Result<T> : Result` (43): private constructors so only the factories construct it; private `_value`. For a failure `_value = default!` (null-forgiving, because `Value` guards access).
-- `Value` (61-64): returns `_value` when successful; **throws `InvalidOperationException`** when failed, with the error code in the message. Reading a failed value is treated as a bug, per the rules in `docs/architecture/overview.md`.
-- `Success(T)` (66) and `public static new Failure(Error)` (69): `new` hides the base `Result.Failure` so `Result<T>.Failure(...)` returns a `Result<T>`.
-- `[SuppressMessage CA1000]` justification: static members on a generic type are 'the agreed factory API'.
-Called by: everywhere a use case ends. Edge cases: `Result.Failure(null!)` throws `ArgumentNullException` (tested). If the constructor guard were removed, a 'success with error' value could reach `ToHttpResult` and produce inconsistent HTTP output.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### The Result pattern (failures as values)
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+- [Line 6](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L6): `public class Result`
+- [Line 8](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L8): `protected Result(bool isSuccess, Error? error)`
+- [Line 32](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L32): `public static Result Success() => new(isSuccess: true, error: null);`
+- [Line 35](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L35): `public static Result Failure(Error error) => new(isSuccess: false, error);`
+- [Line 43](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L43): `public sealed class Result<T> : Result`
+- [Line 47](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L47): `private Result(T value)`
+- [Line 53](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L53): `private Result(Error error)`
+- [Line 66](../../../../../src/TutoringCentre.Domain/Common/Result.cs#L66): `public static Result<T> Success(T value) => new(value);`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Both classes.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/extend_backend_purposes.py:28](../../../../onboarding-work/extend_backend_purposes.py#L28)
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:493](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L493)
+- [src/TutoringCentre.Api/Http/ResultHttpExtensions.cs:13](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L13)
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentHandler.cs:27](../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentHandler.cs#L27)
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentHandler.cs:27](../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentHandler.cs#L27)
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentHandler.cs:18](../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentHandler.cs#L18)
+- [src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterHandler.cs:17](../../../../../src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterHandler.cs#L17)
+- [src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsHandler.cs:17](../../../../../src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsHandler.cs#L17)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupHandler.cs:24](../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupHandler.cs#L24)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherHandler.cs:26](../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherHandler.cs#L26)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityHandler.cs:15](../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityHandler.cs#L15)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs:24](../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs#L24)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupHandler.cs:14](../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupHandler.cs#L14)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupHandler.cs:18](../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupHandler.cs#L18)
+- [src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupHandler.cs:16](../../../../../src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupHandler.cs#L16)
+- [src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsHandler.cs:13](../../../../../src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsHandler.cs#L13)
+- [src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentHandler.cs:14](../../../../../src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentHandler.cs#L14)
+- [src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentHandler.cs:16](../../../../../src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentHandler.cs#L16)
+- [src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentHandler.cs:11](../../../../../src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentHandler.cs#L11)
+- [src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneHandler.cs:11](../../../../../src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneHandler.cs#L11)
+- 120 further name-reference locations are omitted from this compact list.
 
-`Result<CreateCentreResult>.Failure(...)` in `CreateCentreHandler`; `result.IsFailure` checks in `Dispatcher.SendAsync` (line ~57); `result.Value` in `ResultHttpExtensions.ToHttpResult`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Makes expected failures explicit; the dispatcher can roll back on `IsFailure` without catching an exception.
+```csharp
+using System.Diagnostics.CodeAnalysis;
 
-### Generics and constraints
+namespace TutoringCentre.Domain.Common;
 
-#### What it means
+/// <summary>The outcome of an operation that can fail for an expected business reason.</summary>
+public class Result
+{
+    protected Result(bool isSuccess, Error? error)
+    {
+        // The only two legal states: success without an error, failure with one.
+        if (isSuccess && error is not null)
+        {
+            throw new ArgumentException("A successful result cannot carry an error.", nameof(error));
+        }
 
-Generics let one definition work for many types (`Result<T>`, `ICommandHandler<TCommand,TResponse>`). Constraints (`where TCommand : ICommand<TResponse>`) restrict which types are legal so the compiler can check them; the `in` modifier (contravariance) lets a handler of a base type satisfy a derived one.
+        if (!isSuccess && error is null)
+        {
+            throw new ArgumentNullException(nameof(error), "A failed result must carry an error.");
+        }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+        IsSuccess = isSuccess;
+        Error = error;
+    }
 
-#### Where it appears in this file
+    public bool IsSuccess { get; }
 
-`Result<T>` and the `static new` factory.
+    public bool IsFailure => !IsSuccess;
 
-#### How it works here
+    /// <summary>The failure's error; null when <see cref="IsSuccess"/> is true.</summary>
+    public Error? Error { get; }
 
-`public static new Result<T> Failure(Error error) => new(error);`
+    public static Result Success() => new(isSuccess: true, error: null);
 
-#### Why it matters here
+    /// <exception cref="ArgumentNullException"><paramref name="error"/> is null.</exception>
+    public static Result Failure(Error error) => new(isSuccess: false, error);
+}
 
-Return type matches the caller's generic type; the base-class `Failure` returns a non-generic `Result`.
+/// <summary>The outcome of an operation that produces a <typeparamref name="T"/> or fails for an expected business reason.</summary>
+[SuppressMessage(
+    "Design",
+    "CA1000:Do not declare static members on generic types",
+    Justification = "Result<T>.Success/Failure are the agreed factory API; call sites always name the type.")]
+public sealed class Result<T> : Result
+{
+    private readonly T _value;
 
-## Data and Control Flow
+    private Result(T value)
+        : base(isSuccess: true, error: null)
+    {
+        _value = value;
+    }
 
-```mermaid
-flowchart LR
-    H["Handler / Centre.Create"] -->|"Result of T.Success(value) or .Failure(error)"| D["Dispatcher"]
-    D -->|"IsFailure -> Rollback"| API["ToHttpResult"]
-    D -->|"IsSuccess -> Save, Commit"| API
-    API -->|"200/204 or Problem Details"| C["client"]
+    private Result(Error error)
+        : base(isSuccess: false, error)
+    {
+        _value = default!;
+    }
+
+    /// <summary>The produced value.</summary>
+    /// <exception cref="InvalidOperationException">The result is a failure — reading it is a bug.</exception>
+    public T Value => IsSuccess
+        ? _value
+        : throw new InvalidOperationException(
+            $"Cannot read Value of a failed result (error code '{Error?.Code}'). Check IsSuccess first.");
+
+    public static Result<T> Success(T value) => new(value);
+
+    /// <exception cref="ArgumentNullException"><paramref name="error"/> is null.</exception>
+    public static new Result<T> Failure(Error error) => new(error);
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Reading `.Value` before checking `IsSuccess` is the main trap; callers in this repo check first (`created.IsFailure` in the handler). `Error` is declared `Error?`, so callers use `!` after proving failure (`created.Error!`).
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Common/Error.cs`](Error.cs.md)
-- [`src/TutoringCentre.Domain/Common/ErrorKind.cs`](ErrorKind.cs.md)
-- [`src/TutoringCentre.Domain/Centres/Centre.cs`](../Centres/Centre.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](../../TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../../TutoringCentre.Api/Http/ResultHttpExtensions.cs.md)
-- [`tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs`](../../../tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

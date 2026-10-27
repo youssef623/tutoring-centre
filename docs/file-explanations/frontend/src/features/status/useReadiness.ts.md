@@ -1,53 +1,52 @@
-# frontend/src/features/status/useReadiness.ts
+# `frontend/src/features/status/useReadiness.ts`
 
 ## Purpose
 
-TanStack Query hook providing the API readiness state, cached and polled.
+Source comment (intent): Server state for the status page: cached under ["health", "ready"] and polled every 15 seconds.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/features/status. Used by `StatusCard`; calls `fetchReadiness`.
+Category: **source**. [Open current file](../../../../../../frontend/src/features/status/useReadiness.ts). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 11 lines and 348 bytes. Source hash: `bd0af44e45d73fb3fa27e4cfdadde711f8ee7da468ededad1f2cf0944bf3da34`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`useQuery({ queryKey: ["health","ready"], queryFn: fetchReadiness, refetchInterval: 15_000 })`. The query key is the cache address; the `refetchInterval` makes the library refetch every 15 s while the component is mounted. Retry (1) and `staleTime` (30 s) come from the shared client defaults. The hook returns the query result object (`isPending`, `isError`, `data`, `refetch`).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Server state with TanStack Query
+- Line 1: `import { useQuery } from "@tanstack/react-query";`
+- Line 2: `import { fetchReadiness } from "./api";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Server state (data owned by the API) needs caching, refetching, retry and loading/error flags. `useQuery` subscribes a component to a cache entry addressed by a *query key*, runs the `queryFn`, and re-renders the component when the entry changes.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 5](../../../../../../frontend/src/features/status/useReadiness.ts#L5): `export function useReadiness() {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-`useQuery`.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/features/status/StatusCard.tsx:6](../../../../../../frontend/src/features/status/StatusCard.tsx#L6)
 
-The hook body.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Loading/error/caching without hand-written state.
+```typescript
+import { useQuery } from "@tanstack/react-query";
+import { fetchReadiness } from "./api";
 
-## Data and Control Flow
+/** Server state for the status page: cached under ["health", "ready"] and polled every 15 seconds. */
+export function useReadiness() {
+  return useQuery({
+    queryKey: ["health", "ready"],
+    queryFn: fetchReadiness,
+    refetchInterval: 15_000,
+  });
+}
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Polling continues while the tab is open; TanStack's default refetch-on-window-focus also applies (library default, not configured here).
-
-## Related Files
-
-- [`frontend/src/features/status/api.ts`](api.ts.md)
-- [`frontend/src/features/status/StatusCard.tsx`](StatusCard.tsx.md)
-- [`frontend/src/app/queryClient.ts`](../../app/queryClient.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

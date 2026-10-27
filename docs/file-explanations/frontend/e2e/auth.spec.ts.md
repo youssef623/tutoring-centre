@@ -1,136 +1,97 @@
-# frontend/e2e/auth.spec.ts
+# `frontend/e2e/auth.spec.ts`
 
 ## Purpose
 
-Playwright end-to-end tests of the three authentication journeys against the real API, real PostgreSQL and the Vite dev server.
+Declares `signIn`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-frontend/e2e (outside `src`, so Vitest and the app bundle ignore it: `vite.config.ts` excludes `e2e/**`; `tsconfig.node.json` includes `e2e`). Run by `npm run test:e2e` and by the CI job `e2e` in `.github/workflows/ci.yml`. Configured by `playwright.config.ts`.
+Category: **test**. [Open current file](../../../../frontend/e2e/auth.spec.ts). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 59 lines and 2,935 bytes. Source hash: `2c7112733db1107f59bb825ca973443335fa037445a70f11e9070cd5e10d7ce4`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Top (3-8): the password is read from `process.env.SEED_PASSWORD ?? ""`; if empty the module throws `SEED_PASSWORD must be set...` - the seeded development password is never written in the repository (comment: CI supplies a throwaway, a developer sets their own). Helper `signIn(page, email)` (10-16): goes to `/` (so the guard must redirect to `/login`), asserts the heading `Sign in`, fills `Email` and `Password` by label, clicks `Sign in`.
+## Dependencies visible in the file
 
-Tests:
-1. `owner: sign in, dashboard, Arabic RTL, logout` (18-32): after signing in as `owner@nile.test` expects heading `Welcome, Nile Owner` and the text `Nile Tutoring Centre`; opens the user menu (button named `Nile Owner`), clicks the language button `العربية`, asserts `<html dir="rtl">`, clicks menu item `تسجيل الخروج`, and expects the Arabic login heading `تسجيل الدخول`. The comment notes the language switcher is a plain button inside the menu, so switching language does not close the menu.
-2. `teacher: centre picker, header reflects the choice, switch centre` (34-48): `teacher@both.test` lands on `Choose a centre`; picks `Maadi Learning Hub`; sees the dashboard for that centre; opens the menu, `Switch centre`, picks `Nile Tutoring Centre`.
-3. `a wrong password shows the generic error and stays on /login` (50-59): alert text exactly `Incorrect email or password.`, URL matches `/login`.
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-## Concepts Used
+- Line 1: `import { type Page, expect, test } from "@playwright/test";`
 
-### End-to-end testing with Playwright
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-An end-to-end test drives a real browser against a real running system (here the real API, real PostgreSQL and the Vite dev server) and clicks through a user journey. It is slow but catches wiring problems no unit test can.
+- [Line 10](../../../../frontend/e2e/auth.spec.ts#L10): `async function signIn(page: Page, email: string): Promise<void> {`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#635-end-to-end-testing-with-playwright](../../../PROJECT_OVERVIEW2.md#635-end-to-end-testing-with-playwright).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-The whole file.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`import { type Page, expect, test } from "@playwright/test"`; tests use accessible roles and labels (`getByRole`, `getByLabel`), not CSS selectors.
+```typescript
+import { type Page, expect, test } from "@playwright/test";
 
-#### Why it matters here
+// The seeded dev password is never written here: it is supplied by whoever runs the suite
+// (the CI job sets a throwaway, Task 18.5; locally the developer sets their own, Task 18.3).
+const password: string = process.env.SEED_PASSWORD ?? "";
+if (password === "") {
+  throw new Error("SEED_PASSWORD must be set to run the E2E auth journeys (see README).");
+}
 
-These tests cross every layer at once: browser, Vite proxy, HTTPS API, cookies, CSRF, database, RTL switching.
+async function signIn(page: Page, email: string): Promise<void> {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+}
 
-### Secrets and configuration layering
+test("owner: sign in, dashboard, Arabic RTL, logout", async ({ page }) => {
+  await signIn(page, "owner@nile.test");
 
-#### What it means
+  await expect(page.getByRole("heading", { name: "Welcome, Nile Owner" })).toBeVisible();
+  await expect(page.getByText("Nile Tutoring Centre", { exact: true })).toBeVisible();
 
-Configuration comes from layered sources (JSON files, user-secrets, environment variables, command line) where later layers override earlier ones. Secrets must stay out of git: this repo keeps the connection string out of `appsettings.json`, reads it from user-secrets or an environment variable, and scans history with gitleaks.
+  // The language switcher lives inside the user menu, not directly in the header. It is a plain
+  // button there (not a Menu.Item), so switching language does not close the menu.
+  await page.getByRole("button", { name: "Nile Owner" }).click();
+  await page.getByRole("button", { name: "العربية" }).click();
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await page.getByRole("menuitem", { name: "تسجيل الخروج" }).click();
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+  await expect(page.getByRole("heading", { name: "تسجيل الدخول" })).toBeVisible();
+});
 
-#### Where it appears in this file
+test("teacher: centre picker, header reflects the choice, switch centre", async ({ page }) => {
+  await signIn(page, "teacher@both.test");
 
-Password from the environment.
+  await expect(page.getByRole("heading", { name: "Choose a centre" })).toBeVisible();
+  await page.getByRole("button", { name: "Maadi Learning Hub" }).click();
 
-#### How it works here
+  await expect(page.getByText("Maadi Learning Hub", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Welcome, Two-Centre Teacher" })).toBeVisible();
 
-Lines 3-8.
+  await page.getByRole("button", { name: "Two-Centre Teacher" }).click();
+  await page.getByRole("menuitem", { name: "Switch centre" }).click();
+  await page.getByRole("button", { name: "Nile Tutoring Centre" }).click();
 
-#### Why it matters here
+  await expect(page.getByText("Nile Tutoring Centre", { exact: true })).toBeVisible();
+});
 
-The suite refuses to run without `SEED_PASSWORD`, so no password is committed; the value must equal the API's `Seed:Password` used to seed users.
+test("a wrong password shows the generic error and stays on /login", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await page.getByLabel("Email").fill("owner@nile.test");
+  await page.getByLabel("Password").fill("definitely-the-wrong-password");
+  await page.getByRole("button", { name: "Sign in" }).click();
 
-### Internationalisation (i18next) and RTL layout
-
-#### What it means
-
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
-
-#### Where it appears in this file
-
-Arabic and RTL assertions.
-
-#### How it works here
-
-Lines 27-31.
-
-#### Why it matters here
-
-Verifies `dir="rtl"` on the document and translated strings end to end, which unit tests only approximate.
-
-### Frontend route guards, session state and global 401 handling
-
-#### What it means
-
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
-
-#### Where it appears in this file
-
-Redirect from `/` to `/login` and `/select-centre`.
-
-#### How it works here
-
-Lines 11-12 and 37.
-
-#### Why it matters here
-
-Proves the route guards plus the session cookie work together in a real browser.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant PW as Playwright (Chromium)
-    participant V as Vite dev server :5173
-    participant A as API (https profile) :7197
-    participant DB as PostgreSQL
-    PW->>V: GET /
-    V-->>PW: SPA
-    PW->>V: GET /api/me (proxied)
-    V->>A: GET /api/me
-    A-->>PW: 401 so redirect to /login
-    PW->>V: POST /api/auth/login
-    V->>A: POST (proxy, secure false)
-    A->>DB: verify credentials and memberships
-    A-->>PW: 200 and session cookie
+  await expect(page.getByRole("alert")).toHaveText("Incorrect email or password.");
+  await expect(page).toHaveURL(/\/login/);
+});
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-`SEED_PASSWORD` (required). Base URL `http://localhost:5173` and the web servers come from `playwright.config.ts`.
-
-## Gotchas and Issues
-
-The tests assume the database was seeded (users `owner@nile.test`, `teacher@both.test`, centres `Nile Tutoring Centre`, `Maadi Learning Hub`) with the same password; the CI job seeds it before running. The three tests run `fullyParallel` per the config but share one database; none changes data other than session state.
-
-## Related Files
-
-- [`frontend/playwright.config.ts`](../playwright.config.ts.md)
-- [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml.md)
-- [`frontend/src/routes/login.tsx`](../src/routes/login.tsx.md)
-- [`frontend/src/routes/select-centre.tsx`](../src/routes/select-centre.tsx.md)
-- [`frontend/src/features/shell/AppShell.tsx`](../src/features/shell/AppShell.tsx.md)
-- [`src/TutoringCentre.Api/Cli/SeedCommand.cs`](../../src/TutoringCentre.Api/Cli/SeedCommand.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,73 +1,78 @@
-# tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs
+# `tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs`
 
 ## Purpose
 
-Architecture rules about repository placement: `I*Repository` interfaces live in Application, `*Repository` classes live in Infrastructure.
+Declares `RepositoryRuleTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests. Scans all four source assemblies (`SourceAssemblies.All`) with reflection.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 40 lines and 1,424 bytes. Source hash: `127a52a3b67788a8d10ddc29da51474cd41f7b21aa886788023ad43ceee65c3e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `RepositoryInterfaces_LiveInTheApplicationProject` (5-21): collects every interface matching `IsRepositoryInterface` across all assemblies; asserts non-empty; violation = assembly is not Application or namespace does not start with `TutoringCentre.Application`.
-- `RepositoryClasses_LiveInTheInfrastructureProject` (23-39): same for classes ending in `Repository`; must be in the Infrastructure assembly and a `TutoringCentre.Infrastructure*` namespace.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Repository pattern and read services
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-A *repository* looks like a collection of aggregates (`Add`, `ExistsBy...`) and hides how they are stored. A *read service* is a separate query-side abstraction that returns DTOs directly, so reads need not load and map domain entities.
+- [Line 3](../../../../tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs#L3): `public sealed class RepositoryRuleTests`
+- [Line 6](../../../../tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs#L6): `public void RepositoryInterfaces_LiveInTheApplicationProject()`
+- [Line 24](../../../../tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs#L24): `public void RepositoryClasses_LiveInTheInfrastructureProject()`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services](../../../PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Where repositories may live.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Both tests.
+```csharp
+namespace TutoringCentre.Architecture.Tests;
 
-#### Why it matters here
+public sealed class RepositoryRuleTests
+{
+    [Fact]
+    public void RepositoryInterfaces_LiveInTheApplicationProject()
+    {
+        var interfaces = SourceAssemblies.All
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(ArchitectureSupport.IsRepositoryInterface)
+            .ToList();
 
-Interface (port) in Application, implementation (adapter) in Infrastructure, enforced by tests.
+        Assert.NotEmpty(interfaces);
+        var violations = interfaces
+            .Where(type => type.Assembly != SourceAssemblies.Application
+                || type.Namespace is null
+                || !type.Namespace.StartsWith("TutoringCentre.Application", StringComparison.Ordinal))
+            .Select(type => type.FullName)
+            .ToList();
+        Assert.Empty(violations);
+    }
 
-### Architecture rules beyond dependencies
+    [Fact]
+    public void RepositoryClasses_LiveInTheInfrastructureProject()
+    {
+        var classes = SourceAssemblies.All
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(ArchitectureSupport.IsRepositoryClass)
+            .ToList();
 
-#### What it means
+        Assert.NotEmpty(classes);
+        var violations = classes
+            .Where(type => type.Assembly != SourceAssemblies.Infrastructure
+                || type.Namespace is null
+                || !type.Namespace.StartsWith("TutoringCentre.Infrastructure", StringComparison.Ordinal))
+            .Select(type => type.FullName)
+            .ToList();
+        Assert.Empty(violations);
+    }
+}
+```
 
-Beyond 'who references whom', tests can assert design conventions with reflection and IL scanning: every command has exactly one handler, handlers are sealed and internal, repositories live in the right project, endpoints do not touch Infrastructure.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies](../../../PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies).)
-
-#### Where it appears in this file
-
-Non-vacuity guards.
-
-#### How it works here
-
-`Assert.NotEmpty` at 14 and 29.
-
-#### Why it matters here
-
-A rule that finds no types would silently pass; the guard makes it fail instead.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs`](ArchitectureSupport.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs`](SourceAssemblies.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

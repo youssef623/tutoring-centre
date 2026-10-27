@@ -1,52 +1,52 @@
-# src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs
+# `src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs`
 
 ## Purpose
 
-The success payload of `CreateCentreCommand`: the new centre's id and slug.
+Source summary (intent, not independent execution proof): What the caller needs to know about the created centre.
 
-## Where It Fits
+## Where it fits
 
-Application/Centres/Commands/CreateCentre. Created at the end of `CreateCentreHandler.HandleAsync`; read by `SeedCommand` (only `IsSuccess`) and tests.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 4 lines and 217 bytes. Source hash: `34dde0ed0dc7e84402950aab1f822576e6bdf452dbcf8d1846d63cfbc1d6a1f8`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record CreateCentreResult(Guid CentreId, string Slug);` - deliberately small: callers need the id to refer to the centre and the slug to build links; the entity itself never leaves the layer.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Records, immutability and primary constructors
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+- [Line 4](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs#L4): `public sealed record CreateCentreResult(Guid CentreId, string Slug);`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+## Used by: verified name references
 
-#### Where it appears in this file
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-DTO-style record.
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:165](../../../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L165)
+- [src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs:8](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs#L8)
+- [src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs:10](../../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs#L10)
+- [tests/TutoringCentre.Infrastructure.Tests/Academics/AuditTrailTests.cs:221](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Academics/AuditTrailTests.cs#L221)
+- [tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs:22](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs#L22)
+- [tests/TutoringCentre.Infrastructure.Tests/Centres/CentreTimeZoneProviderTests.cs:66](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreTimeZoneProviderTests.cs#L66)
+- [tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs:17](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L17)
+- [tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs:90](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L90)
+- [tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs:112](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L112)
+- [tests/TutoringCentre.Infrastructure.Tests/Identity/StaffRaceTests.cs:65](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/StaffRaceTests.cs#L65)
+- [tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeTestBase.cs:31](../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeTestBase.cs#L31)
 
-#### How it works here
+## Current source excerpt
 
-Declaration.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+namespace TutoringCentre.Application.Centres.Commands.CreateCentre;
 
-Entities are not exposed across the boundary.
+/// <summary>What the caller needs to know about the created centre.</summary>
+public sealed record CreateCentreResult(Guid CentreId, string Slug);
+```
 
-## Data and Control Flow
+## Before modifying this file
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-None.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](CreateCentreHandler.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs`](CreateCentreCommand.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,75 +1,67 @@
-# frontend/src/routes/__root.tsx
+# `frontend/src/routes/__root.tsx`
 
 ## Purpose
 
-Root route: the layout wrapping every page, the typed router context, and the global toast container.
+Source comment (intent): Available to every route's `beforeLoad`/`loader` (Day 17: the guard reads the session through it).
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes. TanStack Router file convention: `__root` is the parent of all routes. Registered in generated `routeTree.gen.ts`. Children: `login`, `select-centre`, `status`, `_authenticated` (and its index).
+Category: **source**. [Open current file](../../../../../frontend/src/routes/__root.tsx). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 24 lines and 791 bytes. Source hash: `01275bad2ff296b5254c4c1461c34bfdfcf0e66143833aae1020d84d2ab80567`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`RouterContext { queryClient: QueryClient }` (6-8) - available to every route's `beforeLoad`/`loader` (the guard reads the session through it). `Route = createRootRouteWithContext<RouterContext>()({ component: RootLayout })` (10-12). `RootLayout` (14-22): a full-height div with `bg-background text-foreground`, an `<Outlet />` (where the matched child renders) and one `<Toaster richColors />` (comment: one toaster for the whole app; API-error utilities show failures there). Pages now bring their own `main` element (the earlier shared centred `<main>` wrapper is gone), so the login page can be full-width.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### File-based routing with TanStack Router
+- Line 1: `import type { QueryClient } from "@tanstack/react-query";`
+- Line 2: `import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";`
+- Line 3: `import { DemoBanner } from "@/features/status/DemoBanner";`
+- Line 4: `import { Toaster } from "@/components/ui/sonner";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A router maps URLs to components. In file-based routing a Vite plugin scans `src/routes/` and generates a route tree file, so adding a file adds a route with type-safe links.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 7](../../../../../frontend/src/routes/__root.tsx#L7): `export interface RouterContext {`
+- [Line 11](../../../../../frontend/src/routes/__root.tsx#L11): `export const Route = createRootRouteWithContext<RouterContext>()({`
+- [Line 15](../../../../../frontend/src/routes/__root.tsx#L15): `function RootLayout() {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Root route with typed context.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Lines 6-12.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```tsx
+import type { QueryClient } from "@tanstack/react-query";
+import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { DemoBanner } from "@/features/status/DemoBanner";
+import { Toaster } from "@/components/ui/sonner";
 
-`createRootRouteWithContext` makes `context.queryClient` type-safe in every route.
+/** Available to every route's `beforeLoad`/`loader` (Day 17: the guard reads the session through it). */
+export interface RouterContext {
+  queryClient: QueryClient;
+}
 
-### React components, props, state and re-rendering
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootLayout,
+});
 
-#### What it means
+function RootLayout() {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <DemoBanner />
+      <Outlet />
+      {/* One toaster for the whole app; Day 12's error utilities show API failures here. */}
+      <Toaster richColors />
+    </div>
+  );
+}
+```
 
-A component is a function returning UI from props and state. When state a component depends on changes, React calls the function again (a re-render) and updates only the DOM that differs.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
-
-#### Where it appears in this file
-
-One shared layout.
-
-#### How it works here
-
-`RootLayout`.
-
-#### Why it matters here
-
-The toaster lives once at the top, so any component can call `toast` and it appears.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Lint warns that a file exporting `Route` and a component breaks fast refresh (a project-wide pattern for route files).
-
-## Related Files
-
-- [`frontend/src/routes/_authenticated.tsx`](_authenticated.tsx.md)
-- [`frontend/src/routes/login.tsx`](login.tsx.md)
-- `frontend/src/routeTree.gen.ts` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`frontend/src/components/ui/sonner.tsx`](../components/ui/sonner.tsx.md)
-- [`frontend/src/main.tsx`](../main.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

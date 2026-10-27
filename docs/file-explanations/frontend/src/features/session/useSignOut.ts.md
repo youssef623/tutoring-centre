@@ -1,74 +1,62 @@
-# frontend/src/features/session/useSignOut.ts
+# `frontend/src/features/session/useSignOut.ts`
 
 ## Purpose
 
-Hook returning a function that logs out, refreshes the CSRF token, clears all cached queries and navigates to `/login`.
+Source comment (intent): Logs out, refreshes the CSRF token (bound to the now-signed-out user), clears every cached query, then returns to login.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/features/session. Used by the user menu in `AppShell` and the empty state of `routes/select-centre.tsx`.
+Category: **source**. [Open current file](../../../../../../frontend/src/features/session/useSignOut.ts). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 18 lines and 675 bytes. Source hash: `700a1c2acad955e09191add81a3112d3ce4acc2ffd87487cb9a65bc2f9deed95`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`useSignOut()` (7-18): `useLogout()` (generated mutation hook), `useQueryClient()`, `useNavigate()`. Returned async function: `await logoutMutation.mutateAsync()` (POST `/api/auth/logout`); `await refreshCsrfToken()` (the token was bound to the now signed-out user); `queryClient.clear()` (drop every cached query so no data of the old user remains in memory); `await navigate({ to: "/login" })`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Frontend route guards, session state and global 401 handling
+- Line 1: `import { useQueryClient } from "@tanstack/react-query";`
+- Line 2: `import { useNavigate } from "@tanstack/react-router";`
+- Line 3: `import { refreshCsrfToken } from "@/api/csrf";`
+- Line 4: `import { useLogout } from "@/api/generated/tutoring-centre";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
+- [Line 7](../../../../../../frontend/src/features/session/useSignOut.ts#L7): `export function useSignOut(): () => Promise<void> {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Logout flow on the client.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/features/shell/AppShell.tsx:27](../../../../../../frontend/src/features/shell/AppShell.tsx#L27)
+- [frontend/src/routes/select-centre.tsx:29](../../../../../../frontend/src/routes/select-centre.tsx#L29)
 
-Lines 12-17.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Order matters: server logout first, then token refresh, then clearing caches, then navigation - so a stale cache is never shown to the next user.
+```typescript
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { refreshCsrfToken } from "@/api/csrf";
+import { useLogout } from "@/api/generated/tutoring-centre";
 
-### CSRF protection with antiforgery tokens
+/** Logs out, refreshes the CSRF token (bound to the now-signed-out user), clears every cached query, then returns to login. */
+export function useSignOut(): () => Promise<void> {
+  const logoutMutation = useLogout();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-#### What it means
+  return async () => {
+    await logoutMutation.mutateAsync();
+    await refreshCsrfToken();
+    queryClient.clear();
+    await navigate({ to: "/login" });
+  };
+}
+```
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
-
-#### Where it appears in this file
-
-Token refresh after logout.
-
-#### How it works here
-
-Line 14.
-
-#### Why it matters here
-
-The CSRF token is tied to the signed-in user; a leftover token would be rejected.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/api/csrf.ts`](../../api/csrf.ts.md)
-- `frontend/src/api/generated/tutoring-centre.ts` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`frontend/src/features/shell/AppShell.tsx`](../shell/AppShell.tsx.md)
-- [`frontend/src/routes/select-centre.tsx`](../../routes/select-centre.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

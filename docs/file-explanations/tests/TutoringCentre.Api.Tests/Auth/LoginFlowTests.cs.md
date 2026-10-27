@@ -1,158 +1,151 @@
-# tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs
+# `tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs`
 
 ## Purpose
 
-HTTP-level tests of the happy paths of authentication: login, automatic and manual centre selection, re-login while signed in, logout and the session after logout.
+Declares `LoginFlowTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Auth; collection `api` (`ApiCollection`), so it uses the plain `ApiFactory` with a real PostgreSQL container. Calls the real endpoints in `AuthEndpoints.cs` through the real middleware pipeline, with the real CSRF protection (via `AntiforgeryTestHelper`).
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 273 lines and 13,049 bytes. Source hash: `3ebca3331b9768bb5df1bd08f928660b71a6e753d5578f80031a338163fbb12e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`LoginFlowTests` (10-187). `InitializeAsync` (18-22): `factory.ResetAsync()` then `SeedCommand.RunAsync(factory.Services)` must return 0 - every test starts from the freshly seeded staff set (owner@nile.test, teacher@both.test, ...). `CreateSessionClient` (160-161) builds a client with `BaseAddress = https://localhost`; the comment explains why: the cookie has `CookieSecurePolicy.Always`, so the client's `CookieContainer` only re-sends it over https.
+## Dependencies visible in the file
 
-Tests:
-- `Login_AsOwner_SetsHostPrefixedSecureCookieAndAutoSelectsTheirOnlyCentre` (26-47): login returns 200; exactly one `Set-Cookie` that starts with `__Host-tcm.session=` and contains `secure`, `httponly`, `samesite=lax`; body has `activeRole` `owner`, a non-empty `activeCentreId` and `memberships[0].centreSlug` `nile-centre` (a user with exactly one active membership is auto-selected).
-- `Login_AsTeacherWithTwoCentres_LeavesNoActiveCentreSelected` (49-63): `activeCentreId` is JSON `null`, two memberships.
-- `Login_WhileAlreadySignedIn_ReplacesTheSessionWithTheNewIdentity` (65-88): log in as owner, then log in again as the teacher on the same client; the second response shows the teacher's two memberships and `GET /api/me` then returns `teacher@both.test`. The comment explains the point: a request that already carries a valid cookie arrives authenticated (the actor is set by `ActorMiddleware`), so login must *replace* that actor (`CurrentActorContext.Reauthenticate`), not collide with it.
-- `SelectCentre_ForAMembershipTheUserHolds_Returns204AndActivatesIt` (90-103): after selecting `maadi-hub`, `POST /api/session/centre` is 204 and `GET /api/me` reports that `activeCentreId` and role `teacher`.
-- `SelectCentre_ForACentreTheUserDoesNotBelongTo_Returns403AndLeavesSessionUnchanged` (105-123): selecting `Guid.Empty` gives 403 with `code` `tenant.no_membership`, and `/api/me` still shows the previously selected centre.
-- `Logout_Returns204AndClearsTheCookie` (125-139): 204; the single `Set-Cookie` starts with `__Host-tcm.session=;` (an expired/empty cookie).
-- `GetMe_AfterLogout_Returns401` (141-157).
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-Helpers: `LoginAsTeacherAndGetMaadiHubCentreIdAsync` (163-180) logs in and scans `memberships` for `centreSlug == "maadi-hub"`; `ReadJsonAsync` parses the body with `JsonDocument` (so tests assert on the wire format, not on C# types).
+- Line 1: `using System.Net;`
+- Line 2: `using System.Net.Http.Json;`
+- Line 3: `using System.Text.Json;`
+- Line 4: `using Microsoft.AspNetCore.Mvc.Testing;`
+- Line 5: `using TutoringCentre.Api.Cli;`
+- Line 6: `using TutoringCentre.Api.Tests.Fixtures;`
 
-## Concepts Used
+## Walkthrough and declaration map
 
-### Cookie authentication and server-side sessions
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-#### What it means
+- [Line 11](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L11): `public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime`
+- [Line 26](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L26): `public async Task InitializeAsync()`
+- [Line 32](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L32): `public Task DisposeAsync() => Task.CompletedTask;`
+- [Line 35](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L35): `public async Task Login_AsOwner_SetsHostPrefixedSecureCookieAndAutoSelectsTheirOnlyCentre()`
+- [Line 67](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L67): `public async Task Login_AsSecretaryWithOneCentre_AutoSelectsAndReturnsItsPermissions()`
+- [Line 85](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L85): `public async Task Login_AsTeacherWithTwoCentres_LeavesNoActiveCentreSelected()`
+- [Line 102](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L102): `public async Task Login_WhileAlreadySignedIn_ReplacesTheSessionWithTheNewIdentity()`
+- [Line 127](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L127): `public async Task SelectCentre_ForAMembershipTheUserHolds_Returns204AndActivatesIt()`
+- [Line 142](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L142): `public async Task SelectCentre_ForACentreTheUserDoesNotBelongTo_Returns403AndLeavesSessionUnchanged()`
+- [Line 162](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L162): `public async Task GetMe_AsOwner_ReturnsAllSixteenPermissionsSorted()`
+- [Line 179](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L179): `public async Task GetMe_AsSecretary_ReturnsStudentsAndSubjectsPermissionsSorted()`
+- [Line 196](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L196): `public async Task GetMe_AsTwoCentreTeacherBeforeSelectingACentre_ReturnsNoPermissions()`
+- [Line 212](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L212): `public async Task Logout_Returns204AndClearsTheCookie()`
+- [Line 228](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L228): `public async Task GetMe_AfterLogout_Returns401()`
+- [Line 246](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L246): `private HttpClient CreateSessionClient() =>`
+- [Line 249](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L249): `private static async Task<Guid> LoginAsTeacherAndGetMaadiHubCentreIdAsync(HttpClient client)`
+- [Line 268](../../../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs#L268): `private static async Task<JsonDocument> ReadJsonAsync(HttpResponseMessage response)`
 
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Asserts on the `Set-Cookie` header and on behaviour after logout.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```csharp
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
+using TutoringCentre.Api.Cli;
+using TutoringCentre.Api.Tests.Fixtures;
 
-The `Set-Cookie` header string is read and checked for name prefix and flags in `Login_AsOwner_SetsHostPrefixedSecureCookieAndAutoSelectsTheirOnlyCentre` and `Logout_Returns204AndClearsTheCookie`, and `GetMe_AfterLogout_Returns401` checks the effect; the https base address in `CreateSessionClient` is needed because of the Secure flag.
+namespace TutoringCentre.Api.Tests.Auth;
 
-#### Why it matters here
+[Collection(ApiCollection.Name)]
+public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
+{
+    private static readonly Uri LoginUri = new("/api/auth/login", UriKind.Relative);
+    private static readonly Uri LogoutUri = new("/api/auth/logout", UriKind.Relative);
+    private static readonly Uri MeUri = new("/api/me", UriKind.Relative);
+    private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
 
-These tests are the executable specification of the cookie contract documented in `docs/architecture/authentication.md`; if someone weakens a flag, they fail.
+    private static readonly string[] AllSixteenPermissionsSorted =
+    [
+        "audit.view", "centre.settings.manage", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view",
+        "schedule.manage", "schedule.view", "staff.manage", "staff.view",
+        "students.manage", "students.view", "subjects.manage", "subjects.view",
+        "teachers.manage", "teachers.view",
+    ];
 
-### Authorization by default, the actor pipeline and the tenant gate
+    public async Task InitializeAsync()
+    {
+        await factory.ResetAsync();
+        Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
+    }
 
-#### What it means
+    public Task DisposeAsync() => Task.CompletedTask;
 
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
+    [Fact]
+    public async Task Login_AsOwner_SetsHostPrefixedSecureCookieAndAutoSelectsTheirOnlyCentre()
+    {
+        using var client = CreateSessionClient();
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client,
+            LoginUri,
+            new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword });
 
-#### Where it appears in this file
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var setCookie = Assert.Single(response.Headers.GetValues("Set-Cookie"));
+        Assert.StartsWith("__Host-tcm.session=", setCookie, StringComparison.Ordinal);
+        Assert.Contains("secure", setCookie, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("httponly", setCookie, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("samesite=lax", setCookie, StringComparison.OrdinalIgnoreCase);
 
-Centre selection and the tenant gate.
+        var body = await ReadJsonAsync(response);
+        Assert.Equal("owner", body.RootElement.GetProperty("activeRole").GetString());
+        Assert.False(string.IsNullOrEmpty(body.RootElement.GetProperty("activeCentreId").GetString()));
+        Assert.Equal("nile-centre", body.RootElement.GetProperty("memberships")[0].GetProperty("centreSlug").GetString());
 
-#### How it works here
+        // Day 53: every membership names its centre's zone, so any role can work out "today" in the centre's calendar.
+        Assert.Equal("Africa/Cairo", body.RootElement.GetProperty("memberships")[0].GetProperty("timeZoneId").GetString());
 
-The two `SelectCentre_...` tests select a centre the user holds (204) and one they do not (403 `tenant.no_membership`).
+        // The login response itself must carry the auto-selected centre's permissions, not the pre-selection
+        // (empty) snapshot — a client that renders straight off the login response, without a follow-up
+        // GET /api/me, must still see the correct permission-gated UI.
+        var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
+        Assert.Equal(AllSixteenPermissionsSorted, permissions);
+    }
 
-#### Why it matters here
+    [Fact]
+    public async Task Login_AsSecretaryWithOneCentre_AutoSelectsAndReturnsItsPermissions()
+    {
+        using var client = CreateSessionClient();
 
-Shows that the *only* way to obtain an active centre is a live membership check, and that a refused selection does not modify the session.
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client,
+            LoginUri,
+            new { email = "secretary@nile.test", password = ApiFactory.TestSeedPassword });
 
-### CSRF protection with antiforgery tokens
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await ReadJsonAsync(response);
+        Assert.Equal("secretary", body.RootElement.GetProperty("activeRole").GetString());
 
-#### What it means
+        var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
+        Assert.Equal(["enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
+    }
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+    [Fact]
+    public async Task Login_AsTeacherWithTwoCentres_LeavesNoActiveCentreSelected()
+    {
+        using var client = CreateSessionClient();
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
-
-#### Where it appears in this file
-
-Every POST goes through `AntiforgeryTestHelper`.
-
-#### How it works here
-
-Every POST in the file (login, select centre, logout) calls `AntiforgeryTestHelper.PostAsJsonAsync` or `PostAsync`, which first fetches a token from `/api/auth/antiforgery`.
-
-#### Why it matters here
-
-The tests never bypass CSRF; a regression in the protection would break *all* of them, not just the dedicated ones in `SecurityTests`.
-
-### In-process hosting with WebApplicationFactory
-
-#### What it means
-
-`WebApplicationFactory<Program>` starts the real application inside the test process with an in-memory test server, so real middleware, DI and routing run without opening a network port. Tests can override configuration and services before the host is built.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
-
-#### Where it appears in this file
-
-Real host, real database.
-
-#### How it works here
-
-Class header (lines 10-11) and `InitializeAsync` (18-22).
-
-#### Why it matters here
-
-Slow but exercises the actual wiring (cookie handler, middleware order, endpoint filters) that unit tests cannot.
-
-### Testcontainers and Respawn
-
-#### What it means
-
-Testcontainers starts a disposable Docker container (here PostgreSQL 17) for the test run. Respawn deletes rows between tests, which is much faster than recreating the database.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
-
-#### Where it appears in this file
-
-Reset between tests.
-
-#### How it works here
-
-`factory.ResetAsync()` (line 20).
-
-#### Why it matters here
-
-Each test starts from the same seeded database, so tests do not depend on each other.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant T as Test
-    participant H as AntiforgeryTestHelper
-    participant A as Api (real pipeline)
-    T->>H: PostAsJsonAsync(login)
-    H->>A: GET /api/auth/antiforgery
-    A-->>H: 200 token + __Host-tcm.xsrf cookie
-    H->>A: POST /api/auth/login with X-XSRF-TOKEN
-    A-->>T: 200 MeDto + Set-Cookie __Host-tcm.session
-    T->>A: GET /api/me (cookie re-sent by CookieContainer)
-    A-->>T: 200 current user
+        using var response = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client,
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 183 lines.
 
-Uses the seed password `ApiFactory.TestSeedPassword` (a throwaway test constant) and the seed data created by `SeedCommand` (`owner@nile.test`, `teacher@both.test`, centres `nile-centre`, `maadi-hub`). Needs Docker for the PostgreSQL container.
+## Before modifying this file
 
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs`](../Fixtures/AntiforgeryTestHelper.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs`](../Fixtures/ApiFactory.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs`](SecurityTests.cs.md)
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs.md)
-- [`src/TutoringCentre.Api/Cli/SeedCommand.cs`](../../../src/TutoringCentre.Api/Cli/SeedCommand.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

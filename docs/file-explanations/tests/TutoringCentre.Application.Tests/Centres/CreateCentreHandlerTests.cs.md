@@ -1,77 +1,138 @@
-# tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs
+# `tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs`
 
 ## Purpose
 
-Unit tests for `CreateCentreHandler` branches using fakes.
+Declares `CreateCentreHandlerTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Application.Tests/Centres. Constructs the `internal` handler directly (allowed by `InternalsVisibleTo`).
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 92 lines and 3,783 bytes. Source hash: `fe2f2980725cdddf7780b6891dd58105c8469c5ab5a5982b686aa59432b30ce4`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `HandleAsync_AnonymousActor_ReturnsForbiddenAndDoesNotAdd`: Arrange - fresh `CurrentActorContext` (anonymous), repository pre-seeded with an existing `nile-centre` (so a duplicate exists too); Act - `HandleAsync`; Assert - failure `centre.create_forbidden`, kind Forbidden, `Added` empty. The pre-seeded duplicate proves authorization is checked *before* uniqueness.
-- `..._SlugAlreadyExists_ReturnsConflictAndDoesNotAdd`: actor set to `SystemActor(null)`; Assert `centre.slug_taken`/Conflict.
-- `..._InvalidSlug_ReturnsDomainErrorAndDoesNotAdd`: slug `"Bad Slug"` -> `centre.slug_invalid`.
-- `..._SystemActorValidInput_AddsCentreAndReturnsResult`: one `Added`, name and slug match, `result.Value.CentreId == Added[0].Id`.
-Not tested: invalid time zone path through the handler (covered in Infrastructure tests), cancellation.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Test doubles: fakes vs real dependencies
+- Line 1: `using TutoringCentre.Application.Centres.Commands.CreateCentre;`
+- Line 2: `using TutoringCentre.Application.Common.Security;`
+- Line 3: `using TutoringCentre.Application.Tests.Fakes;`
+- Line 4: `using TutoringCentre.Domain.Centres;`
+- Line 5: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *fake* is a small working substitute (in-memory repository). Real-dependency (integration) tests run actual components such as PostgreSQL. Fakes are fast and focused; integration tests prove behaviour only the real system provides.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+- [Line 9](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs#L9): `public sealed class CreateCentreHandlerTests`
+- [Line 12](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs#L12): `public async Task HandleAsync_AnonymousActor_ReturnsForbiddenAndDoesNotAdd()`
+- [Line 32](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs#L32): `public async Task HandleAsync_SlugAlreadyExists_ReturnsConflictAndDoesNotAdd()`
+- [Line 53](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs#L53): `public async Task HandleAsync_InvalidSlug_ReturnsDomainErrorAndDoesNotAdd()`
+- [Line 72](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs#L72): `public async Task HandleAsync_SystemActorValidInput_AddsCentreAndReturnsResult()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Fake repository.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`FakeCentreRepository`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Tests.Fakes;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Common;
 
-No database needed.
+namespace TutoringCentre.Application.Tests.Centres;
 
-### Actor and tenancy groundwork
+public sealed class CreateCentreHandlerTests
+{
+    [Fact]
+    public async Task HandleAsync_AnonymousActor_ReturnsForbiddenAndDoesNotAdd()
+    {
+        // Arrange
+        var actorContext = new CurrentActorContext();
+        var repository = new FakeCentreRepository();
+        repository.Existing.Add(Centre.Create("Existing", "nile-centre", "Africa/Cairo", SupportedLocale.Ar).Value);
+        var handler = new CreateCentreHandler(actorContext, repository);
+        var command = new CreateCentreCommand("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar);
 
-#### What it means
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
 
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("centre.create_forbidden", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+        Assert.Empty(repository.Added);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
+    [Fact]
+    public async Task HandleAsync_SlugAlreadyExists_ReturnsConflictAndDoesNotAdd()
+    {
+        // Arrange
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new SystemActor(null));
+        var repository = new FakeCentreRepository();
+        repository.Existing.Add(Centre.Create("Existing", "nile-centre", "Africa/Cairo", SupportedLocale.Ar).Value);
+        var handler = new CreateCentreHandler(actorContext, repository);
+        var command = new CreateCentreCommand("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar);
 
-#### Where it appears in this file
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
 
-Anonymous vs System.
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("centre.slug_taken", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
+        Assert.Empty(repository.Added);
+    }
 
-#### How it works here
+    [Fact]
+    public async Task HandleAsync_InvalidSlug_ReturnsDomainErrorAndDoesNotAdd()
+    {
+        // Arrange
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new SystemActor(null));
+        var repository = new FakeCentreRepository();
+        var handler = new CreateCentreHandler(actorContext, repository);
+        var command = new CreateCentreCommand("Nile Tutoring Centre", "Bad Slug", "Africa/Cairo", SupportedLocale.Ar);
 
-Tests 1 and others.
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
 
-#### Why it matters here
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("centre.slug_invalid", result.Error!.Code);
+        Assert.Empty(repository.Added);
+    }
 
-Verifies the authorization rule.
+    [Fact]
+    public async Task HandleAsync_SystemActorValidInput_AddsCentreAndReturnsResult()
+    {
+        // Arrange
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new SystemActor(null));
+        var repository = new FakeCentreRepository();
+        var handler = new CreateCentreHandler(actorContext, repository);
+        var command = new CreateCentreCommand("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar);
 
-## Data and Control Flow
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Single(repository.Added);
+        Assert.Equal("Nile Tutoring Centre", repository.Added[0].Name);
+        Assert.Equal("nile-centre", repository.Added[0].Slug);
+        Assert.Equal("nile-centre", result.Value.Slug);
+        Assert.Equal(repository.Added[0].Id, result.Value.CentreId);
+```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 2 lines.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs`](../Fakes/FakeCentreRepository.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs`](../../../src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

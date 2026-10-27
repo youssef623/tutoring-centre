@@ -1,82 +1,81 @@
-# frontend/src/api/errorMessages.ts
+# `frontend/src/api/errorMessages.ts`
 
 ## Purpose
 
-Turns an `ApiError` into user-facing text in the current language via i18next, with a three-level fallback.
+Source comment (intent): The one function every form and toast uses to turn an ApiError into user-facing text.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api. Used by `showApiError.ts`, `SystemInfoCard.tsx` and `routes/login.tsx`; tested by `errorMessages.test.ts`. Reads the `errors` namespace from `src/i18n/locales/{en,ar}/errors.json`.
+Category: **source**. [Open current file](../../../../../frontend/src/api/errorMessages.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 19 lines and 573 bytes. Source hash: `bfcd8208948d4cac23b9767e6981efb475cabe6fcc831b72d097cf2e41e5032f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Namespace = "errors"` (4). `messageFor(error)` (7-19): (1) `i18next.t("byCode.<error.code>", { ns, defaultValue: "" })` - non-empty wins; (2) else `byKind.<error.kind>`; (3) else `t("generic")`. Because the key contains dots (`centre.slug_invalid`) and i18next uses dots as nested-key separators, the JSON is nested (`byCode.centre.slug_invalid`). The language is whatever i18next currently uses, so there is no `lang` parameter any more.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Internationalisation (i18next) and RTL layout
+- Line 1: `import i18next from "@/i18n";`
+- Line 2: `import type { ApiError } from "./errors";`
 
-#### What it means
+## Walkthrough and declaration map
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+- [Line 6](../../../../../frontend/src/api/errorMessages.ts#L6): `/** The one function every form and toast uses to turn an ApiError into user-facing text. */`
+- [Line 7](../../../../../frontend/src/api/errorMessages.ts#L7): `export function messageFor(error: ApiError): string {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Lookup by code, then kind, then generic.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/extend_backend_purposes.py:36](../../../../onboarding-work/extend_backend_purposes.py#L36)
+- [docs/onboarding-work/file_guides.py:82](../../../../onboarding-work/file_guides.py#L82)
+- [docs/onboarding-work/read-generated-models.py:36](../../../../onboarding-work/read-generated-models.py#L36)
+- [docs/onboarding-work/read_frontend.py:9](../../../../onboarding-work/read_frontend.py#L9)
+- [docs/onboarding-work/reconcile_backend_ledger.py:17](../../../../onboarding-work/reconcile_backend_ledger.py#L17)
+- [frontend/src/api/errorMessages.test.ts:3](../../../../../frontend/src/api/errorMessages.test.ts#L3)
+- [frontend/src/api/errors.ts:14](../../../../../frontend/src/api/errors.ts#L14)
+- [frontend/src/api/fieldErrors.ts:2](../../../../../frontend/src/api/fieldErrors.ts#L2)
+- [frontend/src/api/showApiError.ts:2](../../../../../frontend/src/api/showApiError.ts#L2)
+- [frontend/src/app/queryClient.ts:73](../../../../../frontend/src/app/queryClient.ts#L73)
+- [frontend/src/components/shared/FilterBar.tsx:3](../../../../../frontend/src/components/shared/FilterBar.tsx#L3)
+- [frontend/src/features/audit/AuditLog.tsx:6](../../../../../frontend/src/features/audit/AuditLog.tsx#L6)
+- [frontend/src/features/dashboard/DashboardOverview.tsx:5](../../../../../frontend/src/features/dashboard/DashboardOverview.tsx#L5)
+- [frontend/src/features/enrollments/EnrollInGroupDialog.tsx:6](../../../../../frontend/src/features/enrollments/EnrollInGroupDialog.tsx#L6)
+- [frontend/src/features/enrollments/EnrollStudentDialog.test.tsx:71](../../../../../frontend/src/features/enrollments/EnrollStudentDialog.test.tsx#L71)
+- [frontend/src/features/enrollments/GroupRosterTab.tsx:5](../../../../../frontend/src/features/enrollments/GroupRosterTab.tsx#L5)
+- [frontend/src/features/enrollments/StudentEnrollmentsCard.tsx:6](../../../../../frontend/src/features/enrollments/StudentEnrollmentsCard.tsx#L6)
+- [frontend/src/features/enrollments/StudentPicker.tsx:6](../../../../../frontend/src/features/enrollments/StudentPicker.tsx#L6)
+- [frontend/src/features/enrollments/TransferDialog.tsx:6](../../../../../frontend/src/features/enrollments/TransferDialog.tsx#L6)
+- [frontend/src/features/enrollments/enrollmentMessages.ts:2](../../../../../frontend/src/features/enrollments/enrollmentMessages.ts#L2)
+- 24 further name-reference locations are omitted from this compact list.
 
-Lines 7-19.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-The backend owns stable codes; the frontend owns wording and language. A missing code degrades to a kind-level sentence, not a blank.
+```typescript
+import i18next from "@/i18n";
+import type { ApiError } from "./errors";
 
-### Problem Details (RFC 9457) and centralised error handling
+const Namespace = "errors";
 
-#### What it means
+/** The one function every form and toast uses to turn an ApiError into user-facing text. */
+export function messageFor(error: ApiError): string {
+  const byCode = i18next.t(`byCode.${error.code}`, { ns: Namespace, defaultValue: "" });
+  if (byCode !== "") {
+    return byCode;
+  }
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+  const byKind = i18next.t(`byKind.${error.kind}`, { ns: Namespace, defaultValue: "" });
+  if (byKind !== "") {
+    return byKind;
+  }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
-
-#### Where it appears in this file
-
-Stable `code` as the translation key.
-
-#### How it works here
-
-`byCode.${error.code}`.
-
-#### Why it matters here
-
-Wording can change without touching the backend.
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    E["ApiError code and kind"] --> C{"byCode.code in errors.json?"}
-    C -->|found| T["specific message"]
-    C -->|missing| K{"byKind.kind?"}
-    K -->|found| T2["kind message"]
-    K -->|missing| G["generic"]
+  return i18next.t("generic", { ns: Namespace });
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The `errors.json` `byCode` list contains the validation and `centre.*` codes only; auth codes (`auth.invalid_credentials`, `auth.rate_limited`, `auth.csrf_invalid`, `tenant.no_membership`) have no `byCode` entry, so they fall back to `byKind` (the login page handles the first two itself with its own `auth` namespace strings).
-
-## Related Files
-
-- [`frontend/src/api/errors.ts`](errors.ts.md)
-- [`frontend/src/api/errorMessages.test.ts`](errorMessages.test.ts.md)
-- [`frontend/src/i18n/index.ts`](../i18n/index.ts.md)
-- [`frontend/src/i18n/locales/en/errors.json`](../i18n/locales/en/errors.json.md)
-- [`frontend/src/i18n/locales/ar/errors.json`](../i18n/locales/ar/errors.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

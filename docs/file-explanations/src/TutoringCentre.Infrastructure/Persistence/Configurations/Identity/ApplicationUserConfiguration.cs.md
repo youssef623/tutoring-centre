@@ -1,73 +1,69 @@
-# src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs
+# `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs`
 
 ## Purpose
 
-Maps `ApplicationUser` to `identity.users`, adds the locale CHECK and a unique normalised-email index.
+Source summary (intent, not independent execution proof): Maps ApplicationUser to identity.users. Applied after Identity's own base configuration, so it wins.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence/Configurations/Identity, `internal`. Applied by `AppDbContext.OnModelCreating` after Identity's own base configuration, so it wins (doc comment).
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 28 lines and 1,260 bytes. Source hash: `da95552fc46cee4450d1a915dd4f45f86880074826757cd1756d4f1b1c793bc1`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ToTable("users", Schemas.Identity, t => t.HasCheckConstraint("ck_users_preferred_locale", "preferred_locale IN ('ar','en')"))` (17-20); `DisplayName` required max 120; `PreferredLocale` required max 2; `MustChangePassword` required; `HasIndex(NormalizedEmail).IsUnique().HasDatabaseName("ux_users_normalized_email")` (26).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### ORM and EF Core
+- Line 1: `using Microsoft.EntityFrameworkCore;`
+- Line 2: `using Microsoft.EntityFrameworkCore.Metadata.Builders;`
+- Line 3: `using TutoringCentre.Infrastructure.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 8](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs#L8): `internal sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>`
+- [Line 13](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs#L13): `public void Configure(EntityTypeBuilder<ApplicationUser> builder)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Fluent mapping over Identity's model.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`Configure`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TutoringCentre.Infrastructure.Identity;
 
-Renames and constrains Identity's default table.
+namespace TutoringCentre.Infrastructure.Persistence.Configurations.Identity;
 
-### Two-tier validation
+/// <summary>Maps ApplicationUser to identity.users. Applied after Identity's own base configuration, so it wins.</summary>
+internal sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
+{
+    private const int DisplayNameMaxLength = 120;
+    private const int PreferredLocaleMaxLength = 2;
 
-#### What it means
+    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
 
-Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
+        builder.ToTable(
+            "users",
+            Schemas.Identity,
+            table => table.HasCheckConstraint("ck_users_preferred_locale", "preferred_locale IN ('ar','en')"));
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
+        builder.Property(user => user.DisplayName).IsRequired().HasMaxLength(DisplayNameMaxLength);
+        builder.Property(user => user.PreferredLocale).IsRequired().HasMaxLength(PreferredLocaleMaxLength);
+        builder.Property(user => user.MustChangePassword).IsRequired();
 
-#### Where it appears in this file
+        builder.HasIndex(user => user.NormalizedEmail).IsUnique().HasDatabaseName("ux_users_normalized_email");
+    }
+}
+```
 
-Database constraints.
+## Before modifying this file
 
-#### How it works here
-
-CHECK and unique index.
-
-#### Why it matters here
-
-Duplicate emails and bad locales are rejected by PostgreSQL.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Identity also creates its own unique `UserNameIndex` on normalised user name (visible in the migration).
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs`](../../../Identity/ApplicationUser.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs`](../../AppDbContext.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs`](../../Migrations/20261004112858_AddIdentityAndMemberships.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

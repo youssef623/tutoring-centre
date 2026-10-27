@@ -1,53 +1,40 @@
-# src/TutoringCentre.Domain/AssemblyMarker.cs
+# `src/TutoringCentre.Domain/AssemblyMarker.cs`
 
 ## Purpose
 
-An empty internal class used only so tests can obtain this assembly with `typeof(AssemblyMarker).Assembly`.
+Source summary (intent, not independent execution proof): Lets tests locate this assembly via typeof(AssemblyMarker).Assembly. Contains no logic.
 
-## Where It Fits
+## Where it fits
 
-Domain layer. Used by `tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`.
+Category: **source**. [Open current file](../../../../src/TutoringCentre.Domain/AssemblyMarker.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 4 lines and 183 bytes. Source hash: `fc15d041fd7c1a4c307c51e9b5cff063228e43bf955069f756d74b30de64a9d4`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`internal sealed class AssemblyMarker;` (C# 12 semicolon body, line 5). `internal` plus `InternalsVisibleTo` keeps it invisible to production consumers. A compile-time `typeof` fails to build if the type is renamed, unlike `Assembly.Load("TutoringCentre.Domain")`.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Architecture tests (fitness functions)
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
+- [Line 4](../../../../src/TutoringCentre.Domain/AssemblyMarker.cs#L4): `internal sealed class AssemblyMarker;`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-The marker type.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`DependencyRuleTests.DomainAssembly = typeof(TutoringCentre.Domain.AssemblyMarker).Assembly`.
+```csharp
+namespace TutoringCentre.Domain;
 
-#### Why it matters here
+/// <summary>Lets tests locate this assembly via typeof(AssemblyMarker).Assembly. Contains no logic.</summary>
+internal sealed class AssemblyMarker;
+```
 
-Typo-proof assembly handle.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-None.
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/TutoringCentre.Domain.csproj`](TutoringCentre.Domain.csproj.md)
-- [`tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`](../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs.md)
-- [`src/TutoringCentre.Application/AssemblyMarker.cs`](../TutoringCentre.Application/AssemblyMarker.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

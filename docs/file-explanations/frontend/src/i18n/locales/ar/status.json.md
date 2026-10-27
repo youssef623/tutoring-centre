@@ -1,54 +1,57 @@
-# frontend/src/i18n/locales/ar/status.json
+# `frontend/src/i18n/locales/ar/status.json`
 
 ## Purpose
 
-Arabic strings for the API status card and the system-information card (namespace `status`).
+JSON data with top-level keys `readiness`, `systemInfo`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/i18n/locales/ar. Bundled by `i18n/index.ts` as namespace `status`; the `en` twin must have the same keys (checked by `scripts/check-i18n-keys.mjs`).
+Category: **configuration**. [Open current file](../../../../../../../frontend/src/i18n/locales/ar/status.json). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 23 lines and 1,223 bytes. Source hash: `0e101afa15d8f3c21a739f45988e08828c25be39af23927b3da6ba26d908829c`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Same keys as the English file with Arabic text, including the `{time}` and `{id}` placeholders.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Internationalisation (i18next) and RTL layout
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Translation resource.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "readiness": {
+    "checking": "جارٍ التحقق من حالة واجهة البرمجة",
+    "unreachableTitle": "تعذر الوصول إلى واجهة البرمجة",
+    "unreachableBody": "لم تستجب واجهة البرمجة. تأكد من أنها تعمل، ثم حاول مرة أخرى.",
+    "databaseUnavailableTitle": "واجهة البرمجة تعمل لكن قاعدة البيانات غير متاحة",
+    "databaseUnavailableBody": "شغّل PostgreSQL، ثم حاول مرة أخرى.",
+    "healthyTitle": "سليم",
+    "healthyDescription": "واجهة البرمجة وقاعدة البيانات متاحتان",
+    "lastCheckedAt": "آخر فحص في {time}"
+  },
+  "systemInfo": {
+    "loading": "جارٍ تحميل معلومات النظام",
+    "unavailableTitle": "معلومات النظام غير متاحة",
+    "reference": "المرجع: {id}",
+    "title": "معلومات النظام",
+    "schemaUpToDate": "مخطط قاعدة البيانات محدّث",
+    "migrationsPending": "هناك ترحيلات معلّقة",
+    "applicationVersion": "إصدار التطبيق",
+    "latestMigration": "آخر ترحيل",
+    "none": "لا يوجد"
+  }
+}
+```
 
-Nested keys looked up by `t("key.path")`.
+## Before modifying this file
 
-#### Why it matters here
-
-Keeping text in JSON lets the same component render in either language.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/i18n/index.ts`](../../index.ts.md)
-- [`frontend/src/i18n/locales/en/status.json`](../en/status.json.md)
-- [`frontend/src/features/status/StatusCard.tsx`](../../../features/status/StatusCard.tsx.md)
-- [`frontend/src/features/status/SystemInfoCard.tsx`](../../../features/status/SystemInfoCard.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

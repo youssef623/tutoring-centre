@@ -1,97 +1,81 @@
-# tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs
+# `tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs`
 
 ## Purpose
 
-Architecture rules that isolate ASP.NET Core Identity: Application and the Api (except Program and the CLI) must not depend on Identity types or on `TutoringCentre.Infrastructure.Identity`.
+Source summary (intent, not independent execution proof): Identity (UserManager, ApplicationUser, password hashing) is an Infrastructure concern. Application and the Api — other than the composition root (Program.cs) and the CLI (which wires up Identity at startup and for the development seeder) — see it only through Application's own ports (IAuthenticationService, IMembershipReadService), never directly.
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests. Backs the 'Identity is an Infrastructure concern' decision documented in the class comment and in `docs/adr/0005-cookie-authentication.md`.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 41 lines and 1,662 bytes. Source hash: `dc67dee5fd77d6447c8305dc7f01e8f5d06c66c38b42efcd36454f451ae862ec`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Class comment (lines 5-10): Identity (`UserManager`, `ApplicationUser`, password hashing) is Infrastructure; Application and Api see it only through Application ports `IAuthenticationService` and `IMembershipReadService`. Constants (lines 13-15): `TutoringCentre.Infrastructure.Identity`, `Microsoft.AspNetCore.Identity`, `TutoringCentre.Api.Cli`.
-- `Application_DoesNotDependOnIdentity` (17-28): asserts the Application type list is non-empty and that none depends on either namespace.
-- `Api_OutsideCompositionRootAndCli_DoesNotDependOnIdentity` (30-40): Api types except `Program` and the `Cli` namespace must not depend on either namespace. `Program` registers Identity; the CLI hosts the development seeder.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Architecture rules beyond dependencies
+- Line 1: `using NetArchTest.Rules;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Beyond 'who references whom', tests can assert design conventions with reflection and IL scanning: every command has exactly one handler, handlers are sealed and internal, repositories live in the right project, endpoints do not touch Infrastructure.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies](../../../PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies).)
+- [Line 11](../../../../tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs#L11): `public sealed class IdentityRuleTests`
+- [Line 18](../../../../tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs#L18): `public void Application_DoesNotDependOnIdentity()`
+- [Line 31](../../../../tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs#L31): `public void Api_OutsideCompositionRootAndCli_DoesNotDependOnIdentity()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Identity isolation rule.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Both tests.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using NetArchTest.Rules;
 
-If someone injects `UserManager<ApplicationUser>` into an endpoint, the build fails; authentication stays swappable behind the two ports.
+namespace TutoringCentre.Architecture.Tests;
 
-### Identity and membership modelling
+/// <summary>
+/// Identity (UserManager, ApplicationUser, password hashing) is an Infrastructure concern. Application and the
+/// Api — other than the composition root (Program.cs) and the CLI (which wires up Identity at startup and for
+/// the development seeder) — see it only through Application's own ports (IAuthenticationService,
+/// IMembershipReadService), never directly.
+/// </summary>
+public sealed class IdentityRuleTests
+{
+    private const string InfrastructureIdentityNamespace = "TutoringCentre.Infrastructure.Identity";
+    private const string AspNetIdentityNamespace = "Microsoft.AspNetCore.Identity";
+    private const string CliNamespace = "TutoringCentre.Api.Cli";
 
-#### What it means
+    [Fact]
+    public void Application_DoesNotDependOnIdentity()
+    {
+        var types = Types.InAssembly(SourceAssemblies.Application);
+        Assert.NotEmpty(types.GetTypes());
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+        var result = types
+            .ShouldNot().HaveDependencyOnAny(InfrastructureIdentityNamespace, AspNetIdentityNamespace)
+            .GetResult();
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+        Assert.True(result.IsSuccessful, ArchitectureSupport.Describe(result));
+    }
 
-#### Where it appears in this file
+    [Fact]
+    public void Api_OutsideCompositionRootAndCli_DoesNotDependOnIdentity()
+    {
+        var result = Types.InAssembly(SourceAssemblies.Api)
+            .That().DoNotHaveName("Program")
+            .And().DoNotResideInNamespace(CliNamespace)
+            .ShouldNot().HaveDependencyOnAny(InfrastructureIdentityNamespace, AspNetIdentityNamespace)
+            .GetResult();
 
-Ports in front of Identity.
+        Assert.True(result.IsSuccessful, ArchitectureSupport.Describe(result));
+    }
+}
+```
 
-#### How it works here
+## Before modifying this file
 
-The class comment.
-
-#### Why it matters here
-
-`IAuthenticationService` (credentials) and `IMembershipReadService` (who belongs where) are the only identity vocabulary Application knows.
-
-### Dependency inversion, ports and adapters
-
-#### What it means
-
-A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
-
-#### Where it appears in this file
-
-Application owns the interface, Infrastructure the implementation.
-
-#### How it works here
-
-Whole file.
-
-#### Why it matters here
-
-Same dependency inversion as repositories, applied to authentication.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs`](SourceAssemblies.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs`](ArchitectureSupport.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs`](../../src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs.md)
-- [`src/TutoringCentre.Application/Identity/IMembershipReadService.cs`](../../src/TutoringCentre.Application/Identity/IMembershipReadService.cs.md)
-- [`docs/adr/0005-cookie-authentication.md`](../../docs/adr/0005-cookie-authentication.md.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

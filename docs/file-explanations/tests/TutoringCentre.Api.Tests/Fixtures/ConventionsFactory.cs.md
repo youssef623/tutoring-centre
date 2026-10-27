@@ -1,75 +1,78 @@
-# tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs
+# `tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs`
 
 ## Purpose
 
-The real Api plus test-only endpoints, handlers and an in-memory log sink, used to test HTTP conventions.
+Source summary (intent, not independent execution proof): The real API plus test-only endpoints/handlers and an in-memory log sink. Own container, own collection.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Fixtures; subclass of `ApiFactory`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 29 lines and 1,221 bytes. Source hash: `7559ef33178d94dcedcb74b92e7ee359a8f9807dc7c1821d45941eb72e87329d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Logs = new InMemoryLogSink()`. `ConfigureWebHost` calls the base then `ConfigureTestServices`: registers `ICommandHandler<ConventionCommand,string>` -> `ConventionCommandHandler`, `ICommandHandler<TestNameCommand,string>` -> `TestNameHandler`, `IValidator<TestNameCommand>` -> `TestNameValidator`, `IQueryHandler<CurrentActorQuery, CurrentActorDto>` -> `CurrentActorQueryHandler`, `ILogEventSink` singleton = `Logs` (picked up by `.ReadFrom.Services(services)` in `Program.cs`), and `IStartupFilter` `ConventionEndpointsStartupFilter` which maps `/api/test/*` routes. Test handlers are registered *after* the app's scan, so they exist only in this host.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### In-process hosting with WebApplicationFactory
+- Line 1: `using FluentValidation;`
+- Line 2: `using Microsoft.AspNetCore.Hosting;`
+- Line 3: `using Microsoft.AspNetCore.TestHost;`
+- Line 4: `using Microsoft.Extensions.DependencyInjection;`
+- Line 5: `using Serilog.Core;`
+- Line 6: `using TutoringCentre.Application.Common.Cqrs;`
 
-#### What it means
+## Walkthrough and declaration map
 
-`WebApplicationFactory<Program>` starts the real application inside the test process with an in-memory test server, so real middleware, DI and routing run without opening a network port. Tests can override configuration and services before the host is built.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+- [Line 11](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs#L11): `public sealed class ConventionsFactory : ApiFactory`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-`ConfigureTestServices`.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs:24](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L24)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs:11](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs#L11)
+- [tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs:7](../../../../../tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs#L7)
+- [tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs:7](../../../../../tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs#L7)
+- [tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs:9](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L9)
 
-Method body.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Override/add services for the test host only.
+```csharp
+using FluentValidation;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog.Core;
+using TutoringCentre.Application.Common.Cqrs;
 
-### Structured logging, Serilog and correlation IDs
+namespace TutoringCentre.Api.Tests.Fixtures;
 
-#### What it means
+/// <summary>The real API plus test-only endpoints/handlers and an in-memory log sink. Own container, own collection.</summary>
+public sealed class ConventionsFactory : ApiFactory
+{
+    public InMemoryLogSink Logs { get; } = new();
 
-Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddScoped<ICommandHandler<ConventionCommand, string>, ConventionCommandHandler>();
+            services.AddScoped<ICommandHandler<TestNameCommand, string>, TestNameHandler>();
+            services.AddScoped<IValidator<TestNameCommand>, TestNameValidator>();
+            services.AddScoped<IQueryHandler<CurrentActorQuery, CurrentActorDto>, CurrentActorQueryHandler>();
+            services.AddSingleton<ILogEventSink>(Logs);
+            services.AddSingleton<IStartupFilter, ConventionEndpointsStartupFilter>();
+        });
+    }
+}
+```
 
-#### Where it appears in this file
+## Before modifying this file
 
-Sink injected via DI.
-
-#### How it works here
-
-`ILogEventSink` registration.
-
-#### Why it matters here
-
-Lets tests assert on what was logged.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs`](ApiFactory.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs`](ConventionEndpoints.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs`](ConventionEndpointsStartupFilter.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs`](ConventionTestTypes.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/InMemoryLogSink.cs`](InMemoryLogSink.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

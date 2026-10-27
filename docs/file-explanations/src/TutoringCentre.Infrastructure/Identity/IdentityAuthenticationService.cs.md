@@ -1,109 +1,141 @@
-# src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs
+# `src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs`
 
 ## Purpose
 
-Implements `IAuthenticationService` with ASP.NET Core Identity's `UserManager`: password check, lockout, no account enumeration.
+The credential adapter uses UserManager for account lookup, dummy verification for unknown email, lockout, password checking, and failure counters. Password change rejects reuse, maps mismatch and policy errors, clears pending replacement, and updates security stamp. Its existence does not establish measured timing equality or cancellation coverage for UserManager calls.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Identity, `internal partial`. Registered scoped in `AddInfrastructure`; called by `AuthEndpoints.LoginAsync`. Depends on `UserManager<ApplicationUser>`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 101 lines and 4,861 bytes. Source hash: `3ca9da422b66855951f923d6a7324f8ca110510044de0b99ccf43859607c2bf6`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`VerifyCredentialsAsync` (23-48):
-1. `FindByEmailAsync(email)`; unknown -> `CheckPasswordAsync(DummyUser, password)` (30) to pay the same hashing cost (timing), then `InvalidCredentials()`.
-2. `IsLockedOutAsync(user)` -> log `Login attempt for locked-out user {UserId}` (id only, never email) and return the identical failure.
-3. `CheckPasswordAsync(user, password)` false -> `AccessFailedAsync(user)` (increments the failed counter; locks the user at the configured threshold) and failure.
-4. Success -> `ResetAccessFailedCountAsync(user)`; `AuthenticatedUser(user.Id, user.SecurityStamp ?? "")`.
-`InvalidCredentials()` always returns `Error.Unauthenticated("auth.invalid_credentials", "Incorrect email or password.")`. `DummyUser` is a static user with a real hash of a constant password (53-58), built once.
-Doc: `UserManager` saves its own counters through the Identity store as it goes - 'the one intentional write path outside the dispatcher'.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Rate limiting, lockout and enumeration resistance
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using Microsoft.AspNetCore.Identity;`
+- Line 3: `using Microsoft.Extensions.Logging;`
+- Line 4: `using TutoringCentre.Application.Common.Security;`
+- Line 5: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Rate limiting* caps how many requests one source may make in a time window (stops password spraying from one place). *Lockout* temporarily blocks one account after repeated failures (stops many guesses against one account). *Enumeration resistance* means failure responses (and their timing) reveal nothing about whether an account exists.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance](../../../../PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance).)
+- [Line 18](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs#L18): `internal sealed partial class IdentityAuthenticationService(UserManager<ApplicationUser> userManager, ILogger<IdentityAuthenticationService> logger)`
+- [Line 23](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs#L23): `public async Task<Result<AuthenticatedUser>> VerifyCredentialsAsync(string email, string password, CancellationToken cancellationToken)`
+- [Line 50](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs#L50): `public async Task<Result<AuthenticatedUser>> ChangePasswordAsync(`
+- [Line 82](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs#L82): `private static Result<AuthenticatedUser> InvalidCredentials() =>`
+- [Line 85](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs#L85): `private static Result<AuthenticatedUser> PasswordTooWeak(params string[] messages) =>`
+- [Line 92](../../../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs#L92): `private static ApplicationUser CreateDummyUser()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Lockout and timing-safe failure.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Infrastructure/DependencyInjection.cs:178](../../../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs#L178)
 
-Lines 25-47.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Wrong password, unknown email and locked account all produce the same 401 and similar cost.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Common;
 
-### Identity and membership modelling
+namespace TutoringCentre.Infrastructure.Identity;
 
-#### What it means
+/// <summary>
+/// Verifies credentials through Identity's <see cref="UserManager{TUser}"/>, with lockout and without revealing
+/// which accounts exist: an unknown email still pays the cost of a real password hash verification (against a
+/// fixed dummy user), so response time carries no signal. Locked-out users are logged by ID only, never by email.
+/// <see cref="UserManager{TUser}"/> saves its own counters (failed-attempt count, lockout end, security stamp)
+/// through the Identity store as it goes — the one intentional write path outside the dispatcher, because signing
+/// in is not a use case with a transaction boundary of its own.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed partial class IdentityAuthenticationService(UserManager<ApplicationUser> userManager, ILogger<IdentityAuthenticationService> logger)
+    : IAuthenticationService
+{
+    private static readonly ApplicationUser DummyUser = CreateDummyUser();
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+    public async Task<Result<AuthenticatedUser>> VerifyCredentialsAsync(string email, string password, CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByEmailAsync(email);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+        if (user is null)
+        {
+            // Pays the same password-hashing cost as a real check, so an unknown email cannot be told apart by timing.
+            await userManager.CheckPasswordAsync(DummyUser, password);
+            return InvalidCredentials();
+        }
 
-#### Where it appears in this file
+        if (await userManager.IsLockedOutAsync(user))
+        {
+            LogLockedOutAttempt(logger, user.Id);
+            return InvalidCredentials();
+        }
 
-`UserManager`.
+        if (!await userManager.CheckPasswordAsync(user, password))
+        {
+            await userManager.AccessFailedAsync(user);
+            return InvalidCredentials();
+        }
 
-#### How it works here
+        await userManager.ResetAccessFailedCountAsync(user);
+        return Result<AuthenticatedUser>.Success(new AuthenticatedUser(user.Id, user.SecurityStamp ?? string.Empty));
+    }
 
-Constructor.
+    public async Task<Result<AuthenticatedUser>> ChangePasswordAsync(
+        Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result<AuthenticatedUser>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
+        }
 
-#### Why it matters here
+        if (string.Equals(currentPassword, newPassword, StringComparison.Ordinal))
+        {
+            return PasswordTooWeak("The new password must be different from the current password.");
+        }
 
-Verified credentials without `SignInManager`/Identity UI (ADR 0005).
+        var changeResult = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (!changeResult.Succeeded)
+        {
+            if (changeResult.Errors.Any(error => error.Code == "PasswordMismatch"))
+            {
+                return Result<AuthenticatedUser>.Failure(Error.Rule("auth.current_password_invalid", "The current password is incorrect."));
+            }
 
-### Structured logging, Serilog and correlation IDs
+            return PasswordTooWeak(changeResult.Errors.Select(error => error.Description).ToArray());
+        }
 
-#### What it means
+        // Cleared and rotated together: UpdateSecurityStampAsync saves the whole tracked entity, not just the stamp.
+        user.MustChangePassword = false;
+        await userManager.UpdateSecurityStampAsync(user);
 
-Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
+        return Result<AuthenticatedUser>.Success(new AuthenticatedUser(user.Id, user.SecurityStamp ?? string.Empty));
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
+    private static Result<AuthenticatedUser> InvalidCredentials() =>
+        Result<AuthenticatedUser>.Failure(Error.Unauthenticated("auth.invalid_credentials", "Incorrect email or password."));
 
-#### Where it appears in this file
-
-`[LoggerMessage]` and no email in logs.
-
-#### How it works here
-
-Lines 60-61.
-
-#### Why it matters here
-
-`IdentityAuthenticationServiceTests` asserts no email appears in logs.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    S["VerifyCredentialsAsync"] --> F{"FindByEmailAsync"}
-    F -->|null| D["CheckPasswordAsync(dummy user)"] --> X["401 auth.invalid_credentials"]
-    F -->|user| L{"IsLockedOutAsync"}
-    L -->|yes| X
-    L -->|no| P{"CheckPasswordAsync"}
-    P -->|wrong| A["AccessFailedAsync (counter, lockout)"] --> X
-    P -->|right| R["ResetAccessFailedCountAsync"] --> OK["Success(userId, securityStamp)"]
+    private static Result<AuthenticatedUser> PasswordTooWeak(params string[] messages) =>
+        Result<AuthenticatedUser>.Failure(new Error(
+            "auth.password_too_weak",
+            "This password does not meet the policy.",
+            ErrorKind.Validation,
+            new Dictionary<string, string[]> { ["newPassword"] = messages }));
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 11 lines.
 
-Lockout and password policy come from options set in `AddInfrastructure` (5 attempts, 15 minutes; min length 10).
+## Before modifying this file
 
-## Gotchas and Issues
-
-Lockout checks happen before the password check, so a locked account cannot be unlocked by guessing; but an attacker cannot tell lockout from a wrong password by the response. The dummy hash only equalises *hash cost*, not every database round trip (not verified to be perfectly constant-time).
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs`](../../TutoringCentre.Application/Common/Security/IAuthenticationService.cs.md)
-- [`src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs`](ApplicationUser.cs.md)
-- [`src/TutoringCentre.Infrastructure/DependencyInjection.cs`](../DependencyInjection.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs`](../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,72 +1,70 @@
-# src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs
+# `src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs`
 
 ## Purpose
 
-Decides if a session's security stamp and (when a centre is selected) membership are still current.
+Source summary (intent, not independent execution proof): Does not depend on the current actor: called before one exists, with the user ID the session claims.
 
-## Where It Fits
+## Where it fits
 
-Application/Identity/Queries/ValidateStaffSession, `internal`. Depends on `IMembershipReadService` only (no actor).
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 27 lines and 1,498 bytes. Source hash: `e831e2d3954fb4887d355f1711a77e1d490a1a3536f41e49f07bc9e7a27c1317`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`HandleAsync` (12-23): `state = await readService.GetSessionStateAsync(userId, centreId)`; `isValid = state is not null && state.SecurityStamp == query.SecurityStamp && state.MembershipActive`; returns `Result<bool>.Success(isValid)`. False for an unknown user, a changed stamp, or a centre whose membership is inactive; `GetSessionStateAsync` reports `MembershipActive` true when no centre is given (comment lines 16-17).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Session revalidation and revocation
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 3: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A self-contained cookie cannot be cancelled by itself. Revalidation re-checks the cookie's claims against the database on requests (here via a *security stamp* and the active membership), so a changed password or revoked access ends the session; a short cache bounds the database cost.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation](../../../../../../PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation).)
+- [Line 9](../../../../../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs#L9): `internal sealed class ValidateStaffSessionHandler(IMembershipReadService readService)`
+- [Line 12](../../../../../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs#L12): `public async Task<Result<bool>> HandleAsync(ValidateStaffSessionQuery query, CancellationToken cancellationToken)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The decision.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs:18](../../../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L18)
 
-Lines 18-20.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Security stamp mismatch or inactive membership ends the session.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Domain.Common;
 
-### CQRS and the dispatcher pipeline
+namespace TutoringCentre.Application.Identity.Queries.ValidateStaffSession;
 
-#### What it means
+/// <summary>Does not depend on the current actor: called before one exists, with the user ID the session claims.</summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class ValidateStaffSessionHandler(IMembershipReadService readService)
+    : IQueryHandler<ValidateStaffSessionQuery, bool>
+{
+    public async Task<Result<bool>> HandleAsync(ValidateStaffSessionQuery query, CancellationToken cancellationToken)
+    {
+        var state = await readService.GetSessionStateAsync(query.UserId, query.CentreId, cancellationToken);
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+        // False for: unknown user (no state), a changed security stamp, (when a centre is set) an inactive
+        // membership, or a role the session claims that no longer matches the membership's current one —
+        // GetSessionStateAsync reports MembershipActive true and CurrentRole null when no centre is given,
+        // matching a cookie that likewise carries no role without a centre (SessionPrincipalFactory).
+        var isValid = state is not null
+            && state.SecurityStamp == query.SecurityStamp
+            && state.MembershipActive
+            && state.CurrentRole == query.Role;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+        return Result<bool>.Success(isValid);
+    }
+}
+```
 
-#### Where it appears in this file
+## Before modifying this file
 
-Query returning `bool`.
-
-#### How it works here
-
-`IQueryHandler<..., bool>`.
-
-#### Why it matters here
-
-Fits the standard read pipeline.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-String comparison with `==` of stamps (not constant-time); the stamp is a server-side value compared to a value from the server's own encrypted cookie, not attacker-supplied input.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/IMembershipReadService.cs`](../../IMembershipReadService.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs`](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

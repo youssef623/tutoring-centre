@@ -1,95 +1,153 @@
-# frontend/src/routes/select-centre.tsx
+# `frontend/src/routes/select-centre.tsx`
 
 ## Purpose
 
-The `/select-centre` page: lists the user's active centres with their role, posts the choice, or shows an empty state with a log-out button.
+Source comment (intent): Role badge styling, matched to the role's existing translation key (`auth:roles.*`). Decorative color beyond the badge's own text/icon — never the only signal of which role this is.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes. Guarded by its own `beforeLoad` (signed-out visitors go to `/login`) but, unlike `_authenticated`, it does not require an active centre. Reached after login for multi-centre users and from the user menu.
+Category: **source**. [Open current file](../../../../../frontend/src/routes/select-centre.tsx). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 268 lines and 10,311 bytes. Source hash: `7c77f704d17128460386c3a1edba3902b034753b946f9af54ec44c12190b12ba`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-File header: ESLint disable for `only-throw-error` (router redirect idiom). `Route` (19-27): `beforeLoad` reads the session with `queryClient.query({ ...meQueryOptions, staleTime: "static" })` and redirects to `/login` when it is `null`. `SelectCentrePage` (29-103): `useSession`, `useSelectCentre()`, `useSignOut()`. `handleSelect(centreId)` (42-51): `selectCentreMutation.mutateAsync({ data: { centreId } })` (POST `/api/session/centre`, 204), `refreshCsrfToken()`, `queryClient.invalidateQueries({ queryKey: meQueryOptions.queryKey })` (so the next read has the new active centre), `navigate({ to: "/" })`; errors go to `showApiError`. Render: if `me.memberships.length === 0` an empty-state card with `selectCentre.empty` and a log-out button; else a heading and one button per membership showing the centre name (`dir="auto"`) and role `Badge` (`roles.<role>`).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Frontend route guards, session state and global 401 handling
+- Line 3: `import { useQueryClient } from "@tanstack/react-query";`
+- Line 4: `import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";`
+- Line 5: `import {`
+- Line 17: `import type { LucideIcon } from "lucide-react";`
+- Line 18: `import { useState } from "react";`
+- Line 19: `import { useTranslation } from "react-i18next";`
+- Line 20: `import { cn } from "cn";`
+- Line 21: `import { asApiError } from "@/api/apiFetch";`
+- Line 22: `import { refreshCsrfToken } from "@/api/csrf";`
+- Line 23: `import { showApiError } from "@/api/showApiError";`
+- Line 24: `import { useSelectCentre, type MembershipDto } from "@/api/generated/tutoring-centre";`
+- Line 25: `import { HessaWordmark } from "@/components/brand/HessaLogo";`
+- Line 26: `import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";`
+- Line 27: `import { meQueryOptions } from "@/features/session/meQueryOptions";`
+- Line 28: `import { useSession } from "@/features/session/useSession";`
+- Line 29: `import { useSignOut } from "@/features/session/useSignOut";`
+- Line 30: `import { initialsOf } from "@/lib/initials";`
+- Line 31: `import { Button } from "@/components/ui/button";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
+- [Line 33](../../../../../frontend/src/routes/select-centre.tsx#L33): `export const Route = createFileRoute("/select-centre")({`
+- [Line 64](../../../../../frontend/src/routes/select-centre.tsx#L64): `function avatarClassName(centreId: string): string {`
+- [Line 73](../../../../../frontend/src/routes/select-centre.tsx#L73): `function SelectCentrePage() {`
+- [Line 150](../../../../../frontend/src/routes/select-centre.tsx#L150): `function NoActiveCentre({ email, onSignOut }: { email: string; onSignOut: () => Promise<void> }) {`
+- [Line 223](../../../../../frontend/src/routes/select-centre.tsx#L223): `function CentreCard({`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Own guard without the centre requirement.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/routes/select-centre.test.tsx:27](../../../../../frontend/src/routes/select-centre.test.tsx#L27)
 
-Lines 20-25.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-A signed-in user without an active centre must be able to reach this page, so it cannot live under `_authenticated`.
+```tsx
+/* eslint-disable @typescript-eslint/only-throw-error -- TanStack Router's documented redirect idiom:
+ * `redirect()` returns a Response, which the router's own data loader catches, not an Error. */
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  Building2,
+  Check,
+  ChevronRight,
+  ClipboardCheck,
+  Copy,
+  GraduationCap,
+  Loader2,
+  LogOut,
+  RefreshCw,
+  Shield,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { cn } from "cn";
+import { asApiError } from "@/api/apiFetch";
+import { refreshCsrfToken } from "@/api/csrf";
+import { showApiError } from "@/api/showApiError";
+import { useSelectCentre, type MembershipDto } from "@/api/generated/tutoring-centre";
+import { HessaWordmark } from "@/components/brand/HessaLogo";
+import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
+import { meQueryOptions } from "@/features/session/meQueryOptions";
+import { useSession } from "@/features/session/useSession";
+import { useSignOut } from "@/features/session/useSignOut";
+import { initialsOf } from "@/lib/initials";
+import { Button } from "@/components/ui/button";
 
-### Authorization by default, the actor pipeline and the tenant gate
+export const Route = createFileRoute("/select-centre")({
+  beforeLoad: async ({ context }) => {
+    const me = await context.queryClient.query({ ...meQueryOptions, staleTime: "static" });
+    if (me === null) {
+      throw redirect({ to: "/login" });
+    }
 
-#### What it means
+    if (me.mustChangePassword) {
+      throw redirect({ to: "/change-password" });
+    }
+  },
+  component: SelectCentrePage,
+});
 
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
+/** Role badge styling, matched to the role's existing translation key (`auth:roles.*`). Decorative color beyond the badge's own text/icon — never the only signal of which role this is. */
+const ROLE_STYLE: Record<string, { icon: LucideIcon; className: string }> = {
+  owner: { icon: Shield, className: "bg-accent text-accent-foreground" },
+  teacher: { icon: GraduationCap, className: "bg-warning/15 text-warning-foreground dark:bg-warning/25" },
+  secretary: { icon: ClipboardCheck, className: "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" },
+};
+const DefaultRoleStyle: { icon: LucideIcon; className: string } = { icon: Shield, className: "bg-muted text-muted-foreground" };
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
+/** A small fixed palette for the per-centre avatar tile. Picked deterministically from the centre id, purely decorative — not tied to role. */
+const AVATAR_PALETTE = [
+  "bg-accent text-accent-foreground",
+  "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+  "bg-warning/15 text-warning-foreground dark:bg-warning/25",
+  "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300",
+  "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
+] as const;
 
-#### Where it appears in this file
+function avatarClassName(centreId: string): string {
+  let hash = 0;
+  for (let i = 0; i < centreId.length; i += 1) {
+    hash = (hash * 31 + centreId.charCodeAt(i)) >>> 0;
+  }
+  // hash % length is always a valid index into the non-empty palette above; the fallback only satisfies the type checker.
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length] ?? AVATAR_PALETTE[0];
+}
 
-Tenant selection is a server decision.
+function SelectCentrePage() {
+  const { t } = useTranslation("auth");
+  const { me } = useSession();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const selectCentreMutation = useSelectCentre();
+  const signOut = useSignOut();
 
-#### How it works here
+  // The guard above already redirected a signed-out visitor; this only covers the render before that settles.
+  if (me === null) {
+    return null;
+  }
 
-Line 44.
+  const isEmpty = me.memberships.length === 0;
 
-#### Why it matters here
+  const handleSelect = async (centreId: string) => {
+    try {
+      await selectCentreMutation.mutateAsync({ data: { centreId } });
+```
 
-The page only *asks*; the server verifies the membership and answers 204 or 403 `tenant.no_membership`.
+The excerpt stops at line 90; use the original file for the remaining 178 lines.
 
-### CSRF protection with antiforgery tokens
+## Before modifying this file
 
-#### What it means
-
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
-
-#### Where it appears in this file
-
-Token refresh after a session change.
-
-#### How it works here
-
-Line 45.
-
-#### Why it matters here
-
-The centre selection rewrites the session cookie and therefore the user-bound token.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/routes/select-centre.test.tsx`](select-centre.test.tsx.md)
-- [`frontend/src/routes/_authenticated.tsx`](_authenticated.tsx.md)
-- [`frontend/src/features/session/useSignOut.ts`](../features/session/useSignOut.ts.md)
-- [`frontend/src/api/showApiError.ts`](../api/showApiError.ts.md)
-- `frontend/src/api/generated/tutoring-centre.ts` (generated / lockfile / media: no separate explanation, see INDEX)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

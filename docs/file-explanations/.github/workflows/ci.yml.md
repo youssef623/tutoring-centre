@@ -1,134 +1,126 @@
-# .github/workflows/ci.yml
+# `.github/workflows/ci.yml`
 
 ## Purpose
 
-Main continuous-integration workflow: builds and tests the backend and the frontend, then runs the Playwright end-to-end journeys, on every pull request and on pushes to `main`.
+Current CI/CD file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-GitHub Actions workflow. Uses `global.json`, `TutoringCentre.slnx`, `.config/dotnet-tools.json`, `frontend/package-lock.json`, the committed `frontend/openapi/TutoringCentre.Api.json` and `frontend/src/api/generated/`. The README says `main` is protected and requires these checks (branch protection itself is a GitHub setting and cannot be verified from the repo).
+Category: **CI/CD**. [Open current file](../../../../.github/workflows/ci.yml). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 346 lines and 13,260 bytes. Source hash: `f9a3a693c83b11e5a3923c7a2f459040c7a51dabf5ebb8e54114a47be5d35994`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-**Triggers (3-6):** `pull_request` and `push` to `main`. **`concurrency`:** group `ci-${{ github.ref }}`, `cancel-in-progress: true`. **`permissions: contents: read`**.
+## Dependencies visible in the file
 
-**Job `backend`** (ubuntu-latest): checkout (`actions/checkout@v6`); `actions/setup-dotnet@v5` with `global-json-file`; `dotnet restore TutoringCentre.slnx`; `dotnet build ... --no-restore -c Release` - the Api build also *generates* the OpenAPI document into `frontend/openapi`; new step **'OpenAPI document is up to date'** (35-36): `git diff --exit-code -- frontend/openapi` fails if the build changed the committed document; `dotnet tool restore`; 'Check for model changes without a migration' (`dotnet ef migrations has-pending-model-changes ...` with a fake connection string); `dotnet test TutoringCentre.slnx --no-build -c Release` (needs Docker for Testcontainers).
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-**Job `frontend`** (`working-directory: frontend`): checkout; `actions/setup-node@v6` (`lts/*`, npm cache); `npm ci`; new **'Generated API client is up to date'** (74-78; the step also runs the generator in `frontend`): `npm run generate:api` then `git diff --exit-code -- src/api/generated`; `npm run lint`; `npm run typecheck`; new **'Translation keys match (en/ar)'** (line 86, `npm run i18n:check`); `npm run test:ci`; `npm run build`.
+## Walkthrough and declaration map
 
-**Job `e2e`** (new, 95-167): `needs: [backend, frontend]`. A `services.postgres` container (`postgres:17`, `POSTGRES_DB tutoring`, `POSTGRES_USER tutoring_dev`, `POSTGRES_PASSWORD ci-only-throwaway-password`, port 5432, `pg_isready` health check). Job `env`: `ConnectionStrings__Postgres` for that database, `Seed__Password` and `SEED_PASSWORD` both set to a CI-only throwaway seed password (comments: not real credentials; two names because .NET configuration reads `Seed__Password` while the Playwright spec reads `SEED_PASSWORD`). Steps: checkout; setup .NET; setup Node; `dotnet tool restore`; `dotnet dev-certs https` (comment: generate the HTTPS development certificate up front to avoid a first-run race; no `--trust` because that needs an interactive keychain prompt and the dev-server proxy uses `secure: false`); 'Seed the database (centres and staff)' = `dotnet run --project src/TutoringCentre.Api -- seed`; `npm ci`; `npx playwright install --with-deps chromium`; 'Run the E2E auth journeys' = `npm run test:e2e`; on failure `actions/upload-artifact@v4` uploads `frontend/playwright-report/` for 7 days.
+- Line 8: A newer push to the same branch/PR cancels the run that is now out of date.
 
-## Concepts Used
+## Used by: verified name references
 
-### Continuous Integration
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### What it means
+## Current source excerpt
 
-CI runs automated build, test and analysis on every change in a clean machine so that regressions are caught before merge. Workflows are YAML files describing jobs (parallel units) made of steps.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+```yaml
+name: CI
 
-#### Where it appears in this file
+on:
+  pull_request:
+  push:
+    branches: [main]
 
-Three jobs and three 'is it committed' checks.
+# A newer push to the same branch/PR cancels the run that is now out of date.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
-#### How it works here
+permissions:
+  contents: read
 
-Lines 35-36, 74-78, job `e2e` (95-167).
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
 
-#### Why it matters here
+      - name: Set up .NET from global.json
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
 
-Generated artefacts (OpenAPI, client) cannot silently drift from the code; the e2e job proves the whole stack once per PR.
+      - name: Restore
+        run: dotnet restore TutoringCentre.slnx
 
-### End-to-end testing with Playwright
+      - name: Build
+        run: dotnet build TutoringCentre.slnx --no-restore -c Release
 
-#### What it means
+      - name: OpenAPI document is up to date
+        run: git diff --exit-code -- frontend/openapi
 
-An end-to-end test drives a real browser against a real running system (here the real API, real PostgreSQL and the Vite dev server) and clicks through a user journey. It is slow but catches wiring problems no unit test can.
+      - name: Tool restore
+        run: dotnet tool restore
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#635-end-to-end-testing-with-playwright](../../../PROJECT_OVERVIEW2.md#635-end-to-end-testing-with-playwright).)
+      - name: Check for model changes without a migration
+        # Design-time model comparison needs valid-looking connection strings but never connects.
+        # The design-time factory (Api/Cli) reads the migrations one; the runtime one is unused here but still
+        # required by startup validation.
+        env:
+          ConnectionStrings__Postgres: Host=localhost;Database=ci;Username=ci;Password=ci
+          ConnectionStrings__PostgresMigrations: Host=localhost;Database=ci;Username=ci;Password=ci
+        run: >
+          dotnet ef migrations has-pending-model-changes
+          --project src/TutoringCentre.Infrastructure
+          --startup-project src/TutoringCentre.Api
+          --no-build --configuration Release
 
-#### Where it appears in this file
+      - name: Test (all test projects, including architecture tests)
+        run: dotnet test TutoringCentre.slnx --no-build -c Release
 
-E2E job.
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
 
-#### How it works here
+      - name: Set up Node.js (LTS) with npm cache
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-`e2e` job.
+      - name: Install exactly the lock file
+        run: npm ci
 
-#### Why it matters here
+      - name: Generated API client is up to date
+        working-directory: frontend
+        run: |
+          npm run generate:api
+          git diff --exit-code -- src/api/generated
 
-Runs real Chromium against the real API and PostgreSQL after both other jobs pass.
+      - name: Lint
+        run: npm run lint
 
-### Secrets and configuration layering
+      - name: Type-check
+        run: npm run typecheck
 
-#### What it means
-
-Configuration comes from layered sources (JSON files, user-secrets, environment variables, command line) where later layers override earlier ones. Secrets must stay out of git: this repo keeps the connection string out of `appsettings.json`, reads it from user-secrets or an environment variable, and scans history with gitleaks.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
-
-#### Where it appears in this file
-
-Throwaway credentials in CI.
-
-#### How it works here
-
-`POSTGRES_PASSWORD`, `Seed__Password`, `SEED_PASSWORD`.
-
-#### Why it matters here
-
-They are explicitly labelled CI-only in comments; the database service never leaves the job.
-
-### Contract-first generated API client
-
-#### What it means
-
-The API publishes a machine-readable contract (OpenAPI). A generator turns it into typed client code, so a changed endpoint shape becomes a compile error in the frontend instead of a runtime bug; CI fails if the committed contract or generated code is stale.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#631-contract-first-api-client-generation](../../../PROJECT_OVERVIEW2.md#631-contract-first-api-client-generation).)
-
-#### Where it appears in this file
-
-Staleness checks.
-
-#### How it works here
-
-Two `git diff --exit-code` steps.
-
-#### Why it matters here
-
-A changed endpoint that is not regenerated and committed breaks the build.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    T["pull_request / push main"] --> B["job backend"]
-    T --> F["job frontend"]
-    B --> B1["restore, build (writes OpenAPI), diff frontend/openapi"] --> B2["ef has-pending-model-changes"] --> B3["dotnet test (needs Docker)"]
-    F --> F1["npm ci, generate:api and diff, lint, typecheck, i18n:check, test:ci, build"]
-    B3 --> E["job e2e (needs backend and frontend)"]
-    F1 --> E
-    E --> E1["postgres service, dev-certs, seed, playwright install, test:e2e"]
+      - name: Translation keys match (en/ar)
+        run: npm run i18n:check
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 256 lines.
 
-Environment: `ConnectionStrings__Postgres` (fake in the backend EF step, a real service-container string in `e2e`), `Seed__Password`, `SEED_PASSWORD`, `POSTGRES_*` for the service container (double underscore = `:` in .NET environment-variable configuration). No repository secrets are used.
+## Before modifying this file
 
-## Gotchas and Issues
-
-The backend job has no coverage upload and no `dotnet format` check. NuGet restore is not cached. Version tags (`@v6`, `@v5`, `@v4`) float within the major. The `e2e` job installs Chromium on every run (no browser cache).
-
-## Related Files
-
-- [`global.json`](../../global.json.md)
-- [`.config/dotnet-tools.json`](../../.config/dotnet-tools.json.md)
-- [`TutoringCentre.slnx`](../../TutoringCentre.slnx.md)
-- [`frontend/package.json`](../../frontend/package.json.md)
-- [`.github/workflows/codeql.yml`](codeql.yml.md)
-- `src/TutoringCentre.Infrastructure/Persistence/Migrations/AppDbContextModelSnapshot.cs` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`frontend/playwright.config.ts`](../../frontend/playwright.config.ts.md)
-- [`frontend/orval.config.ts`](../../frontend/orval.config.ts.md)
-- [`frontend/scripts/check-i18n-keys.mjs`](../../frontend/scripts/check-i18n-keys.mjs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

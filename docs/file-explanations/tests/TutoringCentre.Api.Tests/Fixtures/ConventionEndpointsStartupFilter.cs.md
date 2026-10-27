@@ -1,53 +1,59 @@
-# tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs
+# `tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs`
 
 ## Purpose
 
-`IStartupFilter` that appends the test-only endpoints after the real middleware pipeline.
+Declares `ConventionEndpointsStartupFilter`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Fixtures; registered by `ConventionsFactory`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 18 lines and 562 bytes. Source hash: `38aa09a98d5c64b6923deba6bc0551c1d620aca2e0d26f2892f4768f3be5fd72`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Configure(Action<IApplicationBuilder> next)` returns a delegate that first runs `next(app)` (the application's own pipeline from `Program.cs`) and then `app.UseEndpoints(ConventionEndpoints.Map)`. Ordering ensures the test routes are subject to the real correlation, logging and exception middleware. CA1812 suppressed because DI instantiates it.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Middleware and the request pipeline
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
+- [Line 6](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs#L6): `internal sealed class ConventionEndpointsStartupFilter : IStartupFilter`
+- [Line 8](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs#L8): `public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Startup filter.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs:26](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs#L26)
 
-Method.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Extends the pipeline without editing `Program.cs`.
+```csharp
+using System.Diagnostics.CodeAnalysis;
 
-## Data and Control Flow
+namespace TutoringCentre.Api.Tests.Fixtures;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class ConventionEndpointsStartupFilter : IStartupFilter
+{
+    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+    {
+        ArgumentNullException.ThrowIfNull(next);
 
-## Configuration and Environment
+        return app =>
+        {
+            next(app);
+            app.UseEndpoints(ConventionEndpoints.Map);
+        };
+    }
+}
+```
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs`](ConventionEndpoints.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs`](ConventionsFactory.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../../../src/TutoringCentre.Api/Program.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

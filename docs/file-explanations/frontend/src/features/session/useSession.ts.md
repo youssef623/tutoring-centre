@@ -1,53 +1,61 @@
-# frontend/src/features/session/useSession.ts
+# `frontend/src/features/session/useSession.ts`
 
 ## Purpose
 
-Hook returning the signed-in session: `me` (profile or `null`), loading and error flags.
+Source comment (intent): The signed-in session: `me` is the current user's profile, or null while signed out.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/features/session. Used by `AuthenticatedLayout`, the dashboard page and the centre picker.
+Category: **source**. [Open current file](../../../../../../frontend/src/features/session/useSession.ts). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 14 lines and 388 bytes. Source hash: `00da071826054ab37ff02fe526c74571a306142064db74d16233a8c689cef87e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`useSession()` (5-14): `useQuery(meQueryOptions)` and returns `{ me: data ?? null, isLoading: isPending, isError, error }`. `me` is `MeDto` (userId, displayName, email, preferredLocale, activeCentreId, activeRole, memberships) or `null`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Server state with TanStack Query
+- Line 1: `import { useQuery } from "@tanstack/react-query";`
+- Line 2: `import { meQueryOptions } from "./meQueryOptions";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Server state (data owned by the API) needs caching, refetching, retry and loading/error flags. `useQuery` subscribes a component to a cache entry addressed by a *query key*, runs the `queryFn`, and re-renders the component when the entry changes.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 5](../../../../../../frontend/src/features/session/useSession.ts#L5): `export function useSession() {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Wrapping a query in a domain hook.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/features/session/useCan.ts:1](../../../../../../frontend/src/features/session/useCan.ts#L1)
+- [frontend/src/features/session/useCentreTimeZone.ts:1](../../../../../../frontend/src/features/session/useCentreTimeZone.ts#L1)
+- [frontend/src/features/session/useSession.test.ts:6](../../../../../../frontend/src/features/session/useSession.test.ts#L6)
+- [frontend/src/routes/_authenticated.tsx:6](../../../../../../frontend/src/routes/_authenticated.tsx#L6)
+- [frontend/src/routes/_authenticated/index.tsx:7](../../../../../../frontend/src/routes/_authenticated/index.tsx#L7)
+- [frontend/src/routes/change-password.tsx:19](../../../../../../frontend/src/routes/change-password.tsx#L19)
+- [frontend/src/routes/select-centre.tsx:28](../../../../../../frontend/src/routes/select-centre.tsx#L28)
 
-Lines 5-14.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Callers see a small, stable API instead of the whole query result.
+```typescript
+import { useQuery } from "@tanstack/react-query";
+import { meQueryOptions } from "./meQueryOptions";
 
-## Data and Control Flow
+/** The signed-in session: `me` is the current user's profile, or null while signed out. */
+export function useSession() {
+  const { data, isPending, isError, error } = useQuery(meQueryOptions);
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+  return {
+    me: data ?? null,
+    isLoading: isPending,
+    isError,
+    error,
+  };
+}
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/features/session/meQueryOptions.ts`](meQueryOptions.ts.md)
-- [`frontend/src/features/session/useSession.test.ts`](useSession.test.ts.md)
-- [`frontend/src/routes/_authenticated.tsx`](../../routes/_authenticated.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

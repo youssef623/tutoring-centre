@@ -1,52 +1,84 @@
-# tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs`
 
 ## Purpose
 
-Proves a brand-new database built only from the migrations has the expected objects.
+Source summary (intent, not independent execution proof): A brand-new environment (CI, production) must be buildable from the migrations alone.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Persistence. Relies on `PostgresFixture` having run `ApplyMigrationsAsync`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 42 lines and 1,662 bytes. Source hash: `bde001def27938f642c59f71e346b0b390ab0c7e7dc839a44da79f665dda1ea8`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Four tests with raw SQL: `to_regclass('platform.centres') is not null`; `pg_indexes` row for `ux_centres_slug` starts with `CREATE UNIQUE INDEX` and mentions `slug`; one row in `information_schema.check_constraints` for `ck_centres_default_locale`; `to_regclass('platform.__ef_migrations_history')` exists (history table is in the `platform` schema). Not tested: column types/nullability, the `Down` migration.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Database migrations
+- Line 1: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 6](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs#L6): `public sealed class MigrationTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 9](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs#L9): `public async Task Migrations_AppliedToEmptyDatabase_CreateCentresTable()`
+- [Line 17](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs#L17): `public async Task Migrations_AppliedToEmptyDatabase_CreateUniqueSlugIndex()`
+- [Line 27](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs#L27): `public async Task Migrations_AppliedToEmptyDatabase_CreateDefaultLocaleCheckConstraint()`
+- [Line 36](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs#L36): `public async Task Migrations_AppliedToEmptyDatabase_KeepHistoryTableInPlatformSchema()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Verifying generated schema.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-All four.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-Catches drift between model and migration SQL.
+namespace TutoringCentre.Infrastructure.Tests.Persistence;
 
-## Data and Control Flow
+/// <summary>A brand-new environment (CI, production) must be buildable from the migrations alone.</summary>
+public sealed class MigrationTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    [Fact]
+    public async Task Migrations_AppliedToEmptyDatabase_CreateCentresTable()
+    {
+        var exists = await Fixture.ScalarAsync<bool>("select to_regclass('platform.centres') is not null");
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+        Assert.True(exists);
+    }
 
-## Configuration and Environment
+    [Fact]
+    public async Task Migrations_AppliedToEmptyDatabase_CreateUniqueSlugIndex()
+    {
+        var indexDefinition = await Fixture.ScalarAsync<string>(
+            "select indexdef from pg_indexes where schemaname = 'platform' and tablename = 'centres' and indexname = 'ux_centres_slug'");
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+        Assert.StartsWith("CREATE UNIQUE INDEX", indexDefinition, StringComparison.Ordinal);
+        Assert.Contains("slug", indexDefinition, StringComparison.Ordinal);
+    }
 
-## Gotchas and Issues
+    [Fact]
+    public async Task Migrations_AppliedToEmptyDatabase_CreateDefaultLocaleCheckConstraint()
+    {
+        var count = await Fixture.ScalarAsync<long>(
+            "select count(*) from information_schema.check_constraints where constraint_schema = 'platform' and constraint_name = 'ck_centres_default_locale'");
 
-No bugs or surprises found while reading this file.
+        Assert.Equal(1, count);
+    }
 
-## Related Files
+    [Fact]
+    public async Task Migrations_AppliedToEmptyDatabase_KeepHistoryTableInPlatformSchema()
+    {
+        var exists = await Fixture.ScalarAsync<bool>("select to_regclass('platform.__ef_migrations_history') is not null");
 
-- [`src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs`](../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](../Fixtures/PostgresFixture.cs.md)
+        Assert.True(exists);
+    }
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

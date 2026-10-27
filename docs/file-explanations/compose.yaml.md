@@ -1,65 +1,56 @@
-# compose.yaml
+# `compose.yaml`
 
 ## Purpose
 
-Defines the only container this project uses: a local PostgreSQL 17 database for development.
+Current Docker/infrastructure file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Run with `docker compose up -d` (README step 2). Reads `.env`. The API in Development connects to it using the connection string stored in user-secrets. Test projects do **not** use this container; they start their own with Testcontainers.
+Category: **Docker/infrastructure**. [Open current file](../../compose.yaml). [Complete file index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 22 lines and 692 bytes. Source hash: `fa4cd9c8824980897e323f51a2a58143ec100e3fe1daee5afab73fc0938b3cb9`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `services.postgres.image: postgres:17` - official image, major version 17.
-- `environment` - `POSTGRES_DB`, `POSTGRES_USER` substituted from `.env`; `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}` - the `:?` form aborts Compose with that message when the variable is unset or empty.
-- `ports: "5432:5432"` - host port 5432 -> container 5432. A PostgreSQL already listening on 5432 would clash.
-- `volumes: pgdata:/var/lib/postgresql/data` - named volume holds the data directory; survives `docker compose down`, deleted by `down -v` (README: 'To reset the database completely').
-- `healthcheck` - `pg_isready -U <user> -d <db>` every 5 s, 5 s timeout, 5 retries; `docker compose ps` shows `(healthy)` when ready.
-- Top-level `volumes: pgdata:` declares the named volume.
-There is no network section (default project network), no restart policy, no application container.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Docker and Docker Compose
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-A container runs a program in an isolated filesystem from an *image*. Compose describes one or more containers (ports, environment, volumes, healthchecks) in YAML so a dev environment starts with one command. A *named volume* persists data beyond the container's life.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Whole file.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```yaml
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      TUTORING_OWNER_PASSWORD: ${TUTORING_OWNER_PASSWORD:?set TUTORING_OWNER_PASSWORD in .env}
+      TUTORING_APP_PASSWORD: ${TUTORING_APP_PASSWORD:?set TUTORING_APP_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-Compose creates a default network, the named volume, then the container; the healthcheck runs inside the container periodically.
-
-#### Why it matters here
-
-Gives every developer an identical database without installing PostgreSQL.
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    ENV[".env"] --> COMPOSE["compose.yaml"]
-    COMPOSE --> PG["postgres:17 container :5432"]
-    PG --- VOL[("pgdata volume")]
-    API["API (dotnet run)"] -->|"ConnectionStrings:Postgres from user-secrets"| PG
+volumes:
+  pgdata:
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-Variables used: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`. Port 5432. Volume `pgdata`.
-
-## Gotchas and Issues
-
-The image tag floats within major 17. Port is published on all host interfaces by default (`5432:5432` without `127.0.0.1:` binding) - fine for a laptop, worth knowing on shared networks (interpretation of Docker's default binding; not visible in the repo).
-
-## Related Files
-
-- [`.env.example`](.env.example.md)
-- [`README.md`](README.md.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

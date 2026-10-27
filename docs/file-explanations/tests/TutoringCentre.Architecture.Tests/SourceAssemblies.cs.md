@@ -1,74 +1,63 @@
-# tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs
+# `tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs`
 
 ## Purpose
 
-Single place that names the four production assemblies for architecture tests, obtained from marker types.
+Declares `SourceAssemblies`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests. Used by every rule class added after the merge (`ApiRuleTests`, `CqrsRuleTests`, `IdentityRuleTests`, `RepositoryRuleTests`) and by the new test in `DependencyRuleTests`.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 16 lines and 574 bytes. Source hash: `41a44eb6c0902b1fac4aba60985e9afb84a8317bc8a1ab764ff3f6bd42f98bc1`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`SourceAssemblies` (5-16): properties `Domain`, `Application`, `Infrastructure` (each `typeof(<Layer>.AssemblyMarker).Assembly`) and `Api` (`typeof(Program).Assembly`), plus `All` (collection expression of the four). The marker types exist only to give tests a stable handle on each assembly (see the `AssemblyMarker.cs` files).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Assembly scanning and reflection
+- Line 1: `using System.Reflection;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Reflection* lets code inspect types at runtime (`assembly.GetTypes()`, `type.GetInterfaces()`). *Assembly scanning* uses it to find classes implementing a given interface and register them automatically, so adding a new handler needs no registration line.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+- [Line 5](../../../../tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs#L5): `internal static class SourceAssemblies`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Assembly handles via marker types.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs:14](../../../../tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs#L14)
+- [tests/TutoringCentre.Architecture.Tests/AuthorizationRuleTests.cs:31](../../../../tests/TutoringCentre.Architecture.Tests/AuthorizationRuleTests.cs#L31)
+- [tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs:8](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L8)
+- [tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs:52](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L52)
+- [tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs:20](../../../../tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs#L20)
+- [tests/TutoringCentre.Architecture.Tests/ModuleBoundaryRuleTests.cs:49](../../../../tests/TutoringCentre.Architecture.Tests/ModuleBoundaryRuleTests.cs#L49)
+- [tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs:8](../../../../tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs#L8)
+- [tests/TutoringCentre.Architecture.Tests/TenantScopeRuleTests.cs:33](../../../../tests/TutoringCentre.Architecture.Tests/TenantScopeRuleTests.cs#L33)
 
-The four properties and `All`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-A marker class is a compile-time-checked way to refer to an assembly; a string name would fail only at runtime.
+```csharp
+using System.Reflection;
 
-### Architecture tests (fitness functions)
+namespace TutoringCentre.Architecture.Tests;
 
-#### What it means
+internal static class SourceAssemblies
+{
+    public static Assembly Domain => typeof(TutoringCentre.Domain.AssemblyMarker).Assembly;
 
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
+    public static Assembly Application => typeof(TutoringCentre.Application.AssemblyMarker).Assembly;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
+    public static Assembly Infrastructure => typeof(TutoringCentre.Infrastructure.AssemblyMarker).Assembly;
 
-#### Where it appears in this file
+    public static Assembly Api => typeof(Program).Assembly;
 
-Shared input for all rules.
+    public static IReadOnlyList<Assembly> All => [Domain, Application, Infrastructure, Api];
+}
+```
 
-#### How it works here
+## Before modifying this file
 
-`All` and the four properties.
-
-#### Why it matters here
-
-One definition of 'the production code' for every architecture test.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-`DependencyRuleTests` still declares its own assembly handles for Domain/Application/Infrastructure (lines 10-12); the new rule classes use this helper instead, so both styles coexist.
-
-## Related Files
-
-- [`tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`](DependencyRuleTests.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs`](ApiRuleTests.cs.md)
-- [`src/TutoringCentre.Domain/AssemblyMarker.cs`](../../src/TutoringCentre.Domain/AssemblyMarker.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../../src/TutoringCentre.Api/Program.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,51 +1,67 @@
-# tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs
+# `tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs`
 
 ## Purpose
 
-Tests the `Entity` base class's identity generation.
+Declares `EntityTests`, `TestEntity`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Domain.Tests; tests `Domain/Common/Entity.cs`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 26 lines and 580 bytes. Source hash: `9bf79489aed97f13386d06d342f554a0f916338e5a5141757d8da70bc3560b9d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Private nested `TestEntity : Entity` (a concrete subclass because `Entity` is abstract). `NewEntities_GetDifferentIds`: two instances have different `Id`s. `Id_IsVersion7Uuid`: `Assert.Equal(7, entity.Id.Version)`. Not tested: time ordering of successive ids.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### UUIDv7 identifiers
+- Line 1: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A UUID is a 128-bit identifier. Version 7 puts a timestamp in the leading bits, so ids sort roughly by creation time. This repo assigns ids in code at construction instead of letting the database generate them.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
+- [Line 5](../../../../../tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs#L5): `public sealed class EntityTests`
+- [Line 8](../../../../../tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs#L8): `private sealed class TestEntity : Entity;`
+- [Line 11](../../../../../tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs#L11): `public void NewEntities_GetDifferentIds()`
+- [Line 20](../../../../../tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs#L20): `public void Id_IsVersion7Uuid()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-UUID version assertion.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`Id.Version`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Domain.Common;
 
-Pins the identity scheme.
+namespace TutoringCentre.Domain.Tests.Common;
 
-## Data and Control Flow
+public sealed class EntityTests
+{
+    // A minimal concrete entity, only for testing the abstract base class.
+    private sealed class TestEntity : Entity;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    [Fact]
+    public void NewEntities_GetDifferentIds()
+    {
+        var first = new TestEntity();
+        var second = new TestEntity();
 
-## Configuration and Environment
+        Assert.NotEqual(first.Id, second.Id);
+    }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    [Fact]
+    public void Id_IsVersion7Uuid()
+    {
+        var entity = new TestEntity();
 
-## Gotchas and Issues
+        Assert.Equal(7, entity.Id.Version);
+    }
+}
+```
 
-No bugs or surprises found while reading this file.
+## Before modifying this file
 
-## Related Files
-
-- [`src/TutoringCentre.Domain/Common/Entity.cs`](../../../src/TutoringCentre.Domain/Common/Entity.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

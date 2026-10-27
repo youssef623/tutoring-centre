@@ -1,0 +1,854 @@
+[
+  {
+    "path": ".git/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": ".vs/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/__pycache__/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "docs/onboarding-work/generated-model-packets/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "docs/onboarding-work/__pycache__/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "docs/onboarding-work/.mermaid-tools/node_modules/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "frontend/dist/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "frontend/node_modules/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "frontend/playwright-report/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "frontend/test-results/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "smoke/node_modules/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "smoke/test-results/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Api/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Api/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Application/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Application/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Domain/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Domain/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Infrastructure/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "src/TutoringCentre.Infrastructure/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/bin/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/obj/",
+    "reason": "version-control metadata, dependency/cache, generated extraction cache, editor state or build/test output"
+  },
+  {
+    "path": ".claude/scheduled_tasks.lock",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/banner-design/references/banner-sizes-and-styles.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/banner-design/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/approval-checklist.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/asset-organization.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/brand-guideline-template.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/color-palette-management.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/consistency-checklist.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/logo-usage-rules.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/messaging-framework.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/typography-specifications.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/update.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/visual-identity.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/references/voice-framework.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/scripts/extract-colors.cjs",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/scripts/inject-brand-context.cjs",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/scripts/sync-brand-to-tokens.cjs",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/scripts/tests/test_sync_brand_to_tokens.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/scripts/validate-asset.cjs",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/brand/templates/brand-guidelines-starter.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/codebase-documenter/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/cip/deliverables.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/cip/industries.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/cip/mockup-contexts.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/cip/styles.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/icon/styles.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/logo/colors.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/logo/industries.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/data/logo/styles.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/banner-sizes-and-styles.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/cip-deliverable-guide.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/cip-design.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/cip-prompt-engineering.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/cip-style-guide.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/design-routing.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/icon-design.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/logo-color-psychology.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/logo-design.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/logo-prompt-engineering.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/logo-style-guide.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/slides-copywriting-formulas.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/slides-create.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/slides-html-template.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/slides-layout-patterns.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/slides-strategies.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/slides.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/references/social-photos-design.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/cip/core.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/cip/generate.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/cip/render-html.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/cip/search.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/icon/generate.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/logo/core.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/logo/generate.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/scripts/logo/search.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-backgrounds.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-charts.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-color-logic.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-copy.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-layout-logic.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-layouts.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-strategies.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/data/slide-typography.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/references/component-specs.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/references/component-tokens.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/references/primitive-tokens.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/references/semantic-tokens.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/references/states-and-variants.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/references/tailwind-integration.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/references/token-architecture.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/embed-tokens.cjs",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/fetch-background.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/generate-slide.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/generate-tokens.cjs",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/html-token-validator.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/search-slides.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/slide-token-validator.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/slide_search_core.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/tests/test_validate_tokens.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/scripts/validate-tokens.cjs",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/design-system/templates/design-tokens-starter.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/slides/references/copywriting-formulas.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/slides/references/create.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/slides/references/html-template.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/slides/references/layout-patterns.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/slides/references/slide-strategies.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/slides/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/LICENSE.txt",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/references/canvas-design-system.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/references/shadcn-accessibility.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/references/shadcn-components.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/references/shadcn-theming.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/references/tailwind-customization.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/references/tailwind-responsive.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/references/tailwind-utilities.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/scripts/requirements.txt",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/scripts/shadcn_add.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/scripts/tailwind_config_gen.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/scripts/tests/coverage-ui.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/scripts/tests/requirements.txt",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/scripts/tests/test_shadcn_add.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/scripts/tests/test_tailwind_config_gen.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-styling/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/app-interface.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/catalog-summary.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/charts.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/colors.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/data-provenance.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/google-font-licenses.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/google-fonts.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/icons.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/landing.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/motion.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/phosphor-icons-upstream.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/products.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/react-performance.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/angular.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/astro.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/avalonia.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/flutter.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/html-tailwind.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/javafx.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/jetpack-compose.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/laravel.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/nextjs.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/nuxt-ui.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/nuxtjs.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/react-native.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/react.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/shadcn.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/svelte.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/swiftui.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/threejs.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/uno.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/uwp.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/vue.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/winui.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/stacks/wpf.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/styles.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/typography.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/ui-reasoning.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/data/ux-guidelines.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/core.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/design_system.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/reasoning_contract.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/search.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-api.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-catalog.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-existing.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-metadata.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-overrides.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/icons-curated.csv",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-core.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-package.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-exports.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-package.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-baseline.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-cases.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-thresholds.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_catalog_refresh.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_core.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_core_data_quality.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_data_contracts.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_design_system_mode.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_native_desktop_stack_freshness.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_relevance_evaluator.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_style_taxonomy.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_text_layout_resilience.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/scripts/validate_data.py",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": ".claude/skills/ui-ux-pro-max/SKILL.md",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/add-identity-migration.sql",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/api.err.log",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/membership-sql.txt",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/onboarding-tests/onboarding_net10.0_20261027104254.trx",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/onboarding-tests/onboarding_net10.0_20261027104255.trx",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/onboarding-tests/onboarding_net10.0_20261027104256.trx",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/onboarding-tests/onboarding_net10.0_20261027104523.trx",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/onboarding-tests/onboarding_net10.0_20261027110219.trx",
+    "reason": "local tool state/build artifacts; not tracked"
+  },
+  {
+    "path": "artifacts/openapi-runtime.json",
+    "reason": "local tool state/build artifacts; not tracked"
+  }
+]

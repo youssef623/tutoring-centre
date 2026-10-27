@@ -1,99 +1,148 @@
-# tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs`
 
 ## Purpose
 
-Proves the membership read service against real PostgreSQL: who sees which centres, that inactive members see none, and that nobody sees another user's memberships.
+Source summary (intent, not independent execution proof): Proves the read side against real PostgreSQL, using the Day 13 staff set.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Identity; tests `IMembershipReadService` as resolved from DI (`MembershipReadService`). Seeds the same staff shape as `SeedCommand`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 139 lines and 5,649 bytes. Source hash: `d00128f49fbab5fa843f6ea64765efcffa8023f54860e934b465048730b4c417`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`SeedStaffAsync` (66-95): creates centres `nile-centre` and `maadi-hub` (via `CreateCentreCommand` as `SystemActor`), four users (owner@nile.test, teacher@both.test, secretary@nile.test, inactive@nile.test) and memberships: owner->Nile, teacher->Nile and Maadi, secretary->Nile, inactive secretary->Nile then `Deactivate()`d. Returns the private record `StaffIds`.
-- `GetProfileAsync_TwoCentreTeacher_SeesBothCentres` (17-28): 2 memberships.
-- `GetProfileAsync_Secretary_SeesOneCentre` (30-41).
-- `GetProfileAsync_InactiveMember_SeesNoCentres` (43-54): profile exists, memberships empty.
-- `GetActiveMembershipAsync_OwnerAskingForAForeignCentre_ReturnsNull` (56-66).
-- `GetProfileAsync_NeverIncludesAnotherUsersMemberships` (68-80): owner sees exactly one membership, the Nile one.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Repository pattern and read services
+- Line 1: `using Microsoft.EntityFrameworkCore;`
+- Line 2: `using Microsoft.Extensions.DependencyInjection;`
+- Line 3: `using TutoringCentre.Application.Centres.Commands.CreateCentre;`
+- Line 4: `using TutoringCentre.Application.Common.Security;`
+- Line 5: `using TutoringCentre.Application.Identity;`
+- Line 6: `using TutoringCentre.Domain.Centres;`
+- Line 7: `using TutoringCentre.Domain.Identity;`
+- Line 8: `using TutoringCentre.Infrastructure.Identity;`
+- Line 9: `using TutoringCentre.Infrastructure.Persistence;`
+- Line 10: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *repository* looks like a collection of aggregates (`Add`, `ExistsBy...`) and hides how they are stored. A *read service* is a separate query-side abstraction that returns DTOs directly, so reads need not load and map domain entities.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services](../../../../PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services).)
+- [Line 15](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L15): `public sealed class MembershipReadServiceTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 18](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L18): `public async Task GetProfileAsync_TwoCentreTeacher_SeesBothCentres()`
+- [Line 31](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L31): `public async Task GetProfileAsync_Secretary_SeesOneCentre()`
+- [Line 44](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L44): `public async Task GetProfileAsync_InactiveMember_SeesNoCentres()`
+- [Line 57](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L57): `public async Task GetActiveMembershipAsync_OwnerAskingForAForeignCentre_ReturnsNull()`
+- [Line 69](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L69): `public async Task GetProfileAsync_NeverIncludesAnotherUsersMemberships()`
+- [Line 82](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L82): `private async Task<StaffIds> SeedStaffAsync()`
+- [Line 109](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L109): `private async Task<Guid> CreateCentreAsync(string name, string slug)`
+- [Line 116](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L116): `private static async Task<Guid> CreateUserAsync(AppDbContext db, string email, string displayName, string locale)`
+- [Line 132](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs#L132): `private sealed record StaffIds(`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Read service tested with real SQL.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Whole file.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Identity;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Identity;
+using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-The fake in Application tests cannot test the `where user_id = ... and status = 'active'` filtering; this file does.
+namespace TutoringCentre.Infrastructure.Tests.Identity;
 
-### Actor and tenancy groundwork
+/// <summary>Proves the read side against real PostgreSQL, using the Day 13 staff set.</summary>
+public sealed class MembershipReadServiceTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    [Fact]
+    public async Task GetProfileAsync_TwoCentreTeacher_SeesBothCentres()
+    {
+        var staff = await SeedStaffAsync();
+        using var scope = Fixture.CreateScope();
+        var readService = scope.ServiceProvider.GetRequiredService<IMembershipReadService>();
 
-#### What it means
+        var profile = await readService.GetProfileAsync(staff.TeacherId, CancellationToken.None);
 
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
+        Assert.NotNull(profile);
+        Assert.Equal(2, profile.Memberships.Count);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
+    [Fact]
+    public async Task GetProfileAsync_Secretary_SeesOneCentre()
+    {
+        var staff = await SeedStaffAsync();
+        using var scope = Fixture.CreateScope();
+        var readService = scope.ServiceProvider.GetRequiredService<IMembershipReadService>();
 
-#### Where it appears in this file
+        var profile = await readService.GetProfileAsync(staff.SecretaryId, CancellationToken.None);
 
-Tenant-scoped reads.
+        Assert.NotNull(profile);
+        Assert.Single(profile.Memberships);
+    }
 
-#### How it works here
+    [Fact]
+    public async Task GetProfileAsync_InactiveMember_SeesNoCentres()
+    {
+        var staff = await SeedStaffAsync();
+        using var scope = Fixture.CreateScope();
+        var readService = scope.ServiceProvider.GetRequiredService<IMembershipReadService>();
 
-`GetActiveMembershipAsync_OwnerAskingForAForeignCentre_ReturnsNull` and `GetProfileAsync_NeverIncludesAnotherUsersMemberships`.
+        var profile = await readService.GetProfileAsync(staff.InactiveId, CancellationToken.None);
 
-#### Why it matters here
+        Assert.NotNull(profile);
+        Assert.Empty(profile.Memberships);
+    }
 
-The user id is the only access scope here; the tests show it is applied.
+    [Fact]
+    public async Task GetActiveMembershipAsync_OwnerAskingForAForeignCentre_ReturnsNull()
+    {
+        var staff = await SeedStaffAsync();
+        using var scope = Fixture.CreateScope();
+        var readService = scope.ServiceProvider.GetRequiredService<IMembershipReadService>();
 
-### Testcontainers and Respawn
+        var membership = await readService.GetActiveMembershipAsync(staff.NileOwnerId, staff.MaadiCentreId, CancellationToken.None);
 
-#### What it means
+        Assert.Null(membership);
+    }
 
-Testcontainers starts a disposable Docker container (here PostgreSQL 17) for the test run. Respawn deletes rows between tests, which is much faster than recreating the database.
+    [Fact]
+    public async Task GetProfileAsync_NeverIncludesAnotherUsersMemberships()
+    {
+        var staff = await SeedStaffAsync();
+        using var scope = Fixture.CreateScope();
+        var readService = scope.ServiceProvider.GetRequiredService<IMembershipReadService>();
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+        var profile = await readService.GetProfileAsync(staff.NileOwnerId, CancellationToken.None);
 
-#### Where it appears in this file
+        Assert.NotNull(profile);
+        Assert.Single(profile.Memberships);
+        Assert.Equal(staff.NileCentreId, profile.Memberships[0].CentreId);
+    }
 
-Seeding through the real model.
+    private async Task<StaffIds> SeedStaffAsync()
+    {
+        var nileCentreId = await CreateCentreAsync("Nile Tutoring Centre", "nile-centre");
+        var maadiCentreId = await CreateCentreAsync("Maadi Learning Hub", "maadi-hub");
 
-#### How it works here
+        using var scope = Fixture.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-`SeedStaffAsync`.
+        var nileOwnerId = await CreateUserAsync(db, "owner@nile.test", "Nile Owner", "ar");
+```
 
-#### Why it matters here
+The excerpt stops at line 90; use the original file for the remaining 49 lines.
 
-Data is created via the domain factory `Membership.Create` and EF, so the test also exercises the mapping.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-Needs Docker.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs`](../../../src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs.md)
-- [`src/TutoringCentre.Application/Identity/IMembershipReadService.cs`](../../../src/TutoringCentre.Application/Identity/IMembershipReadService.cs.md)
-- [`src/TutoringCentre.Domain/Identity/Membership.cs`](../../../src/TutoringCentre.Domain/Identity/Membership.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](../Fixtures/PostgresFixture.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

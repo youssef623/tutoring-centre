@@ -1,0 +1,392 @@
+[
+  {
+    "old": "6.1",
+    "old_title": "Clean Architecture, dependency inversion and the composition root",
+    "old_words": 1532,
+    "current_anchors": [
+      "backend-architecture"
+    ],
+    "current_words": 1549,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.2",
+    "old_title": "Dependency Injection: lifetimes and scanning",
+    "old_words": 1871,
+    "current_anchors": [
+      "backend-di"
+    ],
+    "current_words": 1896,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.3",
+    "old_title": "CQRS and the hand-written Dispatcher",
+    "old_words": 1443,
+    "current_anchors": [
+      "backend-dispatcher"
+    ],
+    "current_words": 1455,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.4",
+    "old_title": "The Result pattern: failures as values",
+    "old_words": 1182,
+    "current_anchors": [
+      "backend-results"
+    ],
+    "current_words": 1234,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.5",
+    "old_title": "Validation: two tiers",
+    "old_words": 853,
+    "current_anchors": [
+      "backend-validation"
+    ],
+    "current_words": 877,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.6",
+    "old_title": "Entities, encapsulation and factory methods",
+    "old_words": 875,
+    "current_anchors": [
+      "backend-domain"
+    ],
+    "current_words": 885,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.7",
+    "old_title": "Unit of Work and transactions",
+    "old_words": 1106,
+    "current_anchors": [
+      "backend-transactions"
+    ],
+    "current_words": 1157,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.8",
+    "old_title": "Repository pattern and read services",
+    "old_words": 628,
+    "current_anchors": [
+      "backend-persistence"
+    ],
+    "current_words": 1794,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.9",
+    "old_title": "EF Core: how the ORM actually works here",
+    "old_words": 1397,
+    "current_anchors": [
+      "backend-persistence"
+    ],
+    "current_words": 1794,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.10",
+    "old_title": "Concurrency: the slug race and why the unique index is the real guarantee",
+    "old_words": 735,
+    "current_anchors": [
+      "backend-concurrency"
+    ],
+    "current_words": 1197,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.11",
+    "old_title": "The Actor model and the tenancy groundwork",
+    "old_words": 832,
+    "current_anchors": [
+      "backend-tenancy"
+    ],
+    "current_words": 1110,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.12",
+    "old_title": "HTTP, Problem Details and error handling",
+    "old_words": 1187,
+    "current_anchors": [
+      "backend-http",
+      "foundation-json"
+    ],
+    "current_words": 1659,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.13",
+    "old_title": "Structured logging, correlation IDs and redaction",
+    "old_words": 940,
+    "current_anchors": [
+      "infra-logging"
+    ],
+    "current_words": 1257,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.14",
+    "old_title": "Options validation and health checks",
+    "old_words": 694,
+    "current_anchors": [
+      "infra-options-health"
+    ],
+    "current_words": 779,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.15",
+    "old_title": "Architecture tests (fitness functions)",
+    "old_words": 758,
+    "current_anchors": [
+      "infra-architecture-tests"
+    ],
+    "current_words": 1725,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.16",
+    "old_title": "Test doubles vs real-database tests",
+    "old_words": 1060,
+    "current_anchors": [
+      "infra-test-doubles",
+      "infra-test-strategy"
+    ],
+    "current_words": 1589,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.17",
+    "old_title": "Frontend concepts: React, server state and routing",
+    "old_words": 1757,
+    "current_anchors": [
+      "frontend-react",
+      "frontend-generation",
+      "frontend-shared-ui"
+    ],
+    "current_words": 3310,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.18",
+    "old_title": "Foundations: interfaces, abstraction, polymorphism, inheritance and composition",
+    "old_words": 466,
+    "current_anchors": [
+      "foundation-interfaces"
+    ],
+    "current_words": 797,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.19",
+    "old_title": "Foundations: async/await, Tasks and cancellation",
+    "old_words": 468,
+    "current_anchors": [
+      "foundation-async"
+    ],
+    "current_words": 784,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.20",
+    "old_title": "Foundations: generics, records, immutability, nullable references and pattern matching",
+    "old_words": 445,
+    "current_anchors": [
+      "foundation-types"
+    ],
+    "current_words": 792,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.21",
+    "old_title": "Foundations: exceptions, `throw;` and cleanup",
+    "old_words": 265,
+    "current_anchors": [
+      "foundation-exceptions"
+    ],
+    "current_words": 733,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.22",
+    "old_title": "Foundations: attributes and reflection",
+    "old_words": 261,
+    "current_anchors": [
+      "foundation-metadata"
+    ],
+    "current_words": 675,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.23",
+    "old_title": "Foundations: JSON serialization and model binding in minimal APIs",
+    "old_words": 279,
+    "current_anchors": [
+      "foundation-json"
+    ],
+    "current_words": 703,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.24",
+    "old_title": "Cookie authentication and server-side sessions",
+    "old_words": 1646,
+    "current_anchors": [
+      "auth-cookie"
+    ],
+    "current_words": 1674,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.25",
+    "old_title": "CSRF protection: double-submit antiforgery tokens",
+    "old_words": 1300,
+    "current_anchors": [
+      "auth-csrf"
+    ],
+    "current_words": 1347,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.26",
+    "old_title": "Rate limiting, lockout and enumeration resistance",
+    "old_words": 1226,
+    "current_anchors": [
+      "auth-rate"
+    ],
+    "current_words": 1338,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.27",
+    "old_title": "Session revalidation and revocation",
+    "old_words": 1120,
+    "current_anchors": [
+      "auth-revalidation"
+    ],
+    "current_words": 1217,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.28",
+    "old_title": "Identity and membership modelling",
+    "old_words": 1181,
+    "current_anchors": [
+      "auth-identity"
+    ],
+    "current_words": 1262,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.29",
+    "old_title": "Authorization by default, the actor pipeline and the tenant gate",
+    "old_words": 1344,
+    "current_anchors": [
+      "auth-authorization"
+    ],
+    "current_words": 1445,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.30",
+    "old_title": "Architecture rules beyond dependencies",
+    "old_words": 850,
+    "current_anchors": [
+      "infra-architecture-tests"
+    ],
+    "current_words": 1725,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.31",
+    "old_title": "Contract-first API client generation",
+    "old_words": 1158,
+    "current_anchors": [
+      "frontend-generation"
+    ],
+    "current_words": 1171,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.32",
+    "old_title": "Frontend sessions, route guards and global 401 handling",
+    "old_words": 1189,
+    "current_anchors": [
+      "frontend-sessions"
+    ],
+    "current_words": 1193,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.33",
+    "old_title": "Forms and validation with React Hook Form and Zod",
+    "old_words": 793,
+    "current_anchors": [
+      "frontend-forms"
+    ],
+    "current_words": 972,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.34",
+    "old_title": "Internationalisation and right-to-left layout",
+    "old_words": 985,
+    "current_anchors": [
+      "frontend-i18n"
+    ],
+    "current_words": 1005,
+    "missing": [],
+    "meets_size_floor": true
+  },
+  {
+    "old": "6.35",
+    "old_title": "End-to-end testing with Playwright",
+    "old_words": 894,
+    "current_anchors": [
+      "infra-playwright",
+      "frontend-testing"
+    ],
+    "current_words": 1956,
+    "missing": [],
+    "meets_size_floor": true
+  }
+]

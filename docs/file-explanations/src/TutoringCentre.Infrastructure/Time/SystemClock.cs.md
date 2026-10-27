@@ -1,53 +1,77 @@
-# src/TutoringCentre.Infrastructure/Time/SystemClock.cs
+# `src/TutoringCentre.Infrastructure/Time/SystemClock.cs`
 
 ## Purpose
 
-Real implementation of `IClock` based on `TimeProvider` and the OS time-zone database.
+Adapts TimeProvider UTC time and the host TimeZoneInfo database to IClock. General FromLocal obtains the zone offset and normalizes to UTC; recurrence generation has its own explicit ambiguous/invalid-time policy, so this utility should not be mistaken for the scheduling DST algorithm.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Time. Registered singleton. Used by `TimestampInterceptor`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Infrastructure/Time/SystemClock.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 31 lines and 1,120 bytes. Source hash: `607588fd94b2e7ed4294dcc663c30f0fc85d3b2e92c821d3dfd7df1a150086eb`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`UtcNow => _timeProvider.GetUtcNow()` (16). `ToLocal` (18): `TimeZoneInfo.FindSystemTimeZoneById`, `ConvertTime(utc, zone).DateTime`. `FromLocal` (24): `DateTime.SpecifyKind(local, Unspecified)`, `zone.GetUtcOffset(wallClock)`, `new DateTimeOffset(wallClock, offset).ToUniversalTime()`. Verified by `SystemClockTests`: Cairo 17:00 is 15:00 UTC in January (+2) and 14:00 UTC in July (+3). Unknown ids throw `TimeZoneNotFoundException`; ambiguous/nonexistent DST local times are not specially handled.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Time abstraction and time zones
+- Line 1: `using TutoringCentre.Application.Common.Ports;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Reading `DateTime.UtcNow` directly makes code untestable. A clock *port* (`IClock`) supplies time; tests substitute a fake. IANA zone ids (`Africa/Cairo`) resolve through the OS time-zone database and handle daylight saving.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+- [Line 6](../../../../../src/TutoringCentre.Infrastructure/Time/SystemClock.cs#L6): `public sealed class SystemClock : IClock`
+- [Line 10](../../../../../src/TutoringCentre.Infrastructure/Time/SystemClock.cs#L10): `public SystemClock(TimeProvider timeProvider)`
+- [Line 18](../../../../../src/TutoringCentre.Infrastructure/Time/SystemClock.cs#L18): `public DateTime ToLocal(DateTimeOffset utc, string timeZoneId)`
+- [Line 24](../../../../../src/TutoringCentre.Infrastructure/Time/SystemClock.cs#L24): `public DateTimeOffset FromLocal(DateTime local, string timeZoneId)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Clock adapter.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/extend_backend_purposes.py:24](../../../../onboarding-work/extend_backend_purposes.py#L24)
+- [src/TutoringCentre.Infrastructure/DependencyInjection.cs:57](../../../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs#L57)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs:114](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs#L114)
+- [tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs:15](../../../../../tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs#L15)
 
-Whole class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Deterministic tests via `FakeTimeProvider`.
+```csharp
+using TutoringCentre.Application.Common.Ports;
 
-## Data and Control Flow
+namespace TutoringCentre.Infrastructure.Time;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>IClock adapter: "now" from TimeProvider, conversions from the OS/ICU time-zone database (IANA ids such as "Africa/Cairo").</summary>
+public sealed class SystemClock : IClock
+{
+    private readonly TimeProvider _timeProvider;
 
-## Configuration and Environment
+    public SystemClock(TimeProvider timeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        _timeProvider = timeProvider;
+    }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    public DateTimeOffset UtcNow => _timeProvider.GetUtcNow();
 
-## Gotchas and Issues
+    public DateTime ToLocal(DateTimeOffset utc, string timeZoneId)
+    {
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        return TimeZoneInfo.ConvertTime(utc, zone).DateTime;
+    }
 
-No handling for daylight-saving gaps/overlaps; method surface unused by product code.
+    public DateTimeOffset FromLocal(DateTime local, string timeZoneId)
+    {
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        var wallClock = DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
+        var offset = zone.GetUtcOffset(wallClock);
+        return new DateTimeOffset(wallClock, offset).ToUniversalTime();
+    }
+}
+```
 
-## Related Files
+## Before modifying this file
 
-- [`src/TutoringCentre.Application/Common/Ports/IClock.cs`](../../TutoringCentre.Application/Common/Ports/IClock.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs`](../../../tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs.md)
-- [`src/TutoringCentre.Infrastructure/DependencyInjection.cs`](../DependencyInjection.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

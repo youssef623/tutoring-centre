@@ -1,74 +1,65 @@
-# docs/adr/0004-unit-of-work-port.md
+# `docs/adr/0004-unit-of-work-port.md`
 
 ## Purpose
 
-Architecture Decision Record: why Application defines a thin `IUnitOfWork` port that only the dispatcher calls.
+Documentation covering ADR 0004: A thin unit-of-work port called only by the dispatcher; Context; Decision; Alternatives considered; Consequences. Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Documentation (docs/adr). Explains `src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs` and its implementation `UnitOfWork` in Infrastructure; companion of ADR 0003.
+Category: **documentation**. [Open current file](../../../adr/0004-unit-of-work-port.md). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 38 lines and 3,311 bytes. Source hash: `f74b6ce3808b71b4b6a5ea02feaeec9deeb244193790c9fc04161697c69f47e5`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Status Accepted, 2026-10-04. **Context:** Application must not reference EF Core (enforced by architecture tests) yet commands must save atomically and queries must be unable to write. **Decision:** `IUnitOfWork` with four operations - `BeginAsync(readOnly)`, `SaveChangesAsync`, `CommitAsync`, `RollbackAsync` - implemented over `AppDbContext` and a database transaction; only the dispatcher calls it; handlers and repositories never save (repositories track, the dispatcher saves once and commits); a read-only transaction issues `SET TRANSACTION READ ONLY`. **Alternatives:** handlers calling `SaveChanges` themselves; a repository-level unit of work; a generic repository exposing `IQueryable`. **Consequences:** one atomic commit per command (proven by `TransactionBoundaryTests`); queries read-only by construction (`ReadOnlyQueryTests`, SQLSTATE 25006); handlers unit-testable with fakes in `tests/TutoringCentre.Application.Tests/Fakes/`; the port is minimal and nested transactions are refused; future needs extend `BeginAsync`.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Unit of Work and transactions
+## Walkthrough and declaration map
 
-#### What it means
+- Line 1: ADR 0004: A thin unit-of-work port called only by the dispatcher
+- Line 6: Context
+- Line 10: Decision
+- Line 14: Alternatives considered
+- Line 20: Consequences
+- Line 27: Addendum: 2026-10-09 — `SaveChangesAsync` returns a `Result`
 
-A *transaction* makes several database operations all-or-nothing and isolated from concurrent work. A *unit of work* groups the changes of one business operation and commits them together. EF Core's `DbContext` already tracks changes and is a unit of work; the repository adds a small port so the dispatcher can control the transaction without referencing EF.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions](../../../PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-The decision recorded.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+# ADR 0004: A thin unit-of-work port called only by the dispatcher
 
-Decision section.
+- **Status:** Accepted
+- **Date:** 2026-10-04
 
-#### Why it matters here
+## Context
 
-Describes exactly the contract implemented by `UnitOfWork`.
+The Application layer must not reference Entity Framework Core (the dependency rule is enforced by tests), yet a command must save its changes atomically and a query must be unable to write. `DbContext` already is a unit of work, but Application cannot see it.
 
-### Architecture Decision Records and documentation as code
+## Decision
 
-#### What it means
+Application defines `IUnitOfWork` (`src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs`) with four operations — `BeginAsync(readOnly)`, `SaveChangesAsync`, `CommitAsync`, `RollbackAsync` — implemented in Infrastructure over `AppDbContext` and a database transaction. Only the dispatcher calls it. Handlers and repositories never save: repositories track changes, and the dispatcher saves once and commits. A read-only transaction issues `SET TRANSACTION READ ONLY`, so PostgreSQL itself rejects writes made inside a query.
 
-An ADR records a decision, its context, alternatives and consequences, so the *why* survives the people who made it. Docs kept in the repo are versioned with the code.
+## Alternatives considered
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+1. **Handlers call `SaveChanges` themselves.** Easy, but a handler can save twice, forget to, or save inside a failed path; atomicity depends on every author.
+2. **A full repository-level unit of work (repositories own persistence).** More indirection and a bigger port for no gain over `DbContext`'s change tracking.
+3. **A generic repository exposing `IQueryable`.** Leaks EF into Application and encourages query logic in handlers; repositories here are per-aggregate with methods named by use, and reads go through read services returning DTOs.
 
-#### Where it appears in this file
+## Consequences
 
-ADR format.
+- One atomic commit per command; failures and exceptions roll back, proven against real PostgreSQL by `tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs`.
+- Queries are read-only by construction, proven by `tests/TutoringCentre.Infrastructure.Tests/Persistence/ReadOnlyQueryTests.cs` (SQLSTATE 25006).
+- Handlers are unit-testable with a fake unit of work and fake repositories (`tests/TutoringCentre.Application.Tests/Fakes/`).
+```
 
-#### How it works here
+The excerpt stops at line 24; use the original file for the remaining 14 lines.
 
-Whole file.
+## Before modifying this file
 
-#### Why it matters here
-
-Same structure as the other ADRs.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs`](../../src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs`](../../src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs`](../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs.md)
-- [`docs/adr/0003-custom-cqrs-dispatcher.md`](0003-custom-cqrs-dispatcher.md.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

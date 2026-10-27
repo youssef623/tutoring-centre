@@ -1,103 +1,78 @@
-# src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs
+# `src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs`
 
 ## Purpose
 
-Reflection scan that registers every command/query handler and validator in the Application assembly.
+Source summary (intent, not independent execution proof): Scans an assembly once and registers handlers (scoped) and validators.
 
-## Where It Fits
+## Where it fits
 
-Application/Common/Cqrs, `internal static`. Called only by `AddApplication`. Depends on `ICommandHandler<,>`, `IQueryHandler<,>`, FluentValidation's `AddValidatorsFromAssembly`.
+Category: **source**. [Open current file](../../../../../../src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 36 lines and 1,411 bytes. Source hash: `cf3343f79b0acadae6673ef0bcdab59897724f2fceb095cc936afed711cb4795`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`AddCqrsHandlers(this IServiceCollection, Assembly)` (10-30):
-- null guards; `assembly.GetTypes()` filtered to concrete classes (`IsClass`, not abstract, not generic definition) (13-17).
-- For each type and each interface satisfying `IsHandlerInterface` (a generic type whose definition is `ICommandHandler<,>` or `IQueryHandler<,>`; lines 32-35), `services.AddScoped(handlerInterface, implementation)` (24). Comment: scoped to match the scoped DbContext and actor.
-- `services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true)` (28) - validators are `internal`, so the flag is needed.
-Example result: `ICommandHandler<CreateCentreCommand, CreateCentreResult>` -> `CreateCentreHandler`; `IValidator<CreateCentreCommand>` -> `CreateCentreValidator`; `IQueryHandler<GetSystemInfoQuery, SystemInfoDto>` -> `GetSystemInfoHandler`.
-What if wrong: a handler registered with a longer lifetime than its dependencies would be a captive dependency (scoped chosen to avoid this).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Assembly scanning and reflection
+- Line 1: `using System.Reflection;`
+- Line 2: `using FluentValidation;`
+- Line 3: `using Microsoft.Extensions.DependencyInjection;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Reflection* lets code inspect types at runtime (`assembly.GetTypes()`, `type.GetInterfaces()`). *Assembly scanning* uses it to find classes implementing a given interface and register them automatically, so adding a new handler needs no registration line.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+- [Line 8](../../../../../../src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs#L8): `internal static class HandlerRegistration`
+- [Line 10](../../../../../../src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs#L10): `internal static IServiceCollection AddCqrsHandlers(this IServiceCollection services, Assembly assembly)`
+- [Line 32](../../../../../../src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs#L32): `private static bool IsHandlerInterface(Type type) =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The scan loop.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Lines 13-26.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System.Reflection;
+using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 
-Open/closed: add a handler class, get a registration.
+namespace TutoringCentre.Application.Common.Cqrs;
 
-### Dependency Injection (DI) and the container
+/// <summary>Scans an assembly once and registers handlers (scoped) and validators.</summary>
+internal static class HandlerRegistration
+{
+    internal static IServiceCollection AddCqrsHandlers(this IServiceCollection services, Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(assembly);
 
-#### What it means
+        var implementations = assembly
+            .GetTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false, IsGenericTypeDefinition: false });
 
-A class that needs a collaborator can create it itself (`new X()`), which hard-wires the choice, or it can *receive* it, usually as a constructor parameter. That second approach is dependency injection. A DI *container* stores *registrations* ("when asked for type A, build type B with lifetime L") and performs *resolution*: it picks a constructor, resolves each parameter recursively, builds the object and caches it according to the lifetime. This is inversion of control: the class no longer decides what it depends on.
+        foreach (var implementation in implementations)
+        {
+            foreach (var handlerInterface in implementation.GetInterfaces().Where(IsHandlerInterface))
+            {
+                // Scoped: one instance per request/job scope, matching the scoped DbContext and actor.
+                services.AddScoped(handlerInterface, implementation);
+            }
+        }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+        services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
+        return services;
+    }
 
-#### Where it appears in this file
-
-`AddScoped(Type, Type)`.
-
-#### How it works here
-
-Line 24.
-
-#### Why it matters here
-
-Non-generic overload because both types are only known at runtime.
-
-### Service lifetimes (singleton, scoped, transient)
-
-#### What it means
-
-Lifetime says how long a container-built instance lives. *Singleton*: one for the whole application. *Scoped*: one per scope; in ASP.NET one scope = one HTTP request, and code can create its own scope (as the seed command does). *Transient*: a new instance on every resolution. A longer-lived service must not hold a shorter-lived one (a "captive dependency"), which `ValidateScopes` detects.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
-
-#### Where it appears in this file
-
-Scoped handlers.
-
-#### How it works here
-
-Line 24 comment.
-
-#### Why it matters here
-
-Handlers get the request's `AppDbContext` and actor.
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    S["assembly.GetTypes()"] --> F["concrete classes"] --> I["interfaces that are ICommandHandler/IQueryHandler"] --> R["AddScoped(interface, class)"]
-    S --> V["AddValidatorsFromAssembly(includeInternalTypes)"]
+    private static bool IsHandlerInterface(Type type) =>
+        type.IsGenericType
+        && (type.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)
+            || type.GetGenericTypeDefinition() == typeof(IQueryHandler<,>));
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-A class implementing the same closed interface twice (impossible) or two handlers for one command would silently override each other. Test-only handlers in other assemblies are not scanned; tests register them manually.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/DependencyInjection.cs`](../../DependencyInjection.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/ICommandHandler.cs`](ICommandHandler.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/IQueryHandler.cs`](IQueryHandler.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs`](../../Centres/Commands/CreateCentre/CreateCentreValidator.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

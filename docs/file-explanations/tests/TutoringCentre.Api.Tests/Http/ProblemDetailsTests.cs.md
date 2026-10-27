@@ -1,83 +1,153 @@
-# tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs
+# `tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs`
 
 ## Purpose
 
-Tests the HTTP error conventions end to end through the real pipeline.
+Declares `ProblemDetailsTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Http; collection `conventions`. Uses test endpoints from `ConventionEndpoints`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 211 lines and 8,188 bytes. Source hash: `57ee9d8af3da1fa088f0dfb0fb725d5f689217968e97cb96d91238a3f219ee1f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Helper `ReadProblemAsync(response)` asserts content type `application/problem+json` and parses JSON. Tests (Act = HTTP call; Assert = status + `code`):
-- `/api/test/{ok,validation,notfound,conflict,rule,forbidden}` -> 200, 400/`test.invalid`, 404, 409, 422, 403.
-- `throws` -> 500, code `server.unexpected`, body does not contain `hunter2` or `InvalidOperationException`.
-- malformed JSON body and unknown JSON field -> 400 `request.malformed`.
-- empty name -> 400 problem+json (validator).  valid name -> 200 `"Hello Sara"`.
-- unknown `/api/does-not-exist` GET and POST -> 404 `route.not_found`; unknown non-API path -> 404 problem+json.
-- `[Theory]` three paths -> `traceId` non-empty.
-- request header `test-corr-1` -> `correlationId` equals it; error content type; validation includes `errors.name[0] == "Name is required."`; non-validation errors have no `errors` property.
-19 test methods in total.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Problem Details (RFC 9457) and centralised error handling
+- Line 1: `using System.Net;`
+- Line 2: `using System.Net.Http.Json;`
+- Line 3: `using System.Text.Json;`
+- Line 4: `using TutoringCentre.Api.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+- [Line 9](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L9): `public sealed class ProblemDetailsTests(ConventionsFactory factory)`
+- [Line 14](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L14): `public async Task Ok_ReturnsSuccessBody()`
+- [Line 22](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L22): `public async Task Validation_Returns400WithProblemJsonAndCode()`
+- [Line 32](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L32): `public async Task NotFound_Returns404WithCode()`
+- [Line 42](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L42): `public async Task Conflict_Returns409WithCode()`
+- [Line 52](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L52): `public async Task Rule_Returns422WithCode()`
+- [Line 62](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L62): `public async Task Forbidden_Returns403WithCode()`
+- [Line 72](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L72): `public async Task UnhandledException_Returns500WithoutLeakingInternals()`
+- [Line 85](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L85): `public async Task MalformedJsonBody_Returns400RequestMalformed()`
+- [Line 96](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L96): `public async Task UnknownJsonField_Returns400RequestMalformed()`
+- [Line 106](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L106): `public async Task EmptyName_FailsValidation_Returns400()`
+- [Line 115](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L115): `public async Task ValidName_ReturnsGreeting()`
+- [Line 125](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L125): `public async Task UnknownApiRoute_Returns404RouteNotFound()`
+- [Line 135](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L135): `public async Task UnknownApiRoute_PostMethod_Returns404RouteNotFound()`
+- [Line 145](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L145): `public async Task UnknownNonApiRoute_Returns404ProblemJson()`
+- [Line 157](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L157): `public async Task ErrorResponses_IncludeTraceId(string path)`
+- [Line 166](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L166): `public async Task ErrorResponse_IncludesCorrelationIdMatchingRequestHeader()`
+- [Line 178](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L178): `public async Task ErrorResponses_ContentTypeIsProblemJson()`
+- [Line 186](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L186): `public async Task ValidationError_IncludesFieldErrorsDictionary()`
+- [Line 197](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L197): `public async Task NonValidationError_DoesNotIncludeErrorsDictionary()`
+- [Line 205](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L205): `private static async Task<JsonDocument> ReadProblemAsync(HttpResponseMessage response)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The whole contract.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-All tests.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using TutoringCentre.Api.Tests.Fixtures;
 
-Locks status mapping and body shape.
+namespace TutoringCentre.Api.Tests.Http;
 
-### Middleware and the request pipeline
+[Collection(ConventionsCollection.Name)]
+public sealed class ProblemDetailsTests(ConventionsFactory factory)
+{
+    private readonly HttpClient _client = factory.CreateClient();
 
-#### What it means
+    [Fact]
+    public async Task Ok_ReturnsSuccessBody()
+    {
+        var response = await _client.GetAsync(new Uri("/api/test/ok", UriKind.Relative));
 
-Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
+    [Fact]
+    public async Task Validation_Returns400WithProblemJsonAndCode()
+    {
+        var response = await _client.GetAsync(new Uri("/api/test/validation", UriKind.Relative));
 
-#### Where it appears in this file
+        var body = await ReadProblemAsync(response);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("test.invalid", body.RootElement.GetProperty("code").GetString());
+    }
 
-Real pipeline including exception handler.
+    [Fact]
+    public async Task NotFound_Returns404WithCode()
+    {
+        var response = await _client.GetAsync(new Uri("/api/test/notfound", UriKind.Relative));
 
-#### How it works here
+        var body = await ReadProblemAsync(response);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("test.not_found", body.RootElement.GetProperty("code").GetString());
+    }
 
-`throws` and malformed JSON tests.
+    [Fact]
+    public async Task Conflict_Returns409WithCode()
+    {
+        var response = await _client.GetAsync(new Uri("/api/test/conflict", UriKind.Relative));
 
-#### Why it matters here
+        var body = await ReadProblemAsync(response);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("test.conflict", body.RootElement.GetProperty("code").GetString());
+    }
 
-Verifies handler wiring.
+    [Fact]
+    public async Task Rule_Returns422WithCode()
+    {
+        var response = await _client.GetAsync(new Uri("/api/test/rule", UriKind.Relative));
 
-## Data and Control Flow
+        var body = await ReadProblemAsync(response);
+        Assert.Equal((HttpStatusCode)422, response.StatusCode);
+        Assert.Equal("test.rule", body.RootElement.GetProperty("code").GetString());
+    }
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    [Fact]
+    public async Task Forbidden_Returns403WithCode()
+    {
+        var response = await _client.GetAsync(new Uri("/api/test/forbidden", UriKind.Relative));
 
-## Configuration and Environment
+        var body = await ReadProblemAsync(response);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("test.forbidden", body.RootElement.GetProperty("code").GetString());
+    }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    [Fact]
+    public async Task UnhandledException_Returns500WithoutLeakingInternals()
+    {
+        var response = await _client.GetAsync(new Uri("/api/test/throws", UriKind.Relative));
 
-## Gotchas and Issues
+        var text = await response.Content.ReadAsStringAsync();
+        var body = JsonDocument.Parse(text);
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("server.unexpected", body.RootElement.GetProperty("code").GetString());
+        Assert.DoesNotContain("hunter2", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidOperationException", text, StringComparison.Ordinal);
+    }
 
-No bugs or surprises found while reading this file.
+    [Fact]
+    public async Task MalformedJsonBody_Returns400RequestMalformed()
+    {
+        using var content = new StringContent("{ not valid json", System.Text.Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync(new Uri("/api/test/name", UriKind.Relative), content);
 
-## Related Files
+        var body = await ReadProblemAsync(response);
+```
 
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](../../../src/TutoringCentre.Api/Http/ProblemResult.cs.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs.md)
-- [`src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs`](../../../src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs`](../Fixtures/ConventionEndpoints.cs.md)
-- [`docs/architecture/api-conventions.md`](../../../docs/architecture/api-conventions.md.md)
+The excerpt stops at line 90; use the original file for the remaining 121 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

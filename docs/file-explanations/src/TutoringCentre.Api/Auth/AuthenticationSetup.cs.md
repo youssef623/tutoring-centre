@@ -1,133 +1,99 @@
-# src/TutoringCentre.Api/Auth/AuthenticationSetup.cs
+# `src/TutoringCentre.Api/Auth/AuthenticationSetup.cs`
 
 ## Purpose
 
-Registers cookie authentication, the fail-closed authorization fallback policy, the session-validation cache/options and Data Protection for the Api.
+The setup configures the secure HttpOnly host-prefixed session cookie, eight-hour sliding ticket lifetime, per-request validation hook, API-style 401/403 behavior, and authenticated fallback policy. Cache options are bound here; database key persistence is registered in Infrastructure. Cookie setting changes must respect browser prefix rules and existing client behavior.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. Called by `Program.cs:47` (`AddApiAuthentication`). Wires `SessionRevalidationHandler` into the cookie events, reads `SessionValidationOptions` from configuration, and underpins `ActorMiddleware` and the endpoint filters.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/AuthenticationSetup.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 59 lines and 2,504 bytes. Source hash: `340eb3e2b77a9ef302bbc2ecf4051f05e4d82e40307bdb5067a86f730180594f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`AddApiAuthentication(this IServiceCollection)` (15-62):
-- `AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => ...)` (19-47). Cookie settings (verified in the code): name `__Host-tcm.session` (24); `HttpOnly = true` (25); `SecurePolicy = Always` (26); `SameSite = Lax` (27); `Path = "/"` (28) - the `__Host-` prefix requires Secure, Path `/` and no Domain, otherwise the browser rejects the cookie (comment line 23); `ExpireTimeSpan = 8 hours` (30) with `SlidingExpiration = true` (31).
-- `Events.OnValidatePrincipal = SessionRevalidationHandler.ValidateAsync` (35): runs after the cookie is decrypted on every authenticated request (see section 6.27).
-- `OnRedirectToLogin` -> plain `401`, `OnRedirectToAccessDenied` -> plain `403` (36-45). Cookie auth normally *redirects* browsers to a login page; this is a JSON API behind an SPA, so it answers with a status code and `UseStatusCodePages` (Program.cs:97) turns the empty status into Problem Details.
-- `AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())` (50-53): every endpoint requires a signed-in user unless it opts out with `.AllowAnonymous()` (fail closed).
-- `AddMemoryCache()` (55) for the revalidation cache; `AddOptions<SessionValidationOptions>().BindConfiguration("SessionValidation")` (56); `AddDataProtection().SetApplicationName("TutoringCentre")` (59) - the cookie ticket is encrypted with Data Protection keys. Comment: local key ring in Development (framework default), persisted keys are Month 2.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Cookie authentication and server-side sessions
+- Line 1: `using Microsoft.AspNetCore.Authentication.Cookies;`
+- Line 2: `using Microsoft.AspNetCore.Authorization;`
 
-#### What it means
+## Walkthrough and declaration map
 
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
+- [Line 12](../../../../../src/TutoringCentre.Api/Auth/AuthenticationSetup.cs#L12): `public static class AuthenticationSetup`
+- [Line 14](../../../../../src/TutoringCentre.Api/Auth/AuthenticationSetup.cs#L14): `public static IServiceCollection AddApiAuthentication(this IServiceCollection services)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The whole method.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`AddCookie` options at lines 21-47.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 
-This is where the session cookie's name, flags and lifetime are defined - the single source of truth the tests assert (`LoginFlowTests`, `SecurityTests`).
+namespace TutoringCentre.Api.Auth;
 
-### Authorization by default, the actor pipeline and the tenant gate
+/// <summary>
+/// Cookie authentication for the Api: a same-origin SPA session, not a website. An unauthenticated or
+/// access-denied request gets a plain status code — never a redirect to a login page — and
+/// <c>UseStatusCodePages</c> (Day 11) turns that bare status into the project's Problem Details shape,
+/// the same path every other error takes.
+/// </summary>
+public static class AuthenticationSetup
+{
+    public static IServiceCollection AddApiAuthentication(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
 
-#### What it means
+        services
+            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                // The __Host- prefix forces Secure, Path "/" and no Domain — the browser rejects the cookie otherwise.
+                options.Cookie.Name = "__Host-tcm.session";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.Path = "/";
 
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
+                options.Events = new CookieAuthenticationEvents
+                {
+                    OnValidatePrincipal = SessionRevalidationHandler.ValidateAsync,
+                    OnRedirectToLogin = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToAccessDenied = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return Task.CompletedTask;
+                    },
+                };
+            });
 
-#### Where it appears in this file
+        // Fail-closed: a new endpoint is protected unless it explicitly opts out with .AllowAnonymous().
+        services.AddAuthorization(options =>
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build());
 
-`FallbackPolicy`.
+        services.AddMemoryCache();
+        services.AddOptions<SessionValidationOptions>().BindConfiguration("SessionValidation");
 
-#### How it works here
-
-Lines 50-53.
-
-#### Why it matters here
-
-A new endpoint is protected the moment it is mapped; `SecurityTests.EndpointWithNoAuthorizationAttribute_Returns401ByDefault` proves it.
-
-### Options pattern and ValidateOnStart
-
-#### What it means
-
-The options pattern binds configuration into a typed class and can validate it. `ValidateOnStart` runs that validation when the host starts, so a bad configuration stops the app immediately instead of failing on first use.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks).)
-
-#### Where it appears in this file
-
-Options binding.
-
-#### How it works here
-
-Line 56.
-
-#### Why it matters here
-
-Cache duration is configuration, not a constant.
-
-### Secrets and configuration layering
-
-#### What it means
-
-Configuration comes from layered sources (JSON files, user-secrets, environment variables, command line) where later layers override earlier ones. Secrets must stay out of git: this repo keeps the connection string out of `appsettings.json`, reads it from user-secrets or an environment variable, and scans history with gitleaks.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
-
-#### Where it appears in this file
-
-Data Protection key ring.
-
-#### How it works here
-
-Line 59.
-
-#### Why it matters here
-
-The encryption keys for cookies; today a local ring, so a restart or second instance cannot read old cookies (documented limitation).
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant C as Cookie middleware
-    participant R as SessionRevalidationHandler
-    participant A as Authorization (fallback policy)
-    B->>C: request with __Host-tcm.session
-    C->>C: decrypt ticket (Data Protection)
-    C->>R: OnValidatePrincipal
-    R-->>C: valid or RejectPrincipal
-    C->>A: authenticated principal or anonymous
-    A-->>B: endpoint runs, or 401 when not authenticated
+        return services;
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-Cookie `__Host-tcm.session` (8 h sliding). Configuration key `SessionValidation:CacheDuration` (bound at line 56). Data Protection application name `TutoringCentre`.
-
-## Gotchas and Issues
-
-The 8-hour expiry lives in the protected ticket; whether the browser keeps the cookie after it closes depends on the `IsPersistent` flag of the sign-in call (`AuthEndpoints` uses the default, i.e. not persistent - framework behaviour, so the cookie is normally a browser-session cookie). Without persisted Data Protection keys every API restart invalidates all sessions (stated in `docs/architecture/authentication.md`).
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs`](SessionRevalidationHandler.cs.md)
-- [`src/TutoringCentre.Api/Auth/SessionValidationOptions.cs`](SessionValidationOptions.cs.md)
-- [`src/TutoringCentre.Api/Auth/ActorMiddleware.cs`](ActorMiddleware.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../Program.cs.md)
-- [`docs/architecture/authentication.md`](../../../docs/architecture/authentication.md.md)
-- [`docs/adr/0005-cookie-authentication.md`](../../../docs/adr/0005-cookie-authentication.md.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

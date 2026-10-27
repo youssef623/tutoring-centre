@@ -1,35 +1,44 @@
-# src/TutoringCentre.Domain/Centres/SupportedLocale.cs
+# `src/TutoringCentre.Domain/Centres/SupportedLocale.cs`
 
 ## Purpose
 
-Enum of languages a centre can use by default: `Ar` and `En`.
+Source summary (intent, not independent execution proof): Languages a centre can use by default for receipts and parent messages.
 
-## Where It Fits
+## Where it fits
 
-Domain/Centres. Used by `Centre`, `CreateCentreCommand`, `CreateCentreValidator` (`IsInEnum`), `SeedCommand`, and persisted as `'ar'`/`'en'` by a value converter in `CentreConfiguration`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Centres/SupportedLocale.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 8 lines and 185 bytes. Source hash: `1556332714b6d5821faa93338eb8ad60daf7b476401306b67aa4854194709ced`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Two members. The database stores lowercase text, not the integer, via `ValueConverter<SupportedLocale,string>`, backed by a CHECK constraint. The API serialises enums as camelCase strings (`JsonStringEnumConverter(JsonNamingPolicy.CamelCase)` in `Program.cs`) so JSON would use `ar`/`en`. Frontend type `Lang` is `"en" | "ar"`.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-This file introduces no concept that needs a tutorial beyond what its walkthrough already explains.
+## Walkthrough and declaration map
 
-## Data and Control Flow
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+- [Line 4](../../../../../src/TutoringCentre.Domain/Centres/SupportedLocale.cs#L4): `public enum SupportedLocale`
 
-## Configuration and Environment
+## Used by: verified name references
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-## Gotchas and Issues
+## Current source excerpt
 
-Adding a locale requires: enum, converter switch (both directions), CHECK constraint (new migration), frontend dictionary.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-## Related Files
+```csharp
+namespace TutoringCentre.Domain.Centres;
 
-- [`src/TutoringCentre.Domain/Centres/Centre.cs`](Centre.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs`](../../TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs.md)
-- [`frontend/src/api/errorMessages.ts`](../../../frontend/src/api/errorMessages.ts.md)
+/// <summary>Languages a centre can use by default for receipts and parent messages.</summary>
+public enum SupportedLocale
+{
+    Ar,
+    En,
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

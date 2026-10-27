@@ -1,183 +1,162 @@
-# tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs
+# `tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs`
 
 ## Purpose
 
-Proves that the attacks the authentication design is meant to close are actually closed: user enumeration, CSRF, cookie tampering, stale and revoked sessions, tenant escalation, password spraying, lockout and forgotten authorization.
-
-## Where It Fits
-
-Api.Tests/Auth; collection `conventions` (`ConventionsCollection`), using `ConventionsFactory` instead of `ApiFactory` because two tests need its test-only endpoints (`/api/test/actor` and `/api/test-default-protection`).
-
-## Walkthrough
-
-Header comment (lines 10-15) and `InitializeAsync` (1: reset + seed). Two groups, labelled by the author's own task numbers in comments (`16.6: written by hand` at line 33, `16.7: AI-written` at line 99).
-
-Tests, in file order:
-- `Login_WrongPasswordForKnownUserAndUnknownUser_ReturnIdenticalResponses` (35-63): both return 401; the JSON field names are identical and every field value is identical except `traceId` and `correlationId`. This is the *enumeration resistance* test.
-- `Logout_WithoutCsrfHeader_Returns403AndSessionStillWorksAfterwards` (65-84): a plain `client.PostAsync` without token -> 403 `auth.csrf_invalid`; `/api/me` still 200 (the refused request did not log the user out).
-- `Login_WithoutCsrfHeader_Returns403` (86-97): login CSRF is also enforced.
-- `Login_SetsAHostPrefixedSecureHttpOnlyLaxCookie` (101-114).
-- `GetMe_WithNoCookie_Returns401` (116-124).
-- `SelectCentre_ForACentreOwnerDoesNotBelongTo_Returns403AndMeStillShowsTheOriginalCentre` (126-145): looks up the `maadi-hub` id with `factory.ScalarAsync<Guid>("select id from platform.centres where slug = 'maadi-hub'")`.
-- `RevokedMembership_NextRequestAfterRevocation_Returns401` (147-168): logs in as `secretary@nile.test`, `/api/me` 200, then runs raw SQL `update identity.memberships set status = 'inactive' ...` through `factory.ExecuteAsync`; the very next `/api/me` is 401. The comment at 165 states why it is deterministic: `SessionValidation:CacheDuration` is zero in tests (set in `ApiFactory`), so every request re-checks.
-- `ChangedSecurityStamp_NextRequest_Returns401` (170-185): raw SQL overwrites `identity.users.security_stamp`; next request 401.
-- `TamperedCookie_Returns401` (187-211): logs in on one client, takes the `name=value` pair from `Set-Cookie`, flips the last character (`FlipLastCharacter` (299-305)) and sends it from a second client created with `HandleCookies = false` so no `CookieContainer` merges the genuine cookie back in.
-- `Login_11TimesWithinAMinuteFromOneClient_11thReturns429WithRetryAfter` (213-233): ten wrong-password logins with the same fixed partition string `security-suite-rate-limit` each return 401, the eleventh returns 429, `code` `auth.rate_limited` and a `Retry-After` header.
-- `Login_FiveWrongPasswordsThenCorrect_StillReturns401WithTheOrdinaryFailureBody` (235-253): five wrong passwords for `teacher@both.test` (each with its own random partition so the rate limit is not involved), then the *correct* password still returns 401 `auth.invalid_credentials` - this is lockout, and its response is indistinguishable from a wrong password.
-- `CurrentActor_AfterSelectingACentre_IsAStaffActorWithThatCentreInApplication` (255-284): after login and selection, `GET /api/test/actor` returns `kind` `Staff`, the selected `centreId` and role `teacher` - proving that the identity set by `ActorMiddleware` reaches Application code through `ICurrentActor`.
-- `EndpointWithNoAuthorizationAttribute_Returns401ByDefault` (286-294): `/api/test-default-protection` (mapped with no auth metadata) answers 401 -> the fallback policy works.
-
-## Concepts Used
-
-### CSRF protection with antiforgery tokens
-
-#### What it means
-
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
-
-#### Where it appears in this file
-
-Dedicated CSRF tests.
-
-#### How it works here
-
-`Logout_WithoutCsrfHeader_Returns403AndSessionStillWorksAfterwards` and `Login_WithoutCsrfHeader_Returns403` send POSTs without `X-XSRF-TOKEN` and expect 403 `auth.csrf_invalid`; all other POSTs use `AntiforgeryTestHelper`.
-
-#### Why it matters here
-
-Proves the endpoint filter really guards both an authenticated action (logout) and the anonymous one (login).
-
-### Rate limiting, lockout and enumeration resistance
-
-#### What it means
-
-*Rate limiting* caps how many requests one source may make in a time window (stops password spraying from one place). *Lockout* temporarily blocks one account after repeated failures (stops many guesses against one account). *Enumeration resistance* means failure responses (and their timing) reveal nothing about whether an account exists.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance](../../../../PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance).)
-
-#### Where it appears in this file
-
-Rate limit, lockout and enumeration tests.
-
-#### How it works here
-
-`Login_WrongPasswordForKnownUserAndUnknownUser_ReturnIdenticalResponses`, `Login_11TimesWithinAMinuteFromOneClient_11thReturns429WithRetryAfter` and `Login_FiveWrongPasswordsThenCorrect_StillReturns401WithTheOrdinaryFailureBody`.
-
-#### Why it matters here
-
-Each defence has an observable symptom (429 + `Retry-After`; lockout indistinguishable from a wrong password; identical failure bodies), and the tests assert exactly those symptoms.
-
-### Session revalidation and revocation
-
-#### What it means
-
-A self-contained cookie cannot be cancelled by itself. Revalidation re-checks the cookie's claims against the database on requests (here via a *security stamp* and the active membership), so a changed password or revoked access ends the session; a short cache bounds the database cost.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation](../../../../PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation).)
-
-#### Where it appears in this file
-
-Revocation and security stamp tests.
-
-#### How it works here
-
-`RevokedMembership_NextRequestAfterRevocation_Returns401` and `ChangedSecurityStamp_NextRequest_Returns401` change the database behind a live session and expect 401 on the next request.
-
-#### Why it matters here
-
-Shows that a cookie alone is not enough: the server re-checks membership and security stamp (cache disabled in tests).
-
-### Cookie authentication and server-side sessions
-
-#### What it means
-
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
-
-#### Where it appears in this file
-
-Tampered cookie.
-
-#### How it works here
-
-`TamperedCookie_Returns401`.
-
-#### Why it matters here
-
-The ticket is encrypted and authenticated by Data Protection; a flipped character fails decryption, so the request is anonymous and the fallback policy answers 401.
-
-### Authorization by default, the actor pipeline and the tenant gate
-
-#### What it means
-
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
-
-#### Where it appears in this file
-
-Default protection and actor propagation.
-
-#### How it works here
-
-`CurrentActor_AfterSelectingACentre_IsAStaffActorWithThatCentreInApplication` and `EndpointWithNoAuthorizationAttribute_Returns401ByDefault`.
-
-#### Why it matters here
-
-Both the fail-closed fallback policy and the actor pipeline are verified end to end.
-
-### In-process hosting with WebApplicationFactory
-
-#### What it means
-
-`WebApplicationFactory<Program>` starts the real application inside the test process with an in-memory test server, so real middleware, DI and routing run without opening a network port. Tests can override configuration and services before the host is built.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
-
-#### Where it appears in this file
-
-`ConventionsFactory` instead of `ApiFactory`.
-
-#### How it works here
-
-Class header (lines 16-17).
-
-#### Why it matters here
-
-Needs test-only endpoints; they are registered only in that factory, so they cannot leak into the product.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant T as Test
-    participant DB as PostgreSQL (raw SQL)
-    participant A as Api
-    T->>A: login (valid)
-    A-->>T: 200 + session cookie
-    T->>DB: update identity.memberships set status = 'inactive'
-    T->>A: GET /api/me with the same cookie
-    A->>DB: revalidate (cache duration 0)
-    A-->>T: 401
+Source summary (intent, not independent execution proof): Proves the attacks Day 16 closes are actually closed: user enumeration, CSRF (16.6, written by hand), and cookie theft, tenant escalation, stale sessions, claim forgery, spraying, brute force, broken identity propagation and forgotten authorization (16.7). Uses `ConventionsFactory` rather than the plain `ApiFactory` because two cases need its test-only endpoints (current actor, default protection).
+
+## Where it fits
+
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
+
+The reviewed file has 358 lines and 16,611 bytes. Source hash: `bbbfe1f8515b4486c14650fecd2d945bccef7733226464804a4839b2dbda9f4d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
+
+## Dependencies visible in the file
+
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
+
+- Line 1: `using System.Net;`
+- Line 2: `using System.Net.Http.Json;`
+- Line 3: `using System.Text.Json;`
+- Line 4: `using Microsoft.AspNetCore.Mvc.Testing;`
+- Line 5: `using Microsoft.Extensions.DependencyInjection;`
+- Line 6: `using TutoringCentre.Api.Cli;`
+- Line 7: `using TutoringCentre.Api.Tests.Fixtures;`
+- Line 8: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 9: `using TutoringCentre.Application.Common.Security;`
+- Line 10: `using TutoringCentre.Application.Staff;`
+- Line 11: `using TutoringCentre.Application.Staff.Commands.ChangeStaffRole;`
+- Line 12: `using TutoringCentre.Application.Staff.Queries.ListStaff;`
+- Line 13: `using TutoringCentre.Domain.Identity;`
+
+## Walkthrough and declaration map
+
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
+
+- [Line 24](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L24): `public sealed class SecurityTests(ConventionsFactory factory) : IAsyncLifetime`
+- [Line 32](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L32): `public async Task InitializeAsync()`
+- [Line 38](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L38): `public Task DisposeAsync() => Task.CompletedTask;`
+- [Line 43](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L43): `public async Task Login_WrongPasswordForKnownUserAndUnknownUser_ReturnIdenticalResponses()`
+- [Line 73](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L73): `public async Task Logout_WithoutCsrfHeader_Returns403AndSessionStillWorksAfterwards()`
+- [Line 94](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L94): `public async Task Login_WithoutCsrfHeader_Returns403()`
+- [Line 109](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L109): `public async Task Login_SetsAHostPrefixedSecureHttpOnlyLaxCookie()`
+- [Line 124](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L124): `public async Task GetMe_WithNoCookie_Returns401()`
+- [Line 134](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L134): `public async Task SelectCentre_ForACentreOwnerDoesNotBelongTo_Returns403AndMeStillShowsTheOriginalCentre()`
+- [Line 155](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L155): `public async Task RevokedMembership_NextRequestAfterRevocation_Returns401()`
+- [Line 178](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L178): `public async Task ChangedSecurityStamp_NextRequest_Returns401()`
+- [Line 195](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L195): `public async Task RoleChangedByTheOwner_NextRequestForThatUser_Returns401()`
+- [Line 231](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L231): `public async Task TamperedCookie_Returns401()`
+- [Line 257](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L257): `public async Task Login_11TimesWithinAMinuteFromOneClient_11thReturns429WithRetryAfter()`
+- [Line 279](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L279): `public async Task Login_FiveWrongPasswordsThenCorrect_StillReturns401WithTheOrdinaryFailureBody()`
+- [Line 299](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L299): `public async Task CurrentActor_AfterSelectingACentre_IsAStaffActorWithThatCentreInApplication()`
+- [Line 330](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L330): `public async Task EndpointWithNoAuthorizationAttribute_Returns401ByDefault()`
+- [Line 339](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L339): `private HttpClient CreateSessionClient() =>`
+- [Line 342](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L342): `private static string FlipLastCharacter(string value)`
+- [Line 350](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L350): `private static IEnumerable<string> FieldNames(JsonDocument document) =>`
+- [Line 353](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L353): `private static async Task<JsonDocument> ReadJsonAsync(HttpResponseMessage response)`
+
+## Used by: verified name references
+
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
+
+## Current source excerpt
+
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
+
+```csharp
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Api.Cli;
+using TutoringCentre.Api.Tests.Fixtures;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Staff;
+using TutoringCentre.Application.Staff.Commands.ChangeStaffRole;
+using TutoringCentre.Application.Staff.Queries.ListStaff;
+using TutoringCentre.Domain.Identity;
+
+namespace TutoringCentre.Api.Tests.Auth;
+
+/// <summary>
+/// Proves the attacks Day 16 closes are actually closed: user enumeration, CSRF (16.6, written by hand), and
+/// cookie theft, tenant escalation, stale sessions, claim forgery, spraying, brute force, broken identity
+/// propagation and forgotten authorization (16.7). Uses <see cref="ConventionsFactory"/> rather than the plain
+/// <see cref="ApiFactory"/> because two cases need its test-only endpoints (current actor, default protection).
+/// </summary>
+[Collection(ConventionsCollection.Name)]
+public sealed class SecurityTests(ConventionsFactory factory) : IAsyncLifetime
+{
+    private static readonly Uri LoginUri = new("/api/auth/login", UriKind.Relative);
+    private static readonly Uri MeUri = new("/api/me", UriKind.Relative);
+    private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
+    private static readonly Uri ActorUri = new("/api/test/actor", UriKind.Relative);
+    private static readonly Uri DefaultProtectionUri = new("/api/test-default-protection", UriKind.Relative);
+
+    public async Task InitializeAsync()
+    {
+        await factory.ResetAsync();
+        Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    // --- 16.6: written by hand ---
+
+    [Fact]
+    public async Task Login_WrongPasswordForKnownUserAndUnknownUser_ReturnIdenticalResponses()
+    {
+        using var client = CreateSessionClient();
+
+        using var wrongPassword = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "owner@nile.test", password = "clearly-the-wrong-password" });
+        using var unknownEmail = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "nobody@nile.test", password = "clearly-the-wrong-password" });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, wrongPassword.StatusCode);
+        Assert.Equal(wrongPassword.StatusCode, unknownEmail.StatusCode);
+
+        var wrongPasswordBody = await ReadJsonAsync(wrongPassword);
+        var unknownEmailBody = await ReadJsonAsync(unknownEmail);
+
+        // Same field set...
+        Assert.Equal(
+            FieldNames(wrongPasswordBody),
+            FieldNames(unknownEmailBody));
+
+        // ...and every value identical except the two per-request identifiers.
+        foreach (var field in FieldNames(wrongPasswordBody).Where(name => name is not "traceId" and not "correlationId"))
+        {
+            Assert.Equal(
+                wrongPasswordBody.RootElement.GetProperty(field).ToString(),
+                unknownEmailBody.RootElement.GetProperty(field).ToString());
+        }
+    }
+
+    [Fact]
+    public async Task Logout_WithoutCsrfHeader_Returns403AndSessionStillWorksAfterwards()
+    {
+        using var client = CreateSessionClient();
+        using (var login = await AntiforgeryTestHelper.PostAsJsonAsync(
+            client, LoginUri, new { email = "owner@nile.test", password = ApiFactory.TestSeedPassword }))
+        {
+            Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        }
+
+        using (var logoutWithoutToken = await client.PostAsync(new Uri("/api/auth/logout", UriKind.Relative), content: null))
+        {
+            var problem = await ReadJsonAsync(logoutWithoutToken);
+            Assert.Equal(HttpStatusCode.Forbidden, logoutWithoutToken.StatusCode);
+            Assert.Equal("auth.csrf_invalid", problem.RootElement.GetProperty("code").GetString());
+        }
+
+        using var me = await client.GetAsync(MeUri);
+        Assert.Equal(HttpStatusCode.OK, me.StatusCode);
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 268 lines.
 
-Relies on `SessionValidation:CacheDuration = 00:00:00`, `Seed:Password` and the `Testing` environment, all set in `ApiFactory.ConfigureWebHost`. The rate-limit partition header (`X-Test-RateLimit-Partition`) is honoured only when the host environment is `Testing` (see `LoginRateLimiting.cs`).
+## Before modifying this file
 
-## Gotchas and Issues
-
-The file comments refer to the author's own task numbers (16.6 hand-written, 16.7 AI-written); those numbers are not defined anywhere in the repository files I read other than as labels. Tests that change the database use raw SQL with literal emails; they are safe only because every test resets and reseeds first.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs`](../Fixtures/AntiforgeryTestHelper.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs`](../Fixtures/ConventionsFactory.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs`](../Fixtures/ConventionEndpoints.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs`](LoginFlowTests.cs.md)
-- [`src/TutoringCentre.Api/Auth/LoginRateLimiting.cs`](../../../src/TutoringCentre.Api/Auth/LoginRateLimiting.cs.md)
-- [`src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs`](../../../src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs.md)
-- [`src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs`](../../../src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

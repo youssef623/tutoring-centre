@@ -1,53 +1,131 @@
-# frontend/src/api/errorMessages.test.ts
+# `frontend/src/api/errorMessages.test.ts`
 
 ## Purpose
 
-Unit tests of `messageFor` fallback behaviour (English resources).
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api; run by Vitest. `src/test/setup.ts` imports `@/i18n`, so i18next is initialised in English before these tests run.
+Category: **test**. [Open current file](../../../../../frontend/src/api/errorMessages.test.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 94 lines and 2,296 bytes. Source hash: `ef8b9cd38daacd8ec70c9080a58ce5ef8aa5c077cb1e031ba3470fa537d2c124`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Three tests with Arrange/Act/Assert comments: known code `centre.slug_invalid` -> 'The web address may only contain lowercase letters, digits and single hyphens.'; unknown code `centre.something_new` with kind `conflict` -> 'This conflicts with existing data.'; unknown code and unknown kind (`"bogus" as ErrorKind`) -> 'Something went wrong. Please try again.' Not tested: Arabic output, the `unexpected` and `unauthenticated` kinds.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Internationalisation (i18next) and RTL layout
+- Line 1: `import { afterEach, describe, expect, it } from "vitest";`
+- Line 2: `import i18next from "@/i18n";`
+- Line 3: `import { messageFor } from "./errorMessages";`
+- Line 4: `import type { ApiError, ErrorKind } from "./errors";`
 
-#### What it means
+## Walkthrough and declaration map
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Real resources in tests.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Lines 19-21, 37, 53.
+```typescript
+import { afterEach, describe, expect, it } from "vitest";
+import i18next from "@/i18n";
+import { messageFor } from "./errorMessages";
+import type { ApiError, ErrorKind } from "./errors";
 
-#### Why it matters here
+describe("messageFor", () => {
+  afterEach(async () => {
+    // Leave i18next in English so other test files are unaffected.
+    await i18next.changeLanguage("en");
+  });
 
-The tests assert on the actual English strings from `errors.json`, so changing the JSON wording updates the expectation.
+  it("returns the specific dictionary message for a known code", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "validation",
+      code: "centre.slug_invalid",
+      message: "x",
+      status: 400,
+    };
 
-## Data and Control Flow
+    // Act
+    const message = messageFor(error);
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    // Assert
+    expect(message).toBe(
+      "The web address may only contain lowercase letters, digits and single hyphens.",
+    );
+  });
 
-## Configuration and Environment
+  it("falls back to the kind's message for an unknown code", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "conflict",
+      code: "centre.something_new",
+      message: "x",
+      status: 409,
+    };
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    // Act
+    const message = messageFor(error);
 
-## Gotchas and Issues
+    // Assert
+    expect(message).toBe("This conflicts with existing data.");
+  });
 
-No bugs or surprises found while reading this file.
+  it("falls back to the generic message for an unknown code and unknown kind", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "bogus" as ErrorKind,
+      code: "totally.unknown",
+      message: "x",
+      status: 500,
+    };
 
-## Related Files
+    // Act
+    const message = messageFor(error);
 
-- [`frontend/src/api/errorMessages.ts`](errorMessages.ts.md)
-- [`frontend/src/api/errors.ts`](errors.ts.md)
-- [`frontend/src/test/setup.ts`](../test/setup.ts.md)
+    // Assert
+    expect(message).toBe("Something went wrong. Please try again.");
+  });
+
+  it("returns the English message for tenant.not_selected", () => {
+    // Arrange
+    const error: ApiError = {
+      kind: "forbidden",
+      code: "tenant.not_selected",
+      message: "x",
+      status: 403,
+    };
+
+    // Act
+    const message = messageFor(error);
+
+    // Assert
+    expect(message).toBe("Please select a centre to continue.");
+  });
+
+  it("returns the Arabic message for tenant.not_selected", async () => {
+    // Arrange
+    await i18next.changeLanguage("ar");
+    const error: ApiError = {
+      kind: "forbidden",
+      code: "tenant.not_selected",
+      message: "x",
+      status: 403,
+    };
+
+    // Act
+    const message = messageFor(error);
+
+```
+
+The excerpt stops at line 90; use the original file for the remaining 4 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

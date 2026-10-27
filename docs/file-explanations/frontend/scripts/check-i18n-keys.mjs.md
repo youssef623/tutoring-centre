@@ -1,73 +1,107 @@
-# frontend/scripts/check-i18n-keys.mjs
+# `frontend/scripts/check-i18n-keys.mjs`
 
 ## Purpose
 
-Node script that fails when the English and Arabic translation files do not have exactly the same namespaces and keys.
+Declares `flattenKeys`, `loadNamespace`, `namespacesFor`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-frontend/scripts. Run by `npm run i18n:check` and by a CI step. Reads `src/i18n/locales/{en,ar}/*.json`. No dependencies beyond Node.
+Category: **script**. [Open current file](../../../../frontend/scripts/check-i18n-keys.mjs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 65 lines and 2,393 bytes. Source hash: `db9193dff43feb0ff8c42c3ed00612be6312fcccf0208948aa7c8679c12fbd10`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Top: shebang, imports (`readFileSync`, `readdirSync`, `fileURLToPath`, `path`), `localesDir = <script dir>/../src/i18n/locales`, `Languages = ["en","ar"]` (11). `flattenKeys(value, prefix)` (13-21) turns nested JSON into dotted key lists (`login.title`). `loadNamespace(language, namespace)` (23-27) reads and parses a file; `namespacesFor(language)` (29-31) lists `*.json`. Main (33-59): builds the set of namespaces over both languages; for each (sorted) namespace: if a language lacks the file entirely -> error `missing entirely in ...` and `continue`; otherwise compares key sets in both directions and reports `present in en but missing in ar: keys` (and the reverse). Any error sets `hasError`. After the loop `process.exit(1)` on error, else prints `i18n:check passed - N namespace(s), keys match in both languages.` (current run: 5 namespaces).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Internationalisation (i18next) and RTL layout
+- Line 5: `import { readFileSync, readdirSync } from "node:fs";`
+- Line 6: `import { fileURLToPath } from "node:url";`
+- Line 7: `import path from "node:path";`
 
-#### What it means
+## Walkthrough and declaration map
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+- [Line 13](../../../../frontend/scripts/check-i18n-keys.mjs#L13): `function flattenKeys(value, prefix = "") {`
+- [Line 23](../../../../frontend/scripts/check-i18n-keys.mjs#L23): `function loadNamespace(language, namespace) {`
+- [Line 29](../../../../frontend/scripts/check-i18n-keys.mjs#L29): `function namespacesFor(language) {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Key parity check.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Lines 33-59.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```text
+#!/usr/bin/env node
+// Fails CI when the Arabic and English translation keys differ for any namespace (Day 17, Task 17.9).
+// Plain Node, no dependencies: the locale files are already the single source of truth.
 
-Because both languages are bundled and looked up by key, a missing Arabic key would silently fall back to English (`fallbackLng: "en"` in `i18n/index.ts`); this script makes that a CI failure instead.
+import { readFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 
-### Continuous Integration
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const localesDir = path.join(scriptDir, "..", "src", "i18n", "locales");
+const Languages = ["en", "ar"];
 
-#### What it means
+function flattenKeys(value, prefix = "") {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return [prefix];
+  }
 
-CI runs automated build, test and analysis on every change in a clean machine so that regressions are caught before merge. Workflows are YAML files describing jobs (parallel units) made of steps.
+  return Object.entries(value).flatMap(([key, child]) =>
+    flattenKeys(child, prefix === "" ? key : `${prefix}.${key}`),
+  );
+}
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+function loadNamespace(language, namespace) {
+  const filePath = path.join(localesDir, language, namespace);
+  const contents = readFileSync(filePath, "utf8");
+  return JSON.parse(contents);
+}
 
-#### Where it appears in this file
+function namespacesFor(language) {
+  return readdirSync(path.join(localesDir, language)).filter((name) => name.endsWith(".json"));
+}
 
-CI step.
+const namespacesByLanguage = new Map(Languages.map((language) => [language, new Set(namespacesFor(language))]));
+const allNamespaces = new Set(Languages.flatMap((language) => [...namespacesByLanguage.get(language)]));
 
-#### How it works here
+let hasError = false;
 
-Run by `npm run i18n:check`.
+for (const namespace of [...allNamespaces].sort()) {
+  const missingNamespaceIn = Languages.filter((language) => !namespacesByLanguage.get(language).has(namespace));
+  if (missingNamespaceIn.length > 0) {
+    hasError = true;
+    console.error(`${namespace}: missing entirely in ${missingNamespaceIn.join(", ")}`);
+    continue;
+  }
 
-#### Why it matters here
+  const keysByLanguage = new Map(
+    Languages.map((language) => [language, new Set(flattenKeys(loadNamespace(language, namespace)))]),
+  );
 
-A cheap static check in the same pipeline as lint and tests.
+  for (const language of Languages) {
+    const otherLanguage = Languages.find((candidate) => candidate !== language);
+    const missing = [...keysByLanguage.get(language)].filter((key) => !keysByLanguage.get(otherLanguage).has(key));
 
-## Data and Control Flow
+    if (missing.length > 0) {
+      hasError = true;
+      console.error(`${namespace}: present in ${language} but missing in ${otherLanguage}: ${missing.join(", ")}`);
+    }
+  }
+}
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+if (hasError) {
+  process.exit(1);
+}
 
-## Configuration and Environment
+console.log(`i18n:check passed — ${allNamespaces.size} namespace(s), keys match in both languages.`);
+```
 
-Reads only the locale folder; no environment variables.
+## Before modifying this file
 
-## Gotchas and Issues
-
-Checks key *names* only; it does not check that values are non-empty, that ICU placeholders (e.g. `{name}`) match between languages, or that keys are used in code.
-
-## Related Files
-
-- [`frontend/src/i18n/index.ts`](../src/i18n/index.ts.md)
-- [`frontend/package.json`](../package.json.md)
-- [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

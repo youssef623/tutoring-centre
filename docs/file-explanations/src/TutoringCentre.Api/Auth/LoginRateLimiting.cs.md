@@ -1,97 +1,121 @@
-# src/TutoringCentre.Api/Auth/LoginRateLimiting.cs
+# `src/TutoringCentre.Api/Auth/LoginRateLimiting.cs`
 
 ## Purpose
 
-Caps login attempts per client IP with a fixed-window limiter and answers rejections with Problem Details `auth.rate_limited` (429).
+Source summary (intent, not independent execution proof): Caps login attempts per client IP: a source cannot try passwords against many accounts without limit. Lockout (Infrastructure/Identity) protects one account; this protects against spraying many accounts from one source. Forwarded-header-aware client IPs are Month 2.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. Registered at `Program.cs:49`; attached to the login endpoint only (`RequireRateLimiting(LoginRateLimiting.PolicyName)` in `AuthEndpoints`); `UseRateLimiter` at `Program.cs:102` enforces it. Uses `ProblemResult` for the rejection body.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/LoginRateLimiting.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 74 lines and 3,346 bytes. Source hash: `c282b79e6a045fe584522c06d310d41ad50bdf6124663d03ccb1b5789c03b778`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Constants: `PolicyName = "login"` (17), `TestPartitionHeaderName = "X-Test-RateLimit-Partition"` (25), `PermitLimit = 10` (27), `Window = 1 minute` (28).
-`AddLoginRateLimiting` (30-67): `AddRateLimiter(...)`; `AddPolicy(PolicyName, httpContext => RateLimitPartition.GetFixedWindowLimiter(partitionKey: GetPartitionKey(httpContext), factory: _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = 1 min, QueueLimit = 0 }))` - each partition (client) has its own counter; `QueueLimit = 0` means excess requests are rejected, not queued. `OnRejected` (45-63): reads the lease's `RetryAfter` metadata (fallback: the window), sets header `Retry-After` in whole seconds, and writes `ProblemDetails{Status 429, Title "Too many requests.", Detail "Too many login attempts. Try again later.", code "auth.rate_limited"}` through `ProblemResult`.
-`GetPartitionKey` (69-82): if `IHostEnvironment.IsEnvironment("Testing")` and the test header is present, use its value; otherwise `HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"`. Production and Development never read the header, so a caller cannot rotate it to dodge the limit.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Rate limiting, lockout and enumeration resistance
+- Line 1: `using System.Threading.RateLimiting;`
+- Line 2: `using Microsoft.AspNetCore.RateLimiting;`
+- Line 3: `using Microsoft.Extensions.Hosting;`
+- Line 4: `using Microsoft.Extensions.Configuration;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Rate limiting* caps how many requests one source may make in a time window (stops password spraying from one place). *Lockout* temporarily blocks one account after repeated failures (stops many guesses against one account). *Enumeration resistance* means failure responses (and their timing) reveal nothing about whether an account exists.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance](../../../../PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance).)
+- [Line 13](../../../../../src/TutoringCentre.Api/Auth/LoginRateLimiting.cs#L13): `public static class LoginRateLimiting`
+- [Line 34](../../../../../src/TutoringCentre.Api/Auth/LoginRateLimiting.cs#L34): `public static IServiceCollection AddLoginRateLimiting(this IServiceCollection services, IConfiguration configuration)`
+- [Line 60](../../../../../src/TutoringCentre.Api/Auth/LoginRateLimiting.cs#L60): `private static string GetPartitionKey(HttpContext httpContext)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Fixed-window limiter.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:38](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L38)
+- [src/TutoringCentre.Api/Auth/ChangePasswordRateLimiting.cs:54](../../../../../src/TutoringCentre.Api/Auth/ChangePasswordRateLimiting.cs#L54)
+- [tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs:33](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs#L33)
 
-`GetFixedWindowLimiter` (36-43).
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Per-IP cap of 10 login requests per minute; the 11th gets 429 (`SecurityTests.Login_11TimesWithinAMinuteFromOneClient_11thReturns429WithRetryAfter`).
+```csharp
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
-### Problem Details (RFC 9457) and centralised error handling
+namespace TutoringCentre.Api.Auth;
 
-#### What it means
+/// <summary>
+/// Caps login attempts per client IP: a source cannot try passwords against many accounts without limit.
+/// Lockout (Infrastructure/Identity) protects one account; this protects against spraying many accounts
+/// from one source. Forwarded-header-aware client IPs are Month 2.
+/// </summary>
+public static class LoginRateLimiting
+{
+    public const string PolicyName = "login";
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+    /// <summary>
+    /// Testing-only escape hatch: lets the test suite vary the partition key per test so unrelated tests never
+    /// share one exhausted window, without weakening the real per-IP limit. Honoured only when the host
+    /// environment is exactly "Testing" (ApiFactory's environment) — Production and Development never read it,
+    /// so a real caller cannot use this header to dodge the limit by rotating its value per request.
+    /// </summary>
+    public const string TestPartitionHeaderName = "X-Test-RateLimit-Partition";
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+    private const int DefaultPermitLimit = 10;
+    private static readonly TimeSpan DefaultWindow = TimeSpan.FromMinutes(1);
 
-#### Where it appears in this file
+    /// <summary>
+    /// Overridable via configuration (e.g. "Auth__LoginRateLimit__PermitLimit"/"...__WindowSeconds" env vars)
+    /// so CI's e2e job — a single trusted IP running many fixture logins per run, not a brute-force source —
+    /// can raise the budget without touching the Production/Development default or the Testing-environment
+    /// suite's hardcoded 10/minute assertion (TutoringCentre.Api.Tests only ever sees the default).
+    /// </summary>
+    public static IServiceCollection AddLoginRateLimiting(this IServiceCollection services, IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-Rejection body.
+        var permitLimit = configuration.GetValue("Auth:LoginRateLimit:PermitLimit", DefaultPermitLimit);
+        var windowSeconds = configuration.GetValue("Auth:LoginRateLimit:WindowSeconds", (int)DefaultWindow.TotalSeconds);
+        var window = TimeSpan.FromSeconds(windowSeconds);
 
-#### How it works here
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy(PolicyName, httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: GetPartitionKey(httpContext),
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = permitLimit,
+                    Window = window,
+                    QueueLimit = 0,
+                }));
 
-`OnRejected`.
+            options.OnRejected = RateLimitRejection.HandleAsync;
+        });
 
-#### Why it matters here
+        return services;
+    }
 
-429 keeps the project's uniform error shape and a stable code.
+    private static string GetPartitionKey(HttpContext httpContext)
+    {
+        var environment = httpContext.RequestServices.GetRequiredService<IHostEnvironment>();
+        if (environment.IsEnvironment("Testing"))
+        {
+            var testPartition = httpContext.Request.Headers[TestPartitionHeaderName].FirstOrDefault();
+            if (testPartition is not null)
+            {
+                return testPartition;
+            }
+        }
 
-### Middleware and the request pipeline
+        return httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+}
+```
 
-#### What it means
+## Before modifying this file
 
-Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
-
-#### Where it appears in this file
-
-`UseRateLimiter` placement.
-
-#### How it works here
-
-`Program.cs:102`.
-
-#### Why it matters here
-
-After authorization, before endpoint execution.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-Header `X-Test-RateLimit-Partition` (honoured only when the host environment name is exactly `Testing`). Policy `login`; 10 requests / 1 minute / client IP.
-
-## Gotchas and Issues
-
-Behind a reverse proxy `RemoteIpAddress` would be the proxy's address, so all users would share one window - forwarded-header handling is documented as Month 2. The limiter is per process and in memory (framework default), so multiple instances each keep their own counters. The partition map has no cleanup logic in this file (library-managed).
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](AuthEndpoints.cs.md)
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](../Http/ProblemResult.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs`](../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs`](../../../tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs.md)
-- [`docs/architecture/authentication.md`](../../../docs/architecture/authentication.md.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

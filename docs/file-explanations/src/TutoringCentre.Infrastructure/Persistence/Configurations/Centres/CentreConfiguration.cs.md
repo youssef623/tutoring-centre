@@ -1,127 +1,106 @@
-# src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs
+# `src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs`
 
 ## Purpose
 
-Maps the `Centre` entity to the `platform.centres` table: columns, limits, key, unique index, locale conversion, CHECK constraint and timestamp shadow properties.
+Source summary (intent, not independent execution proof): Maps the Centre entity to platform.centres. Lengths mirror the Domain's limits exactly.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence/Configurations, `internal`. Discovered by `AppDbContext.OnModelCreating`. Reads domain constants `Centre.NameMaxLength`, `Centre.SlugMaxLength`. Output is mirrored by `Migrations/20261002222404_InitialPlatform.cs`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 62 lines and 2,647 bytes. Source hash: `3735a73cc2500ee37b2c95cba76948384716e67624f8a37fa649254c80353196`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Configure(EntityTypeBuilder<Centre>)`:
-- `ToTable("centres", Schemas.Platform, table => table.HasCheckConstraint("ck_centres_default_locale", "default_locale IN ('ar','en')"))` (19-22) - schema `platform`; the database repeats the locale rule ('defence against rows written outside the app').
-- `HasKey(Id)` and `Property(Id).ValueGeneratedNever()` (24-25) - domain assigns UUIDv7.
-- `Name`: required, max 120 (27); `Slug`: required, max 60 (29) plus `HasIndex(Slug).IsUnique().HasDatabaseName("ux_centres_slug")` (30); `TimeZoneId`: required, max 64 (32).
-- `DefaultLocale` (34-40): `HasConversion(new ValueConverter<SupportedLocale,string>(to, from))` + required + max length 2. Converters (47-61) are `switch` expressions mapping `Ar<->"ar"`, `En<->"en"` and throwing `ArgumentOutOfRangeException` for anything else.
-- `Property<DateTimeOffset>("CreatedAt").IsRequired()` and `Property<DateTimeOffset?>("UpdatedAt")` (43-44) - **shadow properties** populated by `TimestampInterceptor`.
-Column names come from the snake_case convention (`default_locale`, `time_zone_id`, `created_at`).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### ORM and EF Core
+- Line 1: `using Microsoft.EntityFrameworkCore;`
+- Line 2: `using Microsoft.EntityFrameworkCore.Metadata.Builders;`
+- Line 3: `using Microsoft.EntityFrameworkCore.Storage.ValueConversion;`
+- Line 4: `using TutoringCentre.Domain.Centres;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 9](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs#L9): `internal sealed class CentreConfiguration : IEntityTypeConfiguration<Centre>`
+- [Line 14](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs#L14): `public void Configure(EntityTypeBuilder<Centre> builder)`
+- [Line 49](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs#L49): `private static string LocaleToDatabase(SupportedLocale locale) => locale switch`
+- [Line 56](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs#L56): `private static SupportedLocale LocaleFromDatabase(string value) => value switch`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Fluent entity mapping.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Whole `Configure` method.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using TutoringCentre.Domain.Centres;
 
-Persistence concerns stay out of Domain.
+namespace TutoringCentre.Infrastructure.Persistence.Configurations.Centres;
 
-### EF interceptors and shadow properties
+/// <summary>Maps the Centre entity to platform.centres. Lengths mirror the Domain's limits exactly.</summary>
+internal sealed class CentreConfiguration : IEntityTypeConfiguration<Centre>
+{
+    private const int TimeZoneIdMaxLength = 64;
+    private const int LocaleMaxLength = 2;
 
-#### What it means
+    public void Configure(EntityTypeBuilder<Centre> builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
 
-An *interceptor* hooks into EF operations (here, just before `SaveChanges`). A *shadow property* is a column that exists in the EF model but not as a C# member, so persistence metadata (timestamps) never pollutes domain classes.
+        // The database repeats the locale rule (defence against rows written outside the app).
+        builder.ToTable(
+            "centres",
+            Schemas.Platform,
+            table => table.HasCheckConstraint("ck_centres_default_locale", "default_locale IN ('ar','en')"));
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+        builder.HasKey(centre => centre.Id);
+        builder.Property(centre => centre.Id).ValueGeneratedNever(); // UUIDv7 is assigned by the Domain
 
-#### Where it appears in this file
+        builder.Property(centre => centre.Name).IsRequired().HasMaxLength(Centre.NameMaxLength);
 
-Shadow properties.
+        builder.Property(centre => centre.Slug).IsRequired().HasMaxLength(Centre.SlugMaxLength);
+        builder.HasIndex(centre => centre.Slug).IsUnique().HasDatabaseName("ux_centres_slug");
 
-#### How it works here
+        builder.Property(centre => centre.TimeZoneId).IsRequired().HasMaxLength(TimeZoneIdMaxLength);
 
-Lines 43-44.
+        builder
+            .Property(centre => centre.DefaultLocale)
+            .HasConversion(new ValueConverter<SupportedLocale, string>(
+                locale => LocaleToDatabase(locale),
+                value => LocaleFromDatabase(value)))
+            .IsRequired()
+            .HasMaxLength(LocaleMaxLength);
 
-#### Why it matters here
+        builder.HasRowVersion();
 
-`CreatedAt/UpdatedAt` exist in the table but not on `Centre`.
+        // Persistence metadata: shadow properties set by TimestampInterceptor, invisible to the Domain.
+        builder.Property<DateTimeOffset>("CreatedAt").IsRequired();
+        builder.Property<DateTimeOffset?>("UpdatedAt");
+    }
 
-### Two-tier validation
+    private static string LocaleToDatabase(SupportedLocale locale) => locale switch
+    {
+        SupportedLocale.Ar => "ar",
+        SupportedLocale.En => "en",
+        _ => throw new ArgumentOutOfRangeException(nameof(locale), locale, "Unsupported locale."),
+    };
 
-#### What it means
-
-Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
-
-#### Where it appears in this file
-
-Database constraints as third tier.
-
-#### How it works here
-
-CHECK constraint, unique index, max lengths.
-
-#### Why it matters here
-
-Protects against writes that bypass the app.
-
-### Database migrations
-
-#### What it means
-
-A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
-
-#### Where it appears in this file
-
-Source of the generated migration.
-
-#### How it works here
-
-This file defines what `InitialPlatform` creates.
-
-#### Why it matters here
-
-Change here => new migration required (CI checks).
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    C["Centre (Domain)"] -->|"ValueConverter ar/en"| T["platform.centres"]
-    SH["shadow CreatedAt/UpdatedAt"] --> T
-    T --> IDX["ux_centres_slug (unique)"]
-    T --> CK["ck_centres_default_locale"]
+    private static SupportedLocale LocaleFromDatabase(string value) => value switch
+    {
+        "ar" => SupportedLocale.Ar,
+        "en" => SupportedLocale.En,
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported locale value in the database."),
+    };
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-`TimeZoneIdMaxLength = 64` duplicates the validator's constant. A column added here without `dotnet ef migrations add` fails the CI `has-pending-model-changes` step.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs`](../../AppDbContext.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Schemas.cs`](../../Schemas.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs`](../../Migrations/20261002222404_InitialPlatform.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Interceptors/TimestampInterceptor.cs`](../../Interceptors/TimestampInterceptor.cs.md)
-- [`src/TutoringCentre.Domain/Centres/Centre.cs`](../../../../TutoringCentre.Domain/Centres/Centre.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,96 +1,236 @@
-# `src/TutoringCentre.Application`
+# Current area file guide
 
-Folder map generated from the per-file explanations. Part of the [file index](INDEX.md); the teaching overview is [`../PROJECT_OVERVIEW2.md`](../PROJECT_OVERVIEW2.md). Each row links to the full explanation of that file (purpose, where it fits, walkthrough, concepts, flow, configuration, gotchas, related files). **33 files.**
+This refreshed area contains 228 application files. [Complete index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md). Historical overview documents remain unchanged.
 
-## `src/TutoringCentre.Application`
+The per-file guides distinguish source-comment intent, recognized declarations and executed verification. Read the complete execution paths in the overview before changing shared boundaries. A source excerpt is evidence of current bytes, not proof that all branches passed a test.
 
-| File | Purpose | Explanation |
+| File | Category | Current guide |
 | --- | --- | --- |
-| `AssemblyMarker.cs` | Assembly handle used by handler scanning and by architecture tests. | [Explanation](./src/TutoringCentre.Application/AssemblyMarker.cs.md) |
-| `DependencyInjection.cs` | The Application layer's registration entry point: `AddApplication`, called once from `Program.cs`. | [Explanation](./src/TutoringCentre.Application/DependencyInjection.cs.md) |
-| `TutoringCentre.Application.csproj` | Project file for the use-case layer: references Domain only, plus validation and DI/logging *abstractions*. | [Explanation](./src/TutoringCentre.Application/TutoringCentre.Application.csproj.md) |
-
-## `src/TutoringCentre.Application/Centres`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `ICentreRepository.cs` | Write-side persistence port for the Centre aggregate. | [Explanation](./src/TutoringCentre.Application/Centres/ICentreRepository.cs.md) |
-
-## `src/TutoringCentre.Application/Centres/Commands/CreateCentre`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CreateCentreCommand.cs` | The message representing the intent to create a centre. | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs.md) |
-| `CreateCentreHandler.cs` | The use case 'create a centre': authorise, check uniqueness, let the domain validate and build the entity, then track it. | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md) |
-| `CreateCentreResult.cs` | The success payload of `CreateCentreCommand`: the new centre's id and slug. | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs.md) |
-| `CreateCentreValidator.cs` | Shape validation of `CreateCentreCommand` (required fields, maximum lengths, defined enum). | [Explanation](./src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs.md) |
-
-## `src/TutoringCentre.Application/Common/Cqrs`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `Dispatcher.cs` | The single entry point for every use case: validates, opens the right kind of transaction, runs the handler, saves once, commits or rolls back, and logs one outcome line. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md) |
-| `HandlerRegistration.cs` | Reflection scan that registers every command/query handler and validator in the Application assembly. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs.md) |
-| `ICommand.cs` | Marker interface for commands, carrying the response type as a generic parameter. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/ICommand.cs.md) |
-| `ICommandHandler.cs` | Contract for a class that executes one command and returns a `Result`. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/ICommandHandler.cs.md) |
-| `IQuery.cs` | Marker interface for read-only requests. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/IQuery.cs.md) |
-| `IQueryHandler.cs` | Contract for a class that answers one query inside a read-only transaction. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/IQueryHandler.cs.md) |
-| `Unit.cs` | Placeholder 'no data' response type for commands that only succeed or fail. | [Explanation](./src/TutoringCentre.Application/Common/Cqrs/Unit.cs.md) |
-
-## `src/TutoringCentre.Application/Common/Ports`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `IClock.cs` | Port for the current time and for converting between UTC instants and local wall-clock time in an IANA time zone. | [Explanation](./src/TutoringCentre.Application/Common/Ports/IClock.cs.md) |
-| `IUnitOfWork.cs` | Port over the persistence transaction: begin (read-only or read-write), save, commit, rollback. | [Explanation](./src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs.md) |
-
-## `src/TutoringCentre.Application/Common/Security`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `Actor.cs` | Defines who is executing a use case: the abstract `Actor` and its kinds `SystemActor`, `AnonymousActor` and `StaffActor`. | [Explanation](./src/TutoringCentre.Application/Common/Security/Actor.cs.md) |
-| `CurrentActorContext.cs` | Holds the actor for one scope; starts anonymous, may be set exactly once, and may be replaced only through `Reauthenticate` at login. | [Explanation](./src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs.md) |
-| `IAuthenticationService.cs` | Application's port for verifying staff credentials, plus the `AuthenticatedUser` result record. | [Explanation](./src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs.md) |
-| `ICurrentActor.cs` | Read-only view of the actor of the current scope. | [Explanation](./src/TutoringCentre.Application/Common/Security/ICurrentActor.cs.md) |
-
-## `src/TutoringCentre.Application/Identity`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `IMembershipReadService.cs` | Read-side port for a staff member's own profile, active memberships and session state, with its DTO records. | [Explanation](./src/TutoringCentre.Application/Identity/IMembershipReadService.cs.md) |
-
-## `src/TutoringCentre.Application/Identity/Queries/GetActiveMembership`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `GetActiveMembershipHandler.cs` | The tenant gate: the only way a centre id enters a session. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs.md) |
-| `GetActiveMembershipQuery.cs` | The tenant-gate question: may the signed-in staff member act in this centre?. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs.md) |
-
-## `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `GetMyMembershipsHandler.cs` | Builds the signed-in user's `MeDto` from a freshly read profile, dropping the actor's selected centre if it is no longer an active membership. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs.md) |
-| `GetMyMembershipsQuery.cs` | Asks for the signed-in staff member's own profile and active memberships. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs.md) |
-| `MeDto.cs` | The response shape of `GET /api/me` and login: profile, active centre/role and active memberships. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs.md) |
-
-## `src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `ValidateStaffSessionHandler.cs` | Decides if a session's security stamp and (when a centre is selected) membership are still current. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs.md) |
-| `ValidateStaffSessionQuery.cs` | Asks whether an existing session is still valid; internal to the authentication pipeline. | [Explanation](./src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs.md) |
-
-## `src/TutoringCentre.Application/Platform`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `ISystemInfoReadService.cs` | Read-side port that returns database schema status as plain data, plus the `SchemaStatus` record. | [Explanation](./src/TutoringCentre.Application/Platform/ISystemInfoReadService.cs.md) |
-| `SystemInfoDto.cs` | The public response shape of `GET /api/system/info`: application version, latest migration, up-to-date flag. | [Explanation](./src/TutoringCentre.Application/Platform/SystemInfoDto.cs.md) |
-
-## `src/TutoringCentre.Application/Platform/Queries/GetSystemInfo`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `GetSystemInfoHandler.cs` | Builds `SystemInfoDto` from the read service and from the assembly's informational version. | [Explanation](./src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs.md) |
-| `GetSystemInfoQuery.cs` | The parameterless query asking for application version and migration status. | [Explanation](./src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/EnrollmentErrors.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/EnrollmentErrors.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/IEnrollmentReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/IEnrollmentReadService.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/IEnrollmentRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/IEnrollmentRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/GroupErrors.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/GroupErrors.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/IGroupReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/IGroupReadService.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/IGroupRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/IGroupRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/IParentReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/IParentReadService.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/IParentRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/IParentRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/ParentErrors.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/ParentErrors.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/IClassSessionRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/IClassSessionRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/IScheduleReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/IScheduleReadService.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/IScheduleRuleRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/IScheduleRuleRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Queries/ListGroupScheduleRules/ListGroupScheduleRulesHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Queries/ListGroupScheduleRules/ListGroupScheduleRulesHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/Queries/ListGroupScheduleRules/ListGroupScheduleRulesQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/Queries/ListGroupScheduleRules/ListGroupScheduleRulesQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/ScheduleErrors.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/ScheduleErrors.cs.md) |
+| `src/TutoringCentre.Application/Academics/Scheduling/ScheduleHorizon.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Scheduling/ScheduleHorizon.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/IStudentReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/IStudentReadService.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/IStudentRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/IStudentRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Queries/GetStudent/GetStudentHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Queries/GetStudent/GetStudentHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Queries/GetStudent/GetStudentQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Queries/GetStudent/GetStudentQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/StudentCursor.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/StudentCursor.cs.md) |
+| `src/TutoringCentre.Application/Academics/Students/StudentErrors.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Students/StudentErrors.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/ISubjectReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/ISubjectReadService.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/ISubjectRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/ISubjectRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Queries/GetSubject/GetSubjectHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Queries/GetSubject/GetSubjectHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Queries/GetSubject/GetSubjectQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Queries/GetSubject/GetSubjectQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Queries/ListSubjects/ListSubjectsHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Queries/ListSubjects/ListSubjectsHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Subjects/Queries/ListSubjects/ListSubjectsQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Subjects/Queries/ListSubjects/ListSubjectsQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherResult.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherResult.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherCommand.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherValidator.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/ITeacherReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/ITeacherReadService.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/ITeacherRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/ITeacherRepository.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Queries/GetTeacher/GetTeacherHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Queries/GetTeacher/GetTeacherHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Queries/GetTeacher/GetTeacherQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Queries/GetTeacher/GetTeacherQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Queries/ListTeachers/ListTeachersHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Queries/ListTeachers/ListTeachersHandler.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/Queries/ListTeachers/ListTeachersQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/Queries/ListTeachers/ListTeachersQuery.cs.md) |
+| `src/TutoringCentre.Application/Academics/Teachers/TeacherErrors.cs` | source | [Explanation](src/TutoringCentre.Application/Academics/Teachers/TeacherErrors.cs.md) |
+| `src/TutoringCentre.Application/AssemblyMarker.cs` | source | [Explanation](src/TutoringCentre.Application/AssemblyMarker.cs.md) |
+| `src/TutoringCentre.Application/Audit/AuditCursor.cs` | source | [Explanation](src/TutoringCentre.Application/Audit/AuditCursor.cs.md) |
+| `src/TutoringCentre.Application/Audit/IAuditReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Audit/IAuditReadService.cs.md) |
+| `src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogHandler.cs.md) |
+| `src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogQuery.cs.md) |
+| `src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogValidator.cs.md) |
+| `src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs.md) |
+| `src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md) |
+| `src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs.md) |
+| `src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs.md) |
+| `src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsCommand.cs.md) |
+| `src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsHandler.cs.md) |
+| `src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsValidator.cs.md) |
+| `src/TutoringCentre.Application/Centres/Contracts/ICentreTimeZoneProvider.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Contracts/ICentreTimeZoneProvider.cs.md) |
+| `src/TutoringCentre.Application/Centres/ICentreReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/ICentreReadService.cs.md) |
+| `src/TutoringCentre.Application/Centres/ICentreRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/ICentreRepository.cs.md) |
+| `src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsHandler.cs.md) |
+| `src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsQuery.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/ICommand.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/ICommand.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/ICommandHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/ICommandHandler.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/IQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/IQuery.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/IQueryHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/IQueryHandler.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/IRequirePermission.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/IRequirePermission.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/ITenantScoped.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/ITenantScoped.cs.md) |
+| `src/TutoringCentre.Application/Common/Cqrs/Unit.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Cqrs/Unit.cs.md) |
+| `src/TutoringCentre.Application/Common/Ports/IClock.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Ports/IClock.cs.md) |
+| `src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/Actor.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/Actor.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/CorrelationContext.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/CorrelationContext.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/ICorrelationContext.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/ICorrelationContext.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/ICurrentActor.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/ICurrentActor.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/ITeacherScopeProvider.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/ITeacherScopeProvider.cs.md) |
+| `src/TutoringCentre.Application/Common/Security/TeacherScope.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Security/TeacherScope.cs.md) |
+| `src/TutoringCentre.Application/Common/Time/CentreCalendar.cs` | source | [Explanation](src/TutoringCentre.Application/Common/Time/CentreCalendar.cs.md) |
+| `src/TutoringCentre.Application/DependencyInjection.cs` | source | [Explanation](src/TutoringCentre.Application/DependencyInjection.cs.md) |
+| `src/TutoringCentre.Application/Identity/Contracts/IStaffDirectory.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Contracts/IStaffDirectory.cs.md) |
+| `src/TutoringCentre.Application/Identity/IMembershipReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/IMembershipReadService.cs.md) |
+| `src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs.md) |
+| `src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs.md) |
+| `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs.md) |
+| `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs.md) |
+| `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs.md) |
+| `src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs.md) |
+| `src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs.md) |
+| `src/TutoringCentre.Application/Platform/IDemoModeProvider.cs` | source | [Explanation](src/TutoringCentre.Application/Platform/IDemoModeProvider.cs.md) |
+| `src/TutoringCentre.Application/Platform/ISystemInfoReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Platform/ISystemInfoReadService.cs.md) |
+| `src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs.md) |
+| `src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoQuery.cs.md) |
+| `src/TutoringCentre.Application/Platform/SystemInfoDto.cs` | source | [Explanation](src/TutoringCentre.Application/Platform/SystemInfoDto.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleCommand.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleHandler.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleValidator.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffCommand.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffHandler.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffValidator.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffCommand.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffHandler.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffValidator.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffCommand.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffCommand.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffHandler.cs.md) |
+| `src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffValidator.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffValidator.cs.md) |
+| `src/TutoringCentre.Application/Staff/IMembershipRepository.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/IMembershipRepository.cs.md) |
+| `src/TutoringCentre.Application/Staff/IStaffAccountService.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/IStaffAccountService.cs.md) |
+| `src/TutoringCentre.Application/Staff/IStaffReadService.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/IStaffReadService.cs.md) |
+| `src/TutoringCentre.Application/Staff/Queries/ListStaff/ListStaffHandler.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Queries/ListStaff/ListStaffHandler.cs.md) |
+| `src/TutoringCentre.Application/Staff/Queries/ListStaff/ListStaffQuery.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/Queries/ListStaff/ListStaffQuery.cs.md) |
+| `src/TutoringCentre.Application/Staff/StaffErrors.cs` | source | [Explanation](src/TutoringCentre.Application/Staff/StaffErrors.cs.md) |
+| `src/TutoringCentre.Application/TutoringCentre.Application.csproj` | configuration | [Explanation](src/TutoringCentre.Application/TutoringCentre.Application.csproj.md) |

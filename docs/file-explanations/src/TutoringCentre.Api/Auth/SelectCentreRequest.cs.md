@@ -1,51 +1,43 @@
-# src/TutoringCentre.Api/Auth/SelectCentreRequest.cs
+# `src/TutoringCentre.Api/Auth/SelectCentreRequest.cs`
 
 ## Purpose
 
-The request body of `POST /api/session/centre`: only the centre id the user asks to switch into.
+Source summary (intent, not independent execution proof): The centre ID here is only a request — nothing is written into the session before GetActiveMembershipQuery confirms the current user actually belongs to it.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. Bound by `AuthEndpoints.SelectCentreAsync`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/SelectCentreRequest.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 7 lines and 289 bytes. Source hash: `12520f5d106708dc0411cc668a72e20aa59e3c3ec9c3346d8609e659b45b2700`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record SelectCentreRequest(Guid CentreId);` Doc: the id is only a request - nothing is written into the session until `GetActiveMembershipQuery` confirms the current user belongs to that centre.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Authorization by default, the actor pipeline and the tenant gate
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
+- [Line 7](../../../../../src/TutoringCentre.Api/Auth/SelectCentreRequest.cs#L7): `public sealed record SelectCentreRequest(Guid CentreId);`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Request vs authority.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Doc comment.
+```csharp
+namespace TutoringCentre.Api.Auth;
 
-#### Why it matters here
+/// <summary>
+/// The centre ID here is only a request — nothing is written into the session before
+/// GetActiveMembershipQuery confirms the current user actually belongs to it.
+/// </summary>
+public sealed record SelectCentreRequest(Guid CentreId);
+```
 
-The client asserts which centre it *wants*, the server decides.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](AuthEndpoints.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

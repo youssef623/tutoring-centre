@@ -1,99 +1,140 @@
-# src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs
+# `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs`
 
 ## Purpose
 
-Maps `Membership` to `identity.memberships` with the first foreign keys, composite unique index, converters and CHECK constraints in the schema.
+Source summary (intent, not independent execution proof): Maps the Membership entity to identity.memberships.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence/Configurations/Identity, `internal`. Applied by `AppDbContext`. Mirrors the migration `AddIdentityAndMemberships`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 103 lines and 4,164 bytes. Source hash: `a5fb7ea8462e64ea4d6d234a2ccca511a231e403b1f9dcff92b9bc53e27ba805`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ToTable("memberships", Schemas.Identity, ...)` with CHECKs `ck_memberships_role` (`role IN ('owner','teacher','secretary')`) and `ck_memberships_status` (`status IN ('active','inactive')`) (20-27). `HasKey(Id)` + `ValueGeneratedNever()` (29-30). `UserId` required with `HasOne<ApplicationUser>().WithMany().HasForeignKey(UserId).OnDelete(Restrict)` and index `ix_memberships_user_id` (32-38). `CentreId` required with `HasOne<Centre>().WithMany().HasForeignKey(CentreId).OnDelete(Restrict)` (40-45) - a foreign key **across schemas** (`identity` -> `platform`). `Role` and `Status` stored as lowercase text via `ValueConverter` (`RoleToDatabase/FromDatabase`, `StatusToDatabase/FromDatabase`, 72-100, each throwing `ArgumentOutOfRangeException` for unknown values), max length 20 / 10. Unique composite index `ux_memberships_centre_user` on `(CentreId, UserId)` (63-65). Shadow `CreatedAt`/`UpdatedAt` for `TimestampInterceptor` (68-69).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### ORM and EF Core
+- Line 1: `using Microsoft.EntityFrameworkCore;`
+- Line 2: `using Microsoft.EntityFrameworkCore.Metadata.Builders;`
+- Line 3: `using Microsoft.EntityFrameworkCore.Storage.ValueConversion;`
+- Line 4: `using TutoringCentre.Domain.Centres;`
+- Line 5: `using TutoringCentre.Domain.Identity;`
+- Line 6: `using TutoringCentre.Infrastructure.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 11](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L11): `internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Membership>`
+- [Line 16](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L16): `public void Configure(EntityTypeBuilder<Membership> builder)`
+- [Line 74](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L74): `private static string RoleToDatabase(StaffRole role) => role switch`
+- [Line 82](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L82): `private static StaffRole RoleFromDatabase(string value) => value switch`
+- [Line 90](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L90): `private static string StatusToDatabase(MembershipStatus status) => status switch`
+- [Line 97](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs#L97): `private static MembershipStatus StatusFromDatabase(string value) => value switch`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Relationships.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`HasOne<...>().WithMany().HasForeignKey(...)`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Identity;
+using TutoringCentre.Infrastructure.Identity;
 
-The schema's first foreign keys (no navigation properties on the entity - the Domain stays clean).
+namespace TutoringCentre.Infrastructure.Persistence.Configurations.Identity;
 
-### Identity and membership modelling
+/// <summary>Maps the Membership entity to identity.memberships.</summary>
+internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Membership>
+{
+    private const int RoleMaxLength = 20;
+    private const int StatusMaxLength = 10;
 
-#### What it means
+    public void Configure(EntityTypeBuilder<Membership> builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+        builder.ToTable(
+            "memberships",
+            Schemas.Identity,
+            table =>
+            {
+                table.HasCheckConstraint("ck_memberships_role", "role IN ('owner','teacher','secretary')");
+                table.HasCheckConstraint("ck_memberships_status", "status IN ('active','inactive')");
+            });
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+        builder.HasKey(membership => membership.Id);
+        builder.Property(membership => membership.Id).ValueGeneratedNever(); // UUIDv7 is assigned by the Domain
 
-#### Where it appears in this file
+        builder.Property(membership => membership.UserId).IsRequired();
+        builder
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(membership => membership.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(membership => membership.UserId).HasDatabaseName("ix_memberships_user_id");
 
-Role and status per membership.
+        builder.Property(membership => membership.CentreId).IsRequired();
+        builder
+            .HasOne<Centre>()
+            .WithMany()
+            .HasForeignKey(membership => membership.CentreId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-#### How it works here
+        builder
+            .Property(membership => membership.Role)
+            .HasConversion(new ValueConverter<StaffRole, string>(
+                role => RoleToDatabase(role),
+                value => RoleFromDatabase(value)))
+            .IsRequired()
+            .HasMaxLength(RoleMaxLength);
 
-Converters + CHECKs.
+        builder
+            .Property(membership => membership.Status)
+            .HasConversion(new ValueConverter<MembershipStatus, string>(
+                status => StatusToDatabase(status),
+                value => StatusFromDatabase(value)))
+            .IsRequired()
+            .HasMaxLength(StatusMaxLength);
 
-#### Why it matters here
+        builder.HasIndex(membership => new { membership.CentreId, membership.UserId })
+            .IsUnique()
+            .HasDatabaseName("ux_memberships_centre_user");
 
-Same three-tier validation as the locale on `Centre`.
+        builder.HasRowVersion();
 
-### Concurrency, TOCTOU and unique indexes
+        // Persistence metadata: shadow properties set by TimestampInterceptor, invisible to the Domain.
+        builder.Property<DateTimeOffset>("CreatedAt").IsRequired();
+        builder.Property<DateTimeOffset?>("UpdatedAt");
+    }
 
-#### What it means
+    private static string RoleToDatabase(StaffRole role) => role switch
+    {
+        StaffRole.Owner => "owner",
+        StaffRole.Teacher => "teacher",
+        StaffRole.Secretary => "secretary",
+        _ => throw new ArgumentOutOfRangeException(nameof(role), role, "Unsupported staff role."),
+    };
 
-TOCTOU (time of check to time of use): code checks a condition then acts, but another request can change the condition in between. Only the database can make "no two rows share a slug" true, via a unique index; application checks just produce friendlier errors in the common case.
+    private static StaffRole RoleFromDatabase(string value) => value switch
+    {
+        "owner" => StaffRole.Owner,
+        "teacher" => StaffRole.Teacher,
+        "secretary" => StaffRole.Secretary,
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported role value in the database."),
+    };
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee](../../../../../../PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee).)
-
-#### Where it appears in this file
-
-Unique (centre, user).
-
-#### How it works here
-
-Line 63.
-
-#### Why it matters here
-
-A user cannot hold two memberships in one centre even under concurrency (`MembershipConstraintTests`).
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    U["identity.users (ApplicationUser)"] -->|"user_id FK, Restrict"| M["identity.memberships"]
-    C["platform.centres (Centre)"] -->|"centre_id FK, Restrict"| M
-    M --> IDX["unique (centre_id, user_id)"]
+    private static string StatusToDatabase(MembershipStatus status) => status switch
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 13 lines.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-`OnDelete(Restrict)` means deleting a centre or user that has memberships is rejected by PostgreSQL (SQLSTATE 23503; proven by `MembershipConstraintTests.Delete_CentreWithAMembership_IsRejected`).
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Identity/Membership.cs`](../../../../TutoringCentre.Domain/Identity/Membership.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs`](../Centres/CentreConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs`](../../Migrations/20261004112858_AddIdentityAndMemberships.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs`](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

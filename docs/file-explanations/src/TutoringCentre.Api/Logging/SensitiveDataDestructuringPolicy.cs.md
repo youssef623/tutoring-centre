@@ -1,73 +1,109 @@
-# src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs
+# `src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs`
 
 ## Purpose
 
-Serilog safety net that masks properties named like Password/Token/Secret/ConnectionString/Phone* when an object is logged with `{@Obj}`.
+Source summary (intent, not independent execution proof): Safety net: when an object is destructured ({@Request}), properties named like Password, Token, Secret, ConnectionString or Phone* are replaced with "***". The primary rule (Day 7) remains: never log request objects.
 
-## Where It Fits
+## Where it fits
 
-Api/Logging, `public sealed`. Installed in `Program.cs:37`. Tested by `SensitiveDataDestructuringPolicyTests`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 62 lines and 2,286 bytes. Source hash: `7f1b06fdf9f5c360f8563796c8b36bd8a3f1863b0e860dac8238f9650f1cb394`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`IDestructuringPolicy.TryDestructure` (19-): returns `false` (use Serilog's default) for `IEnumerable` values; reflects public readable instance non-indexer properties; if none is sensitive returns `false` (40); else builds a `StructureValue` where sensitive properties are `ScalarValue("***")` (48-49) and others use `propertyValueFactory.CreatePropertyValue(value, destructureObjects: true)`; type name preserved. `IsSensitive` (59): name starts with `Phone` (case-insensitive) or contains any of `Password`, `Token`, `Secret`, `ConnectionString`. Doc: the primary rule remains 'never log request objects'.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Structured logging, Serilog and correlation IDs
+- Line 1: `using System.Collections;`
+- Line 2: `using System.Diagnostics.CodeAnalysis;`
+- Line 3: `using System.Reflection;`
+- Line 4: `using Serilog.Core;`
+- Line 5: `using Serilog.Events;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
+- [Line 13](../../../../../src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs#L13): `public sealed class SensitiveDataDestructuringPolicy : IDestructuringPolicy`
+- [Line 19](../../../../../src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs#L19): `public bool TryDestructure(`
+- [Line 59](../../../../../src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs#L59): `private static bool IsSensitive(string propertyName) =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Destructuring policy.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Program.cs:45](../../../../../src/TutoringCentre.Api/Program.cs#L45)
+- [tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs:44](../../../../../tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs#L44)
 
-Whole class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Limits damage if someone logs a command object.
+```csharp
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Serilog.Core;
+using Serilog.Events;
 
-### Generics and constraints
+namespace TutoringCentre.Api.Logging;
 
-#### What it means
+/// <summary>
+/// Safety net: when an object is destructured (<c>{@Request}</c>), properties named like Password, Token, Secret,
+/// ConnectionString or Phone* are replaced with "***". The primary rule (Day 7) remains: never log request objects.
+/// </summary>
+public sealed class SensitiveDataDestructuringPolicy : IDestructuringPolicy
+{
+    private const string Mask = "***";
 
-Generics let one definition work for many types (`Result<T>`, `ICommandHandler<TCommand,TResponse>`). Constraints (`where TCommand : ICommand<TResponse>`) restrict which types are legal so the compiler can check them; the `in` modifier (contravariance) lets a handler of a base type satisfy a derived one.
+    private static readonly string[] SensitiveFragments = ["Password", "Token", "Secret", "ConnectionString"];
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+    public bool TryDestructure(
+        object value,
+        ILogEventPropertyValueFactory propertyValueFactory,
+        [NotNullWhen(true)] out LogEventPropertyValue? result)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(propertyValueFactory);
 
-#### Where it appears in this file
+        result = null;
 
-Reflection use.
+        // Strings, dictionaries and collections keep Serilog's default handling.
+        if (value is IEnumerable)
+        {
+            return false;
+        }
 
-#### How it works here
+        var properties = value.GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(property => property.CanRead && property.GetIndexParameters().Length == 0)
+            .ToArray();
 
-`GetProperties`.
+        if (!properties.Any(property => IsSensitive(property.Name)))
+        {
+            return false;
+        }
 
-#### Why it matters here
+        var members = new List<LogEventProperty>(properties.Length);
+        foreach (var property in properties)
+        {
+            LogEventPropertyValue memberValue = IsSensitive(property.Name)
+                ? new ScalarValue(Mask)
+                : propertyValueFactory.CreatePropertyValue(property.GetValue(value), destructureObjects: true);
 
-Works for any type; costs reflection per call.
+            members.Add(new LogEventProperty(property.Name, memberValue));
+        }
 
-## Data and Control Flow
+        result = new StructureValue(members, value.GetType().Name);
+        return true;
+    }
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    private static bool IsSensitive(string propertyName) =>
+        propertyName.StartsWith("Phone", StringComparison.OrdinalIgnoreCase)
+        || SensitiveFragments.Any(fragment => propertyName.Contains(fragment, StringComparison.OrdinalIgnoreCase));
+}
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Fields are not inspected; names outside the list (e.g. `Pin`, `Email`) are not masked. Properties of nested collections use Serilog defaults.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs`](../../../tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../Program.cs.md)
-- [`docs/architecture/api-conventions.md`](../../../docs/architecture/api-conventions.md.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

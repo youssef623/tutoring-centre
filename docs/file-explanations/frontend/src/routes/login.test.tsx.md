@@ -1,72 +1,134 @@
-# frontend/src/routes/login.test.tsx
+# `frontend/src/routes/login.test.tsx`
 
 ## Purpose
 
-Tests of the login page: empty submit, generic 401 message, 429 message, successful redirect and rejection of an external redirect.
+Declares `problem`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes. Uses `renderRouter` with MSW.
+Category: **test**. [Open current file](../../../../../frontend/src/routes/login.test.tsx). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 108 lines and 4,543 bytes. Source hash: `b09a87342118518fbc3c8df8a116e5e0ea4a77d2a135cc37df019e20a75a8dec`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Test 1: an empty submit shows `Email is required.` and `Password is required.` and no login request is made (call counter 0). Test 2: a 401 `auth.invalid_credentials` shows an alert `Incorrect email or password.` that does not contain the typed email. Test 3: a 429 `auth.rate_limited` shows `Too many attempts. Please wait a minute and try again.` Test 4: success with an active centre at `/login?redirect=%2F` ends at pathname `/`. Test 5: `redirect=https%3A%2F%2Fevil.example` is ignored and the user lands on `/`. 5 tests.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Forms and schema validation (React Hook Form + Zod)
+- Line 1: `import { fireEvent, screen, waitFor } from "@testing-library/react";`
+- Line 2: `import { http, HttpResponse } from "msw";`
+- Line 3: `import { describe, expect, it } from "vitest";`
+- Line 4: `import { server } from "@/test/msw/server";`
+- Line 5: `import { renderRouter } from "@/test/renderRouter";`
 
-#### What it means
+## Walkthrough and declaration map
 
-React Hook Form tracks form fields with little re-rendering; Zod describes the valid shape of the data in one schema; a resolver connects them so the form shows field errors before any request is sent. Server-side field errors can be mapped back onto the same fields.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#633-forms-and-validation-with-react-hook-form-and-zod](../../../../PROJECT_OVERVIEW2.md#633-forms-and-validation-with-react-hook-form-and-zod).)
+- [Line 9](../../../../../frontend/src/routes/login.test.tsx#L9): `function problem(status: number, code: string, detail: string) {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Validation and messages.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Tests 1-3.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```tsx
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { describe, expect, it } from "vitest";
+import { server } from "@/test/msw/server";
+import { renderRouter } from "@/test/renderRouter";
 
-Shows the exact messages users see.
+const loginUrl = "/api/auth/login";
 
-### Frontend route guards, session state and global 401 handling
+function problem(status: number, code: string, detail: string) {
+  return HttpResponse.json({ title: "Error", status, code, detail }, { status });
+}
 
-#### What it means
+describe("LoginPage", () => {
+  it("empty submit shows translated field errors and sends no request", async () => {
+    let loginCalls = 0;
+    server.use(http.post(loginUrl, () => {
+      loginCalls += 1;
+      return problem(401, "auth.invalid_credentials", "Incorrect email or password.");
+    }));
 
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
+    renderRouter("/login");
+    fireEvent.click(await screen.findByRole("button", { name: "Sign in" }));
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
+    expect(await screen.findByText("Email is required.")).toBeInTheDocument();
+    expect(screen.getByText("Password is required.")).toBeInTheDocument();
+    expect(loginCalls).toBe(0);
+  });
 
-#### Where it appears in this file
+  it("a 401 shows the generic message and never mentions the email", async () => {
+    server.use(http.post(loginUrl, () => problem(401, "auth.invalid_credentials", "Incorrect email or password.")));
 
-Open-redirect protection.
+    renderRouter("/login");
+    fireEvent.change(await screen.findByLabelText("Email"), { target: { value: "owner@nile.test" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "wrong-password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
-#### How it works here
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Incorrect email or password.");
+    expect(alert).not.toHaveTextContent("owner@nile.test");
+  });
 
-Test 5 (lines 80-105).
+  it("a 429 shows the rate-limited message", async () => {
+    server.use(http.post(loginUrl, () => problem(429, "auth.rate_limited", "Too many login attempts.")));
 
-#### Why it matters here
+    renderRouter("/login");
+    fireEvent.change(await screen.findByLabelText("Email"), { target: { value: "owner@nile.test" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "whatever" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
-Proves `resolveTarget` refuses an absolute external URL.
+    expect(await screen.findByRole("alert")).toHaveTextContent("Too many attempts. Please wait a minute and try again.");
+  });
 
-## Data and Control Flow
+  it("success with an active centre navigates to the redirect value", async () => {
+    const me = {
+      userId: "01a0febd-0000-0000-0000-000000000001",
+      displayName: "Nile Owner",
+      email: "owner@nile.test",
+      preferredLocale: "en",
+      activeCentreId: "01a0febd-0000-0000-0000-00000000c001",
+      activeRole: "owner",
+      memberships: [
+        { centreId: "01a0febd-0000-0000-0000-00000000c001", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "owner" },
+      ],
+      permissions: [],
+    };
+    server.use(
+      http.post(loginUrl, () => HttpResponse.json(me)),
+      http.get("/api/me", () => HttpResponse.json(me)),
+    );
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    const { router } = renderRouter("/login?redirect=%2F");
+    fireEvent.change(await screen.findByLabelText("Email"), { target: { value: "owner@nile.test" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "correct-password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
-## Configuration and Environment
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/");
+    });
+  });
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+  it("an external redirect is ignored and lands on /", async () => {
+    const me = {
+      userId: "01a0febd-0000-0000-0000-000000000001",
+      displayName: "Nile Owner",
+      email: "owner@nile.test",
+      preferredLocale: "en",
+      activeCentreId: "01a0febd-0000-0000-0000-00000000c001",
+      activeRole: "owner",
+      memberships: [
+        { centreId: "01a0febd-0000-0000-0000-00000000c001", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "owner" },
+```
 
-## Gotchas and Issues
+The excerpt stops at line 90; use the original file for the remaining 18 lines.
 
-No bugs or surprises found while reading this file.
+## Before modifying this file
 
-## Related Files
-
-- [`frontend/src/routes/login.tsx`](login.tsx.md)
-- [`frontend/src/test/renderRouter.tsx`](../test/renderRouter.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,75 +1,71 @@
-# frontend/src/features/session/meQueryOptions.ts
+# `frontend/src/features/session/meQueryOptions.ts`
 
 ## Purpose
 
-TanStack Query options for `GET /api/me` that treat 'signed out' as data (`null`), not as an error.
+Source comment (intent): GET /api/me as "the current session, or none" rather than a request that can fail: a 401 means signed out and resolves to null, so a component reading this query never has to treat "no session" as an error state. Any other failure (network, 500) still throws and is a real query error.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/features/session. Used by `useSession`, the route guards (`_authenticated.tsx`, `select-centre.tsx`), `login.tsx` (writes the result into the cache) and `select-centre.tsx` (invalidates it).
+Category: **source**. [Open current file](../../../../../../frontend/src/features/session/meQueryOptions.ts). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 24 lines and 821 bytes. Source hash: `7d5d16a297dd12d81700b5bd3099b5da8decdfec11bf2018cd2b5e950f3995cc`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`meQueryOptions = queryOptions({ queryKey: getGetMeQueryKey(), queryFn, retry: false })` (10-24). `queryFn({ signal })` calls the generated `getMe({ signal })`; on error, `asApiError(error).status === 401` returns `null`, anything else is rethrown. The key comes from the generated client (`getGetMeQueryKey()`), so the login page and generated hooks share the same cache entry. `retry: false` because a 401 is a meaningful answer, not a transient failure. Return type `Promise<MeDto | null>`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Frontend route guards, session state and global 401 handling
+- Line 1: `import { queryOptions } from "@tanstack/react-query";`
+- Line 2: `import { asApiError } from "@/api/apiFetch";`
+- Line 3: `import { getGetMeQueryKey, getMe, type MeDto } from "@/api/generated/tutoring-centre";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
+- [Line 10](../../../../../../frontend/src/features/session/meQueryOptions.ts#L10): `export const meQueryOptions = queryOptions({`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Session as a query.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/features/session/useSession.ts:2](../../../../../../frontend/src/features/session/useSession.ts#L2)
+- [frontend/src/routes/_authenticated.test.tsx:6](../../../../../../frontend/src/routes/_authenticated.test.tsx#L6)
+- [frontend/src/routes/_authenticated.tsx:5](../../../../../../frontend/src/routes/_authenticated.tsx#L5)
+- [frontend/src/routes/change-password.tsx:18](../../../../../../frontend/src/routes/change-password.tsx#L18)
+- [frontend/src/routes/login.tsx:15](../../../../../../frontend/src/routes/login.tsx#L15)
+- [frontend/src/routes/select-centre.tsx:27](../../../../../../frontend/src/routes/select-centre.tsx#L27)
 
-Whole file.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-A component or guard reading this query never has to treat 'no session' as an error; only real failures (network, 500) are errors.
+```typescript
+import { queryOptions } from "@tanstack/react-query";
+import { asApiError } from "@/api/apiFetch";
+import { getGetMeQueryKey, getMe, type MeDto } from "@/api/generated/tutoring-centre";
 
-### Server state with TanStack Query
+/**
+ * GET /api/me as "the current session, or none" rather than a request that can fail: a 401 means
+ * signed out and resolves to null, so a component reading this query never has to treat "no session"
+ * as an error state. Any other failure (network, 500) still throws and is a real query error.
+ */
+export const meQueryOptions = queryOptions({
+  queryKey: getGetMeQueryKey(),
+  queryFn: async ({ signal }): Promise<MeDto | null> => {
+    try {
+      return await getMe({ signal });
+    } catch (error) {
+      if (asApiError(error).status === 401) {
+        return null;
+      }
 
-#### What it means
+      throw error;
+    }
+  },
+  retry: false,
+});
+```
 
-Server state (data owned by the API) needs caching, refetching, retry and loading/error flags. `useQuery` subscribes a component to a cache entry addressed by a *query key*, runs the `queryFn`, and re-renders the component when the entry changes.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
-
-#### Where it appears in this file
-
-`queryOptions` helper.
-
-#### How it works here
-
-Line 10.
-
-#### Why it matters here
-
-One object reused for `useQuery`, `queryClient.query(...)` in guards, `setQueryData` and `invalidateQueries`, so keys never drift.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/features/session/useSession.ts`](useSession.ts.md)
-- [`frontend/src/routes/_authenticated.tsx`](../../routes/_authenticated.tsx.md)
-- [`frontend/src/routes/login.tsx`](../../routes/login.tsx.md)
-- `frontend/src/api/generated/tutoring-centre.ts` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`frontend/src/api/apiFetch.ts`](../../api/apiFetch.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

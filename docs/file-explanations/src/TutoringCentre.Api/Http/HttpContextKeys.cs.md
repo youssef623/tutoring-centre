@@ -1,34 +1,46 @@
-# src/TutoringCentre.Api/Http/HttpContextKeys.cs
+# `src/TutoringCentre.Api/Http/HttpContextKeys.cs`
 
 ## Purpose
 
-Holds the string key under which the correlation ID is stored in `HttpContext.Items`.
+Source summary (intent, not independent execution proof): Keys for per-request values stored in `HttpContext.Items`.
 
-## Where It Fits
+## Where it fits
 
-Api/Http, `internal static`. Used by `CorrelationIdMiddleware` (write) and `ProblemResult.Enrich` (read).
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Http/HttpContextKeys.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 7 lines and 229 bytes. Source hash: `0e5bad6cb72997c738e791b997cabed19e9c05c5d165f3e4ad2dceb992ea2c6b`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public const string CorrelationId = "CorrelationId";` A shared constant avoids two files disagreeing on a magic string. (`ResultHttpExtensionsTests` writes the literal `"CorrelationId"`, so the test depends on the value.)
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-This file introduces no concept that needs a tutorial beyond what its walkthrough already explains.
+## Walkthrough and declaration map
 
-## Data and Control Flow
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+- [Line 4](../../../../../src/TutoringCentre.Api/Http/HttpContextKeys.cs#L4): `internal static class HttpContextKeys`
 
-## Configuration and Environment
+## Used by: verified name references
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-## Gotchas and Issues
+- [src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs:26](../../../../../src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs#L26)
+- [src/TutoringCentre.Api/Http/ProblemResult.cs:30](../../../../../src/TutoringCentre.Api/Http/ProblemResult.cs#L30)
 
-String-keyed `Items` dictionary is untyped; a typo elsewhere would silently yield null.
+## Current source excerpt
 
-## Related Files
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-- [`src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs`](CorrelationIdMiddleware.cs.md)
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](ProblemResult.cs.md)
+```csharp
+namespace TutoringCentre.Api.Http;
+
+/// <summary>Keys for per-request values stored in <see cref="HttpContext.Items"/>.</summary>
+internal static class HttpContextKeys
+{
+    public const string CorrelationId = "CorrelationId";
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

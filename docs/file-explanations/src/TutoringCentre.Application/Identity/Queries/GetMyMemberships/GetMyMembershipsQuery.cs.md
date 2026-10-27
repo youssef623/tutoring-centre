@@ -1,51 +1,48 @@
-# src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs
+# `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs`
 
 ## Purpose
 
-Asks for the signed-in staff member's own profile and active memberships.
+Source summary (intent, not independent execution proof): Asks for the signed-in staff member's own profile and active memberships. Takes identity from the actor.
 
-## Where It Fits
+## Where it fits
 
-Application/Identity/Queries/GetMyMemberships. Dispatched by `LoginAsync` and `GetMeAsync`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 6 lines and 308 bytes. Source hash: `8f4eb0b3a5716acfd4ae99e3f64b97f5b8ec1359a951984054424836d5394b47`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record GetMyMembershipsQuery : IQuery<MeDto>;` - no properties: 'my' queries take identity from the actor, so there is no id to tamper with.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CQRS and the dispatcher pipeline
+- Line 1: `using TutoringCentre.Application.Common.Cqrs;`
 
-#### What it means
+## Walkthrough and declaration map
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 6](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs#L6): `public sealed record GetMyMembershipsQuery : IQuery<MeDto>;`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Parameterless query.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:109](../../../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L109)
+- [src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs:15](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs#L15)
+- [tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs:20](../../../../../../../tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs#L20)
 
-Declaration.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Identity from context, not input.
+```csharp
+using TutoringCentre.Application.Common.Cqrs;
 
-## Data and Control Flow
+namespace TutoringCentre.Application.Identity.Queries.GetMyMemberships;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>Asks for the signed-in staff member's own profile and active memberships. Takes identity from the actor.</summary>
+public sealed record GetMyMembershipsQuery : IQuery<MeDto>;
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs`](GetMyMembershipsHandler.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,58 +1,62 @@
-# docs/architecture/api-conventions.md
+# `docs/architecture/api-conventions.md`
 
 ## Purpose
 
-Authoritative description of the HTTP conventions: error shape, Result-to-status mapping, exception handling, strict JSON, correlation IDs, log redaction, routing and the first endpoint.
+Documentation covering API conventions; Error shape; Result → HTTP mapping; Exceptions; Strict JSON. Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Documentation for `src/TutoringCentre.Api/Http/*`, `Logging/*`, `Auth/*`, `Program.cs` and `Endpoints/PlatformEndpoints.cs`. I verified each rule against those files and `tests/TutoringCentre.Api.Tests/Http/*`.
+Category: **documentation**. [Open current file](../../../architecture/api-conventions.md). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 157 lines and 16,837 bytes. Source hash: `30b054f94b9583021384f9afca3fdd26c24af5be77048fabbb368d58725e3072`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Sections: *Error shape* (RFC 9457 written only by `ProblemResult`; extensions `traceId`, `correlationId`; `errors` for validation); *Result -> HTTP mapping* table (Validation 400, NotFound 404, Conflict 409, Rule 422, Forbidden 403, Unauthenticated 401; non-generic success -> 204); *Exceptions* (`GlobalExceptionHandler`: `BadHttpRequestException` -> 400 `request.malformed` logged Warning, else 500 `server.unexpected` logged Error; no message/type/stack in body); *Strict JSON* (`UnmappedMemberHandling.Disallow`, camelCase enum converter, `ThrowOnBadRequest`); *Correlation IDs* (first middleware, 1-64 chars of letters/digits/`.`/`_`/`-`, Serilog `LogContext`, `OnStarting`); *Log redaction*; *Routing* (`/api` group, `route.not_found` fallback); *`GET /api/system/info`* (anonymous explicitly via `.AllowAnonymous()`); new section *Authentication and authorization*: the rule that the authorization fallback policy requires an authenticated user (a new endpoint is protected the moment it is mapped, forgetting an attribute fails closed with 401), a table of exactly six explicitly anonymous routes (`GET /health`, `GET /health/ready`, `GET /api/system/info`, `GET /api/auth/antiforgery`, `POST /api/auth/login`, the `/api/{**path}` fallback), the explanation of the second pattern-less anonymous fallback (the authorization fallback policy would otherwise turn 'no endpoint matched' into 401), the note that `/api/auth/logout`, `/api/me` and `/api/session/centre` rely on the fallback policy instead of repeating `.RequireAuthorization()`, and that the Development-only `/openapi/v1.json` is `.AllowAnonymous()` too.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Problem Details (RFC 9457) and centralised error handling
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+- [Line 33](../../../architecture/api-conventions.md#L33): `**201 + Location (Day 26).** ToCreatedHttpResult is the one place a successful creation becomes 201 Created. The endpoint supplies a function from the result's value to (Location, Body); both are built only from server-generated values (the created resource's own ID), never from caller-supplied input. Failure still goes through the exact same Error.ToProblemResult() the other mapping uses — there is no second status switch to keep in sync.`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Whole document.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Specification that the Api tests pin.
+```text
+# API conventions
 
-#### Why it matters here
+## Error shape
 
-Read before adding an endpoint.
+**Rule.** Every error response is RFC 9457 Problem Details, `application/problem+json`, written by exactly one type: `ProblemResult` (`src/TutoringCentre.Api/Http/ProblemResult.cs`). No other code writes an error body.
 
-## Data and Control Flow
+Every error carries two extensions beyond the RFC fields:
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+| Extension | Source | Purpose |
+| --- | --- | --- |
+| `traceId` | `Activity.Current?.Id ?? HttpContext.TraceIdentifier` | Correlate with distributed tracing. |
+| `correlationId` | `HttpContext.Items["CorrelationId"]`, set by `CorrelationIdMiddleware` | Correlate with the client's own logs; `null` only if the middleware did not run. |
 
-## Configuration and Environment
+Validation failures also carry `errors`: a field name (camelCase) → message list, built from `Error.Fields`.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+**Nested field paths (Day 41).** A field inside a nested request object is still one dotted key in `errors`, never its own nested object: `RegisterStudentCommand`'s `Parent` value produces `errors["parent.fullName"]` or `errors["parent.phone"]`, not `errors.parent.fullName`. The dispatcher builds this by camel-casing each dotted segment of the validator's `PropertyName` (`Dispatcher.ToCamelCase`) — a validator that uses `SetValidator` on a nested property, or an `OverridePropertyName("Parent.Phone")` call, gets the nested path for free. A handler-level error that needs the same path for a field FluentValidation never sees (e.g. the nested parent's phone failing `PhoneNumber.Create`, not the validator's own shape check) builds the `Fields` dictionary directly with the same dotted key, by hand (`StudentErrors.ParentPhoneInvalid`).
 
-## Gotchas and Issues
+## Result → HTTP mapping
 
-Minor: says correlationId is `null` only if the middleware did not run; true per `ProblemResult.Enrich`.
+**Rule.** `ResultHttpExtensions` (`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`) is the single place a domain `Result`/`Error` becomes an HTTP response. Endpoints call `.ToHttpResult(...)` and never branch on `ErrorKind` themselves.
 
-## Related Files
+| `ErrorKind` | HTTP status | Example |
+| --- | --- | --- |
+| `Validation` | 400 | bad input shape |
+```
 
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](../../src/TutoringCentre.Api/Http/ProblemResult.cs.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs.md)
-- [`src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs`](../../src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs.md)
-- [`src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs`](../../src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs.md)
-- [`src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs`](../../src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../../src/TutoringCentre.Api/Program.cs.md)
-- [`docs/architecture/authentication.md`](authentication.md.md)
-- [`src/TutoringCentre.Api/Auth/AuthenticationSetup.cs`](../../src/TutoringCentre.Api/Auth/AuthenticationSetup.cs.md)
+The excerpt stops at line 24; use the original file for the remaining 133 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

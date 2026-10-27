@@ -1,52 +1,63 @@
-# tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs`
 
 ## Purpose
 
-End-to-end test of `GetSystemInfoQuery` against a migrated database.
+Declares `SystemInfoQueryTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Platform.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 21 lines and 922 bytes. Source hash: `cf9052c44f51ab74d334fe77a613dcdb2cbd60a7c23d209462307239e6c93f04`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`QueryAsAsync<GetSystemInfoQuery,SystemInfoDto>(new AnonymousActor(), new GetSystemInfoQuery())`; asserts success, `LatestMigration` ends with `_AddIdentityAndMemberships` (the test was renamed `QueryAsync_MigratedDatabase_ReportsLatestMigrationAsUpToDate`), `DatabaseUpToDate` true, version non-blank. Uses an anonymous actor, confirming the query needs no authorization.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Repository pattern and read services
+- Line 1: `using TutoringCentre.Application.Common.Security;`
+- Line 2: `using TutoringCentre.Application.Platform;`
+- Line 3: `using TutoringCentre.Application.Platform.Queries.GetSystemInfo;`
+- Line 4: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *repository* looks like a collection of aggregates (`Add`, `ExistsBy...`) and hides how they are stored. A *read service* is a separate query-side abstraction that returns DTOs directly, so reads need not load and map domain entities.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services](../../../../PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services).)
+- [Line 8](../../../../../tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs#L8): `public sealed class SystemInfoQueryTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 11](../../../../../tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs#L11): `public async Task QueryAsync_MigratedDatabase_ReportsLatestMigrationAsUpToDate()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Real read service.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Dispatch through DI.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Platform;
+using TutoringCentre.Application.Platform.Queries.GetSystemInfo;
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-Verifies migration-history reading.
+namespace TutoringCentre.Infrastructure.Tests.Platform;
 
-## Data and Control Flow
+public sealed class SystemInfoQueryTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    [Fact]
+    public async Task QueryAsync_MigratedDatabase_ReportsLatestMigrationAsUpToDate()
+    {
+        var result = await Fixture.QueryAsAsync<GetSystemInfoQuery, SystemInfoDto>(new AnonymousActor(), new GetSystemInfoQuery());
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+        Assert.True(result.IsSuccess);
+        Assert.EndsWith("_AddSchedule", result.Value.LatestMigration, StringComparison.Ordinal);
+        Assert.True(result.Value.DatabaseUpToDate);
+        Assert.False(string.IsNullOrWhiteSpace(result.Value.ApplicationVersion));
+        Assert.False(result.Value.DemoMode);
+    }
+}
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs`](../../../src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs.md)
-- [`src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs`](../../../src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

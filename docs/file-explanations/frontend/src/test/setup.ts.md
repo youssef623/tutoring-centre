@@ -1,74 +1,73 @@
-# frontend/src/test/setup.ts
+# `frontend/src/test/setup.ts`
 
 ## Purpose
 
-Vitest setup file: loads i18n, stubs `matchMedia`, starts MSW and cleans the DOM and handlers around tests.
+Current test file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/test. Referenced by `vite.config.ts` `test.setupFiles`.
+Category: **test**. [Open current file](../../../../../frontend/src/test/setup.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 33 lines and 1,111 bytes. Source hash: `e369f3a5e27109193557c984e4364f64620bc5345b7a39ac03fa798e80197973`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Imports `@testing-library/jest-dom/vitest` (matchers such as `toBeInTheDocument`) and `@/i18n` (so `t()` returns real English text in every test). `window.matchMedia` is stubbed (9-19) because jsdom has no `matchMedia` and Sonner's `Toaster` (rendered on every route by `__root.tsx`) reads it for `prefers-color-scheme`; the stub returns `matches: false`. `beforeAll`: `server.listen({ onUnhandledRequest: "error" })` - any request without a handler fails the test (22-24). `afterEach`: `cleanup()` (unmount; needed because Vitest globals are off) and `server.resetHandlers()` (26-29). `afterAll`: `server.close()` (31-33).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Mocking the network with MSW
+- Line 1: `import "@testing-library/jest-dom/vitest";`
+- Line 2: `import { cleanup } from "@testing-library/react";`
+- Line 3: `import { afterAll, afterEach, beforeAll } from "vitest";`
+- Line 4: `import "@/i18n";`
+- Line 5: `import { server } from "./msw/server";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Mock Service Worker intercepts `fetch` at the network layer, so components and hooks run unchanged while the test decides what the 'server' answers.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Strict unhandled-request policy.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Line 23.
+```typescript
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll } from "vitest";
+import "@/i18n";
+import { server } from "./msw/server";
 
-#### Why it matters here
+// jsdom has no matchMedia; Sonner's Toaster (rendered on every route via __root.tsx) reads it for
+// prefers-color-scheme. A minimal stub is enough — no test asserts on an actual media query match.
+window.matchMedia = (query: string) =>
+  ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => false,
+  }) as MediaQueryList;
 
-A forgotten handler fails loudly instead of reaching the network.
+// Any request without a handler fails the test instead of silently hitting the network.
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: "error" });
+});
 
-### Internationalisation (i18next) and RTL layout
+afterEach(() => {
+  cleanup(); // unmount rendered components (Vitest globals are off, so Testing Library can't do it automatically)
+  server.resetHandlers(); // drop per-test overrides
+});
 
-#### What it means
+afterAll(() => {
+  server.close();
+});
+```
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
-
-#### Where it appears in this file
-
-Real translations in tests.
-
-#### How it works here
-
-Import of `@/i18n`.
-
-#### Why it matters here
-
-Assertions use real strings, so wording changes in JSON show up in tests.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The jsdom message 'Not implemented: Window's scrollTo() method' is printed repeatedly during the router tests (observed in the test run); it is noise, not a failure.
-
-## Related Files
-
-- [`frontend/src/test/msw/server.ts`](msw/server.ts.md)
-- [`frontend/src/test/msw/handlers.ts`](msw/handlers.ts.md)
-- [`frontend/vite.config.ts`](../../vite.config.ts.md)
-- [`frontend/src/i18n/index.ts`](../i18n/index.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

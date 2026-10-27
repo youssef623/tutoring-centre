@@ -1,102 +1,94 @@
-# src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs
+# `src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs`
 
 ## Purpose
 
-Gives every request a validated correlation ID, exposes it in the response header and in every log line.
+Source summary (intent, not independent execution proof): Resolves or creates the request's correlation ID, exposes it on the response and in every log line. A client-supplied value is accepted only when it is 1–64 characters of letters, digits, '.', '_' or '-': an unvalidated header written into logs could inject fake log lines or huge values.
 
-## Where It Fits
+## Where it fits
 
-Api/Http, `internal`. Registered first in `Program.cs:86`. Provides the value `ProblemResult` reads from `HttpContext.Items`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 49 lines and 2,170 bytes. Source hash: `757b9d9731282b638a75e199874f21f93b6616f0f39930aa63f6922f9386a413`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Convention-based middleware: constructor `(RequestDelegate next)`, method `InvokeAsync(HttpContext)`. `HeaderName = "X-Correlation-Id"` (14), `MaxLength = 64` (15). Steps (17-37): read the request header (21); `IsValid(supplied)` (39) requires length 1-64 and every character ASCII letter/digit or `.`/`_`/`-`; otherwise `Guid.NewGuid().ToString("N")` (32 hex chars) (22); store in `context.Items[HttpContextKeys.CorrelationId]`; register `context.Response.OnStarting(...)` (27) which writes the header when the response begins (comment: the exception handler clears the response before writing a 500, so an immediate write would be lost); `using (LogContext.PushProperty("CorrelationId", id)) await next(context)` (33) so all log lines inside carry it. Rationale in the doc comment: an unvalidated header written to logs could inject fake lines or huge values.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Middleware and the request pipeline
+- Line 1: `using System.Diagnostics;`
+- Line 2: `using System.Diagnostics.CodeAnalysis;`
+- Line 3: `using Serilog.Context;`
+- Line 4: `using TutoringCentre.Application.Common.Security;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
+- [Line 14](../../../../../src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs#L14): `internal sealed class CorrelationIdMiddleware(RequestDelegate next)`
+- [Line 19](../../../../../src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs#L19): `public async Task InvokeAsync(HttpContext context, CorrelationContext correlationContext)`
+- [Line 46](../../../../../src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs#L46): `private static bool IsValid(string value) =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Wrapping `next`.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Program.cs:171](../../../../../src/TutoringCentre.Api/Program.cs#L171)
 
-`await next(context)` inside `using`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Property is scoped to the request's downstream work.
+```csharp
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Serilog.Context;
+using TutoringCentre.Application.Common.Security;
 
-### Structured logging, Serilog and correlation IDs
+namespace TutoringCentre.Api.Http;
 
-#### What it means
+/// <summary>
+/// Resolves or creates the request's correlation ID, exposes it on the response and in every log line.
+/// A client-supplied value is accepted only when it is 1–64 characters of letters, digits, '.', '_' or '-':
+/// an unvalidated header written into logs could inject fake log lines or huge values.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the ASP.NET Core middleware pipeline.")]
+internal sealed class CorrelationIdMiddleware(RequestDelegate next)
+{
+    public const string HeaderName = "X-Correlation-Id";
+    private const int MaxLength = 64;
 
-Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
+    public async Task InvokeAsync(HttpContext context, CorrelationContext correlationContext)
+    {
+        ArgumentNullException.ThrowIfNull(context);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
+        var supplied = context.Request.Headers[HeaderName].ToString();
+        var correlationId = IsValid(supplied) ? supplied : Guid.NewGuid().ToString("N");
 
-#### Where it appears in this file
+        context.Items[HttpContextKeys.CorrelationId] = correlationId;
+        correlationContext.Set(correlationId);
 
-`LogContext.PushProperty`.
+        // Task 35.6: the same reference shown to the user in a toast, findable on the request's trace when
+        // telemetry is enabled. A no-op (no listener) when telemetry is off, so this costs nothing by default.
+        Activity.Current?.SetTag("correlation.id", correlationId);
 
-#### How it works here
+        // OnStarting, not an immediate header write: the exception handler clears the response before writing a 500.
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers[HeaderName] = correlationId;
+            return Task.CompletedTask;
+        });
 
-Line 33.
+        using (LogContext.PushProperty("CorrelationId", correlationId))
+        {
+            await next(context);
+        }
+    }
 
-#### Why it matters here
-
-Every log event carries `CorrelationId`.
-
-### async/await and cancellation
-
-#### What it means
-
-`async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-`OnStarting` callback.
-
-#### How it works here
-
-Line 27.
-
-#### Why it matters here
-
-Header is added at the last moment, surviving response resets.
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    R["request header X-Correlation-Id?"] --> V{"valid 1-64 safe chars?"}
-    V -->|yes| U["use it"]
-    V -->|no| G["new GUID (N)"]
-    U --> S["Items + LogContext + OnStarting header"]
-    G --> S
-    S --> N["next middleware"]
+    private static bool IsValid(string value) =>
+        value.Length is > 0 and <= MaxLength
+        && value.All(character => char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '-');
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-Header name `X-Correlation-Id`.
-
-## Gotchas and Issues
-
-A valid client-supplied ID is trusted as-is (not unique).
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](ProblemResult.cs.md)
-- [`src/TutoringCentre.Api/Http/HttpContextKeys.cs`](HttpContextKeys.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs`](../../../tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../Program.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,107 +1,68 @@
-# src/TutoringCentre.Application/DependencyInjection.cs
+# `src/TutoringCentre.Application/DependencyInjection.cs`
 
 ## Purpose
 
-The Application layer's registration entry point: `AddApplication`, called once from `Program.cs`.
+Source summary (intent, not independent execution proof): Registers the Application layer's services. Called once from the Api's composition root.
 
-## Where It Fits
+## Where it fits
 
-Application root. Called by `src/TutoringCentre.Api/Program.cs:45` and `tests/.../PostgresFixture.CreateServiceProvider`. Depends on `CurrentActorContext`, `ICurrentActor`, `HandlerRegistration.AddCqrsHandlers`, `Dispatcher`.
+Category: **source**. [Open current file](../../../../src/TutoringCentre.Application/DependencyInjection.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 27 lines and 1,175 bytes. Source hash: `24d4a51f4e612655bf39f88da59410b68f06f21f99418db8b54a8c3035a269e6`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`AddApplication(this IServiceCollection services)` (10-22):
-1. `services.AddScoped<CurrentActorContext>()` (15).
-2. `services.AddScoped<ICurrentActor>(provider => provider.GetRequiredService<CurrentActorContext>())` (16) - a *factory registration*: asking for `ICurrentActor` returns the **same** scoped `CurrentActorContext`. Edge code can `Set` the actor; handlers only see the read-only interface.
-3. `services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly)` (18) - reflection scan for handlers + validators.
-4. `services.AddScoped<Dispatcher>()` (19) - concrete class, scoped.
-Returns `services` for chaining (`AddApplication().AddInfrastructure(...)`).
-If step 2 were `AddScoped<ICurrentActor, CurrentActorContext>()`, handlers would get a *different* instance than the one `ActorMiddleware` had `Set`, always anonymous.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Dependency Injection (DI) and the container
+- Line 1: `using Microsoft.Extensions.DependencyInjection;`
+- Line 2: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 3: `using TutoringCentre.Application.Common.Security;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A class that needs a collaborator can create it itself (`new X()`), which hard-wires the choice, or it can *receive* it, usually as a constructor parameter. That second approach is dependency injection. A DI *container* stores *registrations* ("when asked for type A, build type B with lifetime L") and performs *resolution*: it picks a constructor, resolves each parameter recursively, builds the object and caches it according to the lifetime. This is inversion of control: the class no longer decides what it depends on.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+- [Line 8](../../../../src/TutoringCentre.Application/DependencyInjection.cs#L8): `public static class DependencyInjection`
+- [Line 10](../../../../src/TutoringCentre.Application/DependencyInjection.cs#L10): `public static IServiceCollection AddApplication(this IServiceCollection services)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The four registrations.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Lines 15-19.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
 
-Defines what the container can build for the Application layer.
+namespace TutoringCentre.Application;
 
-### Service lifetimes (singleton, scoped, transient)
+/// <summary>Registers the Application layer's services. Called once from the Api's composition root.</summary>
+public static class DependencyInjection
+{
+    public static IServiceCollection AddApplication(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
 
-#### What it means
+        // One actor context per scope (HTTP request or job). ICurrentActor resolves to the SAME instance, read-only.
+        services.AddScoped<CurrentActorContext>();
+        services.AddScoped<ICurrentActor>(provider => provider.GetRequiredService<CurrentActorContext>());
 
-Lifetime says how long a container-built instance lives. *Singleton*: one for the whole application. *Scoped*: one per scope; in ASP.NET one scope = one HTTP request, and code can create its own scope (as the seed command does). *Transient*: a new instance on every resolution. A longer-lived service must not hold a shorter-lived one (a "captive dependency"), which `ValidateScopes` detects.
+        // One correlation context per scope. ICorrelationContext resolves to the SAME instance, read-only.
+        services.AddScoped<CorrelationContext>();
+        services.AddScoped<ICorrelationContext>(provider => provider.GetRequiredService<CorrelationContext>());
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+        services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
+        services.AddScoped<Dispatcher>();
 
-#### Where it appears in this file
-
-All scoped.
-
-#### How it works here
-
-`AddScoped` x4 here plus scoped handlers from the scan.
-
-#### Why it matters here
-
-The actor and the shared scoped `AppDbContext` live and die with one request or job.
-
-### Assembly scanning and reflection
-
-#### What it means
-
-*Reflection* lets code inspect types at runtime (`assembly.GetTypes()`, `type.GetInterfaces()`). *Assembly scanning* uses it to find classes implementing a given interface and register them automatically, so adding a new handler needs no registration line.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
-
-#### Where it appears in this file
-
-`AddCqrsHandlers` call.
-
-#### How it works here
-
-Line 18.
-
-#### Why it matters here
-
-No per-handler registration.
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    P["Program.cs: AddApplication()"] --> R1["CurrentActorContext (scoped)"]
-    P --> R2["ICurrentActor => same CurrentActorContext"]
-    P --> R3["scan: handlers + validators"]
-    P --> R4["Dispatcher (scoped)"]
+        return services;
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Handlers/validators are registered at `AddApplication` time by reflection; a handler class that is `abstract`, generic or does not implement a *closed* handler interface is skipped silently.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs`](Common/Cqrs/HandlerRegistration.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](Common/Cqrs/Dispatcher.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs`](Common/Security/CurrentActorContext.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../TutoringCentre.Api/Program.cs.md)
-- [`src/TutoringCentre.Infrastructure/DependencyInjection.cs`](../TutoringCentre.Infrastructure/DependencyInjection.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,156 +1,153 @@
-# frontend/src/routes/login.tsx
+# `frontend/src/routes/login.tsx`
 
 ## Purpose
 
-The `/login` page: a validated email/password form, error handling for credentials and rate limiting, a safe return-URL redirect, and the Hessa brand panel.
+Source comment (intent): Only ever a relative, same-site path: an open `redirect` search parameter is never trusted as-is.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes. Public route (no guard). Uses the generated `useLogin`, React Hook Form with a Zod schema, `refreshCsrfToken`, `meQueryOptions`, `LanguageSwitcher`, `HessaLogo`, i18n namespace `auth`. Tested by `login.test.tsx` and the Playwright specs.
+Category: **source**. [Open current file](../../../../../frontend/src/routes/login.tsx). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 226 lines and 9,724 bytes. Source hash: `dd6042853e035000dbb63834f6e221bac43593ed4eeee557e506247499ac4a55`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `LoginSearch { redirect?: string }` and `Route = createFileRoute("/login")({ validateSearch, component })` (21-30): `validateSearch` keeps `redirect` only when it is a string.
-- `loginSchema` (32-35): `email: z.string().min(1, "validation.emailRequired").pipe(z.email("validation.emailInvalid"))`, `password: z.string().min(1, "validation.passwordRequired")` - the messages are *translation keys*. `KnownFields = ["email","password"]`.
-- `resolveTarget(me, redirect)` (48-58): if `me.activeCentreId === null` -> `/select-centre`; else if `redirect` starts with `/` and not `//` -> that path; else `/`. The comment: an open `redirect` parameter is never trusted as is (blocks `https://evil.example` and protocol-relative `//host`).
-- `LoginPage` (60-228): `useForm({ resolver: zodResolver(loginSchema) })`. `onSubmit` (75-95): clears the banner; `loginMutation.mutateAsync({ data: values })` returns `MeDto`; `await refreshCsrfToken()` (new session, new token); `queryClient.setQueryData(meQueryOptions.queryKey, me)` (the guard will then see the session without another request); `navigate({ href: resolveTarget(me, redirect) })`. On error: `asApiError`; code `auth.invalid_credentials` -> banner `errors.invalidCredentials`; `auth.rate_limited` -> banner `errors.rateLimited`; otherwise `applyFieldErrors` and, if there are no field errors, `messageFor`. Field error text: `server` errors are shown as-is, validation keys are translated with `t(key)`.
-- JSX: a two-column layout; left column with `HessaWordmark`, `LanguageSwitcher`, heading, optional destructive `Alert` banner, and the `form` (`noValidate`, labels with `htmlFor`, `autoComplete` `email` / `current-password`, `aria-invalid`, inputs disabled while submitting, submit button with spinner); right column `aside` (hidden below `lg`, `aria-hidden`) with a gradient, brand mark and four feature cards from `PANEL_FEATURES`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Forms and schema validation (React Hook Form + Zod)
+- Line 1: `import { zodResolver } from "@hookform/resolvers/zod";`
+- Line 2: `import { useQueryClient } from "@tanstack/react-query";`
+- Line 3: `import { createFileRoute, useNavigate } from "@tanstack/react-router";`
+- Line 4: `import { ClipboardCheck, Loader2, MessageCircle, Users, Wallet } from "lucide-react";`
+- Line 5: `import type { LucideIcon } from "lucide-react";`
+- Line 6: `import { useState } from "react";`
+- Line 7: `import { useForm } from "react-hook-form";`
+- Line 8: `import { useTranslation } from "react-i18next";`
+- Line 9: `import { z } from "zod";`
+- Line 10: `import { applyFieldErrors } from "@/api/showApiError";`
+- Line 11: `import { messageFor } from "@/api/errorMessages";`
+- Line 12: `import { refreshCsrfToken } from "@/api/csrf";`
+- Line 13: `import { asApiError } from "@/api/apiFetch";`
+- Line 14: `import { useLogin, type MeDto } from "@/api/generated/tutoring-centre";`
+- Line 15: `import { meQueryOptions } from "@/features/session/meQueryOptions";`
+- Line 16: `import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";`
+- Line 17: `import { HessaMark, HessaWordmark } from "@/components/brand/HessaLogo";`
+- Line 18: `import { Alert, AlertDescription } from "@/components/ui/alert";`
+- Line 19: `import { Button } from "@/components/ui/button";`
 
-#### What it means
+## Walkthrough and declaration map
 
-React Hook Form tracks form fields with little re-rendering; Zod describes the valid shape of the data in one schema; a resolver connects them so the form shows field errors before any request is sent. Server-side field errors can be mapped back onto the same fields.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#633-forms-and-validation-with-react-hook-form-and-zod](../../../../PROJECT_OVERVIEW2.md#633-forms-and-validation-with-react-hook-form-and-zod).)
+- [Line 21](../../../../../frontend/src/routes/login.tsx#L21): `export interface LoginSearch {`
+- [Line 25](../../../../../frontend/src/routes/login.tsx#L25): `export const Route = createFileRoute("/login")({`
+- [Line 48](../../../../../frontend/src/routes/login.tsx#L48): `function resolveTarget(me: MeDto, redirect: string | undefined): string {`
+- [Line 60](../../../../../frontend/src/routes/login.tsx#L60): `function LoginPage() {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-React Hook Form + Zod.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/routes/login.test.tsx:13](../../../../../frontend/src/routes/login.test.tsx#L13)
 
-Lines 32-38, 68-73, 138, 157.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Client validation runs before any request; empty submit shows translated errors and sends nothing (tested).
+```tsx
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ClipboardCheck, Loader2, MessageCircle, Users, Wallet } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { z } from "zod";
+import { applyFieldErrors } from "@/api/showApiError";
+import { messageFor } from "@/api/errorMessages";
+import { refreshCsrfToken } from "@/api/csrf";
+import { asApiError } from "@/api/apiFetch";
+import { useLogin, type MeDto } from "@/api/generated/tutoring-centre";
+import { meQueryOptions } from "@/features/session/meQueryOptions";
+import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
+import { HessaMark, HessaWordmark } from "@/components/brand/HessaLogo";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
-### CSRF protection with antiforgery tokens
+export interface LoginSearch {
+  redirect?: string;
+}
 
-#### What it means
+export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
+  component: LoginPage,
+});
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+const loginSchema = z.object({
+  email: z.string().min(1, "validation.emailRequired").pipe(z.email("validation.emailInvalid")),
+  password: z.string().min(1, "validation.passwordRequired"),
+});
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
+type LoginFormValues = z.infer<typeof loginSchema>;
+const KnownFields = ["email", "password"] as const;
 
-#### Where it appears in this file
+const PANEL_FEATURES: { icon: LucideIcon; key: "attendance" | "groups" | "fees" | "assistant" }[] = [
+  { icon: ClipboardCheck, key: "attendance" },
+  { icon: Users, key: "groups" },
+  { icon: Wallet, key: "fees" },
+  { icon: MessageCircle, key: "assistant" },
+];
 
-Token refresh after login.
+/** Only ever a relative, same-site path: an open `redirect` search parameter is never trusted as-is. */
+function resolveTarget(me: MeDto, redirect: string | undefined): string {
+  if (me.activeCentreId === null) {
+    return "/select-centre";
+  }
 
-#### How it works here
+  if (redirect !== undefined && redirect.startsWith("/") && !redirect.startsWith("//")) {
+    return redirect;
+  }
 
-Line 79.
+  return "/";
+}
 
-#### Why it matters here
+function LoginPage() {
+  const { t } = useTranslation("auth");
+  const { redirect } = Route.useSearch();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const loginMutation = useLogin();
+  const [banner, setBanner] = useState<string | null>(null);
 
-Login changes the signed-in user; the cached token must be replaced.
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
 
-### Frontend route guards, session state and global 401 handling
-
-#### What it means
-
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
-
-#### Where it appears in this file
-
-Safe return URL.
-
-#### How it works here
-
-`resolveTarget` (48-58).
-
-#### Why it matters here
-
-Prevents an open redirect after login.
-
-### Rate limiting, lockout and enumeration resistance
-
-#### What it means
-
-*Rate limiting* caps how many requests one source may make in a time window (stops password spraying from one place). *Lockout* temporarily blocks one account after repeated failures (stops many guesses against one account). *Enumeration resistance* means failure responses (and their timing) reveal nothing about whether an account exists.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance](../../../../PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance).)
-
-#### Where it appears in this file
-
-429 and 401 messages.
-
-#### How it works here
-
-Lines 84-88.
-
-#### Why it matters here
-
-The UI shows one generic message for wrong credentials (no hint whether the account exists) and a separate 'wait a minute' for rate limiting.
-
-### Cookie authentication and server-side sessions
-
-#### What it means
-
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
-
-#### Where it appears in this file
-
-Session cookie is invisible to this code.
-
-#### How it works here
-
-No cookie access anywhere.
-
-#### Why it matters here
-
-The cookie is `HttpOnly`; the page only learns the result through the `MeDto` response and later through `/api/me`.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant P as LoginPage
-    participant F as apiFetch
-    participant S as API
-    U->>P: submit email and password
-    P->>P: Zod validation
-    P->>F: useLogin mutate
-    F->>S: POST /api/auth/login with X-XSRF-TOKEN
-    S-->>F: 200 MeDto and Set-Cookie
-    F-->>P: MeDto
-    P->>F: refreshCsrfToken
-    P->>P: setQueryData me
-    P->>P: navigate to /select-centre or redirect or /
+  const onSubmit = handleSubmit(async (values) => {
+    setBanner(null);
+    try {
+      const me = await loginMutation.mutateAsync({ data: values });
+      await refreshCsrfToken();
+      queryClient.setQueryData(meQueryOptions.queryKey, me);
+      await navigate({ href: resolveTarget(me, redirect) });
+    } catch (error) {
+      const apiError = asApiError(error);
+      if (apiError.code === "auth.invalid_credentials") {
+        setBanner(t("errors.invalidCredentials"));
+      } else if (apiError.code === "auth.rate_limited") {
+        setBanner(t("errors.rateLimited"));
+      } else {
+        applyFieldErrors(apiError, setError, KnownFields);
+        if (apiError.fieldErrors === undefined) {
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 136 lines.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-The gradient colours on the brand panel are hard-coded hex values (not theme tokens). The password is held only in the form state and the request body; it is never logged or stored by this file.
-
-## Related Files
-
-- [`frontend/src/routes/login.test.tsx`](login.test.tsx.md)
-- `frontend/src/api/generated/tutoring-centre.ts` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`frontend/src/api/csrf.ts`](../api/csrf.ts.md)
-- [`frontend/src/api/showApiError.ts`](../api/showApiError.ts.md)
-- [`frontend/src/features/session/meQueryOptions.ts`](../features/session/meQueryOptions.ts.md)
-- [`frontend/src/components/brand/HessaLogo.tsx`](../components/brand/HessaLogo.tsx.md)
-- [`frontend/src/i18n/locales/en/auth.json`](../i18n/locales/en/auth.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

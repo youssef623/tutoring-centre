@@ -1,80 +1,116 @@
-# `src/TutoringCentre.Infrastructure`
+# Current area file guide
 
-Folder map generated from the per-file explanations. Part of the [file index](INDEX.md); the teaching overview is [`../PROJECT_OVERVIEW2.md`](../PROJECT_OVERVIEW2.md). Each row links to the full explanation of that file (purpose, where it fits, walkthrough, concepts, flow, configuration, gotchas, related files). **27 files.**
+This refreshed area contains 108 application files. [Complete index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md). Historical overview documents remain unchanged.
 
-## `src/TutoringCentre.Infrastructure`
+The per-file guides distinguish source-comment intent, recognized declarations and executed verification. Read the complete execution paths in the overview before changing shared boundaries. A source excerpt is evidence of current bytes, not proof that all branches passed a test.
 
-| File | Purpose | Explanation |
+| File | Category | Current guide |
 | --- | --- | --- |
-| `AssemblyMarker.cs` | Assembly handle for architecture tests. | [Explanation](./src/TutoringCentre.Infrastructure/AssemblyMarker.cs.md) |
-| `DependencyInjection.cs` | Infrastructure's registration entry point: wires every Application port to its PostgreSQL/EF/system implementation, configures the database, health check and options, and registers ASP.NET Core Identity (core only) with the password and lockout policy. | [Explanation](./src/TutoringCentre.Infrastructure/DependencyInjection.cs.md) |
-| `TutoringCentre.Infrastructure.csproj` | Project file for the adapter layer: references Application and Domain and brings in EF Core, the Npgsql provider and the health check. | [Explanation](./src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj.md) |
-
-## `src/TutoringCentre.Infrastructure/Identity`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `ApplicationUser.cs` | Infrastructure's persistence model for a staff user, extending ASP.NET Core Identity's `IdentityUser<Guid>`. | [Explanation](./src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs.md) |
-| `DevelopmentIdentitySeeder.cs` | Development bootstrapping: creates five staff accounts and their memberships idempotently, using Domain factories. | [Explanation](./src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs.md) |
-| `IdentityAuthenticationService.cs` | Implements `IAuthenticationService` with ASP.NET Core Identity's `UserManager`: password check, lockout, no account enumeration. | [Explanation](./src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs.md) |
-
-## `src/TutoringCentre.Infrastructure/Persistence`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `AppDbContext.cs` | The single EF Core database context for the whole application, extended with ASP.NET Core Identity's user, claim, login and token tables (no role tables). | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs.md) |
-| `DatabaseOptions.cs` | Typed settings object holding the database connection string, validated at startup. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs.md) |
-| `MigrationRunner.cs` | Extension method that applies pending EF Core migrations from an `IServiceProvider`. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs.md) |
-| `Schemas.cs` | Constants naming the PostgreSQL schemas used per feature module. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Schemas.cs.md) |
-| `UnitOfWork.cs` | Implements the `IUnitOfWork` port with an explicit database transaction on the scoped `AppDbContext`, including PostgreSQL read-only transactions for queries. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs.md) |
-
-## `src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CentreConfiguration.cs` | Maps the `Centre` entity to the `platform.centres` table: columns, limits, key, unique index, locale conversion, CHECK constraint and timestamp shadow properties. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs.md) |
-
-## `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `ApplicationUserConfiguration.cs` | Maps `ApplicationUser` to `identity.users`, adds the locale CHECK and a unique normalised-email index. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs.md) |
-| `IdentityUserClaimConfiguration.cs` | Renames Identity's default `claims` table into `identity.user_claims`. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserClaimConfiguration.cs.md) |
-| `IdentityUserLoginConfiguration.cs` | Renames Identity's default `logins` table into `identity.user_logins`. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs.md) |
-| `IdentityUserTokenConfiguration.cs` | Renames Identity's default `tokens` table into `identity.user_tokens`. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserTokenConfiguration.cs.md) |
-| `MembershipConfiguration.cs` | Maps `Membership` to `identity.memberships` with the first foreign keys, composite unique index, converters and CHECK constraints in the schema. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs.md) |
-
-## `src/TutoringCentre.Infrastructure/Persistence/Interceptors`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `TimestampInterceptor.cs` | Automatically fills `CreatedAt` and `UpdatedAt` shadow columns just before EF saves. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Interceptors/TimestampInterceptor.cs.md) |
-
-## `src/TutoringCentre.Infrastructure/Persistence/Migrations`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `20261002222404_InitialPlatform.Designer.cs` | EF Core generated target-model snapshot for the migration. | Skipped (generated / lockfile / media), see INDEX |
-| `20261002222404_InitialPlatform.cs` | The only migration: creates the `platform` schema, the `centres` table, its primary key, locale CHECK constraint and unique slug index. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs.md) |
-| `20261004112858_AddIdentityAndMemberships.Designer.cs` | EF Core generated target-model snapshot for the identity migration. | Skipped (generated / lockfile / media), see INDEX |
-| `20261004112858_AddIdentityAndMemberships.cs` | The second migration: creates the `identity` schema with `users`, `memberships`, `user_claims`, `user_logins` and `user_tokens`, their keys, foreign keys, indexes and CHECK constraints. | [Explanation](./src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs.md) |
-| `AppDbContextModelSnapshot.cs` | EF Core generated current-model snapshot (`// <auto-generated />`). | Skipped (generated / lockfile / media), see INDEX |
-
-## `src/TutoringCentre.Infrastructure/ReadServices`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `MembershipReadService.cs` | Read-only EF projections for a staff member's profile, active memberships and session state. | [Explanation](./src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs.md) |
-| `SystemInfoReadService.cs` | Read-side implementation that reports applied and pending EF migrations as plain data. | [Explanation](./src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs.md) |
-
-## `src/TutoringCentre.Infrastructure/Repositories`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CentreRepository.cs` | EF Core implementation of `ICentreRepository`. | [Explanation](./src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs.md) |
-
-## `src/TutoringCentre.Infrastructure/Time`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `SystemClock.cs` | Real implementation of `IClock` based on `TimeProvider` and the OS time-zone database. | [Explanation](./src/TutoringCentre.Infrastructure/Time/SystemClock.cs.md) |
+| `src/TutoringCentre.Infrastructure/AssemblyMarker.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/AssemblyMarker.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditAction.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditAction.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditActorType.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditActorType.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditDiffBuilder.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditDiffBuilder.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditEntityType.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditEntityType.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditEntityTypeNames.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditEntityTypeNames.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditEntry.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditEntry.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditPolicy.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditPolicy.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditPolicyEntry.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditPolicyEntry.cs.md) |
+| `src/TutoringCentre.Infrastructure/Audit/AuditPropertyChange.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Audit/AuditPropertyChange.cs.md) |
+| `src/TutoringCentre.Infrastructure/Centres/CentreTimeZoneProvider.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Centres/CentreTimeZoneProvider.cs.md) |
+| `src/TutoringCentre.Infrastructure/DependencyInjection.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/DependencyInjection.cs.md) |
+| `src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs.md) |
+| `src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs.md) |
+| `src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs.md) |
+| `src/TutoringCentre.Infrastructure/Identity/StaffAccountService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Identity/StaffAccountService.cs.md) |
+| `src/TutoringCentre.Infrastructure/Identity/StaffDirectory.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Identity/StaffDirectory.cs.md) |
+| `src/TutoringCentre.Infrastructure/Identity/TeacherScopeProvider.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Identity/TeacherScopeProvider.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/AppDbContextOptionsConfigurator.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/AppDbContextOptionsConfigurator.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ClassSessionConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ClassSessionConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/EnrollmentConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/EnrollmentConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/GroupConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/GroupConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ParentConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ParentConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/PhoneFormatCheck.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/PhoneFormatCheck.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/PhoneNumberConverters.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/PhoneNumberConverters.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ScheduleRuleConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ScheduleRuleConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/StudentConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/StudentConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/StudentParentLinkConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/StudentParentLinkConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/SubjectConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/SubjectConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/TeacherConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/TeacherConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Audit/AuditEntryConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Audit/AuditEntryConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserClaimConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserClaimConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserTokenConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserTokenConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/Platform/DataProtectionKeyConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/Platform/DataProtectionKeyConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/RowVersionConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/RowVersionConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Configurations/TenantOwnedConfiguration.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Configurations/TenantOwnedConfiguration.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/ConstraintErrorCatalog.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/ConstraintErrorCatalog.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Conventions/TenantQueryFilterConvention.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Conventions/TenantQueryFilterConvention.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/DatabaseRoles.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/DatabaseRoles.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Interceptors/AuditInterceptor.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Interceptors/AuditInterceptor.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Interceptors/TenantWriteGuardInterceptor.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Interceptors/TenantWriteGuardInterceptor.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Interceptors/TimestampInterceptor.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Interceptors/TimestampInterceptor.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261023174541_AddEnrollments.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261023174541_AddEnrollments.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261023174541_AddEnrollments.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261023174541_AddEnrollments.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261024105240_AddSchedule.Designer.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261024105240_AddSchedule.Designer.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261024105240_AddSchedule.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/20261024105240_AddSchedule.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/AppDbContextModelSnapshot.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/AppDbContextModelSnapshot.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/AppendOnlyAccessGrants.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/AppendOnlyAccessGrants.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/RuntimeAccessGrants.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/RuntimeAccessGrants.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Migrations/TenantRowLevelSecurity.cs` | migration | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Migrations/TenantRowLevelSecurity.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/PersistenceErrorTranslator.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/PersistenceErrorTranslator.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/RuntimeRolePrivilegeHealthCheck.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/RuntimeRolePrivilegeHealthCheck.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/Schemas.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/Schemas.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/TenantViolationException.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/TenantViolationException.cs.md) |
+| `src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/AuditReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/AuditReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/CentreReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/CentreReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/EnrollmentReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/EnrollmentReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/GroupReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/GroupReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/ParentReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/ParentReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/ScheduleReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/ScheduleReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/StaffReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/StaffReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/StudentReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/StudentReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/SubjectReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/SubjectReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/ReadServices/TeacherReadService.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/ReadServices/TeacherReadService.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/ClassSessionRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/ClassSessionRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/EnrollmentRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/EnrollmentRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/GroupRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/GroupRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/MembershipRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/MembershipRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/ParentRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/ParentRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/ScheduleRuleRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/ScheduleRuleRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/StudentRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/StudentRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/SubjectRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/SubjectRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Repositories/TeacherRepository.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Repositories/TeacherRepository.cs.md) |
+| `src/TutoringCentre.Infrastructure/Time/SystemClock.cs` | source | [Explanation](src/TutoringCentre.Infrastructure/Time/SystemClock.cs.md) |
+| `src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj` | configuration | [Explanation](src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj.md) |

@@ -1,79 +1,108 @@
-# tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs`
 
 ## Purpose
 
-Integration tests of the create-centre use case through the real dispatcher and PostgreSQL.
+Declares `CreateCentreTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Centres. Exercises validator, handler, domain, repository, unit of work, EF configuration and interceptor together.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 61 lines and 2,709 bytes. Source hash: `ac2920781f60221ebfa2199da9a3c3f3af756ec195e5d5930ba9a3bc7c3ae57f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Helper `ValidCommand(slug)`. Tests:
-- `SendAsync_SystemActorValidCommand_PersistsCentreWithCreatedAtAndNoUpdatedAt`: Act - send as `SystemActor(null)`; Assert - success, slug returned, count 1, and raw SQL confirms `created_at is not null and updated_at is null` (proves the `TimestampInterceptor`).
-- `..._SlugAlreadyExists_ReturnsConflictAndKeepsOneRow`: second send -> `centre.slug_taken`/Conflict, still 1 row.
-- `..._AnonymousActor_ReturnsForbiddenAndWritesNothing`: `centre.create_forbidden`, 0 rows.
-- `..._InvalidTimeZone_ReturnsDomainErrorAndWritesNothing`: `Mars/Base` -> `centre.time_zone_invalid`, 0 rows (handler returned failure -> rollback).
-Not tested: validator failure path end to end, locale round trip, reading a centre back.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Test doubles: fakes vs real dependencies
+- Line 1: `using TutoringCentre.Application.Centres.Commands.CreateCentre;`
+- Line 2: `using TutoringCentre.Application.Common.Security;`
+- Line 3: `using TutoringCentre.Domain.Centres;`
+- Line 4: `using TutoringCentre.Domain.Common;`
+- Line 5: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *fake* is a small working substitute (in-memory repository). Real-dependency (integration) tests run actual components such as PostgreSQL. Fakes are fast and focused; integration tests prove behaviour only the real system provides.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+- [Line 9](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L9): `public sealed class CreateCentreTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 11](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L11): `private static CreateCentreCommand ValidCommand(string slug = "nile-centre") =>`
+- [Line 15](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L15): `public async Task SendAsync_SystemActorValidCommand_PersistsCentreWithCreatedAtAndNoUpdatedAt()`
+- [Line 27](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L27): `public async Task SendAsync_SlugAlreadyExists_ReturnsConflictAndKeepsOneRow()`
+- [Line 40](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L40): `public async Task SendAsync_AnonymousActor_ReturnsForbiddenAndWritesNothing()`
+- [Line 51](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs#L51): `public async Task SendAsync_InvalidTimeZone_ReturnsDomainErrorAndWritesNothing()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Real dependencies instead of fakes.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Entire class.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-Proves wiring and SQL, not just logic.
+namespace TutoringCentre.Infrastructure.Tests.Centres;
 
-### Unit of Work and transactions
+public sealed class CreateCentreTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    private static CreateCentreCommand ValidCommand(string slug = "nile-centre") =>
+        new("Nile Tutoring Centre", slug, "Africa/Cairo", SupportedLocale.Ar);
 
-#### What it means
+    [Fact]
+    public async Task SendAsync_SystemActorValidCommand_PersistsCentreWithCreatedAtAndNoUpdatedAt()
+    {
+        var result = await Fixture.SendAsAsync<CreateCentreCommand, CreateCentreResult>(new SystemActor(null), ValidCommand());
 
-A *transaction* makes several database operations all-or-nothing and isolated from concurrent work. A *unit of work* groups the changes of one business operation and commits them together. EF Core's `DbContext` already tracks changes and is a unit of work; the repository adds a small port so the dispatcher can control the transaction without referencing EF.
+        Assert.True(result.IsSuccess);
+        Assert.Equal("nile-centre", result.Value.Slug);
+        Assert.Equal(1, await Fixture.CountCentresAsync());
+        Assert.Equal(1, await Fixture.ScalarAsync<long>(
+            "select count(*) from platform.centres where slug = 'nile-centre' and created_at is not null and updated_at is null"));
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions](../../../../PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions).)
+    [Fact]
+    public async Task SendAsync_SlugAlreadyExists_ReturnsConflictAndKeepsOneRow()
+    {
+        await Fixture.SendAsAsync<CreateCentreCommand, CreateCentreResult>(new SystemActor(null), ValidCommand());
 
-#### Where it appears in this file
+        var second = await Fixture.SendAsAsync<CreateCentreCommand, CreateCentreResult>(new SystemActor(null), ValidCommand());
 
-Rollback on failure.
+        Assert.True(second.IsFailure);
+        Assert.Equal("centre.slug_taken", second.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, second.Error.Kind);
+        Assert.Equal(1, await Fixture.CountCentresAsync());
+    }
 
-#### How it works here
+    [Fact]
+    public async Task SendAsync_AnonymousActor_ReturnsForbiddenAndWritesNothing()
+    {
+        var result = await Fixture.SendAsAsync<CreateCentreCommand, CreateCentreResult>(new AnonymousActor(), ValidCommand());
 
-Tests 3-4 assert 0 rows.
+        Assert.True(result.IsFailure);
+        Assert.Equal("centre.create_forbidden", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+        Assert.Equal(0, await Fixture.CountCentresAsync());
+    }
 
-#### Why it matters here
+    [Fact]
+    public async Task SendAsync_InvalidTimeZone_ReturnsDomainErrorAndWritesNothing()
+    {
+        var command = new CreateCentreCommand("Nile Tutoring Centre", "nile-centre", "Mars/Base", SupportedLocale.Ar);
 
-Failure results leave no trace.
+        var result = await Fixture.SendAsAsync<CreateCentreCommand, CreateCentreResult>(new SystemActor(null), command);
 
-## Data and Control Flow
+        Assert.True(result.IsFailure);
+        Assert.Equal("centre.time_zone_invalid", result.Error!.Code);
+        Assert.Equal(0, await Fixture.CountCentresAsync());
+    }
+}
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs`](../Fixtures/PostgresTestBase.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs`](../Fixtures/DispatchExtensions.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Interceptors/TimestampInterceptor.cs`](../../../src/TutoringCentre.Infrastructure/Persistence/Interceptors/TimestampInterceptor.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,165 +1,150 @@
-# src/TutoringCentre.Api/Auth/AuthEndpoints.cs
+# `src/TutoringCentre.Api/Auth/AuthEndpoints.cs`
 
 ## Purpose
 
-Maps the five session endpoints (antiforgery, login, logout, me, select centre) as thin transport around Application calls.
+Transport orchestration handles antiforgery token issue, credentials, ticket creation, logout, profile, centre selection, and password change through application ports. Login suppresses auto-selection when password replacement is pending; password change issues a new centreless ticket. Identity and membership rules live behind ports rather than direct infrastructure dependencies.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. Mapped on the `/api` group by `Program.cs:122` (`api.MapAuthEndpoints()`). Uses `IAuthenticationService`, `Dispatcher`, `CurrentActorContext`, `SessionPrincipalFactory`, `SessionClaimNames`, `LoginRequestValidator`, `RequestValidation`. Architecture rules forbid it from touching Infrastructure or Identity types.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 203 lines and 9,370 bytes. Source hash: `cf6265db2622f1fe45df7062742f635e868d5a349c2e0b9c2f318d5774840814`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Route table (`MapAuthEndpoints`, 22-61): `GET /api/auth/antiforgery` (anonymous), `POST /api/auth/login` (`RequireRateLimiting("login")`, anonymous), `POST /api/auth/logout` (authenticated by the fallback policy - the explicit cast on line 45 forces the `Delegate` overload so `.Produces` works), `GET /api/me`, `POST /api/session/centre`.
-- **`GetAntiforgeryTokenAsync`** (63-71): `antiforgery.GetAndStoreTokens(httpContext)` writes the cookie half on the response and returns the request token; the response gets `Cache-Control: no-store`; body is `AntiforgeryTokenResponse(token)`.
-- **`LoginAsync`** (73-118): (1) validate with `LoginRequestValidator` -> `validation.failed` 400; (2) `authenticationService.VerifyCredentialsAsync` -> failure becomes problem+json (`auth.invalid_credentials` 401); (3) `currentActor.Reauthenticate(new StaffActor(userId, null, null))` (97); (4) `dispatcher.QueryAsync<GetMyMembershipsQuery, MeDto>` (99); (5) exactly one membership -> auto-select it (106); (6) `SessionPrincipalFactory.Create(...)` then `httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal)` (114) - after the read, so a failed login never leaves a cookie; (7) respond with `me with { ActiveCentreId, ActiveRole }` (116).
-- **`LogoutAsync`** (120-124): `SignOutAsync`; 204.
-- **`GetMeAsync`** (126-130): dispatches `GetMyMembershipsQuery`; `ToHttpResult`.
-- **`SelectCentreAsync`** (132-156): dispatches `GetActiveMembershipQuery(request.CentreId)`; on failure returns the Problem Details and leaves the cookie untouched; on success rebuilds the principal with the *same* user id (from the actor) and the *same* security stamp (read from the current cookie claims, never from the request) plus the new centre and role, `SignInAsync`, 204.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Minimal APIs, routing and route groups
+- Line 1: `using System.Security.Claims;`
+- Line 2: `using Microsoft.AspNetCore.Antiforgery;`
+- Line 3: `using Microsoft.AspNetCore.Authentication;`
+- Line 4: `using Microsoft.AspNetCore.Authentication.Cookies;`
+- Line 5: `using TutoringCentre.Api.Http;`
+- Line 6: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 7: `using TutoringCentre.Application.Common.Security;`
+- Line 8: `using TutoringCentre.Application.Identity;`
+- Line 9: `using TutoringCentre.Application.Identity.Queries.GetActiveMembership;`
+- Line 10: `using TutoringCentre.Application.Identity.Queries.GetMyMemberships;`
+- Line 11: `using TutoringCentre.Domain.Identity;`
+- Line 12: `using AuthService = TutoringCentre.Application.Common.Security.IAuthenticationService;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Minimal APIs map a URL pattern and HTTP verb straight to a delegate (`MapGet("/x", handler)`). The framework binds delegate parameters from DI (services), the route, query, body or `CancellationToken`. A *route group* shares a prefix and metadata across endpoints.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+- [Line 21](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L21): `public static class AuthEndpoints`
+- [Line 23](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L23): `public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder api)`
+- [Line 73](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L73): `private static IResult GetAntiforgeryTokenAsync(HttpContext httpContext, IAntiforgery antiforgery)`
+- [Line 83](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L83): `private static async Task<IResult> LoginAsync(`
+- [Line 138](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L138): `private static async Task<IResult> LogoutAsync(HttpContext httpContext)`
+- [Line 144](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L144): `private static async Task<IResult> GetMeAsync(Dispatcher dispatcher, CancellationToken ct)`
+- [Line 150](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L150): `private static async Task<IResult> SelectCentreAsync(`
+- [Line 176](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L176): `private static async Task<IResult> ChangePasswordAsync(`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Endpoint mapping.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/assemble.py:138](../../../../onboarding-work/assemble.py#L138)
 
-`MapAuthEndpoints`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Declarative metadata (`Produces`, `WithName`) also feeds the OpenAPI document that the frontend client is generated from.
+```csharp
+using System.Security.Claims;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using TutoringCentre.Api.Http;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Identity;
+using TutoringCentre.Application.Identity.Queries.GetActiveMembership;
+using TutoringCentre.Application.Identity.Queries.GetMyMemberships;
+using TutoringCentre.Domain.Identity;
+using AuthService = TutoringCentre.Application.Common.Security.IAuthenticationService;
 
-### Cookie authentication and server-side sessions
+namespace TutoringCentre.Api.Auth;
 
-#### What it means
+/// <summary>
+/// Session endpoints. Each one orchestrates transport around Application calls — no password logic, no
+/// membership rules, no Infrastructure or Identity types. Authentication ends here: everything after an
+/// endpoint deals with a StaffActor (via ActorMiddleware), never with cookies or claims.
+/// </summary>
+public static class AuthEndpoints
+{
+    public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder api)
+    {
+        ArgumentNullException.ThrowIfNull(api);
 
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
+        api.MapGet("/auth/antiforgery", GetAntiforgeryTokenAsync)
+            .WithName("GetAntiforgeryToken")
+            .Produces<AntiforgeryTokenResponse>()
+            .AllowAnonymous();
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
+        api.MapPost("/auth/login", LoginAsync)
+            .WithName("Login")
+            .Produces<MeDto>()
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting(LoginRateLimiting.PolicyName)
+            .AllowAnonymous();
 
-#### Where it appears in this file
+        // A bare (HttpContext) => ... lambda here is ambiguous between the Delegate-based MapPost overload (which
+        // returns RouteHandlerBuilder, needed for .Produces below) and the low-level RequestDelegate one; the
+        // explicit cast forces the former.
+        // No .RequireAuthorization() here: the authorization fallback policy (AuthenticationSetup) already
+        // requires an authenticated user by default (docs/architecture/api-conventions.md).
+        api.MapPost("/auth/logout", (Delegate)(Func<HttpContext, Task<IResult>>)(httpContext => LogoutAsync(httpContext)))
+            .WithName("Logout")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-`SignInAsync` / `SignOutAsync`.
+        api.MapGet("/me", GetMeAsync)
+            .WithName("GetMe")
+            .Produces<MeDto>()
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-#### How it works here
+        api.MapPost("/session/centre", SelectCentreAsync)
+            .WithName("SelectCentre")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
 
-Lines 114, 153, 122.
+        api.MapPost("/auth/change-password", ChangePasswordAsync)
+            .WithName("ChangePassword")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting(ChangePasswordRateLimiting.PolicyName);
 
-#### Why it matters here
+        return api;
+    }
 
-The only places a session cookie is issued or cleared.
+    private static IResult GetAntiforgeryTokenAsync(HttpContext httpContext, IAntiforgery antiforgery)
+    {
+        var tokens = antiforgery.GetAndStoreTokens(httpContext);
 
-### Authorization by default, the actor pipeline and the tenant gate
+        // Never cached: a stale token in a shared/browser cache would be reused across sessions.
+        httpContext.Response.Headers.CacheControl = "no-store";
 
-#### What it means
+        return Results.Ok(new AntiforgeryTokenResponse(tokens.RequestToken!));
+    }
 
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
-
-#### Where it appears in this file
-
-Tenant gate + actor.
-
-#### How it works here
-
-`SelectCentreAsync`, `Reauthenticate`.
-
-#### Why it matters here
-
-A centre id enters a session only after `GetActiveMembershipQuery` succeeds.
-
-### CSRF protection with antiforgery tokens
-
-#### What it means
-
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
-
-#### Where it appears in this file
-
-Antiforgery token issue.
-
-#### How it works here
-
-`GetAntiforgeryTokenAsync`.
-
-#### Why it matters here
-
-Bootstraps the CSRF token before any session exists.
-
-### CQRS and the dispatcher pipeline
-
-#### What it means
-
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-Reads through the dispatcher.
-
-#### How it works here
-
-Lines 99, 128, 139.
-
-#### Why it matters here
-
-Membership reads run in read-only transactions like every query; credential verification deliberately does not (see 6.24).
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant B as Browser (apiFetch)
-    participant F as AntiforgeryEndpointFilter
-    participant L as LoginAsync
-    participant S as IAuthenticationService
-    participant D as Dispatcher
-    participant K as Cookie auth
-    B->>F: POST /api/auth/login (X-XSRF-TOKEN)
-    F->>L: token valid
-    L->>L: validate LoginRequest shape
-    L->>S: VerifyCredentialsAsync(email, password)
-    S-->>L: AuthenticatedUser(userId, stamp)
-    L->>L: currentActor.Reauthenticate(StaffActor)
-    L->>D: QueryAsync(GetMyMembershipsQuery)
-    D-->>L: MeDto with memberships
-    L->>K: SignInAsync(principal)
-    K-->>B: Set-Cookie __Host-tcm.session
-    L-->>B: 200 MeDto (activeCentreId if exactly one membership)
+    private static async Task<IResult> LoginAsync(
+        LoginRequest request,
+        HttpContext httpContext,
+        AuthService authenticationService,
+        CurrentActorContext currentActor,
+        Dispatcher dispatcher,
+        CancellationToken ct)
+    {
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 113 lines.
 
-Cookie scheme `CookieAuthenticationDefaults.AuthenticationScheme`; rate-limit policy name `login`.
+## Before modifying this file
 
-## Gotchas and Issues
-
-Login is not a CQRS command (ADR 0005): credential checking writes through `UserManager` (failed-attempt counter, lockout) outside the dispatcher's transaction. A user with several memberships is intentionally left with no centre until `POST /api/session/centre`.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/AuthenticationSetup.cs`](AuthenticationSetup.cs.md)
-- [`src/TutoringCentre.Api/Auth/SessionClaims.cs`](SessionClaims.cs.md)
-- [`src/TutoringCentre.Api/Auth/LoginRequest.cs`](LoginRequest.cs.md)
-- [`src/TutoringCentre.Api/Auth/RequestValidation.cs`](RequestValidation.cs.md)
-- [`src/TutoringCentre.Api/Auth/SelectCentreRequest.cs`](SelectCentreRequest.cs.md)
-- [`src/TutoringCentre.Api/Auth/LoginRateLimiting.cs`](LoginRateLimiting.cs.md)
-- [`src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs`](AntiforgeryEndpointFilter.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs`](../../TutoringCentre.Application/Common/Security/IAuthenticationService.cs.md)
-- [`src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs`](../../TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs.md)
-- [`src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs`](../../TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs`](../../../tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

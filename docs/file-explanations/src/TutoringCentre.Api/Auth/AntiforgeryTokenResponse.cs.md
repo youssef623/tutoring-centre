@@ -1,52 +1,40 @@
-# src/TutoringCentre.Api/Auth/AntiforgeryTokenResponse.cs
+# `src/TutoringCentre.Api/Auth/AntiforgeryTokenResponse.cs`
 
 ## Purpose
 
-Response record for `GET /api/auth/antiforgery`: just the request token string.
+Source summary (intent, not independent execution proof): The request token only — the cookie half of the pair is set directly on the response, never in this body.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. Returned by `AuthEndpoints.GetAntiforgeryTokenAsync`; appears in the OpenAPI document and the generated `AntiforgeryTokenResponse` TypeScript interface.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/AntiforgeryTokenResponse.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 4 lines and 228 bytes. Source hash: `68382a087d2aba15f0f753a1a9273290b227dcd6fe1a8ae1af7df0b360ab0c4c`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record AntiforgeryTokenResponse(string Token);` Doc: the cookie half of the pair is set directly on the response and never appears in the body, so a script only ever receives the request token.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Records, immutability and primary constructors
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+- [Line 4](../../../../../src/TutoringCentre.Api/Auth/AntiforgeryTokenResponse.cs#L4): `public sealed record AntiforgeryTokenResponse(string Token);`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-DTO record.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Declaration.
+```csharp
+namespace TutoringCentre.Api.Auth;
 
-#### Why it matters here
+/// <summary>The request token only — the cookie half of the pair is set directly on the response, never in this body.</summary>
+public sealed record AntiforgeryTokenResponse(string Token);
+```
 
-Minimal wire contract.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](AuthEndpoints.cs.md)
-- [`frontend/src/api/csrf.ts`](../../../frontend/src/api/csrf.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

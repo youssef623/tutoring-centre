@@ -1,55 +1,57 @@
-# frontend/tsconfig.node.json
+# `frontend/tsconfig.node.json`
 
 ## Purpose
 
-TypeScript settings for Node-side config (`vite.config.ts`, `orval.config.ts`, `playwright.config.ts` and the `e2e` folder).
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Frontend config.
+Category: **configuration**. [Open current file](../../../frontend/tsconfig.node.json). [Complete file index](../INDEX.md). [Current teaching overview](../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 23 lines and 608 bytes. Source hash: `80215eba24ed8aa678ced80294ae3aab406cbc52aa37624836dd40cdd4a208ae`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`target es2023`, `lib [ES2023]`, `types ["node"]` (for `node:url`), `module nodenext`, same strictness subset (`noUnusedLocals`, `erasableSyntaxOnly`...), `include: ["vite.config.ts", "orval.config.ts", "playwright.config.ts", "e2e"]` - the tool configs and the Playwright specs are Node-side code, type-checked with these settings (`types ["node"]`).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Strict TypeScript and type-aware linting
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Separate Node config.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true,
 
-Whole file.
+    /* Bundler mode */
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
 
-#### Why it matters here
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts", "orval.config.ts", "playwright.config.ts", "e2e"]
+}
+```
 
-Browser DOM types are not available in config code.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/tsconfig.json`](tsconfig.json.md)
-- [`frontend/vite.config.ts`](vite.config.ts.md)
-- [`frontend/orval.config.ts`](orval.config.ts.md)
-- [`frontend/playwright.config.ts`](playwright.config.ts.md)
-- [`frontend/e2e/auth.spec.ts`](e2e/auth.spec.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

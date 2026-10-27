@@ -1,53 +1,87 @@
-# frontend/src/features/status/SystemInfoCard.test.tsx
+# `frontend/src/features/status/SystemInfoCard.test.tsx`
 
 ## Purpose
 
-Tests the system-information card on success and on a 500 Problem Details response.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/features/status. Uses `renderWithQueryClient` and MSW.
+Category: **test**. [Open current file](../../../../../../frontend/src/features/status/SystemInfoCard.test.tsx). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 46 lines and 1,623 bytes. Source hash: `f374ae55744227c216b0dcff18bd5bea43bebe4e5aa462761b6276c74c871ad6`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Test 1: default handler (`1.0.0`, `20261012_InitialPlatform`, up to date) -> findByText `1.0.0`, the migration id and `Database schema up to date`. Test 2: a 500 response with `code server.unexpected`, `correlationId corr-500` -> shows `Something went wrong. Please try again.` and `Reference: corr-500`. 2 tests.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Mocking the network with MSW
+- Line 1: `import { screen } from "@testing-library/react";`
+- Line 2: `import { http, HttpResponse } from "msw";`
+- Line 3: `import { describe, expect, it } from "vitest";`
+- Line 4: `import { server } from "@/test/msw/server";`
+- Line 5: `import { renderWithQueryClient } from "@/test/render";`
+- Line 6: `import { SystemInfoCard } from "./SystemInfoCard";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Mock Service Worker intercepts `fetch` at the network layer, so components and hooks run unchanged while the test decides what the 'server' answers.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Overriding one endpoint.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Lines 23-36.
+```tsx
+import { screen } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { describe, expect, it } from "vitest";
+import { server } from "@/test/msw/server";
+import { renderWithQueryClient } from "@/test/render";
+import { SystemInfoCard } from "./SystemInfoCard";
 
-#### Why it matters here
+describe("SystemInfoCard", () => {
+  it("shows version, latest migration and the up-to-date badge on success", async () => {
+    // Arrange (default MSW handler)
 
-`server.use` replaces the default handler for just this test.
+    // Act
+    renderWithQueryClient(<SystemInfoCard />);
 
-## Data and Control Flow
+    // Assert
+    expect(await screen.findByText("1.0.0")).toBeInTheDocument();
+    expect(screen.getByText("20261012_InitialPlatform")).toBeInTheDocument();
+    expect(screen.getByText("Database schema up to date")).toBeInTheDocument();
+  });
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+  it("shows the translated error message and the correlation reference on a 500 Problem Details response", async () => {
+    // Arrange
+    server.use(
+      http.get("*/api/system/info", () =>
+        HttpResponse.json(
+          {
+            title: "An unexpected error occurred.",
+            status: 500,
+            code: "server.unexpected",
+            traceId: "trace-1",
+            correlationId: "corr-500",
+          },
+          { status: 500 },
+        ),
+      ),
+    );
 
-## Configuration and Environment
+    // Act
+    renderWithQueryClient(<SystemInfoCard />);
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    // Assert
+    expect(await screen.findByText("Something went wrong. Please try again.")).toBeInTheDocument();
+    // The id is wrapped in a left-to-right isolate so it never reorders against an Arabic label (isolateLtr).
+    expect(screen.getByText("Reference: \u2066corr-500\u2069")).toBeInTheDocument();
+  });
+});
+```
 
-## Gotchas and Issues
+## Before modifying this file
 
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/features/status/SystemInfoCard.tsx`](SystemInfoCard.tsx.md)
-- [`frontend/src/test/msw/handlers.ts`](../../test/msw/handlers.ts.md)
-- [`frontend/src/test/render.tsx`](../../test/render.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,110 +1,164 @@
-# frontend/src/i18n/index.ts
+# `frontend/src/i18n/index.ts`
 
 ## Purpose
 
-Initialises i18next: bundled English and Arabic resources, ICU message format, language detection, and synchronisation of `<html lang dir>` and `localStorage`.
+Source comment (intent): The persisted choice, else the browser language, else English. Only the language preference ever goes into localStorage.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/i18n. Imported for side effects by `main.tsx` and `test/setup.ts`; its default export is used by `errorMessages.ts` and `LanguageSwitcher.test.tsx`. Reads ten JSON resource files.
+Category: **source**. [Open current file](../../../../../frontend/src/i18n/index.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 131 lines and 4,610 bytes. Source hash: `c7817dbefeec0caff47d3fcf6d533c28683666e48ae713287d94883880973d48`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- Imports the five namespaces for each language (4-13). `StorageKey = "tcm.lang"` (15).
-- `detectInitialLanguage()` (23-35): stored value if it is `ar` or `en` (inside `try/catch` because `localStorage` can throw in private browsing); otherwise `navigator.language` starting with `ar` -> `ar`, else `en`.
-- `applyDocumentDirection(language)` (38-45): sets `document.documentElement.lang` and `.dir` (`rtl` for `ar`, else `ltr`) - skipped when `document` does not exist.
-- Module run (47-48): detect, apply.
-- `i18next.use(ICU).use(initReactI18next).init({...})` (55-68): `resources` for `en` and `ar` with namespaces `common, status, errors, auth, shell`; `lng: initialLanguage`; `fallbackLng: "en"`; `defaultNS: "common"`; `interpolation.escapeValue: false` (React already escapes). Comment: bundled at build time, ICU single-brace placeholders so Arabic's six plural forms can be expressed later.
-- `i18next.on("languageChanged", ...)` (70-77): re-applies direction and stores the choice (best effort).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Internationalisation (i18next) and RTL layout
+- Line 1: `import i18next from "i18next";`
+- Line 2: `import ICU from "i18next-icu";`
+- Line 3: `import { initReactI18next } from "react-i18next";`
+- Line 4: `import auditAr from "./locales/ar/audit.json";`
+- Line 5: `import authAr from "./locales/ar/auth.json";`
+- Line 6: `import commonAr from "./locales/ar/common.json";`
+- Line 7: `import enrollmentsAr from "./locales/ar/enrollments.json";`
+- Line 8: `import errorsAr from "./locales/ar/errors.json";`
+- Line 9: `import groupsAr from "./locales/ar/groups.json";`
+- Line 10: `import parentsAr from "./locales/ar/parents.json";`
+- Line 11: `import scheduleAr from "./locales/ar/schedule.json";`
+- Line 12: `import settingsAr from "./locales/ar/settings.json";`
+- Line 13: `import shellAr from "./locales/ar/shell.json";`
+- Line 14: `import staffAr from "./locales/ar/staff.json";`
+- Line 15: `import statusAr from "./locales/ar/status.json";`
+- Line 16: `import studentsAr from "./locales/ar/students.json";`
+- Line 17: `import subjectsAr from "./locales/ar/subjects.json";`
+- Line 18: `import teachersAr from "./locales/ar/teachers.json";`
+- Line 19: `import auditEn from "./locales/en/audit.json";`
+- Line 20: `import authEn from "./locales/en/auth.json";`
+- Line 21: `import commonEn from "./locales/en/common.json";`
+- Line 22: `import enrollmentsEn from "./locales/en/enrollments.json";`
+- Line 23: `import errorsEn from "./locales/en/errors.json";`
+- Line 24: `import groupsEn from "./locales/en/groups.json";`
+- Line 25: `import parentsEn from "./locales/en/parents.json";`
+- Line 26: `import scheduleEn from "./locales/en/schedule.json";`
+- Line 27: `import settingsEn from "./locales/en/settings.json";`
+- Line 28: `import shellEn from "./locales/en/shell.json";`
+- Line 29: `import staffEn from "./locales/en/staff.json";`
+- Line 30: `import statusEn from "./locales/en/status.json";`
+- Line 31: `import studentsEn from "./locales/en/students.json";`
+- Line 32: `import subjectsEn from "./locales/en/subjects.json";`
+- Line 33: `import teachersEn from "./locales/en/teachers.json";`
 
-#### What it means
+## Walkthrough and declaration map
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+- [Line 38](../../../../../frontend/src/i18n/index.ts#L38): `function isSupportedLanguage(value: unknown): value is SupportedLanguage {`
+- [Line 43](../../../../../frontend/src/i18n/index.ts#L43): `function detectInitialLanguage(): SupportedLanguage {`
+- [Line 58](../../../../../frontend/src/i18n/index.ts#L58): `function applyDocumentDirection(language: string): void {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Whole file.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Resources, detection, direction sync.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```typescript
+import i18next from "i18next";
+import ICU from "i18next-icu";
+import { initReactI18next } from "react-i18next";
+import auditAr from "./locales/ar/audit.json";
+import authAr from "./locales/ar/auth.json";
+import commonAr from "./locales/ar/common.json";
+import enrollmentsAr from "./locales/ar/enrollments.json";
+import errorsAr from "./locales/ar/errors.json";
+import groupsAr from "./locales/ar/groups.json";
+import parentsAr from "./locales/ar/parents.json";
+import scheduleAr from "./locales/ar/schedule.json";
+import settingsAr from "./locales/ar/settings.json";
+import shellAr from "./locales/ar/shell.json";
+import staffAr from "./locales/ar/staff.json";
+import statusAr from "./locales/ar/status.json";
+import studentsAr from "./locales/ar/students.json";
+import subjectsAr from "./locales/ar/subjects.json";
+import teachersAr from "./locales/ar/teachers.json";
+import auditEn from "./locales/en/audit.json";
+import authEn from "./locales/en/auth.json";
+import commonEn from "./locales/en/common.json";
+import enrollmentsEn from "./locales/en/enrollments.json";
+import errorsEn from "./locales/en/errors.json";
+import groupsEn from "./locales/en/groups.json";
+import parentsEn from "./locales/en/parents.json";
+import scheduleEn from "./locales/en/schedule.json";
+import settingsEn from "./locales/en/settings.json";
+import shellEn from "./locales/en/shell.json";
+import staffEn from "./locales/en/staff.json";
+import statusEn from "./locales/en/status.json";
+import studentsEn from "./locales/en/students.json";
+import subjectsEn from "./locales/en/subjects.json";
+import teachersEn from "./locales/en/teachers.json";
 
-One module owns language state; components only call `changeLanguage` and read translations.
+const StorageKey = "tcm.lang";
+type SupportedLanguage = "ar" | "en";
 
-### Secrets and configuration layering
+function isSupportedLanguage(value: unknown): value is SupportedLanguage {
+  return value === "ar" || value === "en";
+}
 
-#### What it means
+/** The persisted choice, else the browser language, else English. Only the language preference ever goes into localStorage. */
+function detectInitialLanguage(): SupportedLanguage {
+  try {
+    const stored = localStorage.getItem(StorageKey);
+    if (isSupportedLanguage(stored)) {
+      return stored;
+    }
+  } catch {
+    // localStorage can throw (private browsing, blocked storage); fall through to browser detection.
+  }
 
-Configuration comes from layered sources (JSON files, user-secrets, environment variables, command line) where later layers override earlier ones. Secrets must stay out of git: this repo keeps the connection string out of `appsettings.json`, reads it from user-secrets or an environment variable, and scans history with gitleaks.
+  const browserLanguage = typeof navigator === "undefined" ? "en" : navigator.language;
+  return browserLanguage.toLowerCase().startsWith("ar") ? "ar" : "en";
+}
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+/** Keeps <html> in sync with the current language: direction is a document-level property driven by language. */
+function applyDocumentDirection(language: string): void {
+  if (typeof document === "undefined") {
+    return;
+  }
 
-#### Where it appears in this file
+  document.documentElement.lang = language;
+  document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+}
 
-What goes into `localStorage`.
+const initialLanguage = detectInitialLanguage();
+applyDocumentDirection(initialLanguage);
 
-#### How it works here
-
-Comment at line 22.
-
-#### Why it matters here
-
-Only the language preference; never tokens or personal data.
-
-### Vite dev server, bundling and proxy
-
-#### What it means
-
-Vite serves source modules during development and bundles for production. Its dev proxy forwards chosen paths (`/api`, `/health`) to another server so the browser sees one origin and no CORS configuration is needed.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
-
-#### Where it appears in this file
-
-Bundled JSON imports.
-
-#### How it works here
-
-Lines 4-13.
-
-#### Why it matters here
-
-Vite bundles the JSON files into the app, so there is no runtime request for translations.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    S["localStorage tcm.lang"] --> D{"valid?"}
-    D -->|yes| L["language"]
-    D -->|no| N["navigator.language starts with ar?"]
-    N --> L
-    L --> H["html lang and dir"]
-    L --> I["i18next.init"]
-    C["changeLanguage"] --> H
-    C --> S
+/**
+ * Resources are bundled at build time (no runtime fetch for two small languages). ICU message format
+ * (single-brace placeholders, e.g. "{time}") replaces i18next's default interpolation so plural rules —
+ * Arabic has six — can be expressed later without a different templating syntax.
+ */
+void i18next
+  .use(ICU)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: {
+        common: commonEn,
+        status: statusEn,
+        errors: errorsEn,
+        auth: authEn,
+        shell: shellEn,
+        subjects: subjectsEn,
+        students: studentsEn,
+        parents: parentsEn,
+        staff: staffEn,
+        settings: settingsEn,
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 41 lines.
 
-`localStorage` key `tcm.lang`; browser language as fallback.
+## Before modifying this file
 
-## Gotchas and Issues
-
-Language is detected once at import. `fallbackLng: "en"` hides missing Arabic keys, which is why `scripts/check-i18n-keys.mjs` exists.
-
-## Related Files
-
-- [`frontend/src/i18n/locales/en/auth.json`](locales/en/auth.json.md)
-- [`frontend/src/features/language/LanguageSwitcher.tsx`](../features/language/LanguageSwitcher.tsx.md)
-- [`frontend/src/main.tsx`](../main.tsx.md)
-- [`frontend/src/test/setup.ts`](../test/setup.ts.md)
-- [`frontend/scripts/check-i18n-keys.mjs`](../../scripts/check-i18n-keys.mjs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

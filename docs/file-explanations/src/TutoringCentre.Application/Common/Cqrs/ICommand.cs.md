@@ -1,53 +1,65 @@
-# src/TutoringCentre.Application/Common/Cqrs/ICommand.cs
+# `src/TutoringCentre.Application/Common/Cqrs/ICommand.cs`
 
 ## Purpose
 
-Marker interface for commands, carrying the response type as a generic parameter.
+Source summary (intent, not independent execution proof): An intention to change state, producing on success (use `Unit` when there is nothing to return). Handled by exactly one command handler.
 
-## Where It Fits
+## Where it fits
 
-Application/Common/Cqrs. Implemented by `CreateCentreCommand` (and test commands); constrains `Dispatcher.SendAsync<TCommand,TResponse>`.
+Category: **source**. [Open current file](../../../../../../src/TutoringCentre.Application/Common/Cqrs/ICommand.cs). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 7 lines and 308 bytes. Source hash: `13c9aedc103982b53ac4de24ce215152af7131ff470486d7ec26d9b78fbb0d46`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public interface ICommand<TResponse>;` (empty). The type parameter lets the compiler link a command to its response so `ICommandHandler<TCommand,TResponse>` and `SendAsync` agree. Doc: handled by exactly one handler; use `Unit` when nothing is returned.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Generics and constraints
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-Generics let one definition work for many types (`Result<T>`, `ICommandHandler<TCommand,TResponse>`). Constraints (`where TCommand : ICommand<TResponse>`) restrict which types are legal so the compiler can check them; the `in` modifier (contravariance) lets a handler of a base type satisfy a derived one.
+- [Line 7](../../../../../../src/TutoringCentre.Application/Common/Cqrs/ICommand.cs#L7): `public interface ICommand<TResponse>;`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+## Used by: verified name references
 
-#### Where it appears in this file
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-`ICommand<TResponse>`.
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentCommand.cs:8](../../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentCommand.cs#L8)
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentCommand.cs:8](../../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentCommand.cs#L8)
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentCommand.cs:8](../../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentCommand.cs#L8)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherCommand.cs:10](../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherCommand.cs#L10)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupCommand.cs:8](../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupCommand.cs#L8)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleCommand.cs:12](../../../../../../src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleCommand.cs#L12)
+- [src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleCommand.cs:8](../../../../../../src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleCommand.cs#L8)
+- [src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleCommand.cs:10](../../../../../../src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleCommand.cs#L10)
+- [src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentCommand.cs:9](../../../../../../src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentCommand.cs#L9)
+- [src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentCommand.cs:14](../../../../../../src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentCommand.cs#L14)
+- [src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentCommand.cs#L7)
+- [src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentCommand.cs:7](../../../../../../src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentCommand.cs#L7)
+- 30 further name-reference locations are omitted from this compact list.
 
-#### How it works here
+## Current source excerpt
 
-Interface declaration.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+namespace TutoringCentre.Application.Common.Cqrs;
 
-Compile-time pairing of command and response type.
+/// <summary>
+/// An intention to change state, producing <typeparamref name="TResponse"/> on success
+/// (use <see cref="Unit"/> when there is nothing to return). Handled by exactly one command handler.
+/// </summary>
+public interface ICommand<TResponse>;
+```
 
-## Data and Control Flow
+## Before modifying this file
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Nothing enforces 'exactly one handler'; a second registration would make `GetRequiredService` return the last one.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Common/Cqrs/ICommandHandler.cs`](ICommandHandler.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](Dispatcher.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs`](../../Centres/Commands/CreateCentre/CreateCentreCommand.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,53 +1,40 @@
-# src/TutoringCentre.Application/Platform/SystemInfoDto.cs
+# `src/TutoringCentre.Application/Platform/SystemInfoDto.cs`
 
 ## Purpose
 
-The public response shape of `GET /api/system/info`: application version, latest migration, up-to-date flag.
+Source summary (intent, not independent execution proof): Non-sensitive status served anonymously. Deliberately excludes environment names, connection details and counts.
 
-## Where It Fits
+## Where it fits
 
-Application/Platform. Produced by `GetSystemInfoHandler`; returned by `PlatformEndpoints`; mirrored in `frontend/README.md` and MSW handlers.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Application/Platform/SystemInfoDto.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 4 lines and 310 bytes. Source hash: `7fa6fe60a563db20f7268333dae780f92b8f18c6e55e1b548510fbe361853263`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record SystemInfoDto(string ApplicationVersion, string? LatestMigration, bool DatabaseUpToDate);`. Doc: deliberately excludes environment names, connection details and counts (non-sensitive, anonymous). JSON property names become camelCase (`applicationVersion`, `latestMigration`, `databaseUpToDate`) through ASP.NET's default web JSON settings.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Records, immutability and primary constructors
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+- [Line 4](../../../../../src/TutoringCentre.Application/Platform/SystemInfoDto.cs#L4): `public sealed record SystemInfoDto(string ApplicationVersion, string? LatestMigration, bool DatabaseUpToDate, bool DemoMode);`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-DTO record.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Declaration.
+```csharp
+namespace TutoringCentre.Application.Platform;
 
-#### Why it matters here
+/// <summary>Non-sensitive status served anonymously. Deliberately excludes environment names, connection details and counts.</summary>
+public sealed record SystemInfoDto(string ApplicationVersion, string? LatestMigration, bool DatabaseUpToDate, bool DemoMode);
+```
 
-A stable, minimal contract that is decoupled from EF.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The latest migration id reveals the migration naming (timestamp + name) to anonymous callers - low risk, by design.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs`](Queries/GetSystemInfo/GetSystemInfoHandler.cs.md)
-- [`src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs`](../../TutoringCentre.Api/Endpoints/PlatformEndpoints.cs.md)
-- [`frontend/src/test/msw/handlers.ts`](../../../frontend/src/test/msw/handlers.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

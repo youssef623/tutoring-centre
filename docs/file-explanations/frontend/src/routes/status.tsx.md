@@ -1,53 +1,65 @@
-# frontend/src/routes/status.tsx
+# `frontend/src/routes/status.tsx`
 
 ## Purpose
 
-The `/status` page: the former status screen (API readiness card and system-information card) moved to its own public route.
+Declares `StatusPage`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes. Public (no guard). Uses `StatusCard`, `SystemInfoCard` and `LanguageSwitcher`.
+Category: **source**. [Open current file](../../../../../frontend/src/routes/status.tsx). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 23 lines and 703 bytes. Source hash: `20247b53e88cc6085fee259dca7cfe10831379bafe066036f85650a37c04e2b4`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Route = createFileRoute("/status")({ component: StatusPage })`. `StatusPage` (10-23): a centred `main` (max width 3xl) with a right-aligned `LanguageSwitcher`, an `h1` `System status` (a hard-coded English string, not translated) and the two cards.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### File-based routing with TanStack Router
+- Line 1: `import { createFileRoute } from "@tanstack/react-router";`
+- Line 2: `import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";`
+- Line 3: `import { StatusCard } from "@/features/status/StatusCard";`
+- Line 4: `import { SystemInfoCard } from "@/features/status/SystemInfoCard";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A router maps URLs to components. In file-based routing a Vite plugin scans `src/routes/` and generates a route tree file, so adding a file adds a route with type-safe links.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 6](../../../../../frontend/src/routes/status.tsx#L6): `export const Route = createFileRoute("/status")({`
+- [Line 10](../../../../../frontend/src/routes/status.tsx#L10): `function StatusPage() {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-A public route beside the protected tree.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`/status` has no guard.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```tsx
+import { createFileRoute } from "@tanstack/react-router";
+import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
+import { StatusCard } from "@/features/status/StatusCard";
+import { SystemInfoCard } from "@/features/status/SystemInfoCard";
 
-Operators can check health without signing in.
+export const Route = createFileRoute("/status")({
+  component: StatusPage,
+});
 
-## Data and Control Flow
+function StatusPage() {
+  return (
+    <main className="mx-auto w-full max-w-3xl p-6">
+      <div className="mb-4 flex justify-end">
+        <LanguageSwitcher />
+      </div>
+      <section className="space-y-4">
+        <h1 className="text-2xl font-semibold">System status</h1>
+        <StatusCard />
+        <SystemInfoCard />
+      </section>
+    </main>
+  );
+}
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The heading `System status` is not in the locale files. The page is public and calls `/health/ready` and `/api/system/info`; both work without a session because the API maps them with `.AllowAnonymous()` (`Program.cs` for the health endpoints, `Endpoints/PlatformEndpoints.cs:19` for system info).
-
-## Related Files
-
-- [`frontend/src/features/status/StatusCard.tsx`](../features/status/StatusCard.tsx.md)
-- [`frontend/src/features/status/SystemInfoCard.tsx`](../features/status/SystemInfoCard.tsx.md)
-- [`frontend/src/features/language/LanguageSwitcher.tsx`](../features/language/LanguageSwitcher.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

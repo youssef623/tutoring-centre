@@ -1,60 +1,76 @@
-# Directory.Packages.props
+# `Directory.Packages.props`
 
 ## Purpose
 
-Single source of truth for every NuGet package version (Central Package Management).
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Root MSBuild file imported by all `.csproj` files. Each project writes `<PackageReference Include="X" />` with no version and MSBuild looks the version up here. Dependabot (`.github/dependabot.yml`, ecosystem `nuget`) edits this file.
+Category: **configuration**. [Open current file](../../Directory.Packages.props). [Complete file index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 42 lines and 2,931 bytes. Source hash: `c9c83f2d23300532e829e35e1b331a24ea349fc96ab9f5a264086d99d0cf283d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `ManagePackageVersionsCentrally=true` (line 3) - switches on CPM. With it, a `Version=` attribute on a `PackageReference` is an error.
-- First `ItemGroup` is empty except for a comment ("PackageVersion entries go here as projects add dependencies.") - scaffolding left from the initial commit.
-- Second `ItemGroup`: 27 `PackageVersion` items (three added by the identity work: `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 10.0.12, `Microsoft.AspNetCore.OpenApi` 10.0.12, `Microsoft.Extensions.ApiDescription.Server` 10.0.12). Grouped by purpose:
-  - Runtime: `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 10.0.12 (Infrastructure), `Microsoft.AspNetCore.OpenApi` 10.0.12 and `Microsoft.Extensions.ApiDescription.Server` 10.0.12 (Api, OpenAPI document), `Microsoft.EntityFrameworkCore` 10.0.12, `Npgsql.EntityFrameworkCore.PostgreSQL` 10.0.3, `EFCore.NamingConventions` 10.0.1, `AspNetCore.HealthChecks.NpgSql` 9.0.0, `FluentValidation` + `.DependencyInjectionExtensions` 12.1.1, `Serilog.AspNetCore` 10.0.0, `Microsoft.Extensions.*` 10.0.12 (Configuration, Configuration.Abstractions, DependencyInjection, DependencyInjection.Abstractions, Logging, Logging.Abstractions, Options.DataAnnotations).
-  - Design time: `Microsoft.EntityFrameworkCore.Design` 10.0.12.
-  - Test: `xunit` 2.9.3, `xunit.runner.visualstudio` 4.0.0, `Microsoft.NET.Test.Sdk` 18.10.1, `coverlet.collector` 10.1.0, `Microsoft.AspNetCore.Mvc.Testing` 10.0.12, `Testcontainers.PostgreSql` 4.15.0, `Respawn` 7.0.0, `NetArchTest.Rules` 1.3.2, `Microsoft.Extensions.TimeProvider.Testing` 10.10.0.
-Note `AspNetCore.HealthChecks.NpgSql` is 9.x while everything else is 10.x; the repo does not say whether this is intentional (it is the latest line I can verify only by the file itself).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### MSBuild, Central Package Management and analyzers
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Whole file; `ManagePackageVersionsCentrally` on line 3.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- PackageVersion entries go here as projects add dependencies. -->
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.10.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.1" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.16.0" />
+    <PackageVersion Include="Respawn" Version="7.0.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+  </ItemGroup>
+</Project>
+```
 
-A restore resolves each versionless `PackageReference` against these entries. A package missing here fails restore with NU1010.
+## Before modifying this file
 
-#### Why it matters here
-
-One place to bump versions and for Dependabot to edit; avoids two projects pinning different EF versions.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None.
-
-## Gotchas and Issues
-
-Gotcha: the `Microsoft.Extensions.*` packages are only referenced by some projects; a project that needs a package not listed here must add a `PackageVersion` first.
-
-## Related Files
-
-- [`Directory.Build.props`](Directory.Build.props.md)
-- [`global.json`](global.json.md)
-- [`.github/dependabot.yml`](.github/dependabot.yml.md)
-- [`src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj`](src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

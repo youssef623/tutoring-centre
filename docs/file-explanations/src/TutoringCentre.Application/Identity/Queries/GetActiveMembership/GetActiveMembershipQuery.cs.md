@@ -1,52 +1,48 @@
-# src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs
+# `src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs`
 
 ## Purpose
 
-The tenant-gate question: may the signed-in staff member act in this centre?
+Source summary (intent, not independent execution proof): Asks whether the signed-in staff member may act in the given centre — the tenant gate.
 
-## Where It Fits
+## Where it fits
 
-Application/Identity/Queries/GetActiveMembership. Dispatched by `AuthEndpoints.SelectCentreAsync`; handled by `GetActiveMembershipHandler`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 6 lines and 327 bytes. Source hash: `8d88019a8019753176a9b79723bc7f74f4497d6be890946cdf4cd8a923dc8e3e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record GetActiveMembershipQuery(Guid CentreId) : IQuery<ActiveMembershipDto>;` - the user id is *not* in the query; the handler takes it from the actor.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CQRS and the dispatcher pipeline
+- Line 1: `using TutoringCentre.Application.Common.Cqrs;`
 
-#### What it means
+## Walkthrough and declaration map
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 6](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs#L6): `public sealed record GetActiveMembershipQuery(Guid CentreId) : IQuery<ActiveMembershipDto>;`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Query message.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:157](../../../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L157)
+- [src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs:15](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs#L15)
+- [tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs:20](../../../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L20)
 
-Declaration.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Authorization question asked through the read pipeline.
+```csharp
+using TutoringCentre.Application.Common.Cqrs;
 
-## Data and Control Flow
+namespace TutoringCentre.Application.Identity.Queries.GetActiveMembership;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>Asks whether the signed-in staff member may act in the given centre — the tenant gate.</summary>
+public sealed record GetActiveMembershipQuery(Guid CentreId) : IQuery<ActiveMembershipDto>;
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs`](GetActiveMembershipHandler.cs.md)
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](../../../../TutoringCentre.Api/Auth/AuthEndpoints.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

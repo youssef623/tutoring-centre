@@ -1,121 +1,97 @@
-# frontend/src/main.tsx
+# `frontend/src/main.tsx`
 
 ## Purpose
 
-Frontend entry point: creates the router with the shared query client in its context, wires the session-expiry redirect, imports i18n and mounts the React tree.
+Declares `Register`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-frontend/src root. Loaded by `index.html`. Depends on `app/queryClient.ts`, the generated `routeTree.gen.ts`, `i18n/index.ts` and `index.css`.
+Category: **source**. [Open current file](../../../../frontend/src/main.tsx). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 34 lines and 1,079 bytes. Source hash: `a1ae3c7218e8c12fafeca18de913d6860f221b9ba80ffa537cc5498125f83b99`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`createRouter({ routeTree, context: { queryClient } })` (10) - the context is what route `beforeLoad` functions read (`RouterContext` in `__root.tsx`). `setLoginRedirect(target => void router.navigate({ to: "/login", search: { redirect: target } }))` (12-14) connects the query client's global 401 handler to the router. `declare module "@tanstack/react-router" { interface Register { router: typeof router } }` (17-21) - module augmentation so `Link`/navigation are type-checked against real routes. `document.getElementById("root")`; if null `throw new Error(...)` (24-26). `createRoot(rootElement).render(...)` (28-34): `<StrictMode><QueryClientProvider client={queryClient}><RouterProvider router={router} /></QueryClientProvider></StrictMode>`. Side-effect imports `./i18n` and `./index.css` (7-8): `./i18n` initialises i18next (and sets `<html lang dir>`) before the first render.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### React components, props, state and re-rendering
+- Line 1: `import { StrictMode } from "react";`
+- Line 2: `import { createRoot } from "react-dom/client";`
+- Line 3: `import { QueryClientProvider } from "@tanstack/react-query";`
+- Line 4: `import { RouterProvider, createRouter } from "@tanstack/react-router";`
+- Line 5: `import { queryClient, setLoginRedirect } from "@/app/queryClient";`
+- Line 6: `import { routeTree } from "./routeTree.gen";`
+- Line 7: `import "./i18n";`
+- Line 8: `import "./index.css";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A component is a function returning UI from props and state. When state a component depends on changes, React calls the function again (a re-render) and updates only the DOM that differs.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 18](../../../../frontend/src/main.tsx#L18): `interface Register {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Mounting the tree.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/e2e/students.spec.ts:76](../../../../frontend/e2e/students.spec.ts#L76)
+- [frontend/src/features/dashboard/DashboardOverview.test.tsx:52](../../../../frontend/src/features/dashboard/DashboardOverview.test.tsx#L52)
+- [frontend/src/routes/_authenticated/students.index.test.tsx:80](../../../../frontend/src/routes/_authenticated/students.index.test.tsx#L80)
+- [frontend/src/routes/_authenticated/students.new.test.tsx:71](../../../../frontend/src/routes/_authenticated/students.new.test.tsx#L71)
+- [src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentHandler.cs:71](../../../../src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentHandler.cs#L71)
+- [src/TutoringCentre.Domain/Academics/Student.cs:58](../../../../src/TutoringCentre.Domain/Academics/Student.cs#L58)
+- [tests/TutoringCentre.Api.Tests/Authorization/PermissionMatrixTests.cs:487](../../../../tests/TutoringCentre.Api.Tests/Authorization/PermissionMatrixTests.cs#L487)
+- [tests/TutoringCentre.Application.Tests/Academics/ArchiveRestoreStudentHandlerTests.cs:17](../../../../tests/TutoringCentre.Application.Tests/Academics/ArchiveRestoreStudentHandlerTests.cs#L17)
+- [tests/TutoringCentre.Application.Tests/Academics/EnrollStudentHandlerTests.cs:124](../../../../tests/TutoringCentre.Application.Tests/Academics/EnrollStudentHandlerTests.cs#L124)
+- [tests/TutoringCentre.Application.Tests/Academics/EnrollmentDispatcherPermissionTests.cs:139](../../../../tests/TutoringCentre.Application.Tests/Academics/EnrollmentDispatcherPermissionTests.cs#L139)
+- [tests/TutoringCentre.Application.Tests/Academics/ParentLinkHandlerTests.cs:19](../../../../tests/TutoringCentre.Application.Tests/Academics/ParentLinkHandlerTests.cs#L19)
+- [tests/TutoringCentre.Application.Tests/Academics/StudentDispatcherAuthorizationTests.cs:157](../../../../tests/TutoringCentre.Application.Tests/Academics/StudentDispatcherAuthorizationTests.cs#L157)
+- [tests/TutoringCentre.Application.Tests/Academics/UpdateStudentHandlerTests.cs:16](../../../../tests/TutoringCentre.Application.Tests/Academics/UpdateStudentHandlerTests.cs#L16)
+- [tests/TutoringCentre.Domain.Tests/Academics/StudentTests.cs:21](../../../../tests/TutoringCentre.Domain.Tests/Academics/StudentTests.cs#L21)
+- [tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentTestRequests.cs:89](../../../../tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentTestRequests.cs#L89)
+- [tests/TutoringCentre.Infrastructure.Tests/Audit/AuditPolicyTests.cs:135](../../../../tests/TutoringCentre.Infrastructure.Tests/Audit/AuditPolicyTests.cs#L135)
+- [tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs:18](../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L18)
 
-Lines 28-34.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`StrictMode` double-invokes certain functions in development to expose side effects; `QueryClientProvider` shares the cache through context.
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { queryClient, setLoginRedirect } from "@/app/queryClient";
+import { routeTree } from "./routeTree.gen";
+import "./i18n";
+import "./index.css";
 
-### File-based routing with TanStack Router
+const router = createRouter({ routeTree, context: { queryClient } });
 
-#### What it means
+setLoginRedirect((redirectTarget) => {
+  void router.navigate({ to: "/login", search: { redirect: redirectTarget } });
+});
 
-A router maps URLs to components. In file-based routing a Vite plugin scans `src/routes/` and generates a route tree file, so adding a file adds a route with type-safe links.
+// Registers the router type so links and navigation are type-checked everywhere.
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+const rootElement = document.getElementById("root");
+if (rootElement === null) {
+  throw new Error("Root element #root was not found in index.html.");
+}
 
-#### Where it appears in this file
-
-Router with context and registered types.
-
-#### How it works here
-
-Lines 10-21.
-
-#### Why it matters here
-
-Guards need the query client; registering the router type gives type-safe links.
-
-### Frontend route guards, session state and global 401 handling
-
-#### What it means
-
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
-
-#### Where it appears in this file
-
-Session-expiry redirect wiring.
-
-#### How it works here
-
-Lines 12-14.
-
-#### Why it matters here
-
-Late binding: the query client exists before the router, so the redirect callback is injected after the router is created.
-
-### Internationalisation (i18next) and RTL layout
-
-#### What it means
-
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
-
-#### Where it appears in this file
-
-Initialisation by import.
-
-#### How it works here
-
-Line 7.
-
-#### Why it matters here
-
-Importing the module runs `i18next.init` and sets direction before the first paint of React content.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    H["index.html #root"] --> M["main.tsx createRoot"] --> SM["StrictMode"] --> QP["QueryClientProvider(queryClient)"] --> RP["RouterProvider(router, context queryClient)"] --> RT["routes/__root.tsx Outlet"]
-    RT --> PUB["/login, /select-centre, /status"]
-    RT --> AUTH["_authenticated guard then AppShell, / dashboard"]
+createRoot(rootElement).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  </StrictMode>,
+);
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/app/queryClient.ts`](app/queryClient.ts.md)
-- [`frontend/src/routes/__root.tsx`](routes/__root.tsx.md)
-- `frontend/src/routeTree.gen.ts` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`frontend/src/i18n/index.ts`](i18n/index.ts.md)
-- [`frontend/index.html`](../index.html.md)
-- [`frontend/src/test/renderRouter.tsx`](test/renderRouter.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

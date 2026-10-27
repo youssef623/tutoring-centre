@@ -1,52 +1,80 @@
-# tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj
+# `tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj`
 
 ## Purpose
 
-Project file for database-backed Infrastructure tests.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-tests/. Requires a Docker daemon at run time because of Testcontainers.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 34 lines and 1,286 bytes. Source hash: `9033dda0e76efde37acde916a36da0c8baa89ecdc29a54667de13885eea41fcb`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Every test project sets `IsPackable=false` (never published as a NuGet package), adds `<Using Include="Xunit" />` (a global using so test files need no `using Xunit;`), and references `coverlet.collector`, `Microsoft.NET.Test.Sdk`, `xunit` and `xunit.runner.visualstudio` (with `IncludeAssets`/`PrivateAssets` so the runner is not flowed). Versions come from `Directory.Packages.props`. No code coverage step runs in CI even though `coverlet.collector` is referenced. Extras: `Microsoft.Extensions.Configuration`, `DependencyInjection`, `Logging` (build a real container in `PostgresFixture`), `Microsoft.Extensions.TimeProvider.Testing` (`FakeTimeProvider`), `Respawn`, `Testcontainers.PostgreSql`. References only `TutoringCentre.Infrastructure` (Application and Domain flow transitively).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Testcontainers and Respawn
+- Line 12: `<PackageReference Include="coverlet.collector">`
+- Line 16: `<PackageReference Include="Microsoft.Extensions.Configuration" />`
+- Line 17: `<PackageReference Include="Microsoft.Extensions.DependencyInjection" />`
+- Line 18: `<PackageReference Include="Microsoft.Extensions.Logging" />`
+- Line 19: `<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />`
+- Line 20: `<PackageReference Include="Microsoft.NET.Test.Sdk" />`
+- Line 21: `<PackageReference Include="Respawn" />`
+- Line 22: `<PackageReference Include="Testcontainers.PostgreSql" />`
+- Line 23: `<PackageReference Include="xunit" />`
+- Line 24: `<PackageReference Include="xunit.runner.visualstudio">`
+- Line 31: `<ProjectReference Include="..\..\src\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />`
 
-#### What it means
+## Walkthrough and declaration map
 
-Testcontainers starts a disposable Docker container (here PostgreSQL 17) for the test run. Respawn deletes rows between tests, which is much faster than recreating the database.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Packages.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Items.
+```text
+<Project Sdk="Microsoft.NET.Sdk">
 
-#### Why it matters here
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
-Start Postgres and reset rows per test.
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 
-## Data and Control Flow
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Respawn" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />
+  </ItemGroup>
 
-## Configuration and Environment
+</Project>
+```
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](Fixtures/PostgresFixture.cs.md)
-- [`src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj`](../../src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

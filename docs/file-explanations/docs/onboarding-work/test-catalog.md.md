@@ -1,0 +1,1554 @@
+# `docs/onboarding-work/test-catalog.md`
+
+## Purpose
+
+Documentation covering Backend test file catalogue; `tests/TutoringCentre.Api.Tests/Academics/EnrollmentCrossTenantTests.cs`; `tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs`; `tests/TutoringCentre.Api.Tests/Academics/EnrollmentTeacherScopeTests.cs`; `tests/TutoringCentre.Api.Tests/Academics/GroupCrossTenantTests.cs`. Treat historical claims according to the revision described in the file.
+
+## Where it fits
+
+Category: **documentation**. [Open current file](../../../onboarding-work/test-catalog.md). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
+
+The reviewed file has 3516 lines and 228,017 bytes. Source hash: `0ab275f063720a30b435c9ca452d8910ef9ad66cd7a254ea2989fb86caa7328d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
+
+## Dependencies visible in the file
+
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
+
+## Walkthrough and declaration map
+
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
+
+- [Line 11](../../../onboarding-work/test-catalog.md#L11): `- Line 33: public async Task Enroll_OwnGroupWithTheOtherCentresStudent_Returns404StudentNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- [Line 12](../../../onboarding-work/test-catalog.md#L12): `- Line 49: public async Task Enroll_TheOtherCentresGroupWithOwnStudent_Returns404GroupNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- [Line 13](../../../onboarding-work/test-catalog.md#L13): `- Line 65: public async Task Enroll_TheOtherCentresGroupWithThatCentresOwnStudent_Returns404GroupNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- [Line 14](../../../onboarding-work/test-catalog.md#L14): `- Line 81: public async Task Withdraw_TheOtherCentresEnrollmentWithItsRealVersion_Returns404EnrollmentNotFoundAndLeavesItActive(string attackerEmail, string victimEmail)`
+- [Line 15](../../../onboarding-work/test-catalog.md#L15): `- Line 98: public async Task Transfer_TheOtherCentresEnrollmentIntoOwnGroup_Returns404EnrollmentNotFoundAndChangesNeitherSide(string attackerEmail, string victimEmail)`
+- [Line 16](../../../onboarding-work/test-catalog.md#L16): `- Line 116: public async Task Transfer_TheOtherCentresEnrollmentWithinThatCentre_Returns404EnrollmentNotFoundAndChangesNothing(string attackerEmail, string victimEmail)`
+- [Line 17](../../../onboarding-work/test-catalog.md#L17): `- Line 133: public async Task Transfer_OwnEnrollmentIntoTheOtherCentresGroup_Returns404GroupNotFoundAndTheEnrollmentStaysActive(string attackerEmail, string victimEmail)`
+- [Line 18](../../../onboarding-work/test-catalog.md#L18): `- Line 152: public async Task Roster_OfTheOtherCentresGroup_Returns404GroupNotFound(string attackerEmail, string victimEmail)`
+- [Line 19](../../../onboarding-work/test-catalog.md#L19): `- Line 167: public async Task StudentEnrollments_OfTheOtherCentresStudent_Returns404StudentNotFound(string attackerEmail, string victimEmail)`
+- [Line 27](../../../onboarding-work/test-catalog.md#L27): `- Line 37: public async Task Enroll_Returns201WithIdAndLocationAtTheRoster_AndTheRosterListsTheStudent()`
+- [Line 28](../../../onboarding-work/test-catalog.md#L28): `- Line 61: public async Task Enroll_SameStudentAgain_Returns409AlreadyEnrolledAndWritesNoRow()`
+- [Line 29](../../../onboarding-work/test-catalog.md#L29): `- Line 77: public async Task Enroll_WithAFieldBeyondStudentId_Returns400RequestMalformedAndWritesNoRow(string extraField)`
+- [Line 30](../../../onboarding-work/test-catalog.md#L30): `- Line 97: public async Task Enroll_MalformedJson_Returns400RequestMalformed()`
+- [Line 31](../../../onboarding-work/test-catalog.md#L31): `- Line 108: public async Task Enroll_EmptyStudentId_Returns400WithErrorsStudentId()`
+- [Line 32](../../../onboarding-work/test-catalog.md#L32): `- Line 121: public async Task Enroll_UnknownGroup_Returns404GroupNotFound()`
+- [Line 33](../../../onboarding-work/test-catalog.md#L33): `- Line 132: public async Task Enroll_UnknownStudent_Returns404StudentNotFound()`
+- [Line 34](../../../onboarding-work/test-catalog.md#L34): `- Line 144: public async Task Enroll_IntoAFullGroup_Returns409GroupFullAndWritesNoRow()`
+- [Line 35](../../../onboarding-work/test-catalog.md#L35): `- Line 158: public async Task Enroll_IntoAnArchivedGroup_Returns422GroupArchived()`
+- [Line 36](../../../onboarding-work/test-catalog.md#L36): `- Line 172: public async Task Enroll_AnArchivedStudent_Returns422StudentArchived()`
+- [Line 37](../../../onboarding-work/test-catalog.md#L37): `- Line 186: public async Task Enroll_WithoutTheAntiforgeryHeader_Returns403CsrfInvalidAndWritesNoRow()`
+- [Line 38](../../../onboarding-work/test-catalog.md#L38): `- Line 199: public async Task Enroll_AsTeacher_Returns403PermissionDenied()`
+- [Line 39](../../../onboarding-work/test-catalog.md#L39): `- Line 213: public async Task Enroll_BeforeSelectingACentre_Returns403TenantNotSelected()`
+- [Line 40](../../../onboarding-work/test-catalog.md#L40): `- Line 224: public async Task Roster_NoCookie_Returns401()`
+- [Line 41](../../../onboarding-work/test-catalog.md#L41): `- Line 237: public async Task Roster_IsOrderedByNormalizedStudentName_HasTheGroupsFactsAndNamesOnly()`
+- [Line 42](../../../onboarding-work/test-catalog.md#L42): `- Line 270: public async Task Roster_UnknownGroup_Returns404GroupNotFound()`
+- [Line 43](../../../onboarding-work/test-catalog.md#L43): `- Line 280: public async Task GroupList_EnrolledCount_EqualsTheRosterLength()`
+- [Line 44](../../../onboarding-work/test-catalog.md#L44): `- Line 310: public async Task StudentEnrollments_ListsActiveFirstThenEnded_WithTheFullShape()`
+- [Line 45](../../../onboarding-work/test-catalog.md#L45): `- Line 355: public async Task StudentEnrollments_UnknownStudent_Returns404StudentNotFound_AndAKnownStudentWithNoneReturnsEmptyItems()`
+- [Line 46](../../../onboarding-work/test-catalog.md#L46): `- Line 369: public async Task StudentDetail_StaysUnchanged_AndEmbedsNoEnrollments()`
+- [Line 47](../../../onboarding-work/test-catalog.md#L47): `- Line 384: public async Task Withdraw_Returns204_ThenAgainReturns422AlreadyEnded_AndTheRowStaysAsHistory()`
+- [Line 48](../../../onboarding-work/test-catalog.md#L48): `- Line 411: public async Task Withdraw_StaleVersion_Returns409ConcurrencyStaleAndTheEnrollmentStaysActive()`
+- [Line 49](../../../onboarding-work/test-catalog.md#L49): `- Line 425: public async Task Withdraw_UnknownEnrollment_Returns404EnrollmentNotFound()`
+- [Line 50](../../../onboarding-work/test-catalog.md#L50): `- Line 437: public async Task Withdraw_MissingVersionOrUnknownField_Returns400RequestMalformed(string json)`
+- [Line 51](../../../onboarding-work/test-catalog.md#L51): `- Line 447: public async Task Transfer_ToASameSubjectGroup_Returns200WithTheNewId_EndsTheOldAsTransferredAndStartsTheNew()`
+- [Line 52](../../../onboarding-work/test-catalog.md#L52): `- Line 479: public async Task Transfer_ToAGroupOfAnotherSubject_Returns422SubjectMismatchAndChangesNothing()`
+- [Line 53](../../../onboarding-work/test-catalog.md#L53): `- Line 496: public async Task Transfer_ToItsOwnGroup_Returns422SameGroup()`
+- [Line 54](../../../onboarding-work/test-catalog.md#L54): `- Line 511: public async Task Transfer_AnEndedEnrollment_Returns422AlreadyEnded()`
+- [Line 55](../../../onboarding-work/test-catalog.md#L55): `- Line 532: public async Task Transfer_ToAnArchivedGroup_Returns422GroupArchivedAndTheStudentStaysInTheSource()`
+- [Line 56](../../../onboarding-work/test-catalog.md#L56): `- Line 549: public async Task Transfer_ToAFullGroup_Returns409GroupFullAndTheStudentStaysInTheSource()`
+- [Line 57](../../../onboarding-work/test-catalog.md#L57): `- Line 567: public async Task Transfer_ToAGroupTheStudentIsAlreadyIn_Returns409AlreadyEnrolled()`
+- [Line 58](../../../onboarding-work/test-catalog.md#L58): `- Line 585: public async Task Transfer_StaleVersion_Returns409ConcurrencyStaleAndRollsBackBothChanges()`
+- [Line 59](../../../onboarding-work/test-catalog.md#L59): `- Line 600: public async Task Transfer_UnknownEnrollment_Returns404EnrollmentNotFound_AndUnknownTarget_Returns404GroupNotFound()`
+- [Line 60](../../../onboarding-work/test-catalog.md#L60): `- Line 616: public async Task Transfer_EmptyTargetGroupId_Returns400WithErrorsTargetGroupId()`
+- [Line 61](../../../onboarding-work/test-catalog.md#L61): `- Line 628: public async Task Transfer_WithAStudentIdInTheBody_Returns400RequestMalformed()`
+- [Line 69](../../../onboarding-work/test-catalog.md#L69): `- Line 31: public async Task LinkedTeacher_RosterOfTheOwnGroup_Returns200WithItsStudents()`
+- [Line 70](../../../onboarding-work/test-catalog.md#L70): `- Line 45: public async Task LinkedTeacher_RosterOfAnotherTeachersGroup_Returns404GroupNotFound()`
+- [Line 71](../../../onboarding-work/test-catalog.md#L71): `- Line 56: public async Task LinkedTeacher_StudentEnrolledInOwnAndOtherGroup_ListsOnlyTheOwnEnrollment()`
+- [Line 72](../../../onboarding-work/test-catalog.md#L72): `- Line 78: public async Task LinkedTeacher_EveryWriteRoute_Returns403PermissionDeniedAndChangesNothing(string route)`
+- [Line 80](../../../onboarding-work/test-catalog.md#L80): `- Line 29: public async Task EveryIdRoute_OnTheOtherCentresGroup_Returns404AndLeavesTheRowUnchanged(string attackerEmail, string victimEmail)`
+- [Line 81](../../../onboarding-work/test-catalog.md#L81): `- Line 66: public async Task List_ContainsNoneOfTheOtherCentresGroups(string attackerEmail, string victimEmail)`
+- [Line 82](../../../onboarding-work/test-catalog.md#L82): `- Line 88: public async Task Create_WithTheOtherCentresSubject_Returns404SubjectNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- [Line 83](../../../onboarding-work/test-catalog.md#L83): `- Line 105: public async Task Create_WithTheOtherCentresTeacher_Returns404TeacherNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- [Line 84](../../../onboarding-work/test-catalog.md#L84): `- Line 122: public async Task AssignTeacher_WithTheOtherCentresTeacher_Returns404TeacherNotFoundAndChangesNeitherSide(string attackerEmail, string victimEmail)`
+- [Line 85](../../../onboarding-work/test-catalog.md#L85): `- Line 141: public async Task Create_WithANameUsedInTheOtherCentre_Returns201(string attackerEmail, string victimEmail)`
+- [Line 93](../../../onboarding-work/test-catalog.md#L93): `- Line 33: public async Task Create_ThenGet_Returns201WithLocationThen200WithFullShape()`
+- [Line 94](../../../onboarding-work/test-catalog.md#L94): `- Line 67: public async Task Create_NameTakenIgnoringCase_Returns409NameTakenWithErrorsName()`
+- [Line 95](../../../onboarding-work/test-catalog.md#L95): `- Line 86: public async Task Create_CapacityOutOfRange_Returns400WithErrorsCapacityAndCreatesNoRow(int capacity)`
+- [Line 96](../../../onboarding-work/test-catalog.md#L96): `- Line 104: public async Task Create_EmptyName_Returns400WithErrorsName(string name)`
+- [Line 97](../../../onboarding-work/test-catalog.md#L97): `- Line 119: public async Task Create_WithOverPostedField_Returns400RequestMalformedAndCreatesNoRow(string extraField)`
+- [Line 98](../../../onboarding-work/test-catalog.md#L98): `- Line 142: public async Task Create_UnknownSubject_Returns404SubjectNotFound()`
+- [Line 99](../../../onboarding-work/test-catalog.md#L99): `- Line 154: public async Task Create_UnknownTeacher_Returns404TeacherNotFound()`
+- [Line 100](../../../onboarding-work/test-catalog.md#L100): `- Line 166: public async Task Create_ArchivedSubject_Returns422SubjectArchived()`
+- [Line 101](../../../onboarding-work/test-catalog.md#L101): `- Line 179: public async Task Create_ArchivedTeacher_Returns422TeacherArchived()`
+- [Line 102](../../../onboarding-work/test-catalog.md#L102): `- Line 192: public async Task Rename_HappyPathThenStaleVersion()`
+- [Line 103](../../../onboarding-work/test-catalog.md#L103): `- Line 208: public async Task Rename_ToAnotherGroupsName_Returns409NameTaken()`
+- [Line 104](../../../onboarding-work/test-catalog.md#L104): `- Line 228: public async Task Put_WithSubjectIdInBody_Returns400RequestMalformedAndLeavesSubjectUnchanged(string suffix)`
+- [Line 105](../../../onboarding-work/test-catalog.md#L105): `- Line 251: public async Task ChangeCapacity_HappyPathThenZeroReturns400WithErrorsCapacity()`
+- [Line 106](../../../onboarding-work/test-catalog.md#L106): `- Line 270: public async Task AssignTeacher_ActiveTeacher_Returns204AndGetShowsTheNewTeacher()`
+- [Line 107](../../../onboarding-work/test-catalog.md#L107): `- Line 287: public async Task AssignTeacher_ArchivedTeacher_Returns422TeacherArchived()`
+- [Line 108](../../../onboarding-work/test-catalog.md#L108): `- Line 303: public async Task AssignTeacher_UnknownTeacher_Returns404TeacherNotFound()`
+- [Line 109](../../../onboarding-work/test-catalog.md#L109): `- Line 316: public async Task ArchiveThenRestore_AndTheirRuleViolations()`
+- [Line 110](../../../onboarding-work/test-catalog.md#L110): `- Line 341: public async Task Restore_AfterItsTeacherWasArchived_Returns422TeacherArchived()`
+- [Line 111](../../../onboarding-work/test-catalog.md#L111): `- Line 355: public async Task Restore_AfterItsSubjectWasArchived_Returns422SubjectArchived()`
+- [Line 112](../../../onboarding-work/test-catalog.md#L112): `- Line 369: public async Task Get_UnknownId_Returns404GroupNotFound()`
+- [Line 113](../../../onboarding-work/test-catalog.md#L113): `- Line 379: public async Task List_FiltersBySubjectAndByTeacher_AndHidesArchivedUnlessAsked()`
+- [Line 114](../../../onboarding-work/test-catalog.md#L114): `- Line 398: public async Task SubjectArchive_WithAnActiveGroup_Returns422HasActiveGroupsAndSubjectStaysActive()`
+- [Line 115](../../../onboarding-work/test-catalog.md#L115): `- Line 422: public async Task ChangeCapacity_BelowTheEnrolledCount_Returns422CapacityBelowEnrolledAndCapacityStays()`
+- [Line 116](../../../onboarding-work/test-catalog.md#L116): `- Line 444: public async Task Archive_WithAnActiveEnrollment_Returns422HasActiveEnrollmentsAndGroupStaysActive()`
+- [Line 117](../../../onboarding-work/test-catalog.md#L117): `- Line 470: public async Task List_NoCookie_Returns401()`
+- [Line 118](../../../onboarding-work/test-catalog.md#L118): `- Line 483: public async Task Create_WithoutTheAntiforgeryHeader_Returns403CsrfInvalidAndCreatesNoRow()`
+- [Line 119](../../../onboarding-work/test-catalog.md#L119): `- Line 497: public async Task AssignTeacher_ToATeacherBusyAtOneOfTheGroupsSessions_Returns409TeacherDoubleBookedAndKeepsTeacherAndSessions()`
+- [Line 120](../../../onboarding-work/test-catalog.md#L120): `- Line 518: public async Task Archive_WithAScheduleRuleInEffect_Returns422HasActiveSchedule()`
+- [Line 124](../../../onboarding-work/test-catalog.md#L124): `Task 45.6: the ownership guard proven as black-box behaviour through real sessions. The owner arranges, over HTTP, two teachers and two groups in Nile and links one teacher record to teacher@both.test; the tests then act as that user. The unlinked teacher is covered too, because that is exactly where a default of "All" instead of "None" would hide. Reads outside the scope are 404, never 403; writes are 403 for a teacher even on their own group, because permission is evaluated before ownership.`
+- [Line 128](../../../onboarding-work/test-catalog.md#L128): `- Line 29: public async Task LinkedTeacher_List_ContainsExactlyTheOwnGroup()`
+- [Line 129](../../../onboarding-work/test-catalog.md#L129): `- Line 38: public async Task LinkedTeacher_GetOwnGroup_Returns200()`
+- [Line 130](../../../onboarding-work/test-catalog.md#L130): `- Line 52: public async Task LinkedTeacher_GetOtherTeachersGroup_Returns404GroupNotFound()`
+- [Line 131](../../../onboarding-work/test-catalog.md#L131): `- Line 63: public async Task LinkedTeacher_FilterByOtherTeacher_ReturnsEmptyItems()`
+- [Line 132](../../../onboarding-work/test-catalog.md#L132): `- Line 78: public async Task LinkedTeacher_EveryWriteRoute_Returns403PermissionDeniedAndChangesNothing(string route)`
+- [Line 133](../../../onboarding-work/test-catalog.md#L133): `- Line 105: public async Task UnlinkedTeacher_List_IsEmpty()`
+- [Line 134](../../../onboarding-work/test-catalog.md#L134): `- Line 117: public async Task UnlinkedTeacher_GetEitherGroupById_Returns404GroupNotFound()`
+- [Line 135](../../../onboarding-work/test-catalog.md#L135): `- Line 133: public async Task AfterOwnerReassignsTheOtherGroup_LinkedTeachersNextListContainsBoth()`
+- [Line 136](../../../onboarding-work/test-catalog.md#L136): `- Line 154: public async Task AfterOwnerRemovesTheAccountLink_LinkedTeachersNextListIsEmptyAndOwnGroupIs404()`
+- [Line 137](../../../onboarding-work/test-catalog.md#L137): `- Line 171: public async Task SameAccountWithMaadiSelected_SeesNothingOfNile()`
+- [Line 138](../../../onboarding-work/test-catalog.md#L138): `- Line 184: public async Task Owner_OnTheSameRoutes_SeesBothGroups()`
+- [Line 146](../../../onboarding-work/test-catalog.md#L146): `- Line 38: public async Task TenParallelEnrollRequestsIntoTheLastSeat_ExactlyOne201AndNine409GroupFull_AcrossFiveRepetitions()`
+- [Line 154](../../../onboarding-work/test-catalog.md#L154): `- Line 25: public Task NileOwner_CannotSeeOrTouchMaadisParents() =>`
+- [Line 155](../../../onboarding-work/test-catalog.md#L155): `- Line 29: public Task MaadiOwner_CannotSeeOrTouchNilesParents() =>`
+- [Line 163](../../../onboarding-work/test-catalog.md#L163): `- Line 24: public async Task Create_ThenLookupWithDifferentSpelling_ThenGet_ThenUpdate_HappyPath()`
+- [Line 164](../../../onboarding-work/test-catalog.md#L164): `- Line 61: public async Task Create_DuplicatePhone_Returns409WithErrorsPhone()`
+- [Line 165](../../../onboarding-work/test-catalog.md#L165): `- Line 79: public async Task Create_InvalidPhone_Returns400PhoneInvalidWithErrorsPhone()`
+- [Line 166](../../../onboarding-work/test-catalog.md#L166): `- Line 93: public async Task Create_OneCharacterName_Returns400WithErrorsFullName()`
+- [Line 167](../../../onboarding-work/test-catalog.md#L167): `- Line 106: public async Task Create_EmptyPhone_Returns400WithErrorsPhone()`
+- [Line 168](../../../onboarding-work/test-catalog.md#L168): `- Line 119: public async Task Create_WithExtraCentreIdField_Returns400RequestMalformedAndCreatesNoRow()`
+- [Line 169](../../../onboarding-work/test-catalog.md#L169): `- Line 134: public async Task Update_StaleVersion_Returns409ConcurrencyStale()`
+- [Line 170](../../../onboarding-work/test-catalog.md#L170): `- Line 154: public async Task Update_UnknownId_Returns404ParentNotFound()`
+- [Line 171](../../../onboarding-work/test-catalog.md#L171): `- Line 168: public async Task Get_UnknownId_Returns404ParentNotFound()`
+- [Line 172](../../../onboarding-work/test-catalog.md#L172): `- Line 180: public async Task Lookup_InvalidPhone_Returns400PhoneInvalidWithErrorsPhone()`
+- [Line 173](../../../onboarding-work/test-catalog.md#L173): `- Line 193: public async Task Lookup_NoSuchParent_Returns200WithNullParent()`
+- [Line 174](../../../onboarding-work/test-catalog.md#L174): `- Line 205: public async Task Get_NoCookie_Returns401()`
+- [Line 175](../../../onboarding-work/test-catalog.md#L175): `- Line 218: public async Task Create_WithoutTheAntiforgeryHeader_Returns403CsrfInvalid()`
+- [Line 176](../../../onboarding-work/test-catalog.md#L176): `- Line 230: public async Task Lookup_WithoutTheAntiforgeryHeader_Returns403CsrfInvalid()`
+- [Line 177](../../../onboarding-work/test-catalog.md#L177): `- Line 242: public async Task Create_TwoCentreTeacherBeforeSelectingACentre_Returns403TenantNotSelected()`
+- [Line 185](../../../onboarding-work/test-catalog.md#L185): `- Line 40: public async Task ListRules_OfTheOtherCentresGroup_Returns404GroupNotFound(string attackerEmail, string victimEmail)`
+- [Line 186](../../../onboarding-work/test-catalog.md#L186): `- Line 54: public async Task AddRule_ToTheOtherCentresGroup_Returns404GroupNotFoundAndWritesNothing(string attackerEmail, string victimEmail)`
+- [Line 187](../../../onboarding-work/test-catalog.md#L187): `- Line 68: public async Task EndRule_TheOtherCentresRuleWithItsRealVersion_Returns404RuleNotFoundAndLeavesItOpen(string attackerEmail, string victimEmail)`
+- [Line 188](../../../onboarding-work/test-catalog.md#L188): `- Line 84: public async Task CancelSession_TheOtherCentresSessionWithItsRealVersion_Returns404SessionNotFoundAndLeavesItScheduled(string attackerEmail, string victimEmail)`
+- [Line 189](../../../onboarding-work/test-catalog.md#L189): `- Line 100: public async Task Timetable_NeverListsTheOtherCentresSessions_FilteredByItsGroupOrTeacherOrNot(string attackerEmail, string victimEmail)`
+- [Line 190](../../../onboarding-work/test-catalog.md#L190): `- Line 123: public async Task TwoCentreTeacher_Timetable_ListsOnlyTheSelectedCentresOwnSession(string selectedSlug, string otherSlug)`
+- [Line 198](../../../onboarding-work/test-catalog.md#L198): `- Line 38: public async Task TwoParallelCollidingRulesForOneTeacher_One201AndOne409TeacherDoubleBooked_ExactlyFourSessions()`
+- [Line 206](../../../onboarding-work/test-catalog.md#L206): `- Line 47: public async Task AddRule_Returns201WithIdAndSessionsCreated_AndLocationAtTheGroupsRules()`
+- [Line 207](../../../onboarding-work/test-catalog.md#L207): `- Line 66: public async Task ListRules_ReturnsTheContractShape_WithStartTimeAsHourMinuteAndLowerCaseWeekday()`
+- [Line 208](../../../onboarding-work/test-catalog.md#L208): `- Line 90: public async Task ListRules_UnknownGroup_Returns404GroupNotFound_AndAGroupWithNoneReturnsEmptyItems()`
+- [Line 209](../../../onboarding-work/test-catalog.md#L209): `- Line 106: public async Task AddRule_WithATeacherOrCentreInTheBody_Returns400RequestMalformedAndWritesNoRow(string extraField)`
+- [Line 210](../../../onboarding-work/test-catalog.md#L210): `- Line 127: public async Task AddRule_NonLocalOrMisshapenValue_Returns400RequestMalformedAndWritesNoRow(string field, string value)`
+- [Line 211](../../../onboarding-work/test-catalog.md#L211): `- Line 140: public async Task AddRule_MissingRequiredFieldOrMalformedJson_Returns400RequestMalformed()`
+- [Line 212](../../../onboarding-work/test-catalog.md#L212): `- Line 154: public async Task AddRule_StartTimeOffTheFiveMinuteGrid_Returns400StartTimeInvalidOnErrorsStartTime()`
+- [Line 213](../../../onboarding-work/test-catalog.md#L213): `- Line 167: public async Task AddRule_DurationOffTheFiveMinuteStep_Returns400DurationInvalidOnErrorsDurationMinutes()`
+- [Line 214](../../../onboarding-work/test-catalog.md#L214): `- Line 183: public async Task AddRule_DurationOutOfRange_Returns400OnErrorsDurationMinutes(int durationMinutes)`
+- [Line 215](../../../onboarding-work/test-catalog.md#L215): `- Line 196: public async Task AddRule_RoomOverFortyCharacters_Returns400OnErrorsRoom()`
+- [Line 216](../../../onboarding-work/test-catalog.md#L216): `- Line 209: public async Task AddRule_UnknownGroup_Returns404GroupNotFound()`
+- [Line 217](../../../onboarding-work/test-catalog.md#L217): `- Line 219: public async Task AddRule_OverlappingTheSameTeachersOtherGroup_Returns409TeacherDoubleBookedAndCreatesNothing()`
+- [Line 218](../../../onboarding-work/test-catalog.md#L218): `- Line 236: public async Task AddRule_OverlappingTheGroupsOwnRule_Returns409GroupDoubleBookedAndCreatesNothing()`
+- [Line 219](../../../onboarding-work/test-catalog.md#L219): `- Line 250: public async Task AddRule_ToAnArchivedGroup_Returns422GroupArchived()`
+- [Line 220](../../../onboarding-work/test-catalog.md#L220): `- Line 263: public async Task AddRule_TakingEffectMoreThanAYearAhead_Returns422RangeInvalidOnErrorsEffectiveFrom()`
+- [Line 221](../../../onboarding-work/test-catalog.md#L221): `- Line 275: public async Task AddRule_WithoutTheAntiforgeryHeader_Returns403CsrfInvalidAndWritesNoRow()`
+- [Line 222](../../../onboarding-work/test-catalog.md#L222): `- Line 287: public async Task ScheduleRoutes_NoCookie_Return401()`
+- [Line 223](../../../onboarding-work/test-catalog.md#L223): `- Line 302: public async Task ScheduleWrite_BeforeSelectingACentre_Returns403TenantNotSelected()`
+- [Line 224](../../../onboarding-work/test-catalog.md#L224): `- Line 313: public async Task EndRule_Returns204_CancelsLaterSessionsOnly_ThenAgainReturns422AlreadyEnded()`
+- [Line 225](../../../onboarding-work/test-catalog.md#L225): `- Line 335: public async Task EndRule_BeforeItTakesEffect_Returns422RuleEndInvalidAndChangesNothing()`
+- [Line 226](../../../onboarding-work/test-catalog.md#L226): `- Line 350: public async Task EndRule_StaleVersion_Returns409ConcurrencyStale_AndUnknownRule_Returns404RuleNotFound()`
+- [Line 227](../../../onboarding-work/test-catalog.md#L227): `- Line 366: public async Task Extend_ReturnsTheCountCreated_AndRepeatingItReturnsZero()`
+- [Line 228](../../../onboarding-work/test-catalog.md#L228): `- Line 389: public async Task Extend_OutsideTodayToNinetyTwoDaysAhead_Returns422RangeInvalidOnErrorsThrough(string through)`
+- [Line 229](../../../onboarding-work/test-catalog.md#L229): `- Line 400: public async Task Extend_WithACentreInTheBody_Returns400RequestMalformed()`
+- [Line 230](../../../onboarding-work/test-catalog.md#L230): `- Line 410: public async Task Timetable_WithoutWeekStart_Returns400OnErrorsWeekStart_AndAMisshapenOneIsMalformed()`
+- [Line 231](../../../onboarding-work/test-catalog.md#L231): `- Line 424: public async Task Timetable_ReturnsTheZoneAndTheContractShape_WithInstantsInUtcEndingInZ()`
+- [Line 232](../../../onboarding-work/test-catalog.md#L232): `- Line 450: public async Task Timetable_AcrossCairosSpringChange_KeepsSaturdayAtSixInTheEvening()`
+- [Line 233](../../../onboarding-work/test-catalog.md#L233): `- Line 466: public async Task Timetable_ListsTheWeeksSessionsByStart_AndTheFiltersNarrowIt()`
+- [Line 234](../../../onboarding-work/test-catalog.md#L234): `- Line 490: public async Task CancelSession_Returns204AndTheTimetableStillListsItAsCancelled_ThenAgainReturns422AlreadyCancelled()`
+- [Line 235](../../../onboarding-work/test-catalog.md#L235): `- Line 512: public async Task CancelSession_ThatHasStarted_Returns422SessionInPastAndStaysScheduled()`
+- [Line 236](../../../onboarding-work/test-catalog.md#L236): `- Line 529: public async Task CancelSession_StaleVersion_Returns409ConcurrencyStale_AndUnknownSession_Returns404SessionNotFound()`
+- [Line 244](../../../onboarding-work/test-catalog.md#L244): `- Line 36: public async Task LinkedTeacher_RulesOfTheOwnGroup_Returns200WithTheRule()`
+- [Line 245](../../../onboarding-work/test-catalog.md#L245): `- Line 49: public async Task LinkedTeacher_RulesOfAnotherTeachersGroup_Returns404GroupNotFound()`
+- [Line 246](../../../onboarding-work/test-catalog.md#L246): `- Line 60: public async Task LinkedTeacher_Timetable_ListsOnlyTheOwnSessions()`
+- [Line 247](../../../onboarding-work/test-catalog.md#L247): `- Line 80: public async Task LinkedTeacher_TimetableFilteredToAnotherTeacherOrTheirGroup_ReturnsNoSessions()`
+- [Line 248](../../../onboarding-work/test-catalog.md#L248): `- Line 99: public async Task LinkedTeacher_EveryWriteRoute_Returns403PermissionDeniedAndChangesNothing(string route)`
+- [Line 256](../../../onboarding-work/test-catalog.md#L256): `- Line 27: public Task NileOwner_CannotSeeOrTouchMaadisStudents() =>`
+- [Line 257](../../../onboarding-work/test-catalog.md#L257): `- Line 31: public Task MaadiOwner_CannotSeeOrTouchNilesStudents() =>`
+- [Line 258](../../../onboarding-work/test-catalog.md#L258): `- Line 35: public Task NileOwner_ReferenceAttacks_CannotReachMaadisParentOrStudent() =>`
+- [Line 259](../../../onboarding-work/test-catalog.md#L259): `- Line 39: public Task MaadiOwner_ReferenceAttacks_CannotReachNilesParentOrStudent() =>`
+- [Line 267](../../../onboarding-work/test-catalog.md#L267): `- Line 23: public async Task Register_NewParent_ThenGet_ThenUpdate_HappyPath()`
+- [Line 268](../../../onboarding-work/test-catalog.md#L268): `- Line 59: public async Task Register_ExistingParentForSibling_SharesTheSameParentId()`
+- [Line 269](../../../onboarding-work/test-catalog.md#L269): `- Line 74: public async Task Register_DuplicateParentPhone_Returns409WithNestedParentPhoneField()`
+- [Line 270](../../../onboarding-work/test-catalog.md#L270): `- Line 90: public async Task Register_BothParentFormsGiven_Returns400WithErrorsParentAndCreatesNoRow()`
+- [Line 271](../../../onboarding-work/test-catalog.md#L271): `- Line 106: public async Task Register_NeitherParentFormGiven_Returns400WithErrorsParent()`
+- [Line 272](../../../onboarding-work/test-catalog.md#L272): `- Line 120: public async Task Register_InvalidNestedParentPhone_Returns400PhoneInvalidWithNestedField()`
+- [Line 273](../../../onboarding-work/test-catalog.md#L273): `- Line 135: public async Task Register_InvalidStudentOwnPhone_Returns400PhoneInvalidWithTopLevelField()`
+- [Line 274](../../../onboarding-work/test-catalog.md#L274): `- Line 150: public async Task Register_OneCharacterName_Returns400WithErrorsFullName()`
+- [Line 275](../../../onboarding-work/test-catalog.md#L275): `- Line 164: public async Task Register_UnknownFieldAtTopLevel_Returns400RequestMalformedAndCreatesNoRow()`
+- [Line 276](../../../onboarding-work/test-catalog.md#L276): `- Line 180: public async Task Register_UnknownFieldInsideNestedParent_Returns400RequestMalformedAndCreatesNoRow()`
+- [Line 277](../../../onboarding-work/test-catalog.md#L277): `- Line 196: public async Task List_EmptySearch_ReturnsActiveStudentsInNormalizedOrder()`
+- [Line 278](../../../onboarding-work/test-catalog.md#L278): `- Line 215: public async Task List_HamzaInsensitiveSearch_FindsStudentRegisteredWithHamza()`
+- [Line 279](../../../onboarding-work/test-catalog.md#L279): `- Line 228: public async Task List_PageSizeTooLarge_Returns400WithErrorsPageSize()`
+- [Line 280](../../../onboarding-work/test-catalog.md#L280): `- Line 240: public async Task List_MalformedCursor_Returns400WithErrorsCursor()`
+- [Line 281](../../../onboarding-work/test-catalog.md#L281): `- Line 252: public async Task List_NextCursorRoundTrips_SecondPageHasNoOverlap()`
+- [Line 282](../../../onboarding-work/test-catalog.md#L282): `- Line 273: public async Task Update_StaleVersion_Returns409ConcurrencyStale()`
+- [Line 283](../../../onboarding-work/test-catalog.md#L283): `- Line 293: public async Task Update_UnknownId_Returns404StudentNotFound()`
+- [Line 284](../../../onboarding-work/test-catalog.md#L284): `- Line 307: public async Task Get_UnknownId_Returns404StudentNotFound()`
+- [Line 285](../../../onboarding-work/test-catalog.md#L285): `- Line 319: public async Task ArchiveThenArchiveAgain_SecondReturns422AlreadyArchived()`
+- [Line 286](../../../onboarding-work/test-catalog.md#L286): `- Line 338: public async Task Archive_WithAnActiveEnrollment_Returns422HasActiveEnrollmentsAndStudentStaysActive()`
+- [Line 287](../../../onboarding-work/test-catalog.md#L287): `- Line 359: public async Task RestoreAnActiveStudent_Returns422NotArchived()`
+- [Line 288](../../../onboarding-work/test-catalog.md#L288): `- Line 373: public async Task UpdateAnArchivedStudent_Returns422ArchivedReadOnly()`
+- [Line 289](../../../onboarding-work/test-catalog.md#L289): `- Line 392: public async Task LinkParent_UnknownParentId_Returns404ParentNotFound()`
+- [Line 290](../../../onboarding-work/test-catalog.md#L290): `- Line 407: public async Task LinkParent_AlreadyLinked_Returns409AlreadyLinked()`
+- [Line 291](../../../onboarding-work/test-catalog.md#L291): `- Line 422: public async Task FullLinkSequence_MakePrimaryThenUnlinkThenLastParentRefused()`
+- [Line 292](../../../onboarding-work/test-catalog.md#L292): `- Line 455: public async Task UnlinkParent_NotLinked_Returns404StudentParentNotLinked()`
+- [Line 293](../../../onboarding-work/test-catalog.md#L293): `- Line 470: public async Task MakePrimary_AlreadyPrimary_Returns422AlreadyPrimary()`
+- [Line 294](../../../onboarding-work/test-catalog.md#L294): `- Line 485: public async Task LinkParent_FifthParent_Returns422TooManyParents()`
+- [Line 295](../../../onboarding-work/test-catalog.md#L295): `- Line 512: public async Task Get_NoCookie_Returns401()`
+- [Line 296](../../../onboarding-work/test-catalog.md#L296): `- Line 525: public async Task Register_WithoutTheAntiforgeryHeader_Returns403CsrfInvalid()`
+- [Line 297](../../../onboarding-work/test-catalog.md#L297): `- Line 538: public async Task Register_TwoCentreTeacherBeforeSelectingACentre_Returns403TenantNotSelected()`
+- [Line 298](../../../onboarding-work/test-catalog.md#L298): `- Line 553: public async Task Register_AsTeacherWithoutPermission_Returns403PermissionDenied()`
+- [Line 299](../../../onboarding-work/test-catalog.md#L299): `- Line 567: public async Task ErrorBody_HasCodeTraceIdAndCorrelationIdAndNoStackTrace()`
+- [Line 307](../../../onboarding-work/test-catalog.md#L307): `- Line 25: public Task NileOwner_CannotSeeOrTouchMaadisSubjects() =>`
+- [Line 308](../../../onboarding-work/test-catalog.md#L308): `- Line 29: public Task MaadiOwner_CannotSeeOrTouchNilesSubjects() =>`
+- [Line 309](../../../onboarding-work/test-catalog.md#L309): `- Line 33: public async Task TwoCentreTeacher_SeesNilesListThenMaadisAfterSwitching_NeverAMix()`
+- [Line 317](../../../onboarding-work/test-catalog.md#L317): `- Line 23: public async Task List_ReturnsOnlyTheCallersCentresSubjectsInNameOrder()`
+- [Line 318](../../../onboarding-work/test-catalog.md#L318): `- Line 39: public async Task Create_ThenGet_Returns201WithLocationThen200()`
+- [Line 319](../../../onboarding-work/test-catalog.md#L319): `- Line 56: public async Task Create_Duplicate_Returns409WithErrorsName()`
+- [Line 320](../../../onboarding-work/test-catalog.md#L320): `- Line 75: public async Task Create_EmptyName_Returns400WithErrorsName(string name)`
+- [Line 321](../../../onboarding-work/test-catalog.md#L321): `- Line 87: public async Task Create_EightyOneCharacterName_Returns400WithErrorsName()`
+- [Line 322](../../../onboarding-work/test-catalog.md#L322): `- Line 99: public async Task Create_WithExtraCentreIdField_Returns400RequestMalformedAndCreatesNoRow()`
+- [Line 323](../../../onboarding-work/test-catalog.md#L323): `- Line 113: public async Task Rename_HappyPathThenStaleVersion()`
+- [Line 324](../../../onboarding-work/test-catalog.md#L324): `- Line 130: public async Task ArchiveThenRestore_AndTheirRuleViolations()`
+- [Line 325](../../../onboarding-work/test-catalog.md#L325): `- Line 159: public async Task List_NoCookie_Returns401()`
+- [Line 326](../../../onboarding-work/test-catalog.md#L326): `- Line 172: public async Task Create_WithoutTheAntiforgeryHeader_Returns403CsrfInvalid()`
+- [Line 327](../../../onboarding-work/test-catalog.md#L327): `- Line 184: public async Task List_TwoCentreTeacherBeforeSelectingACentre_Returns403TenantNotSelected()`
+- [Line 328](../../../onboarding-work/test-catalog.md#L328): `- Line 197: public async Task Get_NonGuidId_Returns404RouteNotFound()`
+- [Line 329](../../../onboarding-work/test-catalog.md#L329): `- Line 209: public async Task ErrorBody_AlwaysHasCodeTraceIdCorrelationIdAndNoStackTrace()`
+- [Line 337](../../../onboarding-work/test-catalog.md#L337): `- Line 27: public async Task Teacher_List_Returns200()`
+- [Line 338](../../../onboarding-work/test-catalog.md#L338): `- Line 37: public async Task Teacher_GetById_Returns200()`
+- [Line 339](../../../onboarding-work/test-catalog.md#L339): `- Line 49: public async Task Teacher_Create_IsForbiddenAndCreatesNoRow()`
+- [Line 340](../../../onboarding-work/test-catalog.md#L340): `- Line 62: public async Task Teacher_Rename_IsForbiddenAndLeavesTheRowUnchanged()`
+- [Line 341](../../../onboarding-work/test-catalog.md#L341): `- Line 76: public async Task Teacher_Archive_IsForbiddenAndLeavesTheRowUnchanged()`
+- [Line 342](../../../onboarding-work/test-catalog.md#L342): `- Line 89: public async Task Teacher_Restore_IsForbiddenAndLeavesTheRowUnchanged()`
+- [Line 343](../../../onboarding-work/test-catalog.md#L343): `- Line 104: public async Task OwnerAndSecretary_CanListGetCreateRenameArchiveAndRestore(string email)`
+- [Line 344](../../../onboarding-work/test-catalog.md#L344): `- Line 146: public async Task Teacher_ForbiddenRenameAgainstAnUnknownId_Returns403NotFound_PermissionBeforeExistence()`
+- [Line 352](../../../onboarding-work/test-catalog.md#L352): `- Line 27: public Task NileOwner_CannotSeeOrTouchMaadisTeachers() =>`
+- [Line 353](../../../onboarding-work/test-catalog.md#L353): `- Line 31: public Task MaadiOwner_CannotSeeOrTouchNilesTeachers() =>`
+- [Line 354](../../../onboarding-work/test-catalog.md#L354): `- Line 35: public async Task SetAccount_WithAnotherCentresUserId_ReturnsUserNotEligibleAndChangesNothing()`
+- [Line 362](../../../onboarding-work/test-catalog.md#L362): `- Line 23: public async Task Create_ThenGet_Returns201WithLocationThen200()`
+- [Line 363](../../../onboarding-work/test-catalog.md#L363): `- Line 43: public async Task Create_TwoTeachersSharingAName_BothSucceed()`
+- [Line 364](../../../onboarding-work/test-catalog.md#L364): `- Line 58: public async Task Create_EmptyName_Returns400WithErrorsFullName(string fullName)`
+- [Line 365](../../../onboarding-work/test-catalog.md#L365): `- Line 70: public async Task Create_WithExtraUserIdField_Returns400RequestMalformedAndCreatesNoRow()`
+- [Line 366](../../../onboarding-work/test-catalog.md#L366): `- Line 85: public async Task Update_WithExtraUserIdField_Returns400RequestMalformedAndLeavesLinkUnchanged()`
+- [Line 367](../../../onboarding-work/test-catalog.md#L367): `- Line 100: public async Task Update_HappyPathThenStaleVersion()`
+- [Line 368](../../../onboarding-work/test-catalog.md#L368): `- Line 119: public async Task ArchiveThenRestore_AndTheirRuleViolations()`
+- [Line 369](../../../onboarding-work/test-catalog.md#L369): `- Line 148: public async Task Update_ArchivedTeacher_Returns422ArchivedReadOnly()`
+- [Line 370](../../../onboarding-work/test-catalog.md#L370): `- Line 169: public async Task SetAccount_IneligibleUserId_Returns422UserNotEligibleAndLeavesLinkUnchanged()`
+- [Line 371](../../../onboarding-work/test-catalog.md#L371): `- Line 188: public async Task SetAccount_LinkThenUnlink_Returns204EachAndListShowsDisplayName()`
+- [Line 372](../../../onboarding-work/test-catalog.md#L372): `- Line 214: public async Task SetAccount_UserAlreadyLinkedToAnotherTeacher_Returns409AccountTaken()`
+- [Line 373](../../../onboarding-work/test-catalog.md#L373): `- Line 236: public async Task List_NoCookie_Returns401()`
+- [Line 374](../../../onboarding-work/test-catalog.md#L374): `- Line 249: public async Task Create_WithoutTheAntiforgeryHeader_Returns403CsrfInvalid()`
+- [Line 375](../../../onboarding-work/test-catalog.md#L375): `- Line 261: public async Task Get_NonGuidId_Returns404RouteNotFound()`
+- [Line 383](../../../onboarding-work/test-catalog.md#L383): `- Line 23: public async Task Get_AfterRenameAndRoleChange_ReturnsBothEntriesNewestFirstWithBeforeAndAfter()`
+- [Line 384](../../../onboarding-work/test-catalog.md#L384): `- Line 52: public async Task Get_AfterGroupCapacityChange_ReturnsTheNumericBeforeAndAfterAsText()`
+- [Line 385](../../../onboarding-work/test-catalog.md#L385): `- Line 88: public async Task Get_FilteredByEntityIdOfSubject_ReturnsOnlyThatSubjectsHistory()`
+- [Line 386](../../../onboarding-work/test-catalog.md#L386): `- Line 112: public async Task Get_FilteredByAMonthThreeEntityType_ReturnsOnlyThatTypesEntries(string entityType)`
+- [Line 387](../../../onboarding-work/test-catalog.md#L387): `- Line 127: public async Task Get_FilteredByClassSession_IsAcceptedEvenWithNoEntries()`
+- [Line 388](../../../onboarding-work/test-catalog.md#L388): `- Line 140: public async Task Get_PageSizeOne_YieldsCursorAndSecondPageReturnsTheNextEntry()`
+- [Line 389](../../../onboarding-work/test-catalog.md#L389): `- Line 165: public async Task Get_WithInvalidQueryParameter_Returns400(string query)`
+- [Line 390](../../../onboarding-work/test-catalog.md#L390): `- Line 175: public async Task Get_AsMaadiOwner_SeesNoneOfNilesEntries_WithOrWithoutNilesEntityIdFilter()`
+- [Line 391](../../../onboarding-work/test-catalog.md#L391): `- Line 199: public async Task Get_AsSecretaryOrTeacher_Returns403(string role)`
+- [Line 392](../../../onboarding-work/test-catalog.md#L392): `- Line 214: public async Task UnsupportedMethod_Returns404Or405(HttpMethod method)`
+- [Line 393](../../../onboarding-work/test-catalog.md#L393): `- Line 234: public async Task Get_ResponseContainsNoEmailOrPasswordField()`
+- [Line 401](../../../onboarding-work/test-catalog.md#L401): `- Line 22: public async Task FromATrustedProxy_TheRateLimitPartitionsByTheForwardedAddress()`
+- [Line 402](../../../onboarding-work/test-catalog.md#L402): `- Line 41: public async Task FromAnUntrustedSource_ChangingTheForwardedHeaderDoesNotResetTheBudget()`
+- [Line 408](../../../onboarding-work/test-catalog.md#L408): `- Line 35: public async Task Login_AsOwner_SetsHostPrefixedSecureCookieAndAutoSelectsTheirOnlyCentre()`
+- [Line 409](../../../onboarding-work/test-catalog.md#L409): `- Line 67: public async Task Login_AsSecretaryWithOneCentre_AutoSelectsAndReturnsItsPermissions()`
+- [Line 410](../../../onboarding-work/test-catalog.md#L410): `- Line 85: public async Task Login_AsTeacherWithTwoCentres_LeavesNoActiveCentreSelected()`
+- [Line 411](../../../onboarding-work/test-catalog.md#L411): `- Line 102: public async Task Login_WhileAlreadySignedIn_ReplacesTheSessionWithTheNewIdentity()`
+- [Line 412](../../../onboarding-work/test-catalog.md#L412): `- Line 127: public async Task SelectCentre_ForAMembershipTheUserHolds_Returns204AndActivatesIt()`
+- [Line 413](../../../onboarding-work/test-catalog.md#L413): `- Line 142: public async Task SelectCentre_ForACentreTheUserDoesNotBelongTo_Returns403AndLeavesSessionUnchanged()`
+- [Line 414](../../../onboarding-work/test-catalog.md#L414): `- Line 162: public async Task GetMe_AsOwner_ReturnsAllSixteenPermissionsSorted()`
+- [Line 415](../../../onboarding-work/test-catalog.md#L415): `- Line 179: public async Task GetMe_AsSecretary_ReturnsStudentsAndSubjectsPermissionsSorted()`
+- [Line 416](../../../onboarding-work/test-catalog.md#L416): `- Line 196: public async Task GetMe_AsTwoCentreTeacherBeforeSelectingACentre_ReturnsNoPermissions()`
+- [Line 417](../../../onboarding-work/test-catalog.md#L417): `- Line 212: public async Task Logout_Returns204AndClearsTheCookie()`
+- [Line 418](../../../onboarding-work/test-catalog.md#L418): `- Line 228: public async Task GetMe_AfterLogout_Returns401()`
+- [Line 426](../../../onboarding-work/test-catalog.md#L426): `- Line 43: public async Task Login_WrongPasswordForKnownUserAndUnknownUser_ReturnIdenticalResponses()`
+- [Line 427](../../../onboarding-work/test-catalog.md#L427): `- Line 73: public async Task Logout_WithoutCsrfHeader_Returns403AndSessionStillWorksAfterwards()`
+- [Line 428](../../../onboarding-work/test-catalog.md#L428): `- Line 94: public async Task Login_WithoutCsrfHeader_Returns403()`
+- [Line 429](../../../onboarding-work/test-catalog.md#L429): `- Line 109: public async Task Login_SetsAHostPrefixedSecureHttpOnlyLaxCookie()`
+- [Line 430](../../../onboarding-work/test-catalog.md#L430): `- Line 124: public async Task GetMe_WithNoCookie_Returns401()`
+- [Line 431](../../../onboarding-work/test-catalog.md#L431): `- Line 134: public async Task SelectCentre_ForACentreOwnerDoesNotBelongTo_Returns403AndMeStillShowsTheOriginalCentre()`
+- [Line 432](../../../onboarding-work/test-catalog.md#L432): `- Line 155: public async Task RevokedMembership_NextRequestAfterRevocation_Returns401()`
+- [Line 433](../../../onboarding-work/test-catalog.md#L433): `- Line 178: public async Task ChangedSecurityStamp_NextRequest_Returns401()`
+- [Line 434](../../../onboarding-work/test-catalog.md#L434): `- Line 195: public async Task RoleChangedByTheOwner_NextRequestForThatUser_Returns401()`
+- [Line 435](../../../onboarding-work/test-catalog.md#L435): `- Line 231: public async Task TamperedCookie_Returns401()`
+- [Line 436](../../../onboarding-work/test-catalog.md#L436): `- Line 257: public async Task Login_11TimesWithinAMinuteFromOneClient_11thReturns429WithRetryAfter()`
+- [Line 437](../../../onboarding-work/test-catalog.md#L437): `- Line 279: public async Task Login_FiveWrongPasswordsThenCorrect_StillReturns401WithTheOrdinaryFailureBody()`
+- [Line 438](../../../onboarding-work/test-catalog.md#L438): `- Line 299: public async Task CurrentActor_AfterSelectingACentre_IsAStaffActorWithThatCentreInApplication()`
+- [Line 439](../../../onboarding-work/test-catalog.md#L439): `- Line 330: public async Task EndpointWithNoAuthorizationAttribute_Returns401ByDefault()`
+- [Line 447](../../../onboarding-work/test-catalog.md#L447): `- Line 38: public void EveryRunningEndpoint_IsClassifiedExactlyOnce()`
+- [Line 455](../../../onboarding-work/test-catalog.md#L455): `- Line 101: public async Task SubjectsList(string role, HttpStatusCode expected)`
+- [Line 456](../../../onboarding-work/test-catalog.md#L456): `- Line 114: public async Task SubjectsGetById(string role, HttpStatusCode expected)`
+- [Line 457](../../../onboarding-work/test-catalog.md#L457): `- Line 128: public async Task SubjectsCreate(string role, HttpStatusCode expected)`
+- [Line 458](../../../onboarding-work/test-catalog.md#L458): `- Line 148: public async Task SubjectsRename(string role, HttpStatusCode expected)`
+- [Line 459](../../../onboarding-work/test-catalog.md#L459): `- Line 168: public async Task SubjectsArchive(string role, HttpStatusCode expected)`
+- [Line 460](../../../onboarding-work/test-catalog.md#L460): `- Line 188: public async Task SubjectsRestore(string role, HttpStatusCode expected)`
+- [Line 461](../../../onboarding-work/test-catalog.md#L461): `- Line 208: public async Task StaffList(string role, HttpStatusCode expected)`
+- [Line 462](../../../onboarding-work/test-catalog.md#L462): `- Line 225: public async Task StaffCreate(string role, HttpStatusCode expected)`
+- [Line 463](../../../onboarding-work/test-catalog.md#L463): `- Line 248: public async Task StaffChangeRole(string role, HttpStatusCode expected)`
+- [Line 464](../../../onboarding-work/test-catalog.md#L464): `- Line 268: public async Task StaffDeactivate(string role, HttpStatusCode expected)`
+- [Line 465](../../../onboarding-work/test-catalog.md#L465): `- Line 288: public async Task StaffReactivate(string role, HttpStatusCode expected)`
+- [Line 466](../../../onboarding-work/test-catalog.md#L466): `- Line 308: public async Task AuditList(string role, HttpStatusCode expected)`
+- [Line 467](../../../onboarding-work/test-catalog.md#L467): `- Line 325: public async Task CentreSettingsGet(string role, HttpStatusCode expected)`
+- [Line 468](../../../onboarding-work/test-catalog.md#L468): `- Line 342: public async Task CentreSettingsUpdate(string role, HttpStatusCode expected)`
+- [Line 469](../../../onboarding-work/test-catalog.md#L469): `- Line 364: public async Task ParentsCreate(string role, HttpStatusCode expected)`
+- [Line 470](../../../onboarding-work/test-catalog.md#L470): `- Line 385: public async Task ParentsGetById(string role, HttpStatusCode expected)`
+- [Line 471](../../../onboarding-work/test-catalog.md#L471): `- Line 403: public async Task ParentsUpdate(string role, HttpStatusCode expected)`
+- [Line 472](../../../onboarding-work/test-catalog.md#L472): `- Line 425: public async Task ParentsLookup(string role, HttpStatusCode expected)`
+- [Line 473](../../../onboarding-work/test-catalog.md#L473): `- Line 443: public async Task StudentsList(string role, HttpStatusCode expected)`
+- [Line 474](../../../onboarding-work/test-catalog.md#L474): `- Line 460: public async Task StudentsGetById(string role, HttpStatusCode expected)`
+- [Line 475](../../../onboarding-work/test-catalog.md#L475): `- Line 478: public async Task StudentsRegister(string role, HttpStatusCode expected)`
+- [Line 476](../../../onboarding-work/test-catalog.md#L476): `- Line 503: public async Task StudentsUpdate(string role, HttpStatusCode expected)`
+- [Line 477](../../../onboarding-work/test-catalog.md#L477): `- Line 525: public async Task StudentsArchive(string role, HttpStatusCode expected)`
+- [Line 478](../../../onboarding-work/test-catalog.md#L478): `- Line 545: public async Task StudentsRestore(string role, HttpStatusCode expected)`
+- [Line 479](../../../onboarding-work/test-catalog.md#L479): `- Line 565: public async Task StudentsLinkParent(string role, HttpStatusCode expected)`
+- [Line 480](../../../onboarding-work/test-catalog.md#L480): `- Line 587: public async Task StudentsUnlinkParent(string role, HttpStatusCode expected)`
+- [Line 481](../../../onboarding-work/test-catalog.md#L481): `- Line 608: public async Task StudentsMakePrimary(string role, HttpStatusCode expected)`
+- [Line 482](../../../onboarding-work/test-catalog.md#L482): `- Line 628: public async Task TeachersList(string role, HttpStatusCode expected)`
+- [Line 483](../../../onboarding-work/test-catalog.md#L483): `- Line 645: public async Task TeachersGetById(string role, HttpStatusCode expected)`
+- [Line 484](../../../onboarding-work/test-catalog.md#L484): `- Line 663: public async Task TeachersCreate(string role, HttpStatusCode expected)`
+- [Line 485](../../../onboarding-work/test-catalog.md#L485): `- Line 683: public async Task TeachersUpdate(string role, HttpStatusCode expected)`
+- [Line 486](../../../onboarding-work/test-catalog.md#L486): `- Line 704: public async Task TeachersSetAccount(string role, HttpStatusCode expected)`
+- [Line 487](../../../onboarding-work/test-catalog.md#L487): `- Line 725: public async Task TeachersArchive(string role, HttpStatusCode expected)`
+- [Line 488](../../../onboarding-work/test-catalog.md#L488): `- Line 745: public async Task TeachersRestore(string role, HttpStatusCode expected)`
+- [Line 489](../../../onboarding-work/test-catalog.md#L489): `- Line 765: public async Task GroupsList(string role, HttpStatusCode expected)`
+- [Line 490](../../../onboarding-work/test-catalog.md#L490): `- Line 782: public async Task GroupsGetById(string role, HttpStatusCode expected)`
+- [Line 491](../../../onboarding-work/test-catalog.md#L491): `- Line 802: public async Task GroupsCreate(string role, HttpStatusCode expected)`
+- [Line 492](../../../onboarding-work/test-catalog.md#L492): `- Line 825: public async Task GroupsRename(string role, HttpStatusCode expected)`
+- [Line 493](../../../onboarding-work/test-catalog.md#L493): `- Line 846: public async Task GroupsChangeCapacity(string role, HttpStatusCode expected)`
+- [Line 494](../../../onboarding-work/test-catalog.md#L494): `- Line 867: public async Task GroupsAssignTeacher(string role, HttpStatusCode expected)`
+- [Line 495](../../../onboarding-work/test-catalog.md#L495): `- Line 889: public async Task GroupsArchive(string role, HttpStatusCode expected)`
+- [Line 496](../../../onboarding-work/test-catalog.md#L496): `- Line 910: public async Task GroupsRestore(string role, HttpStatusCode expected)`
+- [Line 497](../../../onboarding-work/test-catalog.md#L497): `- Line 931: public async Task EnrollmentsEnroll(string role, HttpStatusCode expected)`
+- [Line 498](../../../onboarding-work/test-catalog.md#L498): `- Line 953: public async Task EnrollmentsRoster(string role, HttpStatusCode expected)`
+- [Line 499](../../../onboarding-work/test-catalog.md#L499): `- Line 973: public async Task EnrollmentsListForStudent(string role, HttpStatusCode expected)`
+- [Line 500](../../../onboarding-work/test-catalog.md#L500): `- Line 991: public async Task EnrollmentsWithdraw(string role, HttpStatusCode expected)`
+- [Line 501](../../../onboarding-work/test-catalog.md#L501): `- Line 1013: public async Task EnrollmentsTransfer(string role, HttpStatusCode expected)`
+- [Line 502](../../../onboarding-work/test-catalog.md#L502): `- Line 1037: public async Task ScheduleListRules(string role, HttpStatusCode expected)`
+- [Line 503](../../../onboarding-work/test-catalog.md#L503): `- Line 1058: public async Task ScheduleAddRule(string role, HttpStatusCode expected)`
+- [Line 504](../../../onboarding-work/test-catalog.md#L504): `- Line 1080: public async Task ScheduleEndRule(string role, HttpStatusCode expected)`
+- [Line 505](../../../onboarding-work/test-catalog.md#L505): `- Line 1103: public async Task ScheduleExtend(string role, HttpStatusCode expected)`
+- [Line 506](../../../onboarding-work/test-catalog.md#L506): `- Line 1125: public async Task ScheduleTimetable(string role, HttpStatusCode expected)`
+- [Line 507](../../../onboarding-work/test-catalog.md#L507): `- Line 1143: public async Task ScheduleCancelSession(string role, HttpStatusCode expected)`
+- [Line 515](../../../onboarding-work/test-catalog.md#L515): `- Line 23: public async Task Get_AsOwner_ReturnsTheContractShape()`
+- [Line 516](../../../onboarding-work/test-catalog.md#L516): `- Line 39: public async Task Put_HappyPath_ThenGetShowsTheNewNameAndVersion_AndMeShowsTheNewName()`
+- [Line 517](../../../onboarding-work/test-catalog.md#L517): `- Line 64: public async Task Put_BodyWithSlug_Returns400()`
+- [Line 518](../../../onboarding-work/test-catalog.md#L518): `- Line 76: public async Task Put_EmptyName_Returns400WithErrorsName()`
+- [Line 519](../../../onboarding-work/test-catalog.md#L519): `- Line 90: public async Task Get_AsSecretary_Returns403()`
+- [Line 520](../../../onboarding-work/test-catalog.md#L520): `- Line 102: public async Task Put_AsSecretary_Returns403()`
+- [Line 521](../../../onboarding-work/test-catalog.md#L521): `- Line 115: public async Task Get_AsTwoCentreTeacher_Returns403()`
+- [Line 522](../../../onboarding-work/test-catalog.md#L522): `- Line 127: public async Task Put_AsTwoCentreTeacher_Returns403()`
+- [Line 528](../../../onboarding-work/test-catalog.md#L528): `- Line 10: public async Task RunAsync_CalledTwice_SecondRunIsANoOp()`
+- [Line 534](../../../onboarding-work/test-catalog.md#L534): `- Line 17: public async Task RunAsync_ExistingUser_OldPasswordStopsWorkingAndNewPasswordWorks()`
+- [Line 535](../../../onboarding-work/test-catalog.md#L535): `- Line 35: public async Task RunAsync_UnknownEmail_ReturnsNonZeroWithoutThrowing()`
+- [Line 541](../../../onboarding-work/test-catalog.md#L541): `- Line 18: public void SeedGate_OutsideProduction_AlwaysAllowed(string environmentName) =>`
+- [Line 542](../../../onboarding-work/test-catalog.md#L542): `- Line 22: public void SeedGate_Production_WithDemoDisabled_IsRefused() =>`
+- [Line 543](../../../onboarding-work/test-catalog.md#L543): `- Line 26: public void SeedGate_Production_WithDemoEnabled_IsAllowed() =>`
+- [Line 544](../../../onboarding-work/test-catalog.md#L544): `- Line 32: public void SeedGate_OutsideProduction_IncludesTheSetupCentre(string environmentName) =>`
+- [Line 545](../../../onboarding-work/test-catalog.md#L545): `- Line 36: public void SeedGate_Production_NeverIncludesTheSetupCentre_EvenOnADemoInstance()`
+- [Line 546](../../../onboarding-work/test-catalog.md#L546): `- Line 53: public async Task RunAsync_CalledTwice_CreatesExactlyTheTwoDemoCentresAndTheEmptySetupCentre()`
+- [Line 547](../../../onboarding-work/test-catalog.md#L547): `- Line 69: public async Task RunAsync_LeavesTheSetupCentreEmpty_ExceptForItsOneOwner()`
+- [Line 548](../../../onboarding-work/test-catalog.md#L548): `- Line 96: public async Task RunAsync_CalledTwice_CreatesExactlyTheStaffSetIdempotently()`
+- [Line 549](../../../onboarding-work/test-catalog.md#L549): `- Line 119: public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoSubjectsIdempotently()`
+- [Line 550](../../../onboarding-work/test-catalog.md#L550): `- Line 146: public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoStudentsAndParentsIdempotently()`
+- [Line 551](../../../onboarding-work/test-catalog.md#L551): `- Line 208: public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoTeachersAndGroupsIdempotently()`
+- [Line 552](../../../onboarding-work/test-catalog.md#L552): `- Line 288: public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoEnrollmentsIdempotently_LeavingOneSeatInTheTwoSeatGroup()`
+- [Line 553](../../../onboarding-work/test-catalog.md#L553): `- Line 319: public async Task RunAsync_CalledTwice_CreatesExactlyTheDemoSchedulesIdempotently_FromTheSeedDay()`
+- [Line 631](../../../onboarding-work/test-catalog.md#L631): `- Line 23: public async Task RunAsync_AttackerIsActuallyAMemberOfTheSameCentre_FailsInsteadOfPassingSilently()`
+- [Line 709](../../../onboarding-work/test-catalog.md#L709): `- Line 15: public async Task Liveness_ReturnsOk()`
+- [Line 710](../../../onboarding-work/test-catalog.md#L710): `- Line 29: public async Task Readiness_WhenDatabaseUnreachable_Returns503()`
+- [Line 718](../../../onboarding-work/test-catalog.md#L718): `- Line 12: public async Task GetReady_WithOwnerLoginAsRuntimeConnection_Returns503()`
+- [Line 724](../../../onboarding-work/test-catalog.md#L724): `- Line 14: public async Task GetReady_WithReachableDatabase_Returns200()`
+- [Line 730](../../../onboarding-work/test-catalog.md#L730): `- Line 15: public async Task NoHeaderSupplied_GeneratesCorrelationId()`
+- [Line 731](../../../onboarding-work/test-catalog.md#L731): `- Line 24: public async Task ValidHeaderSupplied_IsEchoedBack()`
+- [Line 732](../../../onboarding-work/test-catalog.md#L732): `- Line 35: public async Task InvalidHeaderTooLong_IsReplaced()`
+- [Line 733](../../../onboarding-work/test-catalog.md#L733): `- Line 46: public async Task InvalidHeaderBadCharacters_IsReplaced()`
+- [Line 734](../../../onboarding-work/test-catalog.md#L734): `- Line 57: public async Task CorrelationId_MatchesBetweenResponseHeaderAndProblemBody()`
+- [Line 735](../../../onboarding-work/test-catalog.md#L735): `- Line 69: public async Task CorrelationId_AppearsInRequestLogLine()`
+- [Line 743](../../../onboarding-work/test-catalog.md#L743): `- Line 43: public async Task CookieFromOneInstance_IsAcceptedByASecondInstance_OnTheSameDatabase()`
+- [Line 749](../../../onboarding-work/test-catalog.md#L749): `- Line 13: public async Task FromATrustedProxy_TheForwardedAddressIsLogged()`
+- [Line 750](../../../onboarding-work/test-catalog.md#L750): `- Line 25: public async Task FromAnUntrustedSource_TheForwardedAddressIsIgnored()`
+- [Line 756](../../../onboarding-work/test-catalog.md#L756): `- Line 13: public async Task SuccessfulRequest_LogsOneCompletionLineAtInformation()`
+- [Line 757](../../../onboarding-work/test-catalog.md#L757): `- Line 26: public async Task UnhandledException_LogsAtErrorLevel()`
+- [Line 763](../../../onboarding-work/test-catalog.md#L763): `- Line 14: public async Task Ok_ReturnsSuccessBody()`
+- [Line 764](../../../onboarding-work/test-catalog.md#L764): `- Line 22: public async Task Validation_Returns400WithProblemJsonAndCode()`
+- [Line 765](../../../onboarding-work/test-catalog.md#L765): `- Line 32: public async Task NotFound_Returns404WithCode()`
+- [Line 766](../../../onboarding-work/test-catalog.md#L766): `- Line 42: public async Task Conflict_Returns409WithCode()`
+- [Line 767](../../../onboarding-work/test-catalog.md#L767): `- Line 52: public async Task Rule_Returns422WithCode()`
+- [Line 768](../../../onboarding-work/test-catalog.md#L768): `- Line 62: public async Task Forbidden_Returns403WithCode()`
+- [Line 769](../../../onboarding-work/test-catalog.md#L769): `- Line 72: public async Task UnhandledException_Returns500WithoutLeakingInternals()`
+- [Line 770](../../../onboarding-work/test-catalog.md#L770): `- Line 85: public async Task MalformedJsonBody_Returns400RequestMalformed()`
+- [Line 771](../../../onboarding-work/test-catalog.md#L771): `- Line 96: public async Task UnknownJsonField_Returns400RequestMalformed()`
+- [Line 772](../../../onboarding-work/test-catalog.md#L772): `- Line 106: public async Task EmptyName_FailsValidation_Returns400()`
+- [Line 773](../../../onboarding-work/test-catalog.md#L773): `- Line 115: public async Task ValidName_ReturnsGreeting()`
+- [Line 774](../../../onboarding-work/test-catalog.md#L774): `- Line 125: public async Task UnknownApiRoute_Returns404RouteNotFound()`
+- [Line 775](../../../onboarding-work/test-catalog.md#L775): `- Line 135: public async Task UnknownApiRoute_PostMethod_Returns404RouteNotFound()`
+- [Line 776](../../../onboarding-work/test-catalog.md#L776): `- Line 145: public async Task UnknownNonApiRoute_Returns404ProblemJson()`
+- [Line 777](../../../onboarding-work/test-catalog.md#L777): `- Line 157: public async Task ErrorResponses_IncludeTraceId(string path)`
+- [Line 778](../../../onboarding-work/test-catalog.md#L778): `- Line 166: public async Task ErrorResponse_IncludesCorrelationIdMatchingRequestHeader()`
+- [Line 779](../../../onboarding-work/test-catalog.md#L779): `- Line 178: public async Task ErrorResponses_ContentTypeIsProblemJson()`
+- [Line 780](../../../onboarding-work/test-catalog.md#L780): `- Line 186: public async Task ValidationError_IncludesFieldErrorsDictionary()`
+- [Line 781](../../../onboarding-work/test-catalog.md#L781): `- Line 197: public async Task NonValidationError_DoesNotIncludeErrorsDictionary()`
+- [Line 787](../../../onboarding-work/test-catalog.md#L787): `- Line 10: public void Production_WithNoKnownNetworks_Fails()`
+- [Line 788](../../../onboarding-work/test-catalog.md#L788): `- Line 20: public void Production_WithAKnownNetwork_Succeeds()`
+- [Line 789](../../../onboarding-work/test-catalog.md#L789): `- Line 32: public void OutsideProduction_WithNoKnownNetworks_Succeeds(string environmentName)`
+- [Line 790](../../../onboarding-work/test-catalog.md#L790): `- Line 42: public void AnyEnvironment_WithAMalformedNetwork_Fails()`
+- [Line 796](../../../onboarding-work/test-catalog.md#L796): `- Line 18: public async Task ToHttpResult_FailureKind_MapsStatusAndCode(ErrorKind kind, int expectedStatus, string code)`
+- [Line 797](../../../onboarding-work/test-catalog.md#L797): `- Line 33: public async Task ToHttpResult_ValidationWithFields_IncludesErrorsObject()`
+- [Line 798](../../../onboarding-work/test-catalog.md#L798): `- Line 47: public async Task ToHttpResult_ConflictWithFields_IncludesErrorsObjectToo()`
+- [Line 799](../../../onboarding-work/test-catalog.md#L799): `- Line 64: public async Task ToHttpResult_Failure_IncludesTraceIdAndCorrelationId()`
+- [Line 800](../../../onboarding-work/test-catalog.md#L800): `- Line 76: public async Task ToHttpResult_Success_ReturnsWhatOnSuccessProduces()`
+- [Line 801](../../../onboarding-work/test-catalog.md#L801): `- Line 87: public async Task ToHttpResult_NonGenericSuccess_Returns204()`
+- [Line 802](../../../onboarding-work/test-catalog.md#L802): `- Line 96: public async Task ToHttpResult_NonGenericFailure_Returns409WithCode()`
+- [Line 803](../../../onboarding-work/test-catalog.md#L803): `- Line 106: public async Task ToCreatedHttpResult_Success_Returns201WithLocationAndBody()`
+- [Line 804](../../../onboarding-work/test-catalog.md#L804): `- Line 125: public async Task ToCreatedHttpResult_FailureKind_MapsToTheSameStatusAsTheExistingMapping(ErrorKind kind, int expectedStatus, string code)`
+- [Line 805](../../../onboarding-work/test-catalog.md#L805): `- Line 137: public async Task ToCreatedHttpResult_NoLocationVariant_Returns201WithBodyAndNoLocationHeader()`
+- [Line 806](../../../onboarding-work/test-catalog.md#L806): `- Line 156: public async Task ToCreatedHttpResult_NoLocationVariant_FailureKind_MapsToTheSameStatusAsTheExistingMapping(`
+- [Line 812](../../../onboarding-work/test-catalog.md#L812): `- Line 21: public async Task EveryResponseKind_CarriesTheSecurityHeaders(string path)`
+- [Line 813](../../../onboarding-work/test-catalog.md#L813): `- Line 36: public async Task ApiResponse_WithNoOwnCacheControl_GetsNoStore()`
+- [Line 814](../../../onboarding-work/test-catalog.md#L814): `- Line 44: public async Task ApiErrorResponse_AlsoGetsNoStore()`
+- [Line 815](../../../onboarding-work/test-catalog.md#L815): `- Line 52: public async Task HtmlResponse_KeepsItsOwnCacheControl_NotNoStore()`
+- [Line 816](../../../onboarding-work/test-catalog.md#L816): `- Line 60: public async Task OutsideProduction_NoHstsHeader()`
+- [Line 822](../../../onboarding-work/test-catalog.md#L822): `- Line 12: public async Task Root_WithNoSession_ServesTheAppShell()`
+- [Line 823](../../../onboarding-work/test-catalog.md#L823): `- Line 22: public async Task DeepLink_WithNoSession_ServesTheAppShell()`
+- [Line 824](../../../onboarding-work/test-catalog.md#L824): `- Line 31: public async Task IndexHtml_HasNoCacheHeader()`
+- [Line 825](../../../onboarding-work/test-catalog.md#L825): `- Line 39: public async Task HashedAsset_HasImmutableCacheHeader()`
+- [Line 826](../../../onboarding-work/test-catalog.md#L826): `- Line 49: public async Task MissingAsset_Is404_NotTheAppShell()`
+- [Line 827](../../../onboarding-work/test-catalog.md#L827): `- Line 58: public async Task UnknownApiRoute_StaysJsonNotFound()`
+- [Line 828](../../../onboarding-work/test-catalog.md#L828): `- Line 69: public async Task HealthEndpoints_AreNotShadowedByTheFallback()`
+- [Line 829](../../../onboarding-work/test-catalog.md#L829): `- Line 77: public async Task DirectIndexHtmlPath_IsServedByStaticFiles()`
+- [Line 835](../../../onboarding-work/test-catalog.md#L835): `- Line 12: public void Destructure_MasksPasswordTokenAndPhoneProperties()`
+- [Line 836](../../../onboarding-work/test-catalog.md#L836): `- Line 23: public void Destructure_LeavesNonSensitivePropertiesIntact()`
+- [Line 837](../../../onboarding-work/test-catalog.md#L837): `- Line 32: public void Destructure_ObjectWithNoSensitiveProperties_IsUnaffected()`
+- [Line 845](../../../onboarding-work/test-catalog.md#L845): `- Line 28: public async Task WrongCurrentPassword_Returns422()`
+- [Line 846](../../../onboarding-work/test-catalog.md#L846): `- Line 41: public async Task WeakNewPassword_Returns400WithErrorsNewPassword()`
+- [Line 847](../../../onboarding-work/test-catalog.md#L847): `- Line 55: public async Task Success_ReissuesTheCookieAndTheOldCookiesNextRequestIs401()`
+- [Line 848](../../../onboarding-work/test-catalog.md#L848): `- Line 75: public async Task SixthAttemptInAMinute_Returns429()`
+- [Line 849](../../../onboarding-work/test-catalog.md#L849): `- Line 97: public async Task FirstLoginGateSequence_FromCreateToCentreSelection()`
+- [Line 857](../../../onboarding-work/test-catalog.md#L857): `- Line 25: public Task NileOwner_CannotTouchMaadisOwnMembership() => RunDirectionAsync(`
+- [Line 858](../../../onboarding-work/test-catalog.md#L858): `- Line 29: public Task MaadiOwner_CannotTouchNilesSecretaryMembership() => RunDirectionAsync(`
+- [Line 866](../../../onboarding-work/test-catalog.md#L866): `- Line 26: public async Task List_AsOwner_ReturnsAllNileMembersWithOnlyContractFields()`
+- [Line 867](../../../onboarding-work/test-catalog.md#L867): `- Line 45: public async Task Create_NewEmail_Returns201WithPasswordAndNoStore()`
+- [Line 868](../../../onboarding-work/test-catalog.md#L868): `- Line 60: public async Task Create_EmailOfAnExistingAccount_Returns201WithNullPasswordAndNoStore()`
+- [Line 869](../../../onboarding-work/test-catalog.md#L869): `- Line 74: public async Task Create_EmailAlreadyAMemberOfThisCentre_Returns409WithErrorsEmail()`
+- [Line 870](../../../onboarding-work/test-catalog.md#L870): `- Line 88: public async Task Create_UnknownRole_Returns400RequestMalformed()`
+- [Line 871](../../../onboarding-work/test-catalog.md#L871): `- Line 101: public async Task Create_OverPostedCentreId_Returns400RequestMalformedAndCreatesNoRow()`
+- [Line 872](../../../onboarding-work/test-catalog.md#L872): `- Line 119: public async Task Create_InvalidEmail_Returns400WithErrorsEmail(string email)`
+- [Line 873](../../../onboarding-work/test-catalog.md#L873): `- Line 132: public async Task ChangeRole_HappyPathThenStaleVersion()`
+- [Line 874](../../../onboarding-work/test-catalog.md#L874): `- Line 149: public async Task ChangeRole_ValidationErrors_HaveFieldNames()`
+- [Line 875](../../../onboarding-work/test-catalog.md#L875): `- Line 161: public async Task Deactivate_ThenReactivate_FlipsStatusInTheList()`
+- [Line 876](../../../onboarding-work/test-catalog.md#L876): `- Line 180: public async Task Reactivate_AlreadyActive_Returns422MembershipAlreadyActive()`
+- [Line 877](../../../onboarding-work/test-catalog.md#L877): `- Line 194: public async Task Deactivate_AlreadyInactive_Returns422MembershipAlreadyInactive()`
+- [Line 885](../../../onboarding-work/test-catalog.md#L885): `- Line 32: public async Task Owner_ChangesOwnRole_Returns422CannotChangeSelf()`
+- [Line 886](../../../onboarding-work/test-catalog.md#L886): `- Line 46: public async Task Owner_DeactivatesSelf_Returns422CannotChangeSelf()`
+- [Line 887](../../../onboarding-work/test-catalog.md#L887): `- Line 66: public async Task LastOwnerError_MapsTo422ThroughTheRealHttpMapping()`
+- [Line 888](../../../onboarding-work/test-catalog.md#L888): `- Line 86: public async Task ChangeRole_OverPostedOrUnknownRole_Returns400(string rawBody)`
+- [Line 889](../../../onboarding-work/test-catalog.md#L889): `- Line 103: public async Task Secretary_PostsValidCreateBody_Returns403AndCreatesNoUserOrMembership()`
+- [Line 890](../../../onboarding-work/test-catalog.md#L890): `- Line 120: public async Task Secretary_GetsStaffList_Returns403()`
+- [Line 891](../../../onboarding-work/test-catalog.md#L891): `- Line 132: public async Task ChangeRole_AffectedUsersNextRequest_Returns401()`
+- [Line 897](../../../onboarding-work/test-catalog.md#L897): `- Line 11: public void NoEndpointConfigured_RegistersNoTracerProvider()`
+- [Line 898](../../../onboarding-work/test-catalog.md#L898): `- Line 23: public void EndpointConfigured_RegistersATracerProvider()`
+- [Line 904](../../../onboarding-work/test-catalog.md#L904): `- Line 14: public async Task HandleAsync_UnknownGroup_ReturnsGroupNotFoundAndAddsNothing()`
+- [Line 905](../../../onboarding-work/test-catalog.md#L905): `- Line 24: public async Task HandleAsync_ArchivedGroup_ReturnsGroupArchivedAndAddsNothing()`
+- [Line 906](../../../onboarding-work/test-catalog.md#L906): `- Line 35: public async Task HandleAsync_EffectiveFromMoreThan366DaysAhead_ReturnsRangeInvalidOnEffectiveFrom()`
+- [Line 907](../../../onboarding-work/test-catalog.md#L907): `- Line 46: public async Task HandleAsync_EffectiveFromExactly366DaysAhead_AddsTheRuleWithNoSessionsYet()`
+- [Line 908](../../../onboarding-work/test-catalog.md#L908): `- Line 59: public async Task HandleAsync_RuleFromToday_AddsTheRuleAndFourWeeksOfSessionsForTheGroupsTeacher()`
+- [Line 909](../../../onboarding-work/test-catalog.md#L909): `- Line 86: public async Task HandleAsync_TakesTheTeachersScheduleLockBeforeAddingAnySession()`
+- [Line 910](../../../onboarding-work/test-catalog.md#L910): `- Line 97: public async Task HandleAsync_RuleThatTookEffectInThePast_GeneratesNoDateBeforeToday()`
+- [Line 911](../../../onboarding-work/test-catalog.md#L911): `- Line 109: public async Task HandleAsync_RuleFromLaterInTheHorizon_GeneratesFromItsFirstDateOnly()`
+- [Line 912](../../../onboarding-work/test-catalog.md#L912): `- Line 122: public async Task HandleAsync_DurationOffTheFiveMinuteStep_ReturnsTheRulesOwnError()`
+- [Line 918](../../../onboarding-work/test-catalog.md#L918): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 919](../../../onboarding-work/test-catalog.md#L919): `- Line 25: public async Task HandleAsync_ActiveGroup_Archives()`
+- [Line 920](../../../onboarding-work/test-catalog.md#L920): `- Line 39: public async Task HandleAsync_AlreadyArchived_ReturnsAlreadyArchived()`
+- [Line 921](../../../onboarding-work/test-catalog.md#L921): `- Line 55: public async Task HandleAsync_GroupWithActiveEnrollments_ReturnsHasActiveEnrollmentsAndStaysActive()`
+- [Line 922](../../../onboarding-work/test-catalog.md#L922): `- Line 72: public async Task HandleAsync_StaleVersion_ReturnsConcurrencyStaleAndStaysActive()`
+- [Line 923](../../../onboarding-work/test-catalog.md#L923): `- Line 88: public async Task HandleAsync_GroupWithARuleStillInEffect_ReturnsHasActiveScheduleAndStaysActive()`
+- [Line 924](../../../onboarding-work/test-catalog.md#L924): `- Line 106: public async Task HandleAsync_GroupWhoseOnlyRuleEndedBeforeToday_Archives()`
+- [Line 930](../../../onboarding-work/test-catalog.md#L930): `- Line 14: public async Task Archive_ActiveStudent_Succeeds()`
+- [Line 931](../../../onboarding-work/test-catalog.md#L931): `- Line 28: public async Task Archive_AlreadyArchived_ReturnsAlreadyArchived()`
+- [Line 932](../../../onboarding-work/test-catalog.md#L932): `- Line 43: public async Task Archive_UnknownStudentId_ReturnsStudentNotFound()`
+- [Line 933](../../../onboarding-work/test-catalog.md#L933): `- Line 54: public async Task Archive_StudentWithAnActiveEnrollment_ReturnsHasActiveEnrollmentsAndStaysActive()`
+- [Line 934](../../../onboarding-work/test-catalog.md#L934): `- Line 72: public async Task Archive_StudentWhoseEnrollmentsHaveAllEnded_Succeeds()`
+- [Line 935](../../../onboarding-work/test-catalog.md#L935): `- Line 90: public async Task Restore_ArchivedStudent_Succeeds()`
+- [Line 936](../../../onboarding-work/test-catalog.md#L936): `- Line 105: public async Task Restore_AlreadyActive_ReturnsNotArchived()`
+- [Line 937](../../../onboarding-work/test-catalog.md#L937): `- Line 119: public async Task Restore_UnknownStudentId_ReturnsStudentNotFound()`
+- [Line 943](../../../onboarding-work/test-catalog.md#L943): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 944](../../../onboarding-work/test-catalog.md#L944): `- Line 26: public async Task HandleAsync_ActiveSubject_Archives()`
+- [Line 945](../../../onboarding-work/test-catalog.md#L945): `- Line 40: public async Task HandleAsync_AlreadyArchived_ReturnsAlreadyArchived()`
+- [Line 946](../../../onboarding-work/test-catalog.md#L946): `- Line 56: public async Task HandleAsync_SubjectWithActiveGroup_ReturnsHasActiveGroupsAndStaysActive()`
+- [Line 947](../../../onboarding-work/test-catalog.md#L947): `- Line 74: public async Task HandleAsync_SubjectWithOnlyArchivedGroups_Archives()`
+- [Line 953](../../../onboarding-work/test-catalog.md#L953): `- Line 8: public void Validate_EmptyId_ReportsErrorOnSubjectId()`
+- [Line 954](../../../onboarding-work/test-catalog.md#L954): `- Line 17: public void Validate_ValidCommand_HasNoErrors()`
+- [Line 960](../../../onboarding-work/test-catalog.md#L960): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 961](../../../onboarding-work/test-catalog.md#L961): `- Line 26: public async Task HandleAsync_ActiveTeacher_ArchivesAndKeepsLink()`
+- [Line 962](../../../onboarding-work/test-catalog.md#L962): `- Line 43: public async Task HandleAsync_AlreadyArchived_ReturnsAlreadyArchived()`
+- [Line 963](../../../onboarding-work/test-catalog.md#L963): `- Line 59: public async Task HandleAsync_TeacherWithActiveGroup_ReturnsHasActiveGroupsAndStaysActive()`
+- [Line 964](../../../onboarding-work/test-catalog.md#L964): `- Line 77: public async Task HandleAsync_TeacherWithOnlyArchivedGroups_Archives()`
+- [Line 970](../../../onboarding-work/test-catalog.md#L970): `- Line 8: public void Validate_EmptyTeacherId_ReportsErrorOnTeacherId()`
+- [Line 971](../../../onboarding-work/test-catalog.md#L971): `- Line 17: public void Validate_ValidId_HasNoErrors()`
+- [Line 977](../../../onboarding-work/test-catalog.md#L977): `- Line 13: public async Task HandleAsync_UnknownGroup_ReturnsGroupNotFound()`
+- [Line 978](../../../onboarding-work/test-catalog.md#L978): `- Line 26: public async Task HandleAsync_UnknownTeacher_ReturnsTeacherNotFoundAndKeepsTeacher()`
+- [Line 979](../../../onboarding-work/test-catalog.md#L979): `- Line 39: public async Task HandleAsync_ArchivedTeacher_ReturnsTeacherArchivedAndKeepsTeacher()`
+- [Line 980](../../../onboarding-work/test-catalog.md#L980): `- Line 53: public async Task HandleAsync_ActiveTeacher_Reassigns()`
+- [Line 981](../../../onboarding-work/test-catalog.md#L981): `- Line 65: public async Task HandleAsync_SameTeacher_SucceedsWithNoChange()`
+- [Line 982](../../../onboarding-work/test-catalog.md#L982): `- Line 77: public async Task HandleAsync_ArchivedGroup_ReturnsArchivedReadOnly()`
+- [Line 983](../../../onboarding-work/test-catalog.md#L983): `- Line 91: public async Task HandleAsync_ActiveTeacher_MovesFutureScheduledSessionsAndLeavesPastAndCancelledOnes()`
+- [Line 989](../../../onboarding-work/test-catalog.md#L989): `- Line 12: public async Task HandleAsync_UnknownSession_ReturnsSessionNotFound()`
+- [Line 990](../../../onboarding-work/test-catalog.md#L990): `- Line 24: public async Task HandleAsync_FutureSession_IsCancelled()`
+- [Line 991](../../../onboarding-work/test-catalog.md#L991): `- Line 35: public async Task HandleAsync_PastSession_ReturnsSessionInPastAndStaysScheduled()`
+- [Line 992](../../../onboarding-work/test-catalog.md#L992): `- Line 48: public async Task HandleAsync_AlreadyCancelledSession_ReturnsSessionAlreadyCancelled()`
+- [Line 998](../../../onboarding-work/test-catalog.md#L998): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 999](../../../onboarding-work/test-catalog.md#L999): `- Line 25: public async Task HandleAsync_InRange_ChangesCapacity()`
+- [Line 1000](../../../onboarding-work/test-catalog.md#L1000): `- Line 38: public async Task HandleAsync_OutOfRange_ReturnsCapacityInvalidAndKeepsCapacity(int capacity)`
+- [Line 1001](../../../onboarding-work/test-catalog.md#L1001): `- Line 51: public async Task HandleAsync_ArchivedGroup_ReturnsArchivedReadOnly()`
+- [Line 1002](../../../onboarding-work/test-catalog.md#L1002): `- Line 64: public async Task HandleAsync_BelowTheActiveEnrollmentCount_ReturnsCapacityBelowEnrolledAndKeepsCapacity()`
+- [Line 1003](../../../onboarding-work/test-catalog.md#L1003): `- Line 78: public async Task HandleAsync_EqualToTheActiveEnrollmentCount_ChangesCapacity()`
+- [Line 1004](../../../onboarding-work/test-catalog.md#L1004): `- Line 90: public async Task HandleAsync_StaleVersion_ReturnsConcurrencyStaleAndKeepsCapacity()`
+- [Line 1010](../../../onboarding-work/test-catalog.md#L1010): `- Line 15: public async Task HandleAsync_UnknownSubject_ReturnsSubjectNotFound()`
+- [Line 1011](../../../onboarding-work/test-catalog.md#L1011): `- Line 27: public async Task HandleAsync_ArchivedSubject_ReturnsSubjectArchived()`
+- [Line 1012](../../../onboarding-work/test-catalog.md#L1012): `- Line 39: public async Task HandleAsync_UnknownTeacher_ReturnsTeacherNotFound()`
+- [Line 1013](../../../onboarding-work/test-catalog.md#L1013): `- Line 51: public async Task HandleAsync_ArchivedTeacher_ReturnsTeacherArchived()`
+- [Line 1014](../../../onboarding-work/test-catalog.md#L1014): `- Line 63: public async Task HandleAsync_ArchivedSubjectAndUnknownTeacher_ReportsTheSubjectFirst()`
+- [Line 1015](../../../onboarding-work/test-catalog.md#L1015): `- Line 76: public async Task HandleAsync_CapacityOutOfRange_ReturnsCapacityInvalid(int capacity)`
+- [Line 1016](../../../onboarding-work/test-catalog.md#L1016): `- Line 88: public async Task HandleAsync_NameAlreadyUsed_ReturnsNameTakenOnNameField()`
+- [Line 1017](../../../onboarding-work/test-catalog.md#L1017): `- Line 102: public async Task HandleAsync_Valid_AddsGroupInTheActorsCentre()`
+- [Line 1023](../../../onboarding-work/test-catalog.md#L1023): `- Line 15: public async Task HandleAsync_Valid_AddsParentWithActorsCentreAndCanonicalPhone()`
+- [Line 1024](../../../onboarding-work/test-catalog.md#L1024): `- Line 32: public async Task HandleAsync_DifferentlySpelledPhoneAlreadyExists_ReturnsPhoneTakenAndAddsNothing()`
+- [Line 1025](../../../onboarding-work/test-catalog.md#L1025): `- Line 50: public async Task HandleAsync_InvalidPhone_ReturnsPhoneInvalidWithFieldAndAddsNothing()`
+- [Line 1026](../../../onboarding-work/test-catalog.md#L1026): `- Line 67: public async Task HandleAsync_OneCharacterName_ReturnsNameInvalidAndAddsNothing()`
+- [Line 1032](../../../onboarding-work/test-catalog.md#L1032): `- Line 8: public void Validate_EmptyFullName_ReportsErrorOnFullName()`
+- [Line 1033](../../../onboarding-work/test-catalog.md#L1033): `- Line 17: public void Validate_EmptyPhone_ReportsErrorOnPhone()`
+- [Line 1034](../../../onboarding-work/test-catalog.md#L1034): `- Line 26: public void Validate_ValidInput_HasNoErrors()`
+- [Line 1040](../../../onboarding-work/test-catalog.md#L1040): `- Line 15: public async Task HandleAsync_Valid_AddsSubjectWithActorsCentreAndReturnsId()`
+- [Line 1041](../../../onboarding-work/test-catalog.md#L1041): `- Line 35: public async Task HandleAsync_DuplicateDifferingByCaseAndSpaces_ReturnsNameTakenAndAddsNothing()`
+- [Line 1042](../../../onboarding-work/test-catalog.md#L1042): `- Line 56: public async Task HandleAsync_InvalidName_ReturnsNameInvalidAndAddsNothing()`
+- [Line 1048](../../../onboarding-work/test-catalog.md#L1048): `- Line 8: public void Validate_EmptyName_ReportsErrorOnName()`
+- [Line 1049](../../../onboarding-work/test-catalog.md#L1049): `- Line 17: public void Validate_NameOverEightyCharacters_ReportsErrorOnName()`
+- [Line 1050](../../../onboarding-work/test-catalog.md#L1050): `- Line 26: public void Validate_ValidName_HasNoErrors()`
+- [Line 1056](../../../onboarding-work/test-catalog.md#L1056): `- Line 14: public async Task HandleAsync_Valid_AddsTeacherWithActorsCentreAndReturnsId()`
+- [Line 1057](../../../onboarding-work/test-catalog.md#L1057): `- Line 31: public async Task HandleAsync_TwoTeachersSharingAName_BothSucceed()`
+- [Line 1058](../../../onboarding-work/test-catalog.md#L1058): `- Line 47: public async Task HandleAsync_InvalidName_ReturnsNameInvalidAndAddsNothing()`
+- [Line 1059](../../../onboarding-work/test-catalog.md#L1059): `- Line 62: public async Task HandleAsync_InvalidPhone_ReturnsPhoneInvalidOnPhoneFieldAndAddsNothing()`
+- [Line 1065](../../../onboarding-work/test-catalog.md#L1065): `- Line 8: public void Validate_EmptyName_ReportsErrorOnFullName()`
+- [Line 1066](../../../onboarding-work/test-catalog.md#L1066): `- Line 17: public void Validate_NameOver120Characters_ReportsErrorOnFullName()`
+- [Line 1067](../../../onboarding-work/test-catalog.md#L1067): `- Line 26: public void Validate_PhoneOverRawLength_ReportsErrorOnPhone()`
+- [Line 1068](../../../onboarding-work/test-catalog.md#L1068): `- Line 35: public void Validate_ValidWithNoPhone_HasNoErrors()`
+- [Line 1074](../../../onboarding-work/test-catalog.md#L1074): `- Line 14: public async Task HandleAsync_UnknownRule_ReturnsRuleNotFound()`
+- [Line 1075](../../../onboarding-work/test-catalog.md#L1075): `- Line 26: public async Task HandleAsync_EndsTheRuleAndCancelsOnlyTheSessionsAfterTheLastDate()`
+- [Line 1076](../../../onboarding-work/test-catalog.md#L1076): `- Line 41: public async Task HandleAsync_ASessionAfterTheLastDateThatHasStarted_IsLeftScheduled()`
+- [Line 1077](../../../onboarding-work/test-catalog.md#L1077): `- Line 54: public async Task HandleAsync_AlreadyEndedRule_ReturnsRuleAlreadyEndedAndCancelsNothing()`
+- [Line 1078](../../../onboarding-work/test-catalog.md#L1078): `- Line 67: public async Task HandleAsync_LastDateBeforeTheRuleTakesEffect_ReturnsRuleEndInvalid()`
+- [Line 1086](../../../onboarding-work/test-catalog.md#L1086): `- Line 20: public async Task HandleAsync_UnknownGroup_ReturnsGroupNotFound()`
+- [Line 1087](../../../onboarding-work/test-catalog.md#L1087): `- Line 30: public async Task HandleAsync_UnknownGroupAndUnknownStudent_ReturnsGroupNotFoundBeforeAnythingAboutTheStudent()`
+- [Line 1088](../../../onboarding-work/test-catalog.md#L1088): `- Line 40: public async Task HandleAsync_UnknownStudent_ReturnsStudentNotFound()`
+- [Line 1089](../../../onboarding-work/test-catalog.md#L1089): `- Line 50: public async Task HandleAsync_ArchivedStudent_ReturnsStudentArchived()`
+- [Line 1090](../../../onboarding-work/test-catalog.md#L1090): `- Line 61: public async Task HandleAsync_AlreadyEnrolled_ReturnsAlreadyEnrolled()`
+- [Line 1091](../../../onboarding-work/test-catalog.md#L1091): `- Line 72: public async Task HandleAsync_CountEqualToCapacity_ReturnsGroupFull()`
+- [Line 1092](../../../onboarding-work/test-catalog.md#L1092): `- Line 83: public async Task HandleAsync_ArchivedGroup_ReturnsGroupArchived()`
+- [Line 1093](../../../onboarding-work/test-catalog.md#L1093): `- Line 94: public async Task HandleAsync_LastSeat_AddsOneActiveEnrollmentInTheActorsCentreAtTheClocksTime()`
+- [Line 1101](../../../onboarding-work/test-catalog.md#L1101): `- Line 41: public async Task SendAsync_EveryCommand_ReturnsPermissionDeniedForTeacher(string commandName)`
+- [Line 1102](../../../onboarding-work/test-catalog.md#L1102): `- Line 56: public async Task SendAsync_EveryCommand_ReturnsTenantNotSelectedForACentrelessActor(string commandName)`
+- [Line 1103](../../../onboarding-work/test-catalog.md#L1103): `- Line 70: public async Task SendAsync_Enroll_SucceedsForOwnerAndSecretary(StaffRole role)`
+- [Line 1104](../../../onboarding-work/test-catalog.md#L1104): `- Line 81: public async Task QueryAsync_RosterAndStudentEnrollments_AreAllowedForTeacher()`
+- [Line 1105](../../../onboarding-work/test-catalog.md#L1105): `- Line 96: public async Task QueryAsync_RosterAndStudentEnrollments_ReturnTenantNotSelectedForACentrelessActor()`
+- [Line 1111](../../../onboarding-work/test-catalog.md#L1111): `- Line 17: public async Task GetRoster_GroupOutsideTheTeachersScope_ReturnsGroupNotFound()`
+- [Line 1112](../../../onboarding-work/test-catalog.md#L1112): `- Line 33: public async Task GetRoster_OwnGroup_ReturnsTheRoster()`
+- [Line 1113](../../../onboarding-work/test-catalog.md#L1113): `- Line 47: public async Task ListStudentEnrollments_UnknownStudent_ReturnsStudentNotFound()`
+- [Line 1114](../../../onboarding-work/test-catalog.md#L1114): `- Line 59: public async Task ListStudentEnrollments_KnownStudentWithOnlyOutOfScopeEnrollments_ReturnsAnEmptyList()`
+- [Line 1122](../../../onboarding-work/test-catalog.md#L1122): `- Line 14: public async Task HandleAsync_ThroughBeforeToday_ReturnsRangeInvalidOnThrough()`
+- [Line 1123](../../../onboarding-work/test-catalog.md#L1123): `- Line 24: public async Task HandleAsync_ThroughMoreThan92DaysAhead_ReturnsRangeInvalidOnThrough()`
+- [Line 1124](../../../onboarding-work/test-catalog.md#L1124): `- Line 34: public async Task HandleAsync_ThroughExactly92DaysAhead_IsAccepted()`
+- [Line 1125](../../../onboarding-work/test-catalog.md#L1125): `- Line 44: public async Task HandleAsync_AddsOnlyTheDatesThatHaveNoSessionYet()`
+- [Line 1126](../../../onboarding-work/test-catalog.md#L1126): `- Line 56: public async Task HandleAsync_RunTwice_TheSecondRunCreatesNothing()`
+- [Line 1127](../../../onboarding-work/test-catalog.md#L1127): `- Line 71: public async Task HandleAsync_NewSessionsGoToTheGroupsCurrentTeacher()`
+- [Line 1128](../../../onboarding-work/test-catalog.md#L1128): `- Line 83: public async Task HandleAsync_TakesTheTeachersScheduleLocksBeforeAddingAnySession()`
+- [Line 1134](../../../onboarding-work/test-catalog.md#L1134): `- Line 11: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1135](../../../onboarding-work/test-catalog.md#L1135): `- Line 24: public async Task HandleAsync_KnownId_ReturnsDetail()`
+- [Line 1141](../../../onboarding-work/test-catalog.md#L1141): `- Line 11: public async Task HandleAsync_Known_ReturnsDetail()`
+- [Line 1142](../../../onboarding-work/test-catalog.md#L1142): `- Line 25: public async Task HandleAsync_Unknown_ReturnsStudentNotFound()`
+- [Line 1148](../../../onboarding-work/test-catalog.md#L1148): `- Line 12: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1149](../../../onboarding-work/test-catalog.md#L1149): `- Line 25: public async Task HandleAsync_KnownId_ReturnsDto()`
+- [Line 1155](../../../onboarding-work/test-catalog.md#L1155): `- Line 12: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1156](../../../onboarding-work/test-catalog.md#L1156): `- Line 25: public async Task HandleAsync_KnownId_ReturnsDto()`
+- [Line 1164](../../../onboarding-work/test-catalog.md#L1164): `- Line 46: public async Task SendAsync_EveryCommand_ReturnsPermissionDeniedForTeacher(string commandName)`
+- [Line 1165](../../../onboarding-work/test-catalog.md#L1165): `- Line 61: public async Task SendAsync_EveryCommand_ReturnsTenantNotSelectedForACentrelessActor(string commandName)`
+- [Line 1166](../../../onboarding-work/test-catalog.md#L1166): `- Line 75: public async Task SendAsync_CreateGroup_SucceedsForOwnerAndSecretary(StaffRole role)`
+- [Line 1167](../../../onboarding-work/test-catalog.md#L1167): `- Line 86: public async Task QueryAsync_ListAndGet_AreAllowedForTeacher()`
+- [Line 1168](../../../onboarding-work/test-catalog.md#L1168): `- Line 100: public async Task QueryAsync_ListAndGet_ReturnTenantNotSelectedForACentrelessActor()`
+- [Line 1174](../../../onboarding-work/test-catalog.md#L1174): `- Line 14: public async Task HandleAsync_PassesTheProvidersScopeAndTheFiltersToTheReadService()`
+- [Line 1175](../../../onboarding-work/test-catalog.md#L1175): `- Line 30: public async Task HandleAsync_OwnScope_ReturnsOnlyThatTeachersGroups()`
+- [Line 1176](../../../onboarding-work/test-catalog.md#L1176): `- Line 48: public async Task HandleAsync_InScope_ReturnsTheGroup()`
+- [Line 1177](../../../onboarding-work/test-catalog.md#L1177): `- Line 62: public async Task HandleAsync_OutOfScope_ReturnsNotFound()`
+- [Line 1178](../../../onboarding-work/test-catalog.md#L1178): `- Line 75: public async Task HandleAsync_NoneScope_ReturnsNotFound()`
+- [Line 1179](../../../onboarding-work/test-catalog.md#L1179): `- Line 88: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1187](../../../onboarding-work/test-catalog.md#L1187): `- Line 16: public void CreateGroup_Valid_Passes()`
+- [Line 1188](../../../onboarding-work/test-catalog.md#L1188): `- Line 24: public void CreateGroup_EmptyNameAndIds_FailsOnEachField()`
+- [Line 1189](../../../onboarding-work/test-catalog.md#L1189): `- Line 34: public void CreateGroup_CapacityOutOfRange_IsLeftToTheEntity()`
+- [Line 1190](../../../onboarding-work/test-catalog.md#L1190): `- Line 42: public void RenameGroup_EmptyIdAndName_FailsOnBoth()`
+- [Line 1191](../../../onboarding-work/test-catalog.md#L1191): `- Line 50: public void RenameGroup_NameOver80_Fails()`
+- [Line 1192](../../../onboarding-work/test-catalog.md#L1192): `- Line 58: public void ChangeGroupCapacity_EmptyId_Fails()`
+- [Line 1193](../../../onboarding-work/test-catalog.md#L1193): `- Line 66: public void AssignGroupTeacher_EmptyIds_FailsOnBoth()`
+- [Line 1194](../../../onboarding-work/test-catalog.md#L1194): `- Line 74: public void ArchiveGroup_EmptyId_Fails()`
+- [Line 1195](../../../onboarding-work/test-catalog.md#L1195): `- Line 82: public void RestoreGroup_EmptyId_Fails()`
+- [Line 1201](../../../onboarding-work/test-catalog.md#L1201): `- Line 11: public async Task HandleAsync_PassesCriteriaThroughAndReturnsThePage()`
+- [Line 1207](../../../onboarding-work/test-catalog.md#L1207): `- Line 8: public void Validate_PageSizeZero_ReportsErrorOnPageSize()`
+- [Line 1208](../../../onboarding-work/test-catalog.md#L1208): `- Line 17: public void Validate_PageSizeAboveHundred_ReportsErrorOnPageSize()`
+- [Line 1209](../../../onboarding-work/test-catalog.md#L1209): `- Line 26: public void Validate_GarbageCursor_ReportsErrorOnCursor()`
+- [Line 1210](../../../onboarding-work/test-catalog.md#L1210): `- Line 35: public void Validate_NoCursorAndValidPageSize_HasNoErrors()`
+- [Line 1216](../../../onboarding-work/test-catalog.md#L1216): `- Line 13: public async Task HandleAsync_PassesIncludeArchivedFlagThrough(bool includeArchived)`
+- [Line 1217](../../../onboarding-work/test-catalog.md#L1217): `- Line 24: public async Task HandleAsync_ReturnsWhatTheReadServiceProvides()`
+- [Line 1223](../../../onboarding-work/test-catalog.md#L1223): `- Line 13: public async Task HandleAsync_PassesIncludeArchivedFlagThrough(bool includeArchived)`
+- [Line 1224](../../../onboarding-work/test-catalog.md#L1224): `- Line 24: public async Task HandleAsync_ReturnsWhatTheReadServiceProvides()`
+- [Line 1230](../../../onboarding-work/test-catalog.md#L1230): `- Line 11: public async Task HandleAsync_FoundByDifferentSpelling_ReturnsTheParent()`
+- [Line 1231](../../../onboarding-work/test-catalog.md#L1231): `- Line 25: public async Task HandleAsync_NoParentWithThisPhone_SucceedsWithNull()`
+- [Line 1232](../../../onboarding-work/test-catalog.md#L1232): `- Line 37: public async Task HandleAsync_InvalidPhone_ReturnsPhoneInvalidWithField()`
+- [Line 1240](../../../onboarding-work/test-catalog.md#L1240): `- Line 29: public async Task SendAsync_CreateParent_ReturnsPermissionDeniedForTeacher()`
+- [Line 1241](../../../onboarding-work/test-catalog.md#L1241): `- Line 41: public async Task SendAsync_UpdateParent_ReturnsPermissionDeniedForTeacher()`
+- [Line 1242](../../../onboarding-work/test-catalog.md#L1242): `- Line 52: public async Task QueryAsync_GetParent_ReturnsPermissionDeniedForTeacher()`
+- [Line 1243](../../../onboarding-work/test-catalog.md#L1243): `- Line 63: public async Task QueryAsync_LookupParentByPhone_ReturnsPermissionDeniedForTeacher()`
+- [Line 1244](../../../onboarding-work/test-catalog.md#L1244): `- Line 76: public async Task SendAsync_CreateParent_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1245](../../../onboarding-work/test-catalog.md#L1245): `- Line 87: public async Task SendAsync_CreateParent_ReturnsTenantNotSelectedForCentrelessActor()`
+- [Line 1246](../../../onboarding-work/test-catalog.md#L1246): `- Line 99: public async Task SendAsync_UpdateParent_ReturnsTenantNotSelectedForCentrelessActor()`
+- [Line 1247](../../../onboarding-work/test-catalog.md#L1247): `- Line 110: public async Task QueryAsync_GetParent_ReturnsTenantNotSelectedForCentrelessActor()`
+- [Line 1248](../../../onboarding-work/test-catalog.md#L1248): `- Line 121: public async Task QueryAsync_LookupParentByPhone_ReturnsTenantNotSelectedForCentrelessActor()`
+- [Line 1254](../../../onboarding-work/test-catalog.md#L1254): `- Line 15: public async Task LinkParent_ExistingParentNotYetLinked_Succeeds()`
+- [Line 1255](../../../onboarding-work/test-catalog.md#L1255): `- Line 32: public async Task LinkParent_UnknownParentId_ReturnsParentNotFound()`
+- [Line 1256](../../../onboarding-work/test-catalog.md#L1256): `- Line 46: public async Task LinkParent_AlreadyLinked_ReturnsAlreadyLinked()`
+- [Line 1257](../../../onboarding-work/test-catalog.md#L1257): `- Line 63: public async Task UnlinkParent_NonPrimarySecondParent_Succeeds()`
+- [Line 1258](../../../onboarding-work/test-catalog.md#L1258): `- Line 79: public async Task UnlinkParent_LastParent_ReturnsLastParentRule()`
+- [Line 1259](../../../onboarding-work/test-catalog.md#L1259): `- Line 94: public async Task UnlinkParent_NotLinked_ReturnsNotLinked()`
+- [Line 1260](../../../onboarding-work/test-catalog.md#L1260): `- Line 108: public async Task SetPrimaryParent_AlreadyLinkedSecondParent_BecomesPrimary()`
+- [Line 1261](../../../onboarding-work/test-catalog.md#L1261): `- Line 124: public async Task SetPrimaryParent_NotLinked_ReturnsNotLinked()`
+- [Line 1267](../../../onboarding-work/test-catalog.md#L1267): `- Line 15: public async Task HandleAsync_ExistingParentForm_AddsStudentLinkedToThatParent()`
+- [Line 1268](../../../onboarding-work/test-catalog.md#L1268): `- Line 33: public async Task HandleAsync_NewParentForm_AddsBothParentAndStudent()`
+- [Line 1269](../../../onboarding-work/test-catalog.md#L1269): `- Line 50: public async Task HandleAsync_UnknownExistingParentId_ReturnsParentNotFoundAndAddsNothing()`
+- [Line 1270](../../../onboarding-work/test-catalog.md#L1270): `- Line 68: public async Task HandleAsync_NewParentPhoneAlreadyTaken_ReturnsParentPhoneTakenWithNestedFieldAndAddsNothing()`
+- [Line 1271](../../../onboarding-work/test-catalog.md#L1271): `- Line 86: public async Task HandleAsync_NewParentInvalidPhone_ReturnsNestedParentPhoneFieldAndAddsNothing()`
+- [Line 1272](../../../onboarding-work/test-catalog.md#L1272): `- Line 102: public async Task HandleAsync_StudentNameInvalid_AfterNewParentWasStaged_StudentIsNeverAdded()`
+- [Line 1273](../../../onboarding-work/test-catalog.md#L1273): `- Line 120: public async Task HandleAsync_StudentOwnPhoneInvalid_ReturnsTopLevelPhoneFieldAndAddsNothing()`
+- [Line 1279](../../../onboarding-work/test-catalog.md#L1279): `- Line 9: public void Validate_ExistingParentIdAlone_HasNoErrors()`
+- [Line 1280](../../../onboarding-work/test-catalog.md#L1280): `- Line 17: public void Validate_NewParentNameAndPhoneTogether_HasNoErrors()`
+- [Line 1281](../../../onboarding-work/test-catalog.md#L1281): `- Line 25: public void Validate_NeitherFormGiven_ReportsErrorOnParent()`
+- [Line 1282](../../../onboarding-work/test-catalog.md#L1282): `- Line 34: public void Validate_BothFormsGivenAtOnce_ReportsErrorOnParent()`
+- [Line 1283](../../../onboarding-work/test-catalog.md#L1283): `- Line 43: public void Validate_NewParentNameOnlyMissingPhone_ReportsErrorOnParentAndParentPhone()`
+- [Line 1284](../../../onboarding-work/test-catalog.md#L1284): `- Line 53: public void Validate_EmptyStudentName_ReportsErrorOnFullName()`
+- [Line 1285](../../../onboarding-work/test-catalog.md#L1285): `- Line 64: public void Validate_UndefinedRelationship_ReportsErrorOnRelationship()`
+- [Line 1291](../../../onboarding-work/test-catalog.md#L1291): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1292](../../../onboarding-work/test-catalog.md#L1292): `- Line 25: public async Task HandleAsync_NewUniqueName_Renames()`
+- [Line 1293](../../../onboarding-work/test-catalog.md#L1293): `- Line 39: public async Task HandleAsync_SameName_SucceedsWithNoChange()`
+- [Line 1294](../../../onboarding-work/test-catalog.md#L1294): `- Line 53: public async Task HandleAsync_NameUsedByAnotherGroup_ReturnsNameTaken()`
+- [Line 1295](../../../onboarding-work/test-catalog.md#L1295): `- Line 71: public async Task HandleAsync_ArchivedGroup_ReturnsArchivedReadOnly()`
+- [Line 1301](../../../onboarding-work/test-catalog.md#L1301): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1302](../../../onboarding-work/test-catalog.md#L1302): `- Line 27: public async Task HandleAsync_NewNameAlreadyTakenByAnotherSubject_ReturnsNameTaken()`
+- [Line 1303](../../../onboarding-work/test-catalog.md#L1303): `- Line 44: public async Task HandleAsync_SameName_SucceedsWithNoChange()`
+- [Line 1304](../../../onboarding-work/test-catalog.md#L1304): `- Line 58: public async Task HandleAsync_ArchivedSubject_ReturnsArchivedReadOnly()`
+- [Line 1305](../../../onboarding-work/test-catalog.md#L1305): `- Line 73: public async Task HandleAsync_ValidNewName_Succeeds()`
+- [Line 1311](../../../onboarding-work/test-catalog.md#L1311): `- Line 8: public void Validate_EmptyId_ReportsErrorOnSubjectId()`
+- [Line 1312](../../../onboarding-work/test-catalog.md#L1312): `- Line 17: public void Validate_NameOverEightyCharacters_ReportsErrorOnName()`
+- [Line 1313](../../../onboarding-work/test-catalog.md#L1313): `- Line 26: public void Validate_ValidCommand_HasNoErrors()`
+- [Line 1319](../../../onboarding-work/test-catalog.md#L1319): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1320](../../../onboarding-work/test-catalog.md#L1320): `- Line 25: public async Task HandleAsync_SubjectArchived_ReturnsSubjectArchivedAndStaysArchived()`
+- [Line 1321](../../../onboarding-work/test-catalog.md#L1321): `- Line 39: public async Task HandleAsync_TeacherArchived_ReturnsTeacherArchivedAndStaysArchived()`
+- [Line 1322](../../../onboarding-work/test-catalog.md#L1322): `- Line 53: public async Task HandleAsync_BothReferencesActive_Restores()`
+- [Line 1323](../../../onboarding-work/test-catalog.md#L1323): `- Line 64: public async Task HandleAsync_NotArchived_ReturnsNotArchived()`
+- [Line 1329](../../../onboarding-work/test-catalog.md#L1329): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1330](../../../onboarding-work/test-catalog.md#L1330): `- Line 26: public async Task HandleAsync_ActiveSubject_ReturnsNotArchived()`
+- [Line 1331](../../../onboarding-work/test-catalog.md#L1331): `- Line 40: public async Task HandleAsync_ArchivedSubject_BecomesActive()`
+- [Line 1337](../../../onboarding-work/test-catalog.md#L1337): `- Line 8: public void Validate_EmptyId_ReportsErrorOnSubjectId()`
+- [Line 1338](../../../onboarding-work/test-catalog.md#L1338): `- Line 17: public void Validate_ValidCommand_HasNoErrors()`
+- [Line 1344](../../../onboarding-work/test-catalog.md#L1344): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1345](../../../onboarding-work/test-catalog.md#L1345): `- Line 26: public async Task HandleAsync_ArchivedTeacher_Restores()`
+- [Line 1346](../../../onboarding-work/test-catalog.md#L1346): `- Line 41: public async Task HandleAsync_NotArchived_ReturnsNotArchived()`
+- [Line 1352](../../../onboarding-work/test-catalog.md#L1352): `- Line 8: public void Validate_EmptyTeacherId_ReportsErrorOnTeacherId()`
+- [Line 1353](../../../onboarding-work/test-catalog.md#L1353): `- Line 17: public void Validate_ValidId_HasNoErrors()`
+- [Line 1361](../../../onboarding-work/test-catalog.md#L1361): `- Line 42: public async Task SendAsync_EveryCommand_ReturnsPermissionDeniedForTeacher(string commandName)`
+- [Line 1362](../../../onboarding-work/test-catalog.md#L1362): `- Line 58: public async Task SendAsync_EveryCommand_ReturnsTenantNotSelectedForACentrelessActor(string commandName)`
+- [Line 1363](../../../onboarding-work/test-catalog.md#L1363): `- Line 72: public async Task SendAsync_AddRule_SucceedsForOwnerAndSecretary(StaffRole role)`
+- [Line 1364](../../../onboarding-work/test-catalog.md#L1364): `- Line 83: public async Task QueryAsync_TimetableAndRules_AreAllowedForTeacher()`
+- [Line 1365](../../../onboarding-work/test-catalog.md#L1365): `- Line 98: public async Task QueryAsync_TimetableAndRules_ReturnTenantNotSelectedForACentrelessActor()`
+- [Line 1371](../../../onboarding-work/test-catalog.md#L1371): `- Line 16: public async Task GetTimetable_ReturnsTheCentresZoneIdAndWeekStart_AndPassesTheScopeAndFilters()`
+- [Line 1372](../../../onboarding-work/test-catalog.md#L1372): `- Line 33: public async Task GetTimetable_OwnScope_ReturnsOnlyTheTeachersOwnSessions()`
+- [Line 1373](../../../onboarding-work/test-catalog.md#L1373): `- Line 48: public async Task ListGroupScheduleRules_GroupInScope_ReturnsItsRules()`
+- [Line 1374](../../../onboarding-work/test-catalog.md#L1374): `- Line 64: public async Task ListGroupScheduleRules_GroupOutOfScope_ReturnsGroupNotFound()`
+- [Line 1390](../../../onboarding-work/test-catalog.md#L1390): `- Line 21: public async Task HandleAsync_UnknownTeacherId_ReturnsNotFound()`
+- [Line 1391](../../../onboarding-work/test-catalog.md#L1391): `- Line 33: public async Task HandleAsync_NullUserId_Unlinks()`
+- [Line 1392](../../../onboarding-work/test-catalog.md#L1392): `- Line 48: public async Task HandleAsync_EligibleUser_Links()`
+- [Line 1393](../../../onboarding-work/test-catalog.md#L1393): `- Line 63: public async Task HandleAsync_UnknownUserId_ReturnsUserNotEligible()`
+- [Line 1394](../../../onboarding-work/test-catalog.md#L1394): `- Line 77: public async Task HandleAsync_UserOfAnotherCentre_ReturnsUserNotEligible()`
+- [Line 1395](../../../onboarding-work/test-catalog.md#L1395): `- Line 92: public async Task HandleAsync_UserWithAnotherRole_ReturnsUserNotEligible()`
+- [Line 1396](../../../onboarding-work/test-catalog.md#L1396): `- Line 106: public async Task HandleAsync_UserAlreadyLinkedToAnotherTeacher_ReturnsAccountTaken()`
+- [Line 1397](../../../onboarding-work/test-catalog.md#L1397): `- Line 128: public async Task HandleAsync_RelinkingTheSameTeacherToItsOwnUser_Succeeds()`
+- [Line 1403](../../../onboarding-work/test-catalog.md#L1403): `- Line 8: public void Validate_EmptyTeacherId_ReportsErrorOnTeacherId()`
+- [Line 1404](../../../onboarding-work/test-catalog.md#L1404): `- Line 17: public void Validate_NullUserId_HasNoErrors()`
+- [Line 1412](../../../onboarding-work/test-catalog.md#L1412): `- Line 36: public async Task EveryManageCommand_ReturnsPermissionDeniedForTeacher(StaffRole role)`
+- [Line 1413](../../../onboarding-work/test-catalog.md#L1413): `- Line 64: public async Task QueryAsync_GetStudent_ReturnsPermissionDeniedForTeacher()`
+- [Line 1414](../../../onboarding-work/test-catalog.md#L1414): `- Line 75: public async Task QueryAsync_ListStudents_ReturnsPermissionDeniedForTeacher()`
+- [Line 1415](../../../onboarding-work/test-catalog.md#L1415): `- Line 88: public async Task SendAsync_RegisterStudent_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1416](../../../onboarding-work/test-catalog.md#L1416): `- Line 100: public async Task SendAsync_RegisterStudent_ReturnsTenantNotSelectedForCentrelessActor()`
+- [Line 1417](../../../onboarding-work/test-catalog.md#L1417): `- Line 113: public async Task QueryAsync_GetStudent_ReturnsTenantNotSelectedForCentrelessActor()`
+- [Line 1425](../../../onboarding-work/test-catalog.md#L1425): `- Line 32: public async Task SendAsync_CreateSubject_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1426](../../../onboarding-work/test-catalog.md#L1426): `- Line 43: public async Task SendAsync_CreateSubject_ReturnsPermissionDeniedForTeacher()`
+- [Line 1427](../../../onboarding-work/test-catalog.md#L1427): `- Line 57: public async Task SendAsync_RenameSubject_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1428](../../../onboarding-work/test-catalog.md#L1428): `- Line 68: public async Task SendAsync_RenameSubject_ReturnsPermissionDeniedForTeacher()`
+- [Line 1429](../../../onboarding-work/test-catalog.md#L1429): `- Line 81: public async Task SendAsync_ArchiveSubject_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1430](../../../onboarding-work/test-catalog.md#L1430): `- Line 92: public async Task SendAsync_ArchiveSubject_ReturnsPermissionDeniedForTeacher()`
+- [Line 1431](../../../onboarding-work/test-catalog.md#L1431): `- Line 105: public async Task SendAsync_RestoreSubject_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1432](../../../onboarding-work/test-catalog.md#L1432): `- Line 116: public async Task SendAsync_RestoreSubject_ReturnsPermissionDeniedForTeacher()`
+- [Line 1433](../../../onboarding-work/test-catalog.md#L1433): `- Line 130: public async Task QueryAsync_ListSubjects_SucceedsForEveryRole(StaffRole role)`
+- [Line 1434](../../../onboarding-work/test-catalog.md#L1434): `- Line 144: public async Task QueryAsync_GetSubject_SucceedsForEveryRole(StaffRole role)`
+- [Line 1442](../../../onboarding-work/test-catalog.md#L1442): `- Line 29: public async Task SendAsync_CreateSubject_ReturnsTenantNotSelected()`
+- [Line 1443](../../../onboarding-work/test-catalog.md#L1443): `- Line 41: public async Task SendAsync_RenameSubject_ReturnsTenantNotSelected()`
+- [Line 1444](../../../onboarding-work/test-catalog.md#L1444): `- Line 52: public async Task SendAsync_ArchiveSubject_ReturnsTenantNotSelected()`
+- [Line 1445](../../../onboarding-work/test-catalog.md#L1445): `- Line 63: public async Task SendAsync_RestoreSubject_ReturnsTenantNotSelected()`
+- [Line 1446](../../../onboarding-work/test-catalog.md#L1446): `- Line 74: public async Task QueryAsync_ListSubjects_ReturnsTenantNotSelected()`
+- [Line 1447](../../../onboarding-work/test-catalog.md#L1447): `- Line 85: public async Task QueryAsync_GetSubject_ReturnsTenantNotSelected()`
+- [Line 1455](../../../onboarding-work/test-catalog.md#L1455): `- Line 33: public async Task SendAsync_CreateTeacher_SucceedsForOwner()`
+- [Line 1456](../../../onboarding-work/test-catalog.md#L1456): `- Line 46: public async Task SendAsync_CreateTeacher_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1457](../../../onboarding-work/test-catalog.md#L1457): `- Line 58: public async Task SendAsync_UpdateTeacher_SucceedsForOwner()`
+- [Line 1458](../../../onboarding-work/test-catalog.md#L1458): `- Line 71: public async Task SendAsync_UpdateTeacher_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1459](../../../onboarding-work/test-catalog.md#L1459): `- Line 82: public async Task SendAsync_SetTeacherAccount_SucceedsForOwner()`
+- [Line 1460](../../../onboarding-work/test-catalog.md#L1460): `- Line 95: public async Task SendAsync_SetTeacherAccount_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1461](../../../onboarding-work/test-catalog.md#L1461): `- Line 106: public async Task SendAsync_ArchiveTeacher_SucceedsForOwner()`
+- [Line 1462](../../../onboarding-work/test-catalog.md#L1462): `- Line 119: public async Task SendAsync_ArchiveTeacher_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1463](../../../onboarding-work/test-catalog.md#L1463): `- Line 130: public async Task SendAsync_RestoreTeacher_SucceedsForOwner()`
+- [Line 1464](../../../onboarding-work/test-catalog.md#L1464): `- Line 143: public async Task SendAsync_RestoreTeacher_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1465](../../../onboarding-work/test-catalog.md#L1465): `- Line 156: public async Task QueryAsync_ListTeachers_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1466](../../../onboarding-work/test-catalog.md#L1466): `- Line 167: public async Task QueryAsync_ListTeachers_ReturnsPermissionDeniedForTeacher()`
+- [Line 1467](../../../onboarding-work/test-catalog.md#L1467): `- Line 180: public async Task QueryAsync_GetTeacher_SucceedsForSecretaryAndOwner(StaffRole role)`
+- [Line 1468](../../../onboarding-work/test-catalog.md#L1468): `- Line 191: public async Task QueryAsync_GetTeacher_ReturnsPermissionDeniedForTeacher()`
+- [Line 1476](../../../onboarding-work/test-catalog.md#L1476): `- Line 19: public async Task HandleAsync_UnknownEnrollment_ReturnsEnrollmentNotFound()`
+- [Line 1477](../../../onboarding-work/test-catalog.md#L1477): `- Line 29: public async Task HandleAsync_EndedEnrollment_ReturnsAlreadyEnded()`
+- [Line 1478](../../../onboarding-work/test-catalog.md#L1478): `- Line 43: public async Task HandleAsync_SameGroup_ReturnsSameGroup()`
+- [Line 1479](../../../onboarding-work/test-catalog.md#L1479): `- Line 53: public async Task HandleAsync_UnknownTarget_ReturnsGroupNotFound()`
+- [Line 1480](../../../onboarding-work/test-catalog.md#L1480): `- Line 63: public async Task HandleAsync_TargetOfAnotherSubject_ReturnsSubjectMismatch()`
+- [Line 1481](../../../onboarding-work/test-catalog.md#L1481): `- Line 75: public async Task HandleAsync_StudentAlreadyInTarget_ReturnsAlreadyEnrolled()`
+- [Line 1482](../../../onboarding-work/test-catalog.md#L1482): `- Line 86: public async Task HandleAsync_TargetFull_ReturnsGroupFullAndChangesNothing()`
+- [Line 1483](../../../onboarding-work/test-catalog.md#L1483): `- Line 97: public async Task HandleAsync_Success_EndsTheOldAsTransferredAndAddsANewActiveEnrollmentInTheTarget()`
+- [Line 1489](../../../onboarding-work/test-catalog.md#L1489): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1490](../../../onboarding-work/test-catalog.md#L1490): `- Line 27: public async Task HandleAsync_SamePhone_SucceedsWithoutRunningAUniquenessQuery()`
+- [Line 1491](../../../onboarding-work/test-catalog.md#L1491): `- Line 43: public async Task HandleAsync_PhoneChangedAndTakenByAnother_ReturnsPhoneTaken()`
+- [Line 1492](../../../onboarding-work/test-catalog.md#L1492): `- Line 62: public async Task HandleAsync_PhoneChangedToAFreeOne_Succeeds()`
+- [Line 1493](../../../onboarding-work/test-catalog.md#L1493): `- Line 77: public async Task HandleAsync_InvalidPhone_ReturnsPhoneInvalidWithField()`
+- [Line 1499](../../../onboarding-work/test-catalog.md#L1499): `- Line 13: public async Task HandleAsync_Valid_ReplacesAllThreeFields()`
+- [Line 1500](../../../onboarding-work/test-catalog.md#L1500): `- Line 30: public async Task HandleAsync_OmittedPhoneAndSchoolYear_ClearsBoth()`
+- [Line 1501](../../../onboarding-work/test-catalog.md#L1501): `- Line 45: public async Task HandleAsync_UnknownStudentId_ReturnsStudentNotFound()`
+- [Line 1502](../../../onboarding-work/test-catalog.md#L1502): `- Line 56: public async Task HandleAsync_InvalidPhone_ReturnsPhoneInvalidWithField()`
+- [Line 1503](../../../onboarding-work/test-catalog.md#L1503): `- Line 70: public async Task HandleAsync_ArchivedStudent_ReturnsArchivedReadOnly()`
+- [Line 1509](../../../onboarding-work/test-catalog.md#L1509): `- Line 13: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1510](../../../onboarding-work/test-catalog.md#L1510): `- Line 27: public async Task HandleAsync_Valid_UpdatesNameAndPhone()`
+- [Line 1511](../../../onboarding-work/test-catalog.md#L1511): `- Line 43: public async Task HandleAsync_ArchivedTeacher_ReturnsArchivedReadOnly()`
+- [Line 1512](../../../onboarding-work/test-catalog.md#L1512): `- Line 59: public async Task HandleAsync_InvalidPhone_ReturnsPhoneInvalidOnPhoneFieldAndLeavesTeacherUnchanged()`
+- [Line 1518](../../../onboarding-work/test-catalog.md#L1518): `- Line 8: public void Validate_EmptyTeacherId_ReportsErrorOnTeacherId()`
+- [Line 1519](../../../onboarding-work/test-catalog.md#L1519): `- Line 17: public void Validate_EmptyName_ReportsErrorOnFullName()`
+- [Line 1520](../../../onboarding-work/test-catalog.md#L1520): `- Line 26: public void Validate_Valid_HasNoErrors()`
+- [Line 1526](../../../onboarding-work/test-catalog.md#L1526): `- Line 13: public async Task HandleAsync_UnknownEnrollment_ReturnsEnrollmentNotFound()`
+- [Line 1527](../../../onboarding-work/test-catalog.md#L1527): `- Line 25: public async Task HandleAsync_AlreadyEnded_ReturnsAlreadyEndedAndKeepsTheFirstEnd()`
+- [Line 1528](../../../onboarding-work/test-catalog.md#L1528): `- Line 44: public async Task HandleAsync_ActiveEnrollment_EndsItAsWithdrawnAtTheClocksTime()`
+- [Line 1536](../../../onboarding-work/test-catalog.md#L1536): `- Line 26: public async Task QueryAsync_GetAuditLog_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1537](../../../onboarding-work/test-catalog.md#L1537): `- Line 39: public async Task QueryAsync_GetAuditLog_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 1543](../../../onboarding-work/test-catalog.md#L1543): `- Line 10: public async Task HandleAsync_PassesEveryFilterThroughUnchanged()`
+- [Line 1544](../../../onboarding-work/test-catalog.md#L1544): `- Line 33: public async Task HandleAsync_ReturnsThePageFromTheReadService()`
+- [Line 1550](../../../onboarding-work/test-catalog.md#L1550): `- Line 11: public void Validate_WithEveryFilterOmitted_Succeeds()`
+- [Line 1551](../../../onboarding-work/test-catalog.md#L1551): `- Line 21: public void Validate_WithPageSizeOutOfRange_Fails(int pageSize)`
+- [Line 1552](../../../onboarding-work/test-catalog.md#L1552): `- Line 32: public void Validate_WithPageSizeAtBoundary_Succeeds(int pageSize)`
+- [Line 1553](../../../onboarding-work/test-catalog.md#L1553): `- Line 40: public void Validate_WithFromAfterTo_Fails()`
+- [Line 1554](../../../onboarding-work/test-catalog.md#L1554): `- Line 50: public void Validate_WithFromEqualToTo_Succeeds()`
+- [Line 1555](../../../onboarding-work/test-catalog.md#L1555): `- Line 59: public void Validate_WithUnknownEntityType_Fails()`
+- [Line 1556](../../../onboarding-work/test-catalog.md#L1556): `- Line 87: public void Validate_WithEntityIdButNoEntityType_Fails()`
+- [Line 1557](../../../onboarding-work/test-catalog.md#L1557): `- Line 96: public void Validate_WithEntityIdAndEntityType_Succeeds()`
+- [Line 1558](../../../onboarding-work/test-catalog.md#L1558): `- Line 104: public void Validate_WithGarbageCursor_Fails()`
+- [Line 1559](../../../onboarding-work/test-catalog.md#L1559): `- Line 113: public void Validate_WithWellFormedCursor_Succeeds()`
+- [Line 1567](../../../onboarding-work/test-catalog.md#L1567): `- Line 12: public void Today_At2230UtcOn31December_IsAlready1JanuaryInCairo()`
+- [Line 1568](../../../onboarding-work/test-catalog.md#L1568): `- Line 21: public void Today_At2159UtcOn31December_IsStill31DecemberInCairo()`
+- [Line 1576](../../../onboarding-work/test-catalog.md#L1576): `- Line 28: public async Task QueryAsync_GetCentreSettings_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1577](../../../onboarding-work/test-catalog.md#L1577): `- Line 41: public async Task SendAsync_UpdateCentreSettings_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1578](../../../onboarding-work/test-catalog.md#L1578): `- Line 52: public async Task QueryAsync_GetCentreSettings_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 1579](../../../onboarding-work/test-catalog.md#L1579): `- Line 63: public async Task SendAsync_UpdateCentreSettings_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 1585](../../../onboarding-work/test-catalog.md#L1585): `- Line 12: public async Task HandleAsync_AnonymousActor_ReturnsForbiddenAndDoesNotAdd()`
+- [Line 1586](../../../onboarding-work/test-catalog.md#L1586): `- Line 32: public async Task HandleAsync_SlugAlreadyExists_ReturnsConflictAndDoesNotAdd()`
+- [Line 1587](../../../onboarding-work/test-catalog.md#L1587): `- Line 53: public async Task HandleAsync_InvalidSlug_ReturnsDomainErrorAndDoesNotAdd()`
+- [Line 1588](../../../onboarding-work/test-catalog.md#L1588): `- Line 72: public async Task HandleAsync_SystemActorValidInput_AddsCentreAndReturnsResult()`
+- [Line 1594](../../../onboarding-work/test-catalog.md#L1594): `- Line 9: public void Validate_EmptyName_ReportsErrorOnName()`
+- [Line 1595](../../../onboarding-work/test-catalog.md#L1595): `- Line 23: public void Validate_SlugOverSixtyCharacters_ReportsErrorOnSlug()`
+- [Line 1596](../../../onboarding-work/test-catalog.md#L1596): `- Line 37: public void Validate_ValidCommand_HasNoErrors()`
+- [Line 1602](../../../onboarding-work/test-catalog.md#L1602): `- Line 13: public async Task HandleAsync_ReturnsTheActorsOwnCentreSettings()`
+- [Line 1603](../../../onboarding-work/test-catalog.md#L1603): `- Line 29: public async Task HandleAsync_MissingCentre_Throws()`
+- [Line 1609](../../../onboarding-work/test-catalog.md#L1609): `- Line 12: public async Task HandleAsync_ValidUpdate_ChangesNameAndLocale()`
+- [Line 1610](../../../onboarding-work/test-catalog.md#L1610): `- Line 29: public async Task HandleAsync_InvalidName_ReturnsNameInvalidAndChangesNothing()`
+- [Line 1611](../../../onboarding-work/test-catalog.md#L1611): `- Line 47: public async Task HandleAsync_MissingCentre_Throws()`
+- [Line 1617](../../../onboarding-work/test-catalog.md#L1617): `- Line 11: public void Validate_WithValidInput_Succeeds()`
+- [Line 1618](../../../onboarding-work/test-catalog.md#L1618): `- Line 19: public void Validate_WithEmptyName_Fails()`
+- [Line 1619](../../../onboarding-work/test-catalog.md#L1619): `- Line 28: public void Validate_With121CharacterName_Fails()`
+- [Line 1620](../../../onboarding-work/test-catalog.md#L1620): `- Line 37: public void Validate_WithUnknownLocale_Fails()`
+- [Line 1626](../../../onboarding-work/test-catalog.md#L1626): `- Line 17: public async Task SendAsync_ValidCommandHandlerSucceeds_BeginsHandlesSavesAndCommits()`
+- [Line 1627](../../../onboarding-work/test-catalog.md#L1627): `- Line 31: public async Task SendAsync_InvalidCommand_DoesNotBeginOrCallHandler()`
+- [Line 1628](../../../onboarding-work/test-catalog.md#L1628): `- Line 46: public async Task SendAsync_HandlerReturnsFailure_RollsBackWithoutSavingOrCommitting()`
+- [Line 1629](../../../onboarding-work/test-catalog.md#L1629): `- Line 58: public async Task SendAsync_HandlerThrows_RollsBackAndRethrows()`
+- [Line 1630](../../../onboarding-work/test-catalog.md#L1630): `- Line 69: public async Task SendAsync_SaveChangesThrows_RollsBackAndDoesNotCommit()`
+- [Line 1631](../../../onboarding-work/test-catalog.md#L1631): `- Line 81: public async Task SendAsync_SaveFails_RollsBackWithoutCommittingAndReturnsTheSaveError()`
+- [Line 1632](../../../onboarding-work/test-catalog.md#L1632): `- Line 96: public async Task QueryAsync_ValidQuery_BeginsReadOnlyHandlesAndCommitsWithoutSaving()`
+- [Line 1633](../../../onboarding-work/test-catalog.md#L1633): `- Line 108: public async Task QueryAsync_InvalidQuery_DoesNotBeginOrCallHandler()`
+- [Line 1634](../../../onboarding-work/test-catalog.md#L1634): `- Line 120: public async Task QueryAsync_HandlerThrows_RollsBackAndRethrows()`
+- [Line 1635](../../../onboarding-work/test-catalog.md#L1635): `- Line 131: public async Task SendAsync_SeveralFieldFailures_GroupsMessagesByCamelCaseFieldName()`
+- [Line 1636](../../../onboarding-work/test-catalog.md#L1636): `- Line 144: public async Task SendAsync_TenantScopedCommandStaffActorWithoutCentre_ReturnsTenantNotSelected()`
+- [Line 1637](../../../onboarding-work/test-catalog.md#L1637): `- Line 160: public async Task QueryAsync_TenantScopedQueryStaffActorWithoutCentre_ReturnsTenantNotSelected()`
+- [Line 1638](../../../onboarding-work/test-catalog.md#L1638): `- Line 176: public async Task SendAsync_TenantScopedCommandAnonymousActor_ReturnsNotAuthenticated()`
+- [Line 1639](../../../onboarding-work/test-catalog.md#L1639): `- Line 191: public async Task QueryAsync_TenantScopedQueryAnonymousActor_ReturnsNotAuthenticated()`
+- [Line 1640](../../../onboarding-work/test-catalog.md#L1640): `- Line 206: public async Task SendAsync_TenantScopedCommandActorWithCentre_InvokesHandler()`
+- [Line 1641](../../../onboarding-work/test-catalog.md#L1641): `- Line 220: public async Task QueryAsync_TenantScopedQueryActorWithCentre_InvokesHandler()`
+- [Line 1642](../../../onboarding-work/test-catalog.md#L1642): `- Line 234: public async Task SendAsync_NonScopedRequestActorWithoutCentre_InvokesHandler()`
+- [Line 1643](../../../onboarding-work/test-catalog.md#L1643): `- Line 247: public async Task SendAsync_TenantScopedCommandInvalidAndActorWithoutCentre_ValidationWinsOverTenantStep()`
+- [Line 1644](../../../onboarding-work/test-catalog.md#L1644): `- Line 262: public async Task SendAsync_StaffActorWithThePermission_InvokesHandler()`
+- [Line 1645](../../../onboarding-work/test-catalog.md#L1645): `- Line 276: public async Task SendAsync_StaffActorWithoutThePermission_ReturnsPermissionDenied()`
+- [Line 1646](../../../onboarding-work/test-catalog.md#L1646): `- Line 292: public async Task QueryAsync_StaffActorWithoutThePermission_ReturnsPermissionDenied()`
+- [Line 1647](../../../onboarding-work/test-catalog.md#L1647): `- Line 308: public async Task SendAsync_SystemActor_IsAllowedRegardlessOfPermission()`
+- [Line 1648](../../../onboarding-work/test-catalog.md#L1648): `- Line 322: public async Task SendAsync_PermissionRequiringCommandActorWithoutCentre_TenantStepWins()`
+- [Line 1649](../../../onboarding-work/test-catalog.md#L1649): `- Line 337: public async Task QueryAsync_PermissionRequiringQueryActorWithoutCentre_TenantStepWins()`
+- [Line 1887](../../../onboarding-work/test-catalog.md#L1887): `- Line 13: public async Task HandleAsync_AnonymousActor_ReturnsNotAuthenticated()`
+- [Line 1888](../../../onboarding-work/test-catalog.md#L1888): `- Line 29: public async Task HandleAsync_NoActiveMembershipInCentre_ReturnsTenantNoMembership()`
+- [Line 1889](../../../onboarding-work/test-catalog.md#L1889): `- Line 47: public async Task HandleAsync_MustChangePasswordPending_ReturnsPasswordChangeRequiredWithoutCheckingMembership()`
+- [Line 1890](../../../onboarding-work/test-catalog.md#L1890): `- Line 70: public async Task HandleAsync_ActiveMembershipInCentre_Succeeds()`
+- [Line 1896](../../../onboarding-work/test-catalog.md#L1896): `- Line 13: public async Task HandleAsync_AnonymousActor_ReturnsNotAuthenticated()`
+- [Line 1897](../../../onboarding-work/test-catalog.md#L1897): `- Line 29: public async Task HandleAsync_NoProfileForActor_ReturnsNotAuthenticated()`
+- [Line 1898](../../../onboarding-work/test-catalog.md#L1898): `- Line 47: public async Task HandleAsync_ActorCentreStillActive_ReportsActiveCentreAndRole()`
+- [Line 1899](../../../onboarding-work/test-catalog.md#L1899): `- Line 73: public async Task HandleAsync_SecretaryWithActiveCentre_ReportsSortedPermissions()`
+- [Line 1900](../../../onboarding-work/test-catalog.md#L1900): `- Line 98: public async Task HandleAsync_ActorCentreNoLongerActive_DropsActiveCentreAndRole()`
+- [Line 1906](../../../onboarding-work/test-catalog.md#L1906): `- Line 14: public async Task HandleAsync_UnknownUser_ReturnsFalse()`
+- [Line 1907](../../../onboarding-work/test-catalog.md#L1907): `- Line 30: public async Task HandleAsync_WrongSecurityStamp_ReturnsFalse()`
+- [Line 1908](../../../onboarding-work/test-catalog.md#L1908): `- Line 45: public async Task HandleAsync_CentreSetAndMembershipInactive_ReturnsFalse()`
+- [Line 1909](../../../onboarding-work/test-catalog.md#L1909): `- Line 60: public async Task HandleAsync_RoleNoLongerMatchesTheMembership_ReturnsFalse()`
+- [Line 1910](../../../onboarding-work/test-catalog.md#L1910): `- Line 75: public async Task HandleAsync_MatchingStampAndNoCentre_ReturnsTrue()`
+- [Line 1911](../../../onboarding-work/test-catalog.md#L1911): `- Line 90: public async Task HandleAsync_MatchingStampActiveCentreMembershipAndRole_ReturnsTrue()`
+- [Line 1917](../../../onboarding-work/test-catalog.md#L1917): `- Line 9: public async Task HandleAsync_NoPendingMigrations_ReportsDatabaseUpToDate()`
+- [Line 1918](../../../onboarding-work/test-catalog.md#L1918): `- Line 23: public async Task HandleAsync_TwoPendingMigrations_ReportsDatabaseNotUpToDate()`
+- [Line 1919](../../../onboarding-work/test-catalog.md#L1919): `- Line 36: public async Task HandleAsync_AnyStatus_ReturnsNonEmptyVersion()`
+- [Line 1920](../../../onboarding-work/test-catalog.md#L1920): `- Line 54: public async Task HandleAsync_ReportsDemoModeFromProvider(bool demoEnabled)`
+- [Line 1926](../../../onboarding-work/test-catalog.md#L1926): `- Line 8: public void CorrelationId_ByDefault_IsNull()`
+- [Line 1927](../../../onboarding-work/test-catalog.md#L1927): `- Line 16: public void Set_ThenCorrelationId_ReturnsTheSetValue()`
+- [Line 1928](../../../onboarding-work/test-catalog.md#L1928): `- Line 26: public void Set_CalledTwice_ThrowsInvalidOperationException()`
+- [Line 1934](../../../onboarding-work/test-catalog.md#L1934): `- Line 9: public void Actor_ByDefault_IsAnonymous()`
+- [Line 1935](../../../onboarding-work/test-catalog.md#L1935): `- Line 17: public void Set_ThenActor_ReturnsTheSetActor()`
+- [Line 1936](../../../onboarding-work/test-catalog.md#L1936): `- Line 31: public void Set_CalledTwice_ThrowsInvalidOperationException()`
+- [Line 1937](../../../onboarding-work/test-catalog.md#L1937): `- Line 40: public void Reauthenticate_AfterSet_ReplacesTheActor()`
+- [Line 1938](../../../onboarding-work/test-catalog.md#L1938): `- Line 56: public void Reauthenticate_ThenSet_ThrowsInvalidOperationException()`
+- [Line 1944](../../../onboarding-work/test-catalog.md#L1944): `- Line 8: public void All_AllowsAnyTeacher()`
+- [Line 1945](../../../onboarding-work/test-catalog.md#L1945): `- Line 14: public void None_AllowsNoTeacher()`
+- [Line 1946](../../../onboarding-work/test-catalog.md#L1946): `- Line 20: public void Own_AllowsExactlyItsTeacher()`
+- [Line 1952](../../../onboarding-work/test-catalog.md#L1952): `- Line 14: public async Task HandleAsync_UnknownId_ReturnsNotFound()`
+- [Line 1953](../../../onboarding-work/test-catalog.md#L1953): `- Line 27: public async Task HandleAsync_MembershipBelongsToAnotherCentre_ReturnsNotFound()`
+- [Line 1954](../../../onboarding-work/test-catalog.md#L1954): `- Line 42: public async Task HandleAsync_TargetIsTheActorsOwnMembership_ReturnsCannotChangeSelf()`
+- [Line 1955](../../../onboarding-work/test-catalog.md#L1955): `- Line 57: public async Task HandleAsync_DemotingTheOnlyActiveOwner_ReturnsLastOwner()`
+- [Line 1956](../../../onboarding-work/test-catalog.md#L1956): `- Line 73: public async Task HandleAsync_DemotingOneOfTwoActiveOwners_Succeeds()`
+- [Line 1957](../../../onboarding-work/test-catalog.md#L1957): `- Line 90: public async Task HandleAsync_SameRole_ReturnsRoleUnchanged()`
+- [Line 1963](../../../onboarding-work/test-catalog.md#L1963): `- Line 13: public async Task HandleAsync_NewEmail_AddsMembershipInTheActorsCentreAndReturnsATemporaryPassword()`
+- [Line 1964](../../../onboarding-work/test-catalog.md#L1964): `- Line 31: public async Task HandleAsync_ExistingAccount_AddsMembershipWithNoTemporaryPassword()`
+- [Line 1965](../../../onboarding-work/test-catalog.md#L1965): `- Line 49: public async Task HandleAsync_AlreadyAnActiveMemberOfThisCentre_ReturnsAlreadyMemberAndAddsNothing()`
+- [Line 1966](../../../onboarding-work/test-catalog.md#L1966): `- Line 68: public async Task HandleAsync_AlreadyAnInactiveMemberOfThisCentre_ReturnsAlreadyMemberAndAddsNothing()`
+- [Line 1972](../../../onboarding-work/test-catalog.md#L1972): `- Line 13: public async Task HandleAsync_TargetIsTheActorsOwnMembership_ReturnsCannotChangeSelf()`
+- [Line 1973](../../../onboarding-work/test-catalog.md#L1973): `- Line 30: public async Task HandleAsync_DeactivatingTheOnlyActiveOwner_ReturnsLastOwner()`
+- [Line 1974](../../../onboarding-work/test-catalog.md#L1974): `- Line 46: public async Task HandleAsync_AlreadyInactive_ReturnsAlreadyInactive()`
+- [Line 1975](../../../onboarding-work/test-catalog.md#L1975): `- Line 62: public async Task HandleAsync_ActiveTeacher_Succeeds()`
+- [Line 1981](../../../onboarding-work/test-catalog.md#L1981): `- Line 11: public async Task HandleAsync_PassesTheActorsCentreAndUserToTheReadService()`
+- [Line 1987](../../../onboarding-work/test-catalog.md#L1987): `- Line 13: public async Task HandleAsync_AlreadyActive_ReturnsAlreadyActive()`
+- [Line 1988](../../../onboarding-work/test-catalog.md#L1988): `- Line 28: public async Task HandleAsync_Inactive_Succeeds()`
+- [Line 1996](../../../onboarding-work/test-catalog.md#L1996): `- Line 30: public async Task SendAsync_CreateStaff_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1997](../../../onboarding-work/test-catalog.md#L1997): `- Line 43: public async Task SendAsync_ChangeStaffRole_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1998](../../../onboarding-work/test-catalog.md#L1998): `- Line 56: public async Task SendAsync_DeactivateStaff_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 1999](../../../onboarding-work/test-catalog.md#L1999): `- Line 69: public async Task SendAsync_ReactivateStaff_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 2000](../../../onboarding-work/test-catalog.md#L2000): `- Line 82: public async Task QueryAsync_ListStaff_ReturnsPermissionDeniedForSecretaryAndTeacher(StaffRole role)`
+- [Line 2001](../../../onboarding-work/test-catalog.md#L2001): `- Line 93: public async Task SendAsync_CreateStaff_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 2002](../../../onboarding-work/test-catalog.md#L2002): `- Line 104: public async Task SendAsync_ChangeStaffRole_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 2003](../../../onboarding-work/test-catalog.md#L2003): `- Line 115: public async Task SendAsync_DeactivateStaff_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 2004](../../../onboarding-work/test-catalog.md#L2004): `- Line 126: public async Task SendAsync_ReactivateStaff_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 2005](../../../onboarding-work/test-catalog.md#L2005): `- Line 137: public async Task QueryAsync_ListStaff_CentrelessActor_ReturnsTenantNotSelected()`
+- [Line 2011](../../../onboarding-work/test-catalog.md#L2011): `- Line 12: public void Validate_InvalidEmail_ReportsErrorOnEmail()`
+- [Line 2012](../../../onboarding-work/test-catalog.md#L2012): `- Line 21: public void Validate_EmailOverTwoHundredFiftySixCharacters_ReportsErrorOnEmail()`
+- [Line 2013](../../../onboarding-work/test-catalog.md#L2013): `- Line 31: public void Validate_EmptyDisplayName_ReportsErrorOnDisplayName()`
+- [Line 2014](../../../onboarding-work/test-catalog.md#L2014): `- Line 40: public void Validate_DisplayNameOverOneHundredTwentyCharacters_ReportsErrorOnDisplayName()`
+- [Line 2015](../../../onboarding-work/test-catalog.md#L2015): `- Line 49: public void Validate_UndefinedRole_ReportsErrorOnRole()`
+- [Line 2016](../../../onboarding-work/test-catalog.md#L2016): `- Line 58: public void Validate_UnsupportedLocale_ReportsErrorOnPreferredLocale()`
+- [Line 2017](../../../onboarding-work/test-catalog.md#L2017): `- Line 67: public void Validate_ValidCommand_HasNoErrors()`
+- [Line 2018](../../../onboarding-work/test-catalog.md#L2018): `- Line 78: public void Validate_EmptyMembershipId_ReportsErrorOnMembershipId()`
+- [Line 2019](../../../onboarding-work/test-catalog.md#L2019): `- Line 90: public void Validate_EmptyMembershipId_ReportsErrorOnMembershipId()`
+- [Line 2020](../../../onboarding-work/test-catalog.md#L2020): `- Line 102: public void Validate_EmptyMembershipId_ReportsErrorOnMembershipId()`
+- [Line 2026](../../../onboarding-work/test-catalog.md#L2026): `- Line 12: public void Endpoints_DoNotDependOnInfrastructureRepositoriesOrDomainEntities()`
+- [Line 2027](../../../onboarding-work/test-catalog.md#L2027): `- Line 52: public void OnlyProgramAndCli_ReferenceInfrastructure()`
+- [Line 2031](../../../onboarding-work/test-catalog.md#L2031): `An interface named I*Repository (for example ICentreRepository).`
+- [Line 2043](../../../onboarding-work/test-catalog.md#L2043): `- Line 34: public void EveryTenantScopedRequest_AlsoDeclaresIRequirePermission()`
+- [Line 2044](../../../onboarding-work/test-catalog.md#L2044): `- Line 45: public void EveryRequirePermissionRequest_DeclaresAKeyFromTheCatalogue()`
+- [Line 2045](../../../onboarding-work/test-catalog.md#L2045): `- Line 61: public void ApplicationCommandAndQueryHandlers_NeverBranchOnAStaffRoleValue()`
+- [Line 2051](../../../onboarding-work/test-catalog.md#L2051): `- Line 11: public void EveryCommandAndQuery_HasExactlyOneHandler()`
+- [Line 2052](../../../onboarding-work/test-catalog.md#L2052): `- Line 28: public void Handlers_AreSealedAndNotPublic()`
+- [Line 2053](../../../onboarding-work/test-catalog.md#L2053): `- Line 41: public void QueryHandlers_DoNotDependOnRepositories()`
+- [Line 2061](../../../onboarding-work/test-catalog.md#L2061): `- Line 38: public void Domain_DoesNotDependOnOtherLayersOrFrameworks() =>`
+- [Line 2062](../../../onboarding-work/test-catalog.md#L2062): `- Line 42: public void Application_DoesNotDependOnInfrastructureApiOrFrameworks() =>`
+- [Line 2063](../../../onboarding-work/test-catalog.md#L2063): `- Line 46: public void Infrastructure_DoesNotDependOnApi() =>`
+- [Line 2064](../../../onboarding-work/test-catalog.md#L2064): `- Line 50: public void Application_DoesNotDependOnSerilogHangfireOrHttpClient()`
+- [Line 2072](../../../onboarding-work/test-catalog.md#L2072): `- Line 18: public void Application_DoesNotDependOnIdentity()`
+- [Line 2073](../../../onboarding-work/test-catalog.md#L2073): `- Line 31: public void Api_OutsideCompositionRootAndCli_DoesNotDependOnIdentity()`
+- [Line 2077](../../../onboarding-work/test-catalog.md#L2077): `Task 30.9: keeps the monolith modular without separate assemblies. Three modules exist today, by Application and Domain namespace: Platform (with Centres), Identity (with Staff), Academics. A module reaches another only through its requests (commands, queries, DTOs — explicitly allowed) or an explicit published interface in that module's own Contracts namespace (Task 43.3, e.g. TutoringCentre.Application.Identity.Contracts); it may never reach into another module's repository, read service, handler, validator or Domain entity directly. A Contracts namespace is itself narrow by construction: every type in one must be an interface or a record, and may not depend on its own module's repositories, read services or Domain entities — a contract publishes a question another module may ask, never a door into how it is answered.`
+- [Line 2081](../../../onboarding-work/test-catalog.md#L2081): `- Line 53: public void ApplicationTypes_DoNotDependOnAnotherModulesRepositoriesReadServicesHandlersOrValidators()`
+- [Line 2082](../../../onboarding-work/test-catalog.md#L2082): `- Line 59: public void ApplicationTypes_DoNotDependOnAnotherModulesDomainTypes()`
+- [Line 2083](../../../onboarding-work/test-catalog.md#L2083): `- Line 65: public void ContractTypes_AreInterfacesOrRecords()`
+- [Line 2084](../../../onboarding-work/test-catalog.md#L2084): `- Line 77: public void ContractTypes_DoNotDependOnTheirOwnModulesPortsOrDomainTypes()`
+- [Line 2100](../../../onboarding-work/test-catalog.md#L2100): `- Line 14: public void Domain_ReferencesNoProjects() =>`
+- [Line 2101](../../../onboarding-work/test-catalog.md#L2101): `- Line 18: public void Application_ReferencesOnlyDomain() =>`
+- [Line 2102](../../../onboarding-work/test-catalog.md#L2102): `- Line 22: public void Infrastructure_ReferencesOnlyApplicationAndDomain() =>`
+- [Line 2103](../../../onboarding-work/test-catalog.md#L2103): `- Line 26: public void Api_ReferencesOnlyApplicationAndInfrastructure() =>`
+- [Line 2111](../../../onboarding-work/test-catalog.md#L2111): `- Line 49: public void ProductionSource_ForbidsQueryFilterBypassAndRawSqlOutsideTheAllowList()`
+- [Line 2117](../../../onboarding-work/test-catalog.md#L2117): `- Line 6: public void RepositoryInterfaces_LiveInTheApplicationProject()`
+- [Line 2118](../../../onboarding-work/test-catalog.md#L2118): `- Line 24: public void RepositoryClasses_LiveInTheInfrastructureProject()`
+- [Line 2140](../../../onboarding-work/test-catalog.md#L2140): `- Line 17: public void EveryTenantOwnedEntityInTheProductionModel_HasAQueryFilter()`
+- [Line 2148](../../../onboarding-work/test-catalog.md#L2148): `- Line 36: public void EveryRequestInATenantModule_DeclaresTenantScoped()`
+- [Line 2149](../../../onboarding-work/test-catalog.md#L2149): `- Line 47: public void EveryMonth1Request_DoesNotDeclareTenantScoped()`
+- [Line 2155](../../../onboarding-work/test-catalog.md#L2155): `- Line 14: public void Start_WithValidInput_IsActiveWithNoEndFields()`
+- [Line 2156](../../../onboarding-work/test-catalog.md#L2156): `- Line 31: public void Start_WithEmptyCentre_ReturnsCentreRequired() =>`
+- [Line 2157](../../../onboarding-work/test-catalog.md#L2157): `- Line 35: public void Start_WithEmptyStudent_ReturnsStudentRequired() =>`
+- [Line 2158](../../../onboarding-work/test-catalog.md#L2158): `- Line 39: public void Start_WithEmptyGroup_ReturnsGroupRequired() =>`
+- [Line 2159](../../../onboarding-work/test-catalog.md#L2159): `- Line 45: public void End_SetsEndedWithTheGivenTimeAndReason(EnrollmentEndReason reason)`
+- [Line 2160](../../../onboarding-work/test-catalog.md#L2160): `- Line 59: public void End_AtTheSameInstantItStarted_Succeeds()`
+- [Line 2161](../../../onboarding-work/test-catalog.md#L2161): `- Line 67: public void End_Twice_ReturnsAlreadyEndedAndKeepsTheFirstEnd()`
+- [Line 2162](../../../onboarding-work/test-catalog.md#L2162): `- Line 83: public void End_BeforeItStarted_ReturnsEndBeforeStartAndStaysActive()`
+- [Line 2168](../../../onboarding-work/test-catalog.md#L2168): `- Line 13: public void Create_WithValidInput_SucceedsAsActive()`
+- [Line 2169](../../../onboarding-work/test-catalog.md#L2169): `- Line 29: public void Create_WithEmptyCentre_ReturnsCentreRequired() =>`
+- [Line 2170](../../../onboarding-work/test-catalog.md#L2170): `- Line 33: public void Create_WithEmptySubject_ReturnsSubjectRequired() =>`
+- [Line 2171](../../../onboarding-work/test-catalog.md#L2171): `- Line 37: public void Create_WithEmptyTeacher_ReturnsTeacherRequired() =>`
+- [Line 2172](../../../onboarding-work/test-catalog.md#L2172): `- Line 41: public void Create_WithEmptyName_ReturnsNameInvalidWithNameField() =>`
+- [Line 2173](../../../onboarding-work/test-catalog.md#L2173): `- Line 45: public void Create_With80CharacterName_Succeeds()`
+- [Line 2174](../../../onboarding-work/test-catalog.md#L2174): `- Line 57: public void Create_With81CharacterName_ReturnsNameInvalid() =>`
+- [Line 2175](../../../onboarding-work/test-catalog.md#L2175): `- Line 61: public void Create_CollapsesInnerWhitespaceAndDerivesMatchingNormalizedName()`
+- [Line 2176](../../../onboarding-work/test-catalog.md#L2176): `- Line 72: public void Create_WithCapacityZero_ReturnsCapacityInvalid() =>`
+- [Line 2177](../../../onboarding-work/test-catalog.md#L2177): `- Line 76: public void Create_WithCapacityOne_Succeeds()`
+- [Line 2178](../../../onboarding-work/test-catalog.md#L2178): `- Line 86: public void Create_WithCapacity200_Succeeds()`
+- [Line 2179](../../../onboarding-work/test-catalog.md#L2179): `- Line 96: public void Create_WithCapacity201_ReturnsCapacityInvalid() =>`
+- [Line 2180](../../../onboarding-work/test-catalog.md#L2180): `- Line 100: public void Rename_WithValidName_ChangesNameAndNormalizedName()`
+- [Line 2181](../../../onboarding-work/test-catalog.md#L2181): `- Line 112: public void Rename_WithInvalidName_FailsAndLeavesPreviousNameUnchanged()`
+- [Line 2182](../../../onboarding-work/test-catalog.md#L2182): `- Line 124: public void ChangeCapacity_WithValidValue_Changes()`
+- [Line 2183](../../../onboarding-work/test-catalog.md#L2183): `- Line 135: public void ChangeCapacity_OutOfRange_FailsAndLeavesPreviousCapacityUnchanged()`
+- [Line 2184](../../../onboarding-work/test-catalog.md#L2184): `- Line 147: public void AssignTeacher_WithADifferentTeacher_Changes()`
+- [Line 2185](../../../onboarding-work/test-catalog.md#L2185): `- Line 159: public void AssignTeacher_WithTheCurrentTeacher_SucceedsAndChangesNothing()`
+- [Line 2186](../../../onboarding-work/test-catalog.md#L2186): `- Line 170: public void AssignTeacher_WithEmptyId_ReturnsTeacherRequiredAndLeavesTeacherUnchanged()`
+- [Line 2187](../../../onboarding-work/test-catalog.md#L2187): `- Line 182: public void Archive_Twice_ReturnsAlreadyArchived()`
+- [Line 2188](../../../onboarding-work/test-catalog.md#L2188): `- Line 195: public void Restore_WhenActive_ReturnsNotArchived()`
+- [Line 2189](../../../onboarding-work/test-catalog.md#L2189): `- Line 207: public void Restore_WhileArchived_ReturnsToActive()`
+- [Line 2190](../../../onboarding-work/test-catalog.md#L2190): `- Line 219: public void Rename_WhileArchived_ReturnsArchivedReadOnlyAndLeavesNameUnchanged()`
+- [Line 2191](../../../onboarding-work/test-catalog.md#L2191): `- Line 233: public void ChangeCapacity_WhileArchived_ReturnsArchivedReadOnlyAndLeavesCapacityUnchanged()`
+- [Line 2192](../../../onboarding-work/test-catalog.md#L2192): `- Line 246: public void AssignTeacher_WhileArchived_ReturnsArchivedReadOnlyAndLeavesTeacherUnchanged()`
+- [Line 2193](../../../onboarding-work/test-catalog.md#L2193): `- Line 259: public void EnsureCanEnroll_NobodyEnrolledInAOneSeatGroup_Succeeds()`
+- [Line 2194](../../../onboarding-work/test-catalog.md#L2194): `- Line 267: public void EnsureCanEnroll_OneSeatLeft_Succeeds()`
+- [Line 2195](../../../onboarding-work/test-catalog.md#L2195): `- Line 275: public void EnsureCanEnroll_EverySeatTaken_ReturnsFullAsConflict()`
+- [Line 2196](../../../onboarding-work/test-catalog.md#L2196): `- Line 287: public void EnsureCanEnroll_MoreEnrolledThanSeats_ReturnsFull()`
+- [Line 2197](../../../onboarding-work/test-catalog.md#L2197): `- Line 300: public void EnsureCanEnroll_ArchivedGroup_ReturnsArchivedWhateverTheCount(int activeEnrollmentCount)`
+- [Line 2198](../../../onboarding-work/test-catalog.md#L2198): `- Line 313: public void ChangeCapacity_ToExactlyTheEnrolledCount_Succeeds()`
+- [Line 2199](../../../onboarding-work/test-catalog.md#L2199): `- Line 324: public void ChangeCapacity_BelowTheEnrolledCount_ReturnsCapacityBelowEnrolledAndLeavesCapacityUnchanged()`
+- [Line 2205](../../../onboarding-work/test-catalog.md#L2205): `- Line 13: public void Create_WithValidInput_Succeeds()`
+- [Line 2206](../../../onboarding-work/test-catalog.md#L2206): `- Line 26: public void Create_WithEmptyCentre_ReturnsCentreRequired()`
+- [Line 2207](../../../onboarding-work/test-catalog.md#L2207): `- Line 36: public void Create_With1CharacterName_ReturnsNameInvalid() => AssertNameInvalid(Parent.Create(CentreId, "O", Phone));`
+- [Line 2208](../../../onboarding-work/test-catalog.md#L2208): `- Line 39: public void Create_With121CharacterName_ReturnsNameInvalid() =>`
+- [Line 2209](../../../onboarding-work/test-catalog.md#L2209): `- Line 43: public void Create_With2CharacterName_Succeeds()`
+- [Line 2210](../../../onboarding-work/test-catalog.md#L2210): `- Line 51: public void Create_With120CharacterName_Succeeds()`
+- [Line 2211](../../../onboarding-work/test-catalog.md#L2211): `- Line 62: public void Create_WithArabicName_IsKeptAsTypedWithNormalizedSearchName()`
+- [Line 2212](../../../onboarding-work/test-catalog.md#L2212): `- Line 74: public void Update_WithValidInput_Succeeds()`
+- [Line 2213](../../../onboarding-work/test-catalog.md#L2213): `- Line 86: public void Update_WithInvalidName_FailsAndLeavesNameAndPhoneUnchanged()`
+- [Line 2221](../../../onboarding-work/test-catalog.md#L2221): `- Line 20: public void Cancel_FutureSession_IsCancelled()`
+- [Line 2222](../../../onboarding-work/test-catalog.md#L2222): `- Line 31: public void Cancel_Twice_ReturnsSessionAlreadyCancelled()`
+- [Line 2223](../../../onboarding-work/test-catalog.md#L2223): `- Line 43: public void Cancel_AtTheStartInstant_ReturnsSessionInPastAndStaysScheduled()`
+- [Line 2224](../../../onboarding-work/test-catalog.md#L2224): `- Line 54: public void ReassignTeacher_FutureScheduledSession_ChangesTheTeacher()`
+- [Line 2225](../../../onboarding-work/test-catalog.md#L2225): `- Line 65: public void ReassignTeacher_StartedSession_SucceedsAndKeepsTheTeacher()`
+- [Line 2226](../../../onboarding-work/test-catalog.md#L2226): `- Line 76: public void ReassignTeacher_CancelledFutureSession_SucceedsAndKeepsTheTeacher()`
+- [Line 2232](../../../onboarding-work/test-catalog.md#L2232): `- Line 16: public void Create_WithValidInput_StoresLocalValuesAndIsOpenEnded()`
+- [Line 2233](../../../onboarding-work/test-catalog.md#L2233): `- Line 34: public void Create_WithEmptyCentre_ReturnsCentreRequired() =>`
+- [Line 2234](../../../onboarding-work/test-catalog.md#L2234): `- Line 39: public void Create_WithEmptyGroup_ReturnsGroupRequired() =>`
+- [Line 2235](../../../onboarding-work/test-catalog.md#L2235): `- Line 49: public void Create_DurationBoundaries(int durationMinutes, bool valid)`
+- [Line 2236](../../../onboarding-work/test-catalog.md#L2236): `- Line 67: public void Create_WithStartTimeOffTheFiveMinuteGrid_ReturnsStartTimeInvalid(int hour, int minute, int second) =>`
+- [Line 2237](../../../onboarding-work/test-catalog.md#L2237): `- Line 74: public void Create_With41CharacterRoom_ReturnsRoomInvalid() =>`
+- [Line 2238](../../../onboarding-work/test-catalog.md#L2238): `- Line 81: public void Create_With40CharacterRoom_Succeeds()`
+- [Line 2239](../../../onboarding-work/test-catalog.md#L2239): `- Line 96: public void Create_WithBlankRoom_StoresNull(string? room)`
+- [Line 2240](../../../onboarding-work/test-catalog.md#L2240): `- Line 112: public void OccursOn_MatchesTheWeekdayInsideTheEffectiveRange(int year, int month, int day, bool expected)`
+- [Line 2241](../../../onboarding-work/test-catalog.md#L2241): `- Line 121: public void OccursOn_OpenEndedRule_KeepsOccurringOnTheWeekday()`
+- [Line 2242](../../../onboarding-work/test-catalog.md#L2242): `- Line 129: public void End_OnTheEffectiveFromDate_Succeeds()`
+- [Line 2243](../../../onboarding-work/test-catalog.md#L2243): `- Line 138: public void End_BeforeEffectiveFrom_ReturnsRuleEndInvalidAndStaysOpen()`
+- [Line 2244](../../../onboarding-work/test-catalog.md#L2244): `- Line 151: public void End_Twice_ReturnsRuleAlreadyEndedAndKeepsTheFirstEnd()`
+- [Line 2252](../../../onboarding-work/test-catalog.md#L2252): `- Line 26: public void TimeZoneData_HasEgypts2027Transitions()`
+- [Line 2253](../../../onboarding-work/test-catalog.md#L2253): `- Line 36: public void Generate_WinterSaturdays_ProducesFourSessionsAtSixteenUtc()`
+- [Line 2254](../../../onboarding-work/test-catalog.md#L2254): `- Line 64: public void Generate_RangeStartingMidWeek_FirstSessionIsOnTheNextMatchingWeekday()`
+- [Line 2255](../../../onboarding-work/test-catalog.md#L2255): `- Line 77: public void Generate_EffectiveFromAndToInsideTheRange_BoundTheOutput()`
+- [Line 2256](../../../onboarding-work/test-catalog.md#L2256): `- Line 90: public void Generate_AcrossSpringForward_WallClockStaysEighteenAndUtcMovesAnHourEarlier()`
+- [Line 2257](../../../onboarding-work/test-catalog.md#L2257): `- Line 104: public void Generate_AcrossFallBack_WallClockStaysEighteenAndUtcMovesAnHourLater()`
+- [Line 2258](../../../onboarding-work/test-catalog.md#L2258): `- Line 118: public void Generate_StartInTheSkippedHour_MovesForwardByTheGap()`
+- [Line 2259](../../../onboarding-work/test-catalog.md#L2259): `- Line 132: public void Generate_StartInTheRepeatedHour_TakesTheFirstOccurrence()`
+- [Line 2260](../../../onboarding-work/test-catalog.md#L2260): `- Line 146: public void Generate_SessionCrossingFallBack_LastsExactlyItsDurationInElapsedTime()`
+- [Line 2261](../../../onboarding-work/test-catalog.md#L2261): `- Line 160: public void Generate_JustAfterLocalMidnight_LocalDateIsNotTheUtcDate()`
+- [Line 2262](../../../onboarding-work/test-catalog.md#L2262): `- Line 174: public void Generate_ToBeforeFrom_ReturnsEmpty()`
+- [Line 2263](../../../onboarding-work/test-catalog.md#L2263): `- Line 185: public void Generate_Twice_GivesTheSameDatesAndInstantsWithNewIds()`
+- [Line 2269](../../../onboarding-work/test-catalog.md#L2269): `- Line 28: public void Register_WithValidInput_SucceedsActiveWithOnePrimaryLinkAndZeroRevision()`
+- [Line 2270](../../../onboarding-work/test-catalog.md#L2270): `- Line 47: public void Register_WithEmptyCentre_ReturnsCentreRequired()`
+- [Line 2271](../../../onboarding-work/test-catalog.md#L2271): `- Line 57: public void Register_With1CharacterName_ReturnsNameInvalid()`
+- [Line 2272](../../../onboarding-work/test-catalog.md#L2272): `- Line 67: public void Register_With121CharacterName_ReturnsNameInvalid()`
+- [Line 2273](../../../onboarding-work/test-catalog.md#L2273): `- Line 77: public void Register_With41CharacterSchoolYear_ReturnsSchoolYearInvalid()`
+- [Line 2274](../../../onboarding-work/test-catalog.md#L2274): `- Line 88: public void Register_WithEmptyParentId_ReturnsParentRequired()`
+- [Line 2275](../../../onboarding-work/test-catalog.md#L2275): `- Line 97: public void Register_WithNullPhoneAndSchoolYear_Succeeds()`
+- [Line 2276](../../../onboarding-work/test-catalog.md#L2276): `- Line 108: public void AddParent_SecondParent_IsNotPrimaryAndRevisionIncreases()`
+- [Line 2277](../../../onboarding-work/test-catalog.md#L2277): `- Line 123: public void AddParent_SameParentTwice_ReturnsParentAlreadyLinked()`
+- [Line 2278](../../../onboarding-work/test-catalog.md#L2278): `- Line 138: public void AddParent_AFifthParent_ReturnsTooManyParents()`
+- [Line 2279](../../../onboarding-work/test-catalog.md#L2279): `- Line 156: public void RemoveParent_Unknown_ReturnsParentNotLinked()`
+- [Line 2280](../../../onboarding-work/test-catalog.md#L2280): `- Line 170: public void RemoveParent_TheOnlyParent_ReturnsLastParent()`
+- [Line 2281](../../../onboarding-work/test-catalog.md#L2281): `- Line 185: public void RemoveParent_ThePrimaryWhileOthersRemain_ReturnsPrimaryParentRequired()`
+- [Line 2282](../../../onboarding-work/test-catalog.md#L2282): `- Line 201: public void RemoveParent_ANonPrimaryParent_IsRemovedAndRevisionIncreases()`
+- [Line 2283](../../../onboarding-work/test-catalog.md#L2283): `- Line 216: public void SetPrimaryParent_Unknown_ReturnsParentNotLinked()`
+- [Line 2284](../../../onboarding-work/test-catalog.md#L2284): `- Line 230: public void SetPrimaryParent_AlreadyPrimary_ReturnsAlreadyPrimary()`
+- [Line 2285](../../../onboarding-work/test-catalog.md#L2285): `- Line 245: public void SetPrimaryParent_Valid_ExactlyOnePrimaryAndRevisionIncreases()`
+- [Line 2286](../../../onboarding-work/test-catalog.md#L2286): `- Line 262: public void Archive_Twice_ReturnsAlreadyArchived()`
+- [Line 2287](../../../onboarding-work/test-catalog.md#L2287): `- Line 277: public void Restore_WhenActive_ReturnsNotArchived()`
+- [Line 2288](../../../onboarding-work/test-catalog.md#L2288): `- Line 290: public void Restore_WhileArchived_ReturnsToActive()`
+- [Line 2289](../../../onboarding-work/test-catalog.md#L2289): `- Line 303: public void UpdateDetails_WhileArchived_ReturnsArchivedReadOnly()`
+- [Line 2290](../../../onboarding-work/test-catalog.md#L2290): `- Line 317: public void AddParent_WhileArchived_ReturnsArchivedReadOnly()`
+- [Line 2291](../../../onboarding-work/test-catalog.md#L2291): `- Line 332: public void RemoveParent_WhileArchived_ReturnsArchivedReadOnly()`
+- [Line 2292](../../../onboarding-work/test-catalog.md#L2292): `- Line 347: public void SetPrimaryParent_WhileArchived_ReturnsArchivedReadOnly()`
+- [Line 2293](../../../onboarding-work/test-catalog.md#L2293): `- Line 363: public void UpdateDetails_WithInvalidName_FailsAndLeavesStateUnchanged()`
+- [Line 2299](../../../onboarding-work/test-catalog.md#L2299): `- Line 11: public void Create_WithValidInput_SucceedsAsActiveWithTrimmedNameAndAssignedId()`
+- [Line 2300](../../../onboarding-work/test-catalog.md#L2300): `- Line 26: public void Create_WithEmptyCentre_ReturnsCentreRequired() =>`
+- [Line 2301](../../../onboarding-work/test-catalog.md#L2301): `- Line 30: public void Create_WithEmptyName_ReturnsNameInvalidWithNameField() =>`
+- [Line 2302](../../../onboarding-work/test-catalog.md#L2302): `- Line 34: public void Create_WithWhitespaceOnlyName_ReturnsNameInvalidWithNameField() =>`
+- [Line 2303](../../../onboarding-work/test-catalog.md#L2303): `- Line 38: public void Create_With81CharacterName_ReturnsNameInvalidWithNameField() =>`
+- [Line 2304](../../../onboarding-work/test-catalog.md#L2304): `- Line 44: public void Create_With80CharacterName_Succeeds()`
+- [Line 2305](../../../onboarding-work/test-catalog.md#L2305): `- Line 56: public void Create_CollapsesInnerWhitespaceAndDerivesMatchingNormalizedName()`
+- [Line 2306](../../../onboarding-work/test-catalog.md#L2306): `- Line 67: public void Create_WithArabicName_IsAcceptedUnchanged()`
+- [Line 2307](../../../onboarding-work/test-catalog.md#L2307): `- Line 76: public void Rename_WithValidName_Succeeds()`
+- [Line 2308](../../../onboarding-work/test-catalog.md#L2308): `- Line 87: public void Rename_WithInvalidName_FailsAndLeavesPreviousName()`
+- [Line 2309](../../../onboarding-work/test-catalog.md#L2309): `- Line 99: public void Archive_Twice_ReturnsAlreadyArchived()`
+- [Line 2310](../../../onboarding-work/test-catalog.md#L2310): `- Line 112: public void Restore_WhenActive_ReturnsNotArchived()`
+- [Line 2311](../../../onboarding-work/test-catalog.md#L2311): `- Line 124: public void Rename_WhileArchived_ReturnsArchivedReadOnly()`
+- [Line 2312](../../../onboarding-work/test-catalog.md#L2312): `- Line 138: public void Restore_WhileArchived_ReturnsToActive()`
+- [Line 2318](../../../onboarding-work/test-catalog.md#L2318): `- Line 11: public void Create_WithValidInput_SucceedsAsActiveWithTrimmedNameAndAssignedId()`
+- [Line 2319](../../../onboarding-work/test-catalog.md#L2319): `- Line 26: public void Create_WithEmptyCentre_ReturnsCentreRequired() =>`
+- [Line 2320](../../../onboarding-work/test-catalog.md#L2320): `- Line 30: public void Create_WithEmptyName_ReturnsNameInvalidWithFullNameField() =>`
+- [Line 2321](../../../onboarding-work/test-catalog.md#L2321): `- Line 34: public void Create_WithOneCharacterName_ReturnsNameInvalid() =>`
+- [Line 2322](../../../onboarding-work/test-catalog.md#L2322): `- Line 38: public void Create_With121CharacterName_ReturnsNameInvalid() =>`
+- [Line 2323](../../../onboarding-work/test-catalog.md#L2323): `- Line 42: public void Create_With2CharacterName_Succeeds()`
+- [Line 2324](../../../onboarding-work/test-catalog.md#L2324): `- Line 54: public void Create_With120CharacterName_Succeeds()`
+- [Line 2325](../../../onboarding-work/test-catalog.md#L2325): `- Line 66: public void Create_CollapsesInnerWhitespaceAndDerivesMatchingSearchName()`
+- [Line 2326](../../../onboarding-work/test-catalog.md#L2326): `- Line 77: public void UpdateDetails_WithValidName_ChangesNameAndSearchName()`
+- [Line 2327](../../../onboarding-work/test-catalog.md#L2327): `- Line 89: public void UpdateDetails_WithInvalidName_FailsAndLeavesPreviousNameUnchanged()`
+- [Line 2328](../../../onboarding-work/test-catalog.md#L2328): `- Line 101: public void LinkUser_WithEmptyId_ReturnsUserRequiredAndLeavesLinkUnchanged()`
+- [Line 2329](../../../onboarding-work/test-catalog.md#L2329): `- Line 114: public void LinkUser_WithAnId_SetsUserId()`
+- [Line 2330](../../../onboarding-work/test-catalog.md#L2330): `- Line 126: public void LinkUser_WithTheAlreadyLinkedUser_SucceedsAndChangesNothing()`
+- [Line 2331](../../../onboarding-work/test-catalog.md#L2331): `- Line 139: public void UnlinkUser_WhenLinked_ClearsTheLink()`
+- [Line 2332](../../../onboarding-work/test-catalog.md#L2332): `- Line 151: public void Archive_Twice_ReturnsAlreadyArchived()`
+- [Line 2333](../../../onboarding-work/test-catalog.md#L2333): `- Line 164: public void Restore_WhenActive_ReturnsNotArchived()`
+- [Line 2334](../../../onboarding-work/test-catalog.md#L2334): `- Line 176: public void Restore_WhileArchived_ReturnsToActive()`
+- [Line 2335](../../../onboarding-work/test-catalog.md#L2335): `- Line 188: public void Archive_KeepsTheAccountLink()`
+- [Line 2336](../../../onboarding-work/test-catalog.md#L2336): `- Line 200: public void UpdateDetails_WhileArchived_ReturnsArchivedReadOnlyAndLeavesNameUnchanged()`
+- [Line 2337](../../../onboarding-work/test-catalog.md#L2337): `- Line 214: public void LinkUser_WhileArchived_ReturnsArchivedReadOnlyAndLeavesLinkUnchanged()`
+- [Line 2338](../../../onboarding-work/test-catalog.md#L2338): `- Line 227: public void UnlinkUser_WhileArchived_ReturnsArchivedReadOnlyAndLeavesLinkUnchanged()`
+- [Line 2344](../../../onboarding-work/test-catalog.md#L2344): `- Line 13: public void Create_WithValidInput_SucceedsAndTrimsName()`
+- [Line 2345](../../../onboarding-work/test-catalog.md#L2345): `- Line 29: public void Create_WithEmptyName_ReturnsNameRequired() =>`
+- [Line 2346](../../../onboarding-work/test-catalog.md#L2346): `- Line 33: public void Create_With121CharacterName_ReturnsNameTooLong() =>`
+- [Line 2347](../../../onboarding-work/test-catalog.md#L2347): `- Line 43: public void Create_WithInvalidSlug_ReturnsSlugInvalid(string slug) =>`
+- [Line 2348](../../../onboarding-work/test-catalog.md#L2348): `- Line 47: public void Create_WithUnknownTimeZone_ReturnsTimeZoneInvalid() =>`
+- [Line 2349](../../../onboarding-work/test-catalog.md#L2349): `- Line 53: public void Create_WithCairoTimeZone_Succeeds()`
+- [Line 2350](../../../onboarding-work/test-catalog.md#L2350): `- Line 63: public void Create_WithWhitespaceOnlyName_ReturnsNameRequired() =>`
+- [Line 2351](../../../onboarding-work/test-catalog.md#L2351): `- Line 68: public void Create_With120CharacterName_Succeeds()`
+- [Line 2352](../../../onboarding-work/test-catalog.md#L2352): `- Line 87: public void UpdateSettings_WithValidInput_SucceedsAndTrimsNameAndChangesLocale()`
+- [Line 2353](../../../onboarding-work/test-catalog.md#L2353): `- Line 101: public void UpdateSettings_WithEmptyName_ReturnsNameInvalidAndChangesNothing()`
+- [Line 2354](../../../onboarding-work/test-catalog.md#L2354): `- Line 116: public void UpdateSettings_With121CharacterName_ReturnsNameInvalidAndChangesNothing()`
+- [Line 2355](../../../onboarding-work/test-catalog.md#L2355): `- Line 129: public void UpdateSettings_WithBothValuesUnchanged_SucceedsAndChangesNothing()`
+- [Line 2361](../../../onboarding-work/test-catalog.md#L2361): `- Line 11: public void NewEntities_GetDifferentIds()`
+- [Line 2362](../../../onboarding-work/test-catalog.md#L2362): `- Line 20: public void Id_IsVersion7Uuid()`
+- [Line 2368](../../../onboarding-work/test-catalog.md#L2368): `- Line 8: public void Validation_WithFields_ExposesTheFields()`
+- [Line 2369](../../../onboarding-work/test-catalog.md#L2369): `- Line 23: public void Validation_WithoutFields_HasNullFields()`
+- [Line 2375](../../../onboarding-work/test-catalog.md#L2375): `- Line 51: public void Create_NeverThrows()`
+- [Line 2376](../../../onboarding-work/test-catalog.md#L2376): `- Line 59: public void TwoInstances_FromDifferentSpellingsOfOneNumber_AreEqualWithEqualHashCodes()`
+- [Line 2377](../../../onboarding-work/test-catalog.md#L2377): `- Line 69: public void ToString_EqualsValue()`
+- [Line 2378](../../../onboarding-work/test-catalog.md#L2378): `- Line 77: public void Masked_ForEgyptianNumber_ShowsCountryCodeAndLastFourDigits()`
+- [Line 2379](../../../onboarding-work/test-catalog.md#L2379): `- Line 85: public void Masked_ForInternationalNumber_ShowsOnlyLastFourDigitsOfSubscriberNumber()`
+- [Line 2385](../../../onboarding-work/test-catalog.md#L2385): `- Line 10: public void Success_HasNoErrorAndExposesValue()`
+- [Line 2386](../../../onboarding-work/test-catalog.md#L2386): `- Line 23: public void Failure_ExposesItsError()`
+- [Line 2387](../../../onboarding-work/test-catalog.md#L2387): `- Line 33: public void Value_OnFailure_ThrowsInvalidOperationException()`
+- [Line 2388](../../../onboarding-work/test-catalog.md#L2388): `- Line 41: public void Failure_WithNullError_ThrowsArgumentNullException()`
+- [Line 2394](../../../onboarding-work/test-catalog.md#L2394): `- Line 8: public void Normalize_NullValue_ReturnsEmpty() => Assert.Equal(string.Empty, SearchText.Normalize(null));`
+- [Line 2395](../../../onboarding-work/test-catalog.md#L2395): `- Line 15: public void Normalize_AhmedSpellingVariants_AllProduceTheSameString(string input)`
+- [Line 2396](../../../onboarding-work/test-catalog.md#L2396): `- Line 21: public void Normalize_IbrahimWithAndWithoutInitialHamza_AreEqual() =>`
+- [Line 2397](../../../onboarding-work/test-catalog.md#L2397): `- Line 25: public void Normalize_FatimaWithTaaMarbutaAndHaa_AreEqual() =>`
+- [Line 2398](../../../onboarding-work/test-catalog.md#L2398): `- Line 29: public void Normalize_MustafaWithAlifMaksuraAndYaa_AreEqual() =>`
+- [Line 2399](../../../onboarding-work/test-catalog.md#L2399): `- Line 33: public void Normalize_TrimsAndCollapsesWhitespaceAndLowersCase() =>`
+- [Line 2400](../../../onboarding-work/test-catalog.md#L2400): `- Line 37: public void Normalize_IsCaseInsensitive() => Assert.Equal(SearchText.Normalize("omar"), SearchText.Normalize("OMAR"));`
+- [Line 2401](../../../onboarding-work/test-catalog.md#L2401): `- Line 45: public void Normalize_IsIdempotent(string input)`
+- [Line 2407](../../../onboarding-work/test-catalog.md#L2407): `- Line 11: public void Create_WithValidInput_SucceedsAsActiveWithTheGivenRole()`
+- [Line 2408](../../../onboarding-work/test-catalog.md#L2408): `- Line 26: public void Create_WithEmptyUserId_ReturnsUserRequired()`
+- [Line 2409](../../../onboarding-work/test-catalog.md#L2409): `- Line 37: public void Create_WithEmptyCentreId_ReturnsCentreRequired()`
+- [Line 2410](../../../onboarding-work/test-catalog.md#L2410): `- Line 48: public void ChangeRole_WhenActive_SucceedsAndChangesTheRole()`
+- [Line 2411](../../../onboarding-work/test-catalog.md#L2411): `- Line 62: public void ChangeRole_WhenInactive_FailsAndLeavesTheRoleUnchanged()`
+- [Line 2412](../../../onboarding-work/test-catalog.md#L2412): `- Line 78: public void ChangeRole_ToTheSameRole_FailsAndLeavesTheRoleUnchanged()`
+- [Line 2413](../../../onboarding-work/test-catalog.md#L2413): `- Line 93: public void Deactivate_WhenActive_SucceedsAndBecomesInactive()`
+- [Line 2414](../../../onboarding-work/test-catalog.md#L2414): `- Line 107: public void Deactivate_WhenAlreadyInactive_ReturnsAlreadyInactive()`
+- [Line 2415](../../../onboarding-work/test-catalog.md#L2415): `- Line 122: public void Activate_WhenAlreadyActive_ReturnsAlreadyActive()`
+- [Line 2421](../../../onboarding-work/test-catalog.md#L2421): `- Line 11: public void All_HasSixteenDistinctKeysMatchingTheNamingPattern()`
+- [Line 2427](../../../onboarding-work/test-catalog.md#L2427): `- Line 63: public void Owner_HoldsEveryPermission()`
+- [Line 2428](../../../onboarding-work/test-catalog.md#L2428): `- Line 72: public void For_OnlyReturnsPermissionsFromTheCatalogue(StaffRole role)`
+- [Line 2429](../../../onboarding-work/test-catalog.md#L2429): `- Line 81: public void Holds_WithAnUnknownPermission_IsDeniedForEveryRole(StaffRole role)`
+- [Line 2435](../../../onboarding-work/test-catalog.md#L2435): `- Line 11: public void IsLimitedToOwnGroups_MatchesTheMatrixCellLiterally(StaffRole role, bool expected)`
+- [Line 2443](../../../onboarding-work/test-catalog.md#L2443): `- Line 34: public async Task CreateSubject_AsStaffOwner_WritesOneCreatedAuditRow()`
+- [Line 2444](../../../onboarding-work/test-catalog.md#L2444): `- Line 60: public async Task RenameSubject_ChangesName_WritesOneUpdatedAuditRowWithNoStatusKey()`
+- [Line 2445](../../../onboarding-work/test-catalog.md#L2445): `- Line 84: public async Task RenameSubject_ToItsOwnCurrentName_WritesNoAdditionalAuditRow()`
+- [Line 2446](../../../onboarding-work/test-catalog.md#L2446): `- Line 99: public async Task ArchiveSubject_WritesUpdatedAuditRowWithStatusActiveBeforeAndArchivedAfter()`
+- [Line 2447](../../../onboarding-work/test-catalog.md#L2447): `- Line 120: public async Task ChangeStaffRole_WritesUpdatedAuditRowWithRoleBeforeAndAfter()`
+- [Line 2448](../../../onboarding-work/test-catalog.md#L2448): `- Line 141: public async Task CreateStaff_WritesCreatedMembershipAuditRowWithNoPasswordOrEmail()`
+- [Line 2449](../../../onboarding-work/test-catalog.md#L2449): `- Line 160: public async Task CommandThatRenamesThenFails_WritesNoAuditRowAndNoDataChange()`
+- [Line 2450](../../../onboarding-work/test-catalog.md#L2450): `- Line 178: public async Task CreateSubject_LosesUniqueRace_WritesNoAuditRowForTheLoser()`
+- [Line 2451](../../../onboarding-work/test-catalog.md#L2451): `- Line 203: public async Task CreateSubject_AsSystemActorWithCentre_WritesAuditRowWithSystemActorTypeAndNullUser()`
+- [Line 2452](../../../onboarding-work/test-catalog.md#L2452): `- Line 219: public async Task DevelopmentSeederAndCentrelessCentreCreation_WriteNoAuditRows()`
+- [Line 2453](../../../onboarding-work/test-catalog.md#L2453): `- Line 245: public async Task AuditEntry_CorrelationId_MatchesTheOneSetOnTheScope()`
+- [Line 2461](../../../onboarding-work/test-catalog.md#L2461): `- Line 22: public async Task NileEnrollmentJoiningNileStudentToMaadiGroup_Throws23503()`
+- [Line 2462](../../../onboarding-work/test-catalog.md#L2462): `- Line 34: public async Task NileEnrollmentJoiningMaadiStudentToNileGroup_Throws23503()`
+- [Line 2463](../../../onboarding-work/test-catalog.md#L2463): `- Line 46: public async Task TwoActiveEnrollmentsForOneStudentAndGroup_Throws23505()`
+- [Line 2464](../../../onboarding-work/test-catalog.md#L2464): `- Line 59: public async Task OneEndedAndOneActiveForOneStudentAndGroup_IsAllowed()`
+- [Line 2465](../../../onboarding-work/test-catalog.md#L2465): `- Line 74: public async Task EndedWithoutEndedAt_Throws23514()`
+- [Line 2466](../../../onboarding-work/test-catalog.md#L2466): `- Line 87: public async Task EndedBeforeEnrolled_Throws23514()`
+- [Line 2474](../../../onboarding-work/test-catalog.md#L2474): `- Line 17: public async Task NoSetting_SelectCount_IsZero()`
+- [Line 2475](../../../onboarding-work/test-catalog.md#L2475): `- Line 29: public async Task SettingNile_SelectsOnlyNileRows()`
+- [Line 2476](../../../onboarding-work/test-catalog.md#L2476): `- Line 46: public async Task SettingNile_InsertWithMaadiCentre_Throws42501()`
+- [Line 2477](../../../onboarding-work/test-catalog.md#L2477): `- Line 71: public async Task SettingNile_DeleteOwnEnrollment_Throws42501BecauseDeleteIsNotGranted()`
+- [Line 2485](../../../onboarding-work/test-catalog.md#L2485): `- Line 17: public async Task LinkedTeacher_ReadsTheOwnGroupsRosterAndGetsGroupNotFoundForAnothers()`
+- [Line 2486](../../../onboarding-work/test-catalog.md#L2486): `- Line 31: public async Task LinkedTeacher_ListingAStudentsEnrollments_SeesOnlyThoseInOwnGroups()`
+- [Line 2494](../../../onboarding-work/test-catalog.md#L2494): `- Line 22: public async Task Enroll_IntoTheOtherCentresGroup_ReturnsGroupNotFound(bool nileActsOnMaadi)`
+- [Line 2495](../../../onboarding-work/test-catalog.md#L2495): `- Line 33: public async Task Enroll_TheOtherCentresStudentIntoAnOwnGroup_ReturnsStudentNotFound(bool nileActsOnMaadi)`
+- [Line 2496](../../../onboarding-work/test-catalog.md#L2496): `- Line 45: public async Task Withdraw_TheOtherCentresEnrollment_ReturnsEnrollmentNotFound(bool nileActsOnMaadi)`
+- [Line 2497](../../../onboarding-work/test-catalog.md#L2497): `- Line 58: public async Task Transfer_TheOtherCentresEnrollment_ReturnsEnrollmentNotFound(bool nileActsOnMaadi)`
+- [Line 2498](../../../onboarding-work/test-catalog.md#L2498): `- Line 70: public async Task Transfer_AnOwnEnrollmentIntoTheOtherCentresGroup_ReturnsGroupNotFound(bool nileActsOnMaadi)`
+- [Line 2514](../../../onboarding-work/test-catalog.md#L2514): `- Line 18: public async Task Transfer_MovesTheSeatFromTheSourceToTheTarget()`
+- [Line 2515](../../../onboarding-work/test-catalog.md#L2515): `- Line 39: public async Task Transfer_IntoAFullTarget_ReturnsGroupFullAndLeavesBothGroupsUnchanged()`
+- [Line 2516](../../../onboarding-work/test-catalog.md#L2516): `- Line 56: public async Task Transfer_WithAStaleVersion_ReturnsConcurrencyStaleAndChangesNothing()`
+- [Line 2517](../../../onboarding-work/test-catalog.md#L2517): `- Line 72: public async Task TwoOppositeTransfersInParallel_BothCompleteWithoutDeadlock_AcrossTwentyRepetitions()`
+- [Line 2525](../../../onboarding-work/test-catalog.md#L2525): `- Line 30: public async Task Withdraw_FreesTheSeatThatTheNextEnrollmentTakes()`
+- [Line 2526](../../../onboarding-work/test-catalog.md#L2526): `- Line 48: public async Task ReEnrollAfterWithdrawal_CreatesASecondRowAndKeepsTheFirstAsHistory()`
+- [Line 2527](../../../onboarding-work/test-catalog.md#L2527): `- Line 70: public async Task ArchiveGroup_WithAnActiveEnrollment_IsRefusedUntilTheStudentIsWithdrawn()`
+- [Line 2528](../../../onboarding-work/test-catalog.md#L2528): `- Line 85: public async Task ArchiveStudent_WithAnActiveEnrollment_IsRefusedUntilTheStudentIsWithdrawn()`
+- [Line 2529](../../../onboarding-work/test-catalog.md#L2529): `- Line 100: public async Task ChangeCapacity_BelowTheEnrolledCount_IsRefusedAndEqualToItSucceeds()`
+- [Line 2530](../../../onboarding-work/test-catalog.md#L2530): `- Line 115: public async Task GroupListDetailAndRoster_ShowTheRealEnrolledCountAndNamesOnly()`
+- [Line 2531](../../../onboarding-work/test-catalog.md#L2531): `- Line 136: public async Task Enroll_WritesOneCreatedAuditRow()`
+- [Line 2532](../../../onboarding-work/test-catalog.md#L2532): `- Line 151: public async Task Withdraw_WritesOneUpdatedAuditRowFromActiveToEndedWithTheReason()`
+- [Line 2533](../../../onboarding-work/test-catalog.md#L2533): `- Line 166: public async Task Transfer_WritesAnUpdatedRowForTheOldEnrollmentAndACreatedRowForTheNewOne()`
+- [Line 2541](../../../onboarding-work/test-catalog.md#L2541): `- Line 18: public async Task NileGroupWithMaadiSubject_Throws23503()`
+- [Line 2542](../../../onboarding-work/test-catalog.md#L2542): `- Line 30: public async Task NileGroupWithMaadiTeacher_Throws23503()`
+- [Line 2543](../../../onboarding-work/test-catalog.md#L2543): `- Line 44: public async Task CapacityOutOfRange_Throws23514(int capacity)`
+- [Line 2551](../../../onboarding-work/test-catalog.md#L2551): `- Line 17: public async Task NoSetting_SelectCount_IsZero()`
+- [Line 2552](../../../onboarding-work/test-catalog.md#L2552): `- Line 29: public async Task SettingNile_SelectsOnlyNileRows()`
+- [Line 2553](../../../onboarding-work/test-catalog.md#L2553): `- Line 46: public async Task SettingNile_InsertWithMaadiCentre_Throws42501()`
+- [Line 2554](../../../onboarding-work/test-catalog.md#L2554): `- Line 72: public async Task SettingNile_UpdateMaadiGroupById_AffectsZeroRows()`
+- [Line 2555](../../../onboarding-work/test-catalog.md#L2555): `- Line 92: public async Task SettingNile_DeleteOwnGroup_Throws42501BecauseDeleteIsNotGranted()`
+- [Line 2563](../../../onboarding-work/test-catalog.md#L2563): `- Line 22: public async Task Owner_ListsBothGroups()`
+- [Line 2564](../../../onboarding-work/test-catalog.md#L2564): `- Line 32: public async Task TeacherLinkedToT1_ListsOnlyG1()`
+- [Line 2565](../../../onboarding-work/test-catalog.md#L2565): `- Line 42: public async Task TeacherLinkedToT1_FilteringByT2_GetsAnEmptyListNotAnError()`
+- [Line 2566](../../../onboarding-work/test-catalog.md#L2566): `- Line 52: public async Task TeacherLinkedToT1_GetG2_ReturnsGroupNotFound()`
+- [Line 2567](../../../onboarding-work/test-catalog.md#L2567): `- Line 65: public async Task UnlinkedTeacher_ListsNothingAndGetsNothing()`
+- [Line 2568](../../../onboarding-work/test-catalog.md#L2568): `- Line 77: public async Task AfterReassigningG2ToT1_TheT1ActorListsBoth()`
+- [Line 2569](../../../onboarding-work/test-catalog.md#L2569): `- Line 91: public async Task AfterT1IsArchived_TheT1ActorListsNothing()`
+- [Line 2570](../../../onboarding-work/test-catalog.md#L2570): `- Line 107: public async Task TeacherLinkedToT1_IncludingArchived_StillSeesOnlyOwnGroups()`
+- [Line 2578](../../../onboarding-work/test-catalog.md#L2578): `- Line 42: public async Task RequestAimedAtTheOtherCentresGroup_ReturnsGroupNotFoundAndChangesNothing(string request, bool nileActsOnMaadi)`
+- [Line 2579](../../../onboarding-work/test-catalog.md#L2579): `- Line 59: public async Task CreateNileGroup_WithAMaadiSubject_ReturnsSubjectNotFound()`
+- [Line 2580](../../../onboarding-work/test-catalog.md#L2580): `- Line 71: public async Task CreateNileGroup_WithAMaadiTeacher_ReturnsTeacherNotFound()`
+- [Line 2581](../../../onboarding-work/test-catalog.md#L2581): `- Line 83: public async Task AssignNileGroup_ToAMaadiTeacher_ReturnsTeacherNotFound()`
+- [Line 2597](../../../onboarding-work/test-catalog.md#L2597): `- Line 30: public async Task Create_ThenGet_ReturnsTheGroupWithSubjectAndTeacherNames()`
+- [Line 2598](../../../onboarding-work/test-catalog.md#L2598): `- Line 50: public async Task Rename_PersistsTheNewName()`
+- [Line 2599](../../../onboarding-work/test-catalog.md#L2599): `- Line 62: public async Task Rename_WithAStaleVersion_ReturnsConcurrencyStale()`
+- [Line 2600](../../../onboarding-work/test-catalog.md#L2600): `- Line 77: public async Task ChangeCapacity_PersistsInRangeAndRefusesOutOfRange()`
+- [Line 2601](../../../onboarding-work/test-catalog.md#L2601): `- Line 92: public async Task AssignTeacher_MovesTheGroupAndAuditsTeacherIdBeforeAndAfter()`
+- [Line 2602](../../../onboarding-work/test-catalog.md#L2602): `- Line 109: public async Task ArchiveThenRestore_KeepsTheRowAndTogglesStatus()`
+- [Line 2603](../../../onboarding-work/test-catalog.md#L2603): `- Line 126: public async Task Restore_UnderAnArchivedSubject_ReturnsSubjectArchived()`
+- [Line 2604](../../../onboarding-work/test-catalog.md#L2604): `- Line 144: public async Task Create_NameDifferingOnlyByHamzaForm_ReturnsNameTaken()`
+- [Line 2605](../../../onboarding-work/test-catalog.md#L2605): `- Line 158: public async Task Create_TenParallelCreatesWithOneName_LeavesExactlyOneRow()`
+- [Line 2606](../../../onboarding-work/test-catalog.md#L2606): `- Line 182: public async Task TeacherRead_ActiveGroupCount_CountsOnlyActiveGroups()`
+- [Line 2607](../../../onboarding-work/test-catalog.md#L2607): `- Line 196: public async Task ArchiveSubjectAndTeacher_WithAnActiveGroup_AreRefused()`
+- [Line 2615](../../../onboarding-work/test-catalog.md#L2615): `- Line 25: public void AppConnectionPool_IsNotSmallerThanTheLargestParallelism()`
+- [Line 2616](../../../onboarding-work/test-catalog.md#L2616): `- Line 33: public async Task TenParallelEnrollmentsIntoTheLastSeat_ExactlyOneSucceedsAndNineGetGroupFull_AcrossTwentyRepetitions()`
+- [Line 2617](../../../onboarding-work/test-catalog.md#L2617): `- Line 62: public async Task FiftyParallelEnrollmentsIntoASingleSeatGroup_ExactlyOneSucceeds()`
+- [Line 2618](../../../onboarding-work/test-catalog.md#L2618): `- Line 83: public async Task TheSameStudentEnrolledTwiceInParallel_OneSucceedsAndTheOtherGetsAlreadyEnrolled()`
+- [Line 2619](../../../onboarding-work/test-catalog.md#L2619): `- Line 106: public async Task EnrollAndShrinkInParallel_NeverLeaveMoreStudentsThanSeats()`
+- [Line 2627](../../../onboarding-work/test-catalog.md#L2627): `- Line 20: public async Task CreateParent_WritesOneCreatedAuditRowWithMaskedPhoneOnly()`
+- [Line 2628](../../../onboarding-work/test-catalog.md#L2628): `- Line 42: public async Task UpdateParentPhone_WritesOneUpdatedAuditRowWithMaskedValuesOnly()`
+- [Line 2636](../../../onboarding-work/test-catalog.md#L2636): `- Line 24: public async Task CreateParent_PersistsWithActorsCentreAndCanonicalPhone()`
+- [Line 2637](../../../onboarding-work/test-catalog.md#L2637): `- Line 39: public async Task GetParent_WithChildrenSeededBySql_ReturnsDetailOrderedByStudentName()`
+- [Line 2638](../../../onboarding-work/test-catalog.md#L2638): `- Line 59: public async Task UpdateParent_ChangesNameAndPhoneAndBumpsVersion()`
+- [Line 2639](../../../onboarding-work/test-catalog.md#L2639): `- Line 79: public async Task LookupParentByPhone_DifferentlySpelled_FindsTheParent()`
+- [Line 2640](../../../onboarding-work/test-catalog.md#L2640): `- Line 92: public async Task LookupParentByPhone_NoSuchParent_SucceedsWithNull()`
+- [Line 2641](../../../onboarding-work/test-catalog.md#L2641): `- Line 103: public async Task UpdateParent_StaleVersion_ReturnsConcurrencyStale()`
+- [Line 2649](../../../onboarding-work/test-catalog.md#L2649): `- Line 32: public async Task Create_TenParallelCreatesWithTheSamePhoneInDifferentSpellings_LeavesExactlyOneRowAndNineCleanConflicts()`
+- [Line 2657](../../../onboarding-work/test-catalog.md#L2657): `- Line 25: public async Task EveryTableWithACentreIdColumn_HasForcedRowLevelSecurityAndACompletePolicy()`
+- [Line 2658](../../../onboarding-work/test-catalog.md#L2658): `- Line 58: public async Task TutoringApp_HasNoDeletePrivilegeOnSubjects()`
+- [Line 2666](../../../onboarding-work/test-catalog.md#L2666): `- Line 14: public async Task SaturdayAtSixPm_IsStoredAtSixteenUtcBeforeTheChangeAndFifteenUtcAfterIt()`
+- [Line 2667](../../../onboarding-work/test-catalog.md#L2667): `- Line 30: public async Task FridayAtHalfPastMidnight_OnTheChangeDay_IsInTheTimetableUnderItsLocalDateNotItsUtcDate()`
+- [Line 2675](../../../onboarding-work/test-catalog.md#L2675): `- Line 18: public async Task NoSetting_SelectCount_IsZero(string table)`
+- [Line 2676](../../../onboarding-work/test-catalog.md#L2676): `- Line 32: public async Task SettingNile_SelectsOnlyNileRows(string table)`
+- [Line 2677](../../../onboarding-work/test-catalog.md#L2677): `- Line 49: public async Task SettingNile_InsertRuleWithMaadiCentre_Throws42501()`
+- [Line 2678](../../../onboarding-work/test-catalog.md#L2678): `- Line 73: public async Task SettingNile_InsertSessionWithMaadiCentre_Throws42501()`
+- [Line 2679](../../../onboarding-work/test-catalog.md#L2679): `- Line 103: public async Task SettingNile_DeleteOwnRow_Throws42501BecauseDeleteIsNotGranted(string table)`
+- [Line 2687](../../../onboarding-work/test-catalog.md#L2687): `- Line 15: public async Task LinkedTeacher_TimetableContainsOnlyTheirOwnSessions()`
+- [Line 2688](../../../onboarding-work/test-catalog.md#L2688): `- Line 28: public async Task LinkedTeacher_RulesOfAnotherTeachersGroup_IsGroupNotFound()`
+- [Line 2696](../../../onboarding-work/test-catalog.md#L2696): `- Line 20: public async Task AddRule_ForAnotherCentresGroup_IsGroupNotFound()`
+- [Line 2697](../../../onboarding-work/test-catalog.md#L2697): `- Line 32: public async Task EndRule_OfAnotherCentre_IsRuleNotFoundAndTheRuleStaysOpen()`
+- [Line 2698](../../../onboarding-work/test-catalog.md#L2698): `- Line 46: public async Task CancelSession_OfAnotherCentre_IsSessionNotFoundAndTheSessionStaysScheduled()`
+- [Line 2699](../../../onboarding-work/test-catalog.md#L2699): `- Line 60: public async Task Timetable_NeverContainsAnotherCentresSessions_InEitherDirection()`
+- [Line 2700](../../../onboarding-work/test-catalog.md#L2700): `- Line 72: public async Task ListRules_OfAnotherCentresGroup_IsGroupNotFound()`
+- [Line 2701](../../../onboarding-work/test-catalog.md#L2701): `- Line 84: public async Task ANileTeacherAndAMaadiTeacher_MayHoldSessionsAtTheSameInstant()`
+- [Line 2717](../../../onboarding-work/test-catalog.md#L2717): `- Line 26: public async Task AddRule_StoresOneRuleAndFourSessions_AuditsTheRuleAndNoSession()`
+- [Line 2718](../../../onboarding-work/test-catalog.md#L2718): `- Line 40: public async Task AddRule_SecondGroupOfTheSameTeacherAtAnOverlappingTime_IsTeacherDoubleBookedAndLeavesNoTrace()`
+- [Line 2719](../../../onboarding-work/test-catalog.md#L2719): `- Line 55: public async Task AddRule_SecondRuleForTheSameGroupOverlappingTheFirst_IsGroupDoubleBooked()`
+- [Line 2720](../../../onboarding-work/test-catalog.md#L2720): `- Line 68: public async Task AddRule_TwoParallelCollidingRulesForOneTeacher_ExactlyOneSucceeds()`
+- [Line 2721](../../../onboarding-work/test-catalog.md#L2721): `- Line 90: public async Task ExtendSchedule_RunTwice_TheSecondRunCreatesNothing()`
+- [Line 2722](../../../onboarding-work/test-catalog.md#L2722): `- Line 105: public async Task ExtendSchedule_TwoRulesThatOnlyNowReachASharedSlot_FailsWholeWithNothingGenerated()`
+- [Line 2723](../../../onboarding-work/test-catalog.md#L2723): `- Line 122: public async Task EndRule_CancelsLaterSessions_AndTheirSlotCanBeTakenByAnotherGroupOfTheSameTeacher()`
+- [Line 2724](../../../onboarding-work/test-catalog.md#L2724): `- Line 144: public async Task CancelSession_FreesItsSlot_ForAnotherSessionOfTheSameTeacher()`
+- [Line 2725](../../../onboarding-work/test-catalog.md#L2725): `- Line 163: public async Task AssignGroupTeacher_MovesFutureSessionsToTheNewTeacher_AndLeavesPastOnes()`
+- [Line 2726](../../../onboarding-work/test-catalog.md#L2726): `- Line 181: public async Task AssignGroupTeacher_ToATeacherBusyAtThatTime_IsTeacherDoubleBookedAndChangesNothing()`
+- [Line 2727](../../../onboarding-work/test-catalog.md#L2727): `- Line 198: public async Task ArchiveGroup_WithARuleStillInEffect_IsRefusedWithHasActiveSchedule()`
+- [Line 2728](../../../onboarding-work/test-catalog.md#L2728): `- Line 213: public async Task CancelSession_ThatHasStarted_IsRefusedAndStaysScheduled()`
+- [Line 2736](../../../onboarding-work/test-catalog.md#L2736): `- Line 19: public async Task OverlappingScheduledSessionsForOneTeacher_AreRefusedByTheTeacherConstraint()`
+- [Line 2737](../../../onboarding-work/test-catalog.md#L2737): `- Line 32: public async Task BackToBackSessionsForOneTeacher_AreAllowedBecauseTheRangeIsHalfOpen()`
+- [Line 2738](../../../onboarding-work/test-catalog.md#L2738): `- Line 44: public async Task OverlapWithACancelledSession_IsAllowedBecauseTheConstraintsArePartial()`
+- [Line 2739](../../../onboarding-work/test-catalog.md#L2739): `- Line 55: public async Task TheSameTimesAndTeacherIdUnderAnotherCentre_AreAllowedBecauseTheConstraintsIncludeCentreId()`
+- [Line 2740](../../../onboarding-work/test-catalog.md#L2740): `- Line 71: public async Task OverlappingSessionsForOneGroupWithDifferentTeachers_AreRefusedByTheGroupConstraint()`
+- [Line 2741](../../../onboarding-work/test-catalog.md#L2741): `- Line 84: public async Task ASecondSessionForTheSameRuleAndLocalDate_IsRefusedByTheUniqueIndex()`
+- [Line 2742](../../../onboarding-work/test-catalog.md#L2742): `- Line 97: public async Task Catalogue_ClassSessionsHasBothExclusionConstraints_TenantScopedHalfOpenAndPartial()`
+- [Line 2750](../../../onboarding-work/test-catalog.md#L2750): `- Line 23: public async Task NileActorSavesParentAndStudent_PersistsThreeRowsWithNileCentreNormalizedSearchNameAndE164Phone()`
+- [Line 2751](../../../onboarding-work/test-catalog.md#L2751): `- Line 46: public async Task Reload_StudentHasOnePrimaryLink()`
+- [Line 2752](../../../onboarding-work/test-catalog.md#L2752): `- Line 62: public async Task AddSecondParentAndSave_LinksRevisionIsOneAndStudentVersionChanged()`
+- [Line 2753](../../../onboarding-work/test-catalog.md#L2753): `- Line 83: public async Task TwoContextsLoadSameStudentAndEachAddsADifferentParent_SecondSaveThrowsConcurrencyException()`
+- [Line 2754](../../../onboarding-work/test-catalog.md#L2754): `- Line 112: public async Task SetPrimaryParentAndSave_SucceedsWithExactlyOnePrimaryRow()`
+- [Line 2755](../../../onboarding-work/test-catalog.md#L2755): `- Line 136: public async Task RemoveParentAndSave_LinkRowIsGone()`
+- [Line 2756](../../../onboarding-work/test-catalog.md#L2756): `- Line 156: public async Task MaadiActorListsStudents_DoesNotContainNilesStudent()`
+- [Line 2757](../../../onboarding-work/test-catalog.md#L2757): `- Line 170: public async Task NileActorSavesStudentWhoseLinkPointsAtAMaadiParent_SaveFailsOnForeignKeyAndNothingStored()`
+- [Line 2765](../../../onboarding-work/test-catalog.md#L2765): `- Line 19: public async Task UpdateParentPhone_WritesOneUpdatedAuditRowWithMaskedValuesOnly()`
+- [Line 2773](../../../onboarding-work/test-catalog.md#L2773): `- Line 16: public async Task LinkWithNileCentreButMaadiParent_Throws23503()`
+- [Line 2774](../../../onboarding-work/test-catalog.md#L2774): `- Line 40: public async Task SamePhoneTwiceInNile_Throws23505OnUxParentsCentrePhone()`
+- [Line 2775](../../../onboarding-work/test-catalog.md#L2775): `- Line 61: public async Task SamePhoneOnceInEachCentre_Succeeds()`
+- [Line 2776](../../../onboarding-work/test-catalog.md#L2776): `- Line 73: public async Task TwoPrimaryLinksForOneStudent_Throws23505OnUxStudentParentsOnePrimary()`
+- [Line 2777](../../../onboarding-work/test-catalog.md#L2777): `- Line 99: public async Task NonE164Phone_Throws23514()`
+- [Line 2785](../../../onboarding-work/test-catalog.md#L2785): `- Line 17: public async Task NoSetting_Parents_SelectCountIsZero()`
+- [Line 2786](../../../onboarding-work/test-catalog.md#L2786): `- Line 30: public async Task NoSetting_Students_SelectCountIsZero()`
+- [Line 2787](../../../onboarding-work/test-catalog.md#L2787): `- Line 43: public async Task NoSetting_StudentParents_SelectCountIsZero()`
+- [Line 2788](../../../onboarding-work/test-catalog.md#L2788): `- Line 57: public async Task SettingNile_Parents_SelectsOnlyNileRows()`
+- [Line 2789](../../../onboarding-work/test-catalog.md#L2789): `- Line 74: public async Task SettingNile_Students_SelectsOnlyNileRows()`
+- [Line 2790](../../../onboarding-work/test-catalog.md#L2790): `- Line 91: public async Task SettingNile_StudentParents_SelectsOnlyNileRows()`
+- [Line 2791](../../../onboarding-work/test-catalog.md#L2791): `- Line 111: public async Task SettingNile_InsertParentWithMaadiCentre_Throws42501()`
+- [Line 2792](../../../onboarding-work/test-catalog.md#L2792): `- Line 132: public async Task SettingNile_InsertStudentWithMaadiCentre_Throws42501()`
+- [Line 2793](../../../onboarding-work/test-catalog.md#L2793): `- Line 153: public async Task SettingNile_InsertStudentParentWithMaadiCentre_Throws42501()`
+- [Line 2794](../../../onboarding-work/test-catalog.md#L2794): `- Line 179: public async Task Delete_AnyParent_Throws42501NoPrivilege()`
+- [Line 2795](../../../onboarding-work/test-catalog.md#L2795): `- Line 195: public async Task Delete_AnyStudent_Throws42501NoPrivilege()`
+- [Line 2796](../../../onboarding-work/test-catalog.md#L2796): `- Line 211: public async Task SettingNile_DeleteNileLink_AffectsOneRow()`
+- [Line 2810](../../../onboarding-work/test-catalog.md#L2810): `- Line 17: public async Task PhoneFragmentSearch_FindsStudentByParentPhoneSuffix()`
+- [Line 2811](../../../onboarding-work/test-catalog.md#L2811): `- Line 46: public async Task NameSearch_LogsPredicateParameterAndLimit()`
+- [Line 2819](../../../onboarding-work/test-catalog.md#L2819): `- Line 24: public async Task ListStudents_HamzaInsensitiveSearch_FindsStudentRegisteredWithHamza()`
+- [Line 2820](../../../onboarding-work/test-catalog.md#L2820): `- Line 36: public async Task ListStudents_PhoneFragment_FindsStudentByOwnPhoneSuffix()`
+- [Line 2821](../../../onboarding-work/test-catalog.md#L2821): `- Line 48: public async Task ListStudents_PhoneFragment_FindsStudentByParentPhoneSuffix()`
+- [Line 2822](../../../onboarding-work/test-catalog.md#L2822): `- Line 60: public async Task ListStudents_ArchivedExcludedByDefault_IncludedWhenRequested()`
+- [Line 2823](../../../onboarding-work/test-catalog.md#L2823): `- Line 75: public async Task ListStudents_KeysetPaging_SecondPageContinuesAfterTheFirst()`
+- [Line 2824](../../../onboarding-work/test-catalog.md#L2824): `- Line 93: public async Task MaadiActor_CannotSeeOrRegisterAgainstNilesParent()`
+- [Line 2825](../../../onboarding-work/test-catalog.md#L2825): `- Line 108: public async Task MaadiActor_ListStudents_DoesNotSeeNilesStudent()`
+- [Line 2826](../../../onboarding-work/test-catalog.md#L2826): `- Line 121: public async Task MaadiActor_GetStudent_SeesNotFoundForNilesStudent()`
+- [Line 2827](../../../onboarding-work/test-catalog.md#L2827): `- Line 134: public async Task UpdateStudent_StaleVersion_ReturnsConcurrencyStale()`
+- [Line 2828](../../../onboarding-work/test-catalog.md#L2828): `- Line 152: public async Task LinkParent_StaleVersion_ReturnsConcurrencyStale()`
+- [Line 2829](../../../onboarding-work/test-catalog.md#L2829): `- Line 171: public async Task RegisterStudent_StudentValidationFailsAfterNewParentWasStaged_NothingPersists()`
+- [Line 2837](../../../onboarding-work/test-catalog.md#L2837): `- Line 28: public async Task Get_MaadiOwnerForNileSubject_ReturnsNotFound()`
+- [Line 2838](../../../onboarding-work/test-catalog.md#L2838): `- Line 39: public async Task Rename_MaadiOwnerForNileSubjectWithItsRealVersion_ReturnsNotFoundAndLeavesRowUnchanged()`
+- [Line 2839](../../../onboarding-work/test-catalog.md#L2839): `- Line 54: public async Task Archive_MaadiOwnerForNileSubjectWithItsRealVersion_ReturnsNotFoundAndLeavesRowUnchanged()`
+- [Line 2840](../../../onboarding-work/test-catalog.md#L2840): `- Line 68: public async Task Restore_MaadiOwnerForNileSubjectWithItsRealVersion_ReturnsNotFoundAndLeavesRowUnchanged()`
+- [Line 2841](../../../onboarding-work/test-catalog.md#L2841): `- Line 82: public async Task List_MaadiOwner_ContainsNoNileSubject()`
+- [Line 2842](../../../onboarding-work/test-catalog.md#L2842): `- Line 93: public async Task Create_MaadiOwnerWithNilesExactName_Succeeds()`
+- [Line 2843](../../../onboarding-work/test-catalog.md#L2843): `- Line 103: public async Task CentrelessActor_AllSixRequests_ReturnTenantNotSelected()`
+- [Line 2851](../../../onboarding-work/test-catalog.md#L2851): `- Line 24: public async Task NileActorAddsMathematics_PersistsWithNileCentreCreatedAtNoUpdatedAtActiveStatus()`
+- [Line 2852](../../../onboarding-work/test-catalog.md#L2852): `- Line 40: public async Task MaadiActorListsSubjects_DoesNotContainNilesSubject()`
+- [Line 2853](../../../onboarding-work/test-catalog.md#L2853): `- Line 51: public async Task NileActorAddsWhitespaceVariantOfMathematics_TranslatedToNameTakenConflict()`
+- [Line 2854](../../../onboarding-work/test-catalog.md#L2854): `- Line 65: public async Task MaadiActorAddsMathematics_Succeeds()`
+- [Line 2855](../../../onboarding-work/test-catalog.md#L2855): `- Line 75: public async Task StatusOutsideAllowedValuesWrittenByRawSql_ChecksViolation()`
+- [Line 2856](../../../onboarding-work/test-catalog.md#L2856): `- Line 94: public async Task Rename_SetsUpdatedAtAndChangesVersion()`
+- [Line 2857](../../../onboarding-work/test-catalog.md#L2857): `- Line 111: public async Task ConcurrentRenameFromTwoContexts_SecondSaveThrowsConcurrencyException()`
+- [Line 2858](../../../onboarding-work/test-catalog.md#L2858): `- Line 135: public async Task NileActorAddsSubjectConstructedWithMaadiCentre_TenantViolationAndNothingStored()`
+- [Line 2866](../../../onboarding-work/test-catalog.md#L2866): `- Line 19: public async Task Create_TenParallelCreatesWithSameName_LeavesExactlyOneRowAndNineCleanConflicts()`
+- [Line 2874](../../../onboarding-work/test-catalog.md#L2874): `- Line 18: public async Task NoSetting_SelectCount_IsZero()`
+- [Line 2875](../../../onboarding-work/test-catalog.md#L2875): `- Line 31: public async Task SettingNile_SelectsOnlyNileRows()`
+- [Line 2876](../../../onboarding-work/test-catalog.md#L2876): `- Line 48: public async Task SettingMaadi_SelectsOnlyMaadiRows()`
+- [Line 2877](../../../onboarding-work/test-catalog.md#L2877): `- Line 65: public async Task SettingNile_InsertWithMaadiCentre_Throws42501()`
+- [Line 2878](../../../onboarding-work/test-catalog.md#L2878): `- Line 88: public async Task SettingNile_UpdateNileSubjectCentreIdToMaadi_Throws42501()`
+- [Line 2879](../../../onboarding-work/test-catalog.md#L2879): `- Line 106: public async Task SettingNile_UpdateMaadiSubjectById_AffectsZeroRows()`
+- [Line 2880](../../../onboarding-work/test-catalog.md#L2880): `- Line 129: public async Task Delete_AnySubject_Throws42501NoPrivilege()`
+- [Line 2881](../../../onboarding-work/test-catalog.md#L2881): `- Line 145: public async Task AsOwnerWithNoSetting_SelectCount_IsZero()`
+- [Line 2889](../../../onboarding-work/test-catalog.md#L2889): `- Line 25: public async Task Rename_WithTheVersionJustRead_Succeeds()`
+- [Line 2890](../../../onboarding-work/test-catalog.md#L2890): `- Line 38: public async Task Rename_AgainWithTheSameStaleVersion_ReturnsConcurrencyStaleAndKeepsTheFirstRename()`
+- [Line 2891](../../../onboarding-work/test-catalog.md#L2891): `- Line 58: public async Task Archive_WithAStaleVersion_ReturnsConcurrencyStale()`
+- [Line 2892](../../../onboarding-work/test-catalog.md#L2892): `- Line 73: public async Task Rename_TwoParallelCarryingTheSameVersion_ExactlyOneSucceeds()`
+- [Line 2908](../../../onboarding-work/test-catalog.md#L2908): `- Line 28: public async Task Create_Succeeds_AndListContainsItWithAVersion()`
+- [Line 2909](../../../onboarding-work/test-catalog.md#L2909): `- Line 44: public async Task Create_SameNameDifferentCase_ReturnsNameTakenAndStillOneRow()`
+- [Line 2910](../../../onboarding-work/test-catalog.md#L2910): `- Line 56: public async Task Rename_SetsNewNameUpdatedTimestampAndChangesVersion()`
+- [Line 2911](../../../onboarding-work/test-catalog.md#L2911): `- Line 75: public async Task Rename_ToAnExistingName_ReturnsNameTaken()`
+- [Line 2912](../../../onboarding-work/test-catalog.md#L2912): `- Line 89: public async Task Archive_ExcludedFromDefaultList_IncludedWhenArchivedRequested()`
+- [Line 2913](../../../onboarding-work/test-catalog.md#L2913): `- Line 106: public async Task Archive_Again_ReturnsAlreadyArchived()`
+- [Line 2914](../../../onboarding-work/test-catalog.md#L2914): `- Line 121: public async Task Restore_BecomesActive()`
+- [Line 2915](../../../onboarding-work/test-catalog.md#L2915): `- Line 137: public async Task Get_UnknownId_ReturnsNotFound()`
+- [Line 2916](../../../onboarding-work/test-catalog.md#L2916): `- Line 146: public async Task Create_EightyOneCharacterName_ValidationFailureAndNoTransactionOpened()`
+- [Line 2924](../../../onboarding-work/test-catalog.md#L2924): `- Line 24: public async Task SetAccount_EligibleTeacherRoleUser_Links()`
+- [Line 2925](../../../onboarding-work/test-catalog.md#L2925): `- Line 39: public async Task SetAccount_SecretaryUserId_ReturnsUserNotEligible()`
+- [Line 2926](../../../onboarding-work/test-catalog.md#L2926): `- Line 52: public async Task SetAccount_MaadiOnlyUser_ReturnsUserNotEligible()`
+- [Line 2927](../../../onboarding-work/test-catalog.md#L2927): `- Line 65: public async Task SetAccount_UnknownUserId_ReturnsUserNotEligible()`
+- [Line 2928](../../../onboarding-work/test-catalog.md#L2928): `- Line 77: public async Task SetAccount_UserAlreadyLinkedToAnotherTeacher_ReturnsAccountTaken()`
+- [Line 2929](../../../onboarding-work/test-catalog.md#L2929): `- Line 97: public async Task SetAccount_NullUserId_UnlinksAPreviouslyLinkedTeacher()`
+- [Line 2930](../../../onboarding-work/test-catalog.md#L2930): `- Line 116: public async Task SetAccount_TwoParallelLinksOfOneUserToTwoTeachers_OneSucceedsOneAccountTaken()`
+- [Line 2931](../../../onboarding-work/test-catalog.md#L2931): `- Line 148: public async Task SetAccount_Links_WritesOneUpdatedAuditRowWithUserIdBeforeNullAndAfterTheId()`
+- [Line 2939](../../../onboarding-work/test-catalog.md#L2939): `- Line 23: public async Task NoSetting_SelectCount_IsZero()`
+- [Line 2940](../../../onboarding-work/test-catalog.md#L2940): `- Line 36: public async Task SettingNile_SelectsOnlyNileRows()`
+- [Line 2941](../../../onboarding-work/test-catalog.md#L2941): `- Line 53: public async Task SettingMaadi_SelectsOnlyMaadiRows()`
+- [Line 2942](../../../onboarding-work/test-catalog.md#L2942): `- Line 70: public async Task SettingNile_InsertWithMaadiCentre_Throws42501()`
+- [Line 2943](../../../onboarding-work/test-catalog.md#L2943): `- Line 93: public async Task SettingNile_UpdateNileTeacherCentreIdToMaadi_Throws42501()`
+- [Line 2944](../../../onboarding-work/test-catalog.md#L2944): `- Line 111: public async Task SettingNile_UpdateMaadiTeacherById_AffectsZeroRows()`
+- [Line 2945](../../../onboarding-work/test-catalog.md#L2945): `- Line 134: public async Task AsSuperuser_InsertTeacherWithNileCentreAndMaadiOnlyUser_Throws23503ForeignKeyViolation()`
+- [Line 2946](../../../onboarding-work/test-catalog.md#L2946): `- Line 157: public async Task AsSuperuser_LinkSameNileUserToASecondNileTeacher_Throws23505UniqueViolation()`
+- [Line 2954](../../../onboarding-work/test-catalog.md#L2954): `- Line 26: public async Task Create_Succeeds_AndListContainsItWithAVersion()`
+- [Line 2955](../../../onboarding-work/test-catalog.md#L2955): `- Line 42: public async Task Update_SetsNewDetailsAndChangesVersion()`
+- [Line 2956](../../../onboarding-work/test-catalog.md#L2956): `- Line 60: public async Task Archive_ExcludedFromDefaultList_IncludedWhenArchivedRequested()`
+- [Line 2957](../../../onboarding-work/test-catalog.md#L2957): `- Line 78: public async Task Archive_Again_ReturnsAlreadyArchived()`
+- [Line 2958](../../../onboarding-work/test-catalog.md#L2958): `- Line 94: public async Task Restore_BecomesActive()`
+- [Line 2959](../../../onboarding-work/test-catalog.md#L2959): `- Line 111: public async Task Get_UnknownId_ReturnsNotFound()`
+- [Line 2967](../../../onboarding-work/test-catalog.md#L2967): `- Line 24: public async Task UnlinkParent_ThroughRealHandler_RemovesTheLinkRow()`
+- [Line 2975](../../../onboarding-work/test-catalog.md#L2975): `- Line 17: public void Updated_MaskedFieldChanged_RecordsMaskedBeforeAndAfterValues()`
+- [Line 2976](../../../onboarding-work/test-catalog.md#L2976): `- Line 30: public void Updated_TwoDifferentNumbersWithTheSameLastFourDigits_StillProducesAnEntry()`
+- [Line 2977](../../../onboarding-work/test-catalog.md#L2977): `- Line 45: public void Created_MaskedField_RecordsNullBeforeAndMaskedAfterValue()`
+- [Line 2985](../../../onboarding-work/test-catalog.md#L2985): `- Line 12: public void Created_IncludesEveryAllowedField_WithNullBeforeAndTheValueAfter()`
+- [Line 2986](../../../onboarding-work/test-catalog.md#L2986): `- Line 28: public void Updated_IncludesOnlyModifiedAllowedFieldsThatActuallyDiffer()`
+- [Line 2987](../../../onboarding-work/test-catalog.md#L2987): `- Line 42: public void Deleted_IncludesEveryAllowedField_WithTheValueBeforeAndNullAfter()`
+- [Line 2988](../../../onboarding-work/test-catalog.md#L2988): `- Line 58: public void Updated_AModifiedButEqualValue_IsSkipped()`
+- [Line 2989](../../../onboarding-work/test-catalog.md#L2989): `- Line 71: public void Updated_ANonAllowedField_IsNeverPresentEvenWhenModified()`
+- [Line 2990](../../../onboarding-work/test-catalog.md#L2990): `- Line 87: public void Updated_WithNoAllowedFieldReallyChanged_YieldsNull()`
+- [Line 2991](../../../onboarding-work/test-catalog.md#L2991): `- Line 101: public void EnumValues_AreFormattedAsTheirLowerCaseName()`
+- [Line 2992](../../../onboarding-work/test-catalog.md#L2992): `- Line 114: public void GuidValues_AreFormattedAsStrings()`
+- [Line 2993](../../../onboarding-work/test-catalog.md#L2993): `- Line 126: public void NullValues_AreWrittenAsJsonNull_NotTheStringNull()`
+- [Line 2994](../../../onboarding-work/test-catalog.md#L2994): `- Line 139: public void FieldNames_AreCamelCasedFromThePascalCasePropertyName()`
+- [Line 2995](../../../onboarding-work/test-catalog.md#L2995): `- Line 150: public void Created_WritesDatesAndTimesAsInvariantIsoText()`
+- [Line 3003](../../../onboarding-work/test-catalog.md#L3003): `- Line 22: public async Task SettingNile_UpdateAnyRow_Throws42501()`
+- [Line 3004](../../../onboarding-work/test-catalog.md#L3004): `- Line 37: public async Task SettingNile_DeleteAnyRow_Throws42501()`
+- [Line 3005](../../../onboarding-work/test-catalog.md#L3005): `- Line 52: public async Task SettingNile_Truncate_Throws42501()`
+- [Line 3006](../../../onboarding-work/test-catalog.md#L3006): `- Line 67: public async Task SettingNile_SelectsOnlyNileRows()`
+- [Line 3007](../../../onboarding-work/test-catalog.md#L3007): `- Line 84: public async Task SettingMaadi_SelectsNoneOfNilesRows()`
+- [Line 3008](../../../onboarding-work/test-catalog.md#L3008): `- Line 100: public async Task SettingNile_InsertWithMaadiCentre_Throws42501()`
+- [Line 3009](../../../onboarding-work/test-catalog.md#L3009): `- Line 122: public async Task ThroughEf_LoadingThenModifyingAnAuditEntry_TenantGuardThrows()`
+- [Line 3017](../../../onboarding-work/test-catalog.md#L3017): `- Line 16: public void Entries_HasExactlyElevenAuditedTypes()`
+- [Line 3018](../../../onboarding-work/test-catalog.md#L3018): `- Line 33: public void Subject_IsAuditedAsSubject_WithNameAndStatusOnly()`
+- [Line 3019](../../../onboarding-work/test-catalog.md#L3019): `- Line 42: public void Membership_IsAuditedAsMembership_WithUserIdRoleAndStatusOnly()`
+- [Line 3020](../../../onboarding-work/test-catalog.md#L3020): `- Line 51: public void Centre_IsAuditedAsCentre_WithNameAndDefaultLocaleOnly()`
+- [Line 3021](../../../onboarding-work/test-catalog.md#L3021): `- Line 60: public void Subject_ResolvesItsCentreId_FromItsOwnCentreIdProperty()`
+- [Line 3022](../../../onboarding-work/test-catalog.md#L3022): `- Line 69: public void Membership_ResolvesItsCentreId_FromItsOwnCentreIdProperty()`
+- [Line 3023](../../../onboarding-work/test-catalog.md#L3023): `- Line 78: public void Centre_ResolvesItsCentreId_FromItsOwnId()`
+- [Line 3024](../../../onboarding-work/test-catalog.md#L3024): `- Line 87: public void Entries_NeverIncludesAuditEntriesOrIdentityUsers()`
+- [Line 3025](../../../onboarding-work/test-catalog.md#L3025): `- Line 94: public void Parent_IsAuditedAsParent_WithFullNameAndMaskedPhoneOnly()`
+- [Line 3026](../../../onboarding-work/test-catalog.md#L3026): `- Line 104: public void Student_IsAuditedAsStudent_WithFullNameSchoolYearStatusAndMaskedPhoneOnly()`
+- [Line 3027](../../../onboarding-work/test-catalog.md#L3027): `- Line 114: public void StudentParentLink_IsAuditedAsStudentParent_WithStudentIdParentIdRelationshipAndIsPrimaryOnly()`
+- [Line 3028](../../../onboarding-work/test-catalog.md#L3028): `- Line 124: public void Parent_ResolvesItsCentreId_FromItsOwnCentreIdProperty()`
+- [Line 3029](../../../onboarding-work/test-catalog.md#L3029): `- Line 133: public void Student_ResolvesItsCentreId_FromItsOwnCentreIdProperty()`
+- [Line 3030](../../../onboarding-work/test-catalog.md#L3030): `- Line 143: public void Teacher_IsAuditedAsTeacher_WithFullNameUserIdStatusAndMaskedPhoneOnly()`
+- [Line 3031](../../../onboarding-work/test-catalog.md#L3031): `- Line 153: public void Teacher_ResolvesItsCentreId_FromItsOwnCentreIdProperty()`
+- [Line 3032](../../../onboarding-work/test-catalog.md#L3032): `- Line 162: public void Group_IsAuditedAsGroup_WithNameSubjectIdTeacherIdCapacityAndStatusOnly()`
+- [Line 3033](../../../onboarding-work/test-catalog.md#L3033): `- Line 172: public void Group_ResolvesItsCentreId_FromItsOwnCentreIdProperty()`
+- [Line 3034](../../../onboarding-work/test-catalog.md#L3034): `- Line 182: public void Enrollment_IsAuditedAsEnrollment_WithStudentIdGroupIdStatusAndEndReasonOnly()`
+- [Line 3035](../../../onboarding-work/test-catalog.md#L3035): `- Line 192: public void Enrollment_ResolvesItsCentreId_FromItsOwnCentreIdProperty()`
+- [Line 3036](../../../onboarding-work/test-catalog.md#L3036): `- Line 202: public void ScheduleRule_IsAuditedAsScheduleRule_ForEveryAction_WithItsLocalValuesOnly()`
+- [Line 3037](../../../onboarding-work/test-catalog.md#L3037): `- Line 216: public void ClassSession_IsAuditedAsClassSession_OnUpdateOnly_WithStatusAndTeacherIdOnly()`
+- [Line 3038](../../../onboarding-work/test-catalog.md#L3038): `- Line 228: public void EveryEntryWithoutAnActionList_RecordsEveryAction_AsBeforeActionListsExisted()`
+- [Line 3046](../../../onboarding-work/test-catalog.md#L3046): `- Line 19: public async Task GetPageAsync_With120SeededEntries_PagesAsFiftyFiftyTwenty_WithNoDuplicatesOrGaps()`
+- [Line 3047](../../../onboarding-work/test-catalog.md#L3047): `- Line 54: public async Task GetPageAsync_FilteredByEntityType_ReturnsOnlyThatType()`
+- [Line 3048](../../../onboarding-work/test-catalog.md#L3048): `- Line 71: public async Task GetPageAsync_FilteredByEntityId_ReturnsOnlyThatRecordsHistory()`
+- [Line 3049](../../../onboarding-work/test-catalog.md#L3049): `- Line 87: public async Task GetPageAsync_FilteredByActorUserId_ReturnsOnlyThatActorsRows()`
+- [Line 3050](../../../onboarding-work/test-catalog.md#L3050): `- Line 106: public async Task GetPageAsync_FilteredByFromAndTo_ReturnsOnlyEntriesInRange()`
+- [Line 3051](../../../onboarding-work/test-catalog.md#L3051): `- Line 123: public async Task GetPageAsync_WithCombinedFilters_AppliesAllOfThem()`
+- [Line 3052](../../../onboarding-work/test-catalog.md#L3052): `- Line 142: public async Task GetPageAsync_AsMaadiActor_NeverReceivesANileEntry()`
+- [Line 3053](../../../onboarding-work/test-catalog.md#L3053): `- Line 167: public async Task GetPageAsync_EntryInsertedBetweenPageRequests_DoesNotShiftTheNextPage()`
+- [Line 3061](../../../onboarding-work/test-catalog.md#L3061): `- Line 17: public async Task UpdateCentreSettings_AsNileOwner_ChangesNileOnly_MaadiRowUnchanged()`
+- [Line 3062](../../../onboarding-work/test-catalog.md#L3062): `- Line 37: public async Task UpdateCentreSettings_WritesExactlyOneCentreUpdatedAuditRowWithNameBeforeAndAfter()`
+- [Line 3063](../../../onboarding-work/test-catalog.md#L3063): `- Line 67: public async Task UpdateCentreSettings_WithStaleVersion_ReturnsConcurrencyStale()`
+- [Line 3071](../../../onboarding-work/test-catalog.md#L3071): `- Line 17: public async Task SendAsync_TwoParallelCreatesWithSameSlug_LeavesExactlyOneRowAndLoserGetsSlugTakenConflict()`
+- [Line 3079](../../../onboarding-work/test-catalog.md#L3079): `- Line 23: public async Task GetForCurrentCentreAsync_ActorsOfTwoCentres_EachGetTheirOwnCentresZone()`
+- [Line 3080](../../../onboarding-work/test-catalog.md#L3080): `- Line 35: public async Task GetForCurrentCentreAsync_CalledTwiceInOneScope_ReadsTheCentreOnce()`
+- [Line 3086](../../../onboarding-work/test-catalog.md#L3086): `- Line 15: public async Task SendAsync_SystemActorValidCommand_PersistsCentreWithCreatedAtAndNoUpdatedAt()`
+- [Line 3087](../../../onboarding-work/test-catalog.md#L3087): `- Line 27: public async Task SendAsync_SlugAlreadyExists_ReturnsConflictAndKeepsOneRow()`
+- [Line 3088](../../../onboarding-work/test-catalog.md#L3088): `- Line 40: public async Task SendAsync_AnonymousActor_ReturnsForbiddenAndWritesNothing()`
+- [Line 3089](../../../onboarding-work/test-catalog.md#L3089): `- Line 51: public async Task SendAsync_InvalidTimeZone_ReturnsDomainErrorAndWritesNothing()`
+- [Line 3117](../../../onboarding-work/test-catalog.md#L3117): `Base class for real-database tests: every test starts with empty tables.`
+- [Line 3145](../../../onboarding-work/test-catalog.md#L3145): `- Line 17: public async Task VerifyCredentialsAsync_CorrectPassword_SucceedsWithUserIdAndStamp()`
+- [Line 3146](../../../onboarding-work/test-catalog.md#L3146): `- Line 32: public async Task VerifyCredentialsAsync_WrongPassword_FailsAndRecordsOneFailedAttempt()`
+- [Line 3147](../../../onboarding-work/test-catalog.md#L3147): `- Line 47: public async Task VerifyCredentialsAsync_UnknownEmail_FailsWithTheIdenticalError()`
+- [Line 3148](../../../onboarding-work/test-catalog.md#L3148): `- Line 60: public async Task VerifyCredentialsAsync_FiveWrongAttemptsThenCorrectPassword_StillFails()`
+- [Line 3149](../../../onboarding-work/test-catalog.md#L3149): `- Line 80: public async Task VerifyCredentialsAsync_SuccessAfterAFailure_ResetsTheCounter()`
+- [Line 3150](../../../onboarding-work/test-catalog.md#L3150): `- Line 96: public async Task ChangePasswordAsync_CorrectCurrentAndValidNew_RotatesStampClearsFlagAndAppliesPolicy()`
+- [Line 3151](../../../onboarding-work/test-catalog.md#L3151): `- Line 116: public async Task ChangePasswordAsync_WrongCurrentPassword_FailsWithoutRotatingTheStampOrClearingTheFlag()`
+- [Line 3152](../../../onboarding-work/test-catalog.md#L3152): `- Line 131: public async Task ChangePasswordAsync_NewPasswordFailsThePolicy_FailsWithFieldError()`
+- [Line 3153](../../../onboarding-work/test-catalog.md#L3153): `- Line 145: public async Task ChangePasswordAsync_NewPasswordSameAsCurrent_FailsAsTooWeak()`
+- [Line 3161](../../../onboarding-work/test-catalog.md#L3161): `- Line 18: public async Task Migrations_AppliedToEmptyDatabase_CreateExactlyTheFiveIdentityTablesAndNoRoleTables()`
+- [Line 3162](../../../onboarding-work/test-catalog.md#L3162): `- Line 37: public async Task SaveChanges_SecondMembershipForSameCentreAndUser_ViolatesUniqueIndex()`
+- [Line 3163](../../../onboarding-work/test-catalog.md#L3163): `- Line 55: public async Task SaveChanges_MembershipForNonExistentCentre_ViolatesForeignKey()`
+- [Line 3164](../../../onboarding-work/test-catalog.md#L3164): `- Line 69: public async Task Delete_CentreWithAMembership_IsRejected()`
+- [Line 3172](../../../onboarding-work/test-catalog.md#L3172): `- Line 18: public async Task GetProfileAsync_TwoCentreTeacher_SeesBothCentres()`
+- [Line 3173](../../../onboarding-work/test-catalog.md#L3173): `- Line 31: public async Task GetProfileAsync_Secretary_SeesOneCentre()`
+- [Line 3174](../../../onboarding-work/test-catalog.md#L3174): `- Line 44: public async Task GetProfileAsync_InactiveMember_SeesNoCentres()`
+- [Line 3175](../../../onboarding-work/test-catalog.md#L3175): `- Line 57: public async Task GetActiveMembershipAsync_OwnerAskingForAForeignCentre_ReturnsNull()`
+- [Line 3176](../../../onboarding-work/test-catalog.md#L3176): `- Line 69: public async Task GetProfileAsync_NeverIncludesAnotherUsersMemberships()`
+- [Line 3184](../../../onboarding-work/test-catalog.md#L3184): `- Line 15: public async Task EnsureAccountAsync_NewEmail_CreatesOneUserWithAHashedPasswordAndTheMustChangeFlagSet()`
+- [Line 3185](../../../onboarding-work/test-catalog.md#L3185): `- Line 35: public async Task EnsureAccountAsync_NewEmail_TheReturnedTemporaryPasswordVerifiesThroughTheAuthenticationPort()`
+- [Line 3186](../../../onboarding-work/test-catalog.md#L3186): `- Line 49: public async Task EnsureAccountAsync_ExistingEmail_ReturnsTheSameIdCreatesNothingAndLeavesTheProfileUntouched()`
+- [Line 3187](../../../onboarding-work/test-catalog.md#L3187): `- Line 70: public async Task AFailingCommandAfterAccountCreation_LeavesNoUser()`
+- [Line 3203](../../../onboarding-work/test-catalog.md#L3203): `- Line 21: public async Task ChangeRole_MaadiOwnerForNileMembershipWithItsRealVersion_ReturnsNotFoundAndLeavesRowUnchanged()`
+- [Line 3204](../../../onboarding-work/test-catalog.md#L3204): `- Line 38: public async Task Deactivate_MaadiOwnerForNileMembershipWithItsRealVersion_ReturnsNotFoundAndLeavesRowUnchanged()`
+- [Line 3205](../../../onboarding-work/test-catalog.md#L3205): `- Line 55: public async Task Reactivate_MaadiOwnerForNileMembershipWithItsRealVersion_ReturnsNotFoundAndLeavesRowUnchanged()`
+- [Line 3206](../../../onboarding-work/test-catalog.md#L3206): `- Line 76: public async Task List_MaadiOwner_ContainsNoNileOnlyUser()`
+- [Line 3207](../../../onboarding-work/test-catalog.md#L3207): `- Line 88: public async Task List_TwoCentreTeacher_AppearsOnceInEachCentresListWithThatCentresRole()`
+- [Line 3215](../../../onboarding-work/test-catalog.md#L3215): `- Line 19: public async Task IsActiveMemberWithRoleAsync_TwoCentreTeacherAskedAboutTheirTeachingCentre_ReturnsTrue()`
+- [Line 3216](../../../onboarding-work/test-catalog.md#L3216): `- Line 32: public async Task IsActiveMemberWithRoleAsync_SecretaryAskedAboutTeacherRole_ReturnsFalse()`
+- [Line 3217](../../../onboarding-work/test-catalog.md#L3217): `- Line 42: public async Task IsActiveMemberWithRoleAsync_InactiveNileTeacher_ReturnsFalse()`
+- [Line 3218](../../../onboarding-work/test-catalog.md#L3218): `- Line 56: public async Task IsActiveMemberWithRoleAsync_MaadiOnlyTeacherAskedAboutNile_ReturnsFalse()`
+- [Line 3234](../../../onboarding-work/test-catalog.md#L3234): `- Line 23: public async Task ChangeRole_TwoOwnersDemotingEachOtherSimultaneously_ExactlyOneSucceedsAcrossTwentyRepetitions()`
+- [Line 3235](../../../onboarding-work/test-catalog.md#L3235): `- Line 72: public async Task Create_TwoParallelCreatesForTheSameEmailInTheSameCentre_LeavesExactlyOneMembershipAndTheLoserGetsAlreadyMember()`
+- [Line 3243](../../../onboarding-work/test-catalog.md#L3243): `- Line 19: public async Task Create_NewEmailAsSystemActor_CreatesAnAccountAndAnActiveMembershipWithATemporaryPassword()`
+- [Line 3244](../../../onboarding-work/test-catalog.md#L3244): `- Line 37: public async Task ChangeRole_ActiveTeacherToSecretary_Succeeds()`
+- [Line 3245](../../../onboarding-work/test-catalog.md#L3245): `- Line 53: public async Task Deactivate_ActiveTeacher_Succeeds()`
+- [Line 3246](../../../onboarding-work/test-catalog.md#L3246): `- Line 68: public async Task Reactivate_DeactivatedTeacher_Succeeds()`
+- [Line 3247](../../../onboarding-work/test-catalog.md#L3247): `- Line 88: public async Task List_AsNileOwner_ReturnsEveryNileMemberOrderedByDisplayName()`
+- [Line 3248](../../../onboarding-work/test-catalog.md#L3248): `- Line 102: public async Task ChangeRole_AgainWithTheSameStaleVersion_ReturnsConcurrencyStale()`
+- [Line 3249](../../../onboarding-work/test-catalog.md#L3249): `- Line 123: public async Task EnsureAccountThenFail_NewEmail_RollsBackTheAccountLeavingNoUser()`
+- [Line 3257](../../../onboarding-work/test-catalog.md#L3257): `- Line 23: public async Task SystemActor_ResolvesAll()`
+- [Line 3258](../../../onboarding-work/test-catalog.md#L3258): `- Line 31: public async Task Owner_ResolvesAll()`
+- [Line 3259](../../../onboarding-work/test-catalog.md#L3259): `- Line 41: public async Task Secretary_ResolvesAll()`
+- [Line 3260](../../../onboarding-work/test-catalog.md#L3260): `- Line 51: public async Task TeacherLinkedToActiveRecord_ResolvesOwnWithThatId()`
+- [Line 3261](../../../onboarding-work/test-catalog.md#L3261): `- Line 63: public async Task TeacherWithNoLinkedRecord_ResolvesNone()`
+- [Line 3262](../../../onboarding-work/test-catalog.md#L3262): `- Line 73: public async Task TeacherLinkedToArchivedRecord_ResolvesNone()`
+- [Line 3263](../../../onboarding-work/test-catalog.md#L3263): `- Line 88: public async Task AnonymousActor_ResolvesNone()`
+- [Line 3271](../../../onboarding-work/test-catalog.md#L3271): `- Line 16: public void ResolvingDatabaseOptions_WithoutRuntimeConnectionString_ThrowsNamingTheKey()`
+- [Line 3272](../../../onboarding-work/test-catalog.md#L3272): `- Line 27: public void ResolvingDatabaseOptions_WithOnlyRuntimeConnectionString_Succeeds()`
+- [Line 3273](../../../onboarding-work/test-catalog.md#L3273): `- Line 38: public async Task ApplyMigrationsAsync_WithoutMigrationsConnectionString_ThrowsNamingTheKey()`
+- [Line 3281](../../../onboarding-work/test-catalog.md#L3281): `- Line 9: public async Task Migrations_AppliedToEmptyDatabase_CreateCentresTable()`
+- [Line 3282](../../../onboarding-work/test-catalog.md#L3282): `- Line 17: public async Task Migrations_AppliedToEmptyDatabase_CreateUniqueSlugIndex()`
+- [Line 3283](../../../onboarding-work/test-catalog.md#L3283): `- Line 27: public async Task Migrations_AppliedToEmptyDatabase_CreateDefaultLocaleCheckConstraint()`
+- [Line 3284](../../../onboarding-work/test-catalog.md#L3284): `- Line 36: public async Task Migrations_AppliedToEmptyDatabase_KeepHistoryTableInPlatformSchema()`
+- [Line 3290](../../../onboarding-work/test-catalog.md#L3290): `- Line 12: public void TryTranslate_UniqueViolationOnRegisteredConstraint_ReturnsMappedConflict()`
+- [Line 3291](../../../onboarding-work/test-catalog.md#L3291): `- Line 24: public void TryTranslate_UniqueViolationOnParentPhoneConstraint_ReturnsParentPhoneTaken()`
+- [Line 3292](../../../onboarding-work/test-catalog.md#L3292): `- Line 36: public void TryTranslate_UniqueViolationOnStudentParentConstraint_ReturnsParentAlreadyLinked()`
+- [Line 3293](../../../onboarding-work/test-catalog.md#L3293): `- Line 48: public void TryTranslate_UniqueViolationOnActiveEnrollmentIndex_ReturnsAlreadyEnrolledConflict()`
+- [Line 3294](../../../onboarding-work/test-catalog.md#L3294): `- Line 61: public void TryTranslate_UniqueViolationOnOnePrimaryIndex_IsNotTranslated()`
+- [Line 3295](../../../onboarding-work/test-catalog.md#L3295): `- Line 71: public void TryTranslate_UniqueViolationOnUnregisteredConstraint_ReturnsGenericDuplicate()`
+- [Line 3296](../../../onboarding-work/test-catalog.md#L3296): `- Line 83: public void TryTranslate_ForeignKeyViolation_IsNotTranslated()`
+- [Line 3297](../../../onboarding-work/test-catalog.md#L3297): `- Line 94: public void TryTranslate_CheckViolation_IsNotTranslated()`
+- [Line 3298](../../../onboarding-work/test-catalog.md#L3298): `- Line 105: public void TryTranslate_ConcurrencyException_ReturnsConcurrencyStale()`
+- [Line 3299](../../../onboarding-work/test-catalog.md#L3299): `- Line 117: public void TryTranslate_UnrelatedException_IsNotTranslated()`
+- [Line 3300](../../../onboarding-work/test-catalog.md#L3300): `- Line 127: public void TryTranslate_ExclusionViolationOnTeacherOverlap_ReturnsTeacherDoubleBookedConflict()`
+- [Line 3301](../../../onboarding-work/test-catalog.md#L3301): `- Line 141: public void TryTranslate_ExclusionViolationOnGroupOverlap_ReturnsGroupDoubleBookedConflict()`
+- [Line 3302](../../../onboarding-work/test-catalog.md#L3302): `- Line 154: public void TryTranslate_ExclusionViolationOnUnlistedConstraint_IsNotTranslated()`
+- [Line 3303](../../../onboarding-work/test-catalog.md#L3303): `- Line 164: public void TryTranslate_UniqueViolationOnSessionRuleDate_IsNotTranslated()`
+- [Line 3309](../../../onboarding-work/test-catalog.md#L3309): `- Line 16: public async Task QueryAsync_HandlerAttemptsInsert_PostgresRejectsItAndNoRowExists()`
+- [Line 3317](../../../onboarding-work/test-catalog.md#L3317): `- Line 17: public async Task CurrentUser_ThroughTheAppConnection_IsTutoringAppAndUnprivileged()`
+- [Line 3318](../../../onboarding-work/test-catalog.md#L3318): `- Line 33: public async Task CreateTable_InPlatformSchema_IsDenied() =>`
+- [Line 3319](../../../onboarding-work/test-catalog.md#L3319): `- Line 37: public async Task AlterTable_Centres_IsDenied() =>`
+- [Line 3320](../../../onboarding-work/test-catalog.md#L3320): `- Line 41: public async Task Delete_FromCentres_IsDenied() =>`
+- [Line 3321](../../../onboarding-work/test-catalog.md#L3321): `- Line 45: public async Task Insert_IntoMigrationsHistory_IsDenied() =>`
+- [Line 3322](../../../onboarding-work/test-catalog.md#L3322): `- Line 51: public async Task SelectAndInsert_OnMemberships_Succeed()`
+- [Line 3323](../../../onboarding-work/test-catalog.md#L3323): `- Line 82: public async Task Update_DataProtectionKeys_IsDenied() =>`
+- [Line 3324](../../../onboarding-work/test-catalog.md#L3324): `- Line 86: public async Task Delete_FromDataProtectionKeys_IsDenied() =>`
+- [Line 3325](../../../onboarding-work/test-catalog.md#L3325): `- Line 90: public async Task AllPlatformAndIdentityTables_AreOwnedByTutoringOwner()`
+- [Line 3333](../../../onboarding-work/test-catalog.md#L3333): `- Line 11: public void BuildEnableStatements_ForATable_IssuesEnableForceAndOnePolicyWithBothClausesAndNoToClause()`
+- [Line 3334](../../../onboarding-work/test-catalog.md#L3334): `- Line 25: public void BuildDisableStatements_ForATable_DropsThePolicyThenUnforcesThenDisables()`
+- [Line 3335](../../../onboarding-work/test-catalog.md#L3335): `- Line 42: public void BuildEnableStatements_UnsafeSchemaName_Throws(string schema)`
+- [Line 3336](../../../onboarding-work/test-catalog.md#L3336): `- Line 51: public void BuildEnableStatements_UnsafeTableName_Throws(string table)`
+- [Line 3342](../../../onboarding-work/test-catalog.md#L3342): `- Line 16: public async Task SendAsync_HandlerThrowsAfterRowWasWritten_LeavesNoRowAndRethrows()`
+- [Line 3343](../../../onboarding-work/test-catalog.md#L3343): `- Line 27: public async Task SendAsync_HandlerReturnsFailureAfterRowWasWritten_LeavesNoRow()`
+- [Line 3344](../../../onboarding-work/test-catalog.md#L3344): `- Line 40: public async Task SendAsync_HandlerSucceedsAfterRowWasWritten_PersistsTheRow()`
+- [Line 3350](../../../onboarding-work/test-catalog.md#L3350): `- Line 11: public async Task QueryAsync_MigratedDatabase_ReportsLatestMigrationAsUpToDate()`
+- [Line 3358](../../../onboarding-work/test-catalog.md#L3358): `- Line 14: public async Task NoSetting_SelectCount_IsZero()`
+- [Line 3359](../../../onboarding-work/test-catalog.md#L3359): `- Line 27: public async Task SettingNile_SelectsOnlyNileRows()`
+- [Line 3360](../../../onboarding-work/test-catalog.md#L3360): `- Line 44: public async Task SettingMaadi_SelectsOnlyMaadiRows()`
+- [Line 3361](../../../onboarding-work/test-catalog.md#L3361): `- Line 61: public async Task SettingNile_InsertWithMaadiCentre_Throws42501()`
+- [Line 3362](../../../onboarding-work/test-catalog.md#L3362): `- Line 78: public async Task SettingNile_UpdateCentreIdToMaadiOnNileRow_Throws42501()`
+- [Line 3363](../../../onboarding-work/test-catalog.md#L3363): `- Line 96: public async Task SettingNile_UpdateAndDeleteOnMaadiRow_AffectZeroRowsAndLeaveItIntact()`
+- [Line 3364](../../../onboarding-work/test-catalog.md#L3364): `- Line 126: public async Task NoSetting_Insert_Throws42501()`
+- [Line 3365](../../../onboarding-work/test-catalog.md#L3365): `- Line 142: public async Task SettingIsNotAUuid_StatementErrorsAndReturnsNoRows()`
+- [Line 3366](../../../onboarding-work/test-catalog.md#L3366): `- Line 153: public async Task AsOwnerWithNoSetting_SelectCount_IsZero()`
+- [Line 3367](../../../onboarding-work/test-catalog.md#L3367): `- Line 166: public async Task AsAppWithRowSecurityOff_SelectErrorsRatherThanReturningUnfilteredRows()`
+- [Line 3368](../../../onboarding-work/test-catalog.md#L3368): `- Line 184: public async Task SettingFromACommittedTransaction_IsAbsentInTheNextTransactionOnTheSameConnection()`
+- [Line 3376](../../../onboarding-work/test-catalog.md#L3376): `- Line 13: public async Task ProbeTable_RowSecurityIsEnabledAndForced()`
+- [Line 3377](../../../onboarding-work/test-catalog.md#L3377): `- Line 28: public async Task ProbeTable_HasExactlyOneTenantIsolationPolicyForAllCommandsWithNoToClause()`
+- [Line 3385](../../../onboarding-work/test-catalog.md#L3385): `- Line 15: public async Task Query_AsNileActor_SeesNilesId()`
+- [Line 3386](../../../onboarding-work/test-catalog.md#L3386): `- Line 25: public async Task Query_AsMaadiActor_SeesMaadisId()`
+- [Line 3387](../../../onboarding-work/test-catalog.md#L3387): `- Line 35: public async Task Query_AsActorWithoutACentre_SeesEmptyString()`
+- [Line 3388](../../../onboarding-work/test-catalog.md#L3388): `- Line 45: public async Task Dispatch_NileThenNoCentre_OnTheSameConnection_SecondSeesEmpty()`
+- [Line 3389](../../../onboarding-work/test-catalog.md#L3389): `- Line 78: public async Task AfterAFailedCommandRollsBack_ANewTransactionOnTheSameConnection_SeesNoValue()`
+- [Line 3390](../../../onboarding-work/test-catalog.md#L3390): `- Line 102: public async Task Dispatch_AsCommandOrQuery_BothSeeTheSetting()`
+- [Line 3406](../../../onboarding-work/test-catalog.md#L3406): `- Line 16: public async Task BypassingTheEfFilter_AsNileActor_StillReturnsOnlyNileRows()`
+- [Line 3407](../../../onboarding-work/test-catalog.md#L3407): `- Line 29: public async Task EfFilterAlone_WithSuperuserConnectionInPlaceOfApp_StillReturnsOnlyNileRows()`
+- [Line 3408](../../../onboarding-work/test-catalog.md#L3408): `- Line 47: public async Task RawSqlInsideADispatchedQuery_AsNileActor_StillReturnsOnlyNileRows()`
+- [Line 3440](../../../onboarding-work/test-catalog.md#L3440): `- Line 14: public async Task InsertChildWithNilesCentreAndAMaadiProbesId_AsSuperuser_Throws23503()`
+- [Line 3464](../../../onboarding-work/test-catalog.md#L3464): `- Line 16: public async Task SeedProbeAsync_TwoRowsPerCentre_CountsFourAsSuperuser()`
+- [Line 3465](../../../onboarding-work/test-catalog.md#L3465): `- Line 29: public async Task ListQuery_AsNileActor_FiltersCentreIdWithAParameter()`
+- [Line 3481](../../../onboarding-work/test-catalog.md#L3481): `- Line 12: public async Task List_AsNileStaffActor_ReturnsOnlyNileRows()`
+- [Line 3482](../../../onboarding-work/test-catalog.md#L3482): `- Line 26: public async Task List_AsMaadiStaffActor_ReturnsOnlyMaadiRows()`
+- [Line 3483](../../../onboarding-work/test-catalog.md#L3483): `- Line 40: public async Task List_AsStaffActorWithNoCentre_ReturnsZeroRows()`
+- [Line 3484](../../../onboarding-work/test-catalog.md#L3484): `- Line 52: public async Task List_AsAnonymousActor_ReturnsZeroRows()`
+- [Line 3485](../../../onboarding-work/test-catalog.md#L3485): `- Line 64: public async Task FindById_MaadiProbeAsNileActor_FindsNothing()`
+- [Line 3486](../../../onboarding-work/test-catalog.md#L3486): `- Line 75: public async Task CountAndAny_AsNileActor_RespectTheFilter()`
+- [Line 3487](../../../onboarding-work/test-catalog.md#L3487): `- Line 89: public async Task List_TwoScopesDifferentActorsInParallel_EachSeesOnlyItsOwnRows()`
+- [Line 3503](../../../onboarding-work/test-catalog.md#L3503): `- Line 12: public async Task Add_NileActorAddsNileProbe_Saved()`
+- [Line 3504](../../../onboarding-work/test-catalog.md#L3504): `- Line 26: public async Task Add_NileActorAddsProbeCarryingMaadiCentre_ThrowsAndWritesNothing()`
+- [Line 3505](../../../onboarding-work/test-catalog.md#L3505): `- Line 37: public async Task Add_ActorWithoutCentre_Throws()`
+- [Line 3506](../../../onboarding-work/test-catalog.md#L3506): `- Line 48: public async Task Modify_TrackedNileProbeCentreChangedToMaadi_EfItselfRefusesBeforeTheGuardEverRuns()`
+- [Line 3507](../../../onboarding-work/test-catalog.md#L3507): `- Line 65: public async Task Delete_MaadiProbeAttachedAndDeletedByNileActor_ThrowsAndLeavesRowPresent()`
+- [Line 3508](../../../onboarding-work/test-catalog.md#L3508): `- Line 78: public async Task Add_SystemActorWithCentreSucceeds_SystemActorWithoutCentreThrows()`
+- [Line 3514](../../../onboarding-work/test-catalog.md#L3514): `- Line 11: public void UtcNow_ReturnsTheTimeProvidersTime()`
+- [Line 3515](../../../onboarding-work/test-catalog.md#L3515): `- Line 25: public void FromLocal_InCairoWinter_UsesUtcPlusTwo()`
+- [Line 3516](../../../onboarding-work/test-catalog.md#L3516): `- Line 39: public void FromLocal_InCairoSummer_UsesUtcPlusThree()`
+
+## Used by: verified name references
+
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
+
+## Current source excerpt
+
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
+
+```text
+# Backend test file catalogue
+
+Every tracked backend test source is read by the inventory pass; this catalogue records its declared test entry points. Fixture and helper files without test methods remain in the read ledger. Names describe assertions to inspect; passing results are reported separately.
+
+### `tests/TutoringCentre.Api.Tests/Academics/EnrollmentCrossTenantTests.cs`
+
+Task 49.7: tenant isolation for enrollment at the HTTP boundary, every case in both directions. Enrollment joins three resources (group, student, enrollment), so each of the three is the foreign one in at least one case, and mixed cases put one foreign ID inside an otherwise own request — the "everything foreign" case alone would be stopped by the group lookup and prove nothing about the student or target-group lookups. Each case answers the 404 of the first foreign thing the handler meets (group before student; enrollment before target group), and the rows of both centres are compared before and after through the superuser connection.
+
+Declared test entry points (declarations are not execution results):
+
+- Line 33: `public async Task Enroll_OwnGroupWithTheOtherCentresStudent_Returns404StudentNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- Line 49: `public async Task Enroll_TheOtherCentresGroupWithOwnStudent_Returns404GroupNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- Line 65: `public async Task Enroll_TheOtherCentresGroupWithThatCentresOwnStudent_Returns404GroupNotFoundAndWritesNoRow(string attackerEmail, string victimEmail)`
+- Line 81: `public async Task Withdraw_TheOtherCentresEnrollmentWithItsRealVersion_Returns404EnrollmentNotFoundAndLeavesItActive(string attackerEmail, string victimEmail)`
+- Line 98: `public async Task Transfer_TheOtherCentresEnrollmentIntoOwnGroup_Returns404EnrollmentNotFoundAndChangesNeitherSide(string attackerEmail, string victimEmail)`
+- Line 116: `public async Task Transfer_TheOtherCentresEnrollmentWithinThatCentre_Returns404EnrollmentNotFoundAndChangesNothing(string attackerEmail, string victimEmail)`
+- Line 133: `public async Task Transfer_OwnEnrollmentIntoTheOtherCentresGroup_Returns404GroupNotFoundAndTheEnrollmentStaysActive(string attackerEmail, string victimEmail)`
+- Line 152: `public async Task Roster_OfTheOtherCentresGroup_Returns404GroupNotFound(string attackerEmail, string victimEmail)`
+- Line 167: `public async Task StudentEnrollments_OfTheOtherCentresStudent_Returns404StudentNotFound(string attackerEmail, string victimEmail)`
+
+### `tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs`
+
+Task 49.6: the five enrollment endpoints' contract through the full HTTP pipeline — status, code, body shape and headers, never messages. Every test builds its own subjects, teachers, groups, students and enrollments through the earlier endpoints over HTTP, so each one also exercises them, and the seeded demo data never decides a result. Every error row of the Day 49 outcome table has its own case.
+
+```
+
+The excerpt stops at line 24; use the original file for the remaining 3492 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

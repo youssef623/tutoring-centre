@@ -1,94 +1,85 @@
-# src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs
+# `src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs`
 
 ## Purpose
 
-The tenant gate: the only way a centre id enters a session.
+Source summary (intent, not independent execution proof): The only way a centre ID enters a session. Returns the identical failure (tenant.no_membership) whether the centre does not exist, the user is not a member, or the membership is inactive — NotFound would let a caller probe which centre IDs exist.
 
-## Where It Fits
+## Where it fits
 
-Application/Identity/Queries/GetActiveMembership, `internal`. Depends on `ICurrentActor`, `IMembershipReadService`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 41 lines and 2,135 bytes. Source hash: `fa0a28bc7446dfe499abd1ff6d31feab9d850949b3d8a0677a7ce3261c09fcdc`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`HandleAsync` (17-32): actor not a `StaffActor` -> `Error.Unauthenticated("auth.not_authenticated")`; `readService.GetActiveMembershipAsync(staffActor.UserId, query.CentreId)` null -> `Error.Forbidden("tenant.no_membership", ...)`; else success with the `ActiveMembershipDto`. The same failure covers an unknown centre, a non-member and an inactive member, because `NotFound` would let a caller probe which centre ids exist (doc comment).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Authorization by default, the actor pipeline and the tenant gate
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 3: `using TutoringCentre.Application.Common.Security;`
+- Line 4: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
+- [Line 14](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs#L14): `internal sealed class GetActiveMembershipHandler(ICurrentActor currentActor, IMembershipReadService readService)`
+- [Line 17](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs#L17): `public async Task<Result<ActiveMembershipDto>> HandleAsync(GetActiveMembershipQuery query, CancellationToken cancellationToken)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Tenant gate.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs:17](../../../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L17)
 
-Lines 24-29.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Membership check by the server before a centre is written into the cookie.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Common;
 
-### Actor and tenancy groundwork
+namespace TutoringCentre.Application.Identity.Queries.GetActiveMembership;
 
-#### What it means
+/// <summary>
+/// The only way a centre ID enters a session. Returns the identical failure (tenant.no_membership) whether the
+/// centre does not exist, the user is not a member, or the membership is inactive — NotFound would let a caller
+/// probe which centre IDs exist.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class GetActiveMembershipHandler(ICurrentActor currentActor, IMembershipReadService readService)
+    : IQueryHandler<GetActiveMembershipQuery, ActiveMembershipDto>
+{
+    public async Task<Result<ActiveMembershipDto>> HandleAsync(GetActiveMembershipQuery query, CancellationToken cancellationToken)
+    {
+        if (currentActor.Actor is not StaffActor staffActor)
+        {
+            return Result<ActiveMembershipDto>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
+        }
 
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
+        // The first-login gate (Day 30): a pending password change blocks entry to any centre, so every
+        // tenant-scoped request downstream already fails with tenant.not_selected — no second pipeline step.
+        if (await readService.MustChangePasswordAsync(staffActor.UserId, cancellationToken))
+        {
+            return Result<ActiveMembershipDto>.Failure(
+                Error.Forbidden("auth.password_change_required", "You must change your password before selecting a centre."));
+        }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
+        var membership = await readService.GetActiveMembershipAsync(staffActor.UserId, query.CentreId, cancellationToken);
+        if (membership is null)
+        {
+            return Result<ActiveMembershipDto>.Failure(
+                Error.Forbidden("tenant.no_membership", "You do not have an active membership in this centre."));
+        }
 
-#### Where it appears in this file
+        return Result<ActiveMembershipDto>.Success(membership);
+    }
+}
+```
 
-Reads identity from the actor.
+## Before modifying this file
 
-#### How it works here
-
-`currentActor.Actor is not StaffActor`.
-
-#### Why it matters here
-
-No user id from request data.
-
-### CQRS and the dispatcher pipeline
-
-#### What it means
-
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-Query handler.
-
-#### How it works here
-
-Class.
-
-#### Why it matters here
-
-Runs in a read-only transaction.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The `auth.not_authenticated` branch is defensive: the authorization fallback policy already returns 401 before a handler runs for a missing session.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/IMembershipReadService.cs`](../../IMembershipReadService.cs.md)
-- [`src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs`](GetActiveMembershipQuery.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs`](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/Actor.cs`](../../../Common/Security/Actor.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

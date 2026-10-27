@@ -1,94 +1,75 @@
-# src/TutoringCentre.Api/TutoringCentre.Api.csproj
+# `src/TutoringCentre.Api/TutoringCentre.Api.csproj`
 
 ## Purpose
 
-Project file for the web host: the composition root and HTTP edge, including build-time OpenAPI document generation.
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Entry-point project (`Microsoft.NET.Sdk.Web`). References Application and Infrastructure; referenced by `Api.Tests` and `Architecture.Tests`. Its OpenAPI settings write `frontend/openapi/TutoringCentre.Api.json`, which CI checks for staleness.
+Category: **configuration**. [Open current file](../../../../src/TutoringCentre.Api/TutoringCentre.Api.csproj). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 30 lines and 1,574 bytes. Source hash: `15f0b5fa2e959fd23116ba2cf0f276739d102b9340c30114d575041c57494fae`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`UserSecretsId a0748b74-...` enables `dotnet user-secrets` (connection string and `Seed:Password` live there in development). `OpenApiGenerateDocuments true` and `OpenApiDocumentsDirectory $(MSBuildProjectDirectory)/../../frontend/openapi` (framework behaviour of `Microsoft.Extensions.ApiDescription.Server`: after build it starts the app in a tool host and writes the OpenAPI document into that folder). ProjectReferences: Application, Infrastructure. `InternalsVisibleTo Architecture.Tests`. Packages: `Microsoft.AspNetCore.OpenApi` (`AddOpenApi`/`MapOpenApi`), `Microsoft.EntityFrameworkCore.Design` (design-time for `dotnet ef`, `PrivateAssets=all`), `Microsoft.Extensions.ApiDescription.Server` (build-time generation, `PrivateAssets=all`) and `Serilog.AspNetCore`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### OpenAPI document generation
+- Line 8: `<ProjectReference Include="..\TutoringCentre.Application\TutoringCentre.Application.csproj" />`
+- Line 9: `<ProjectReference Include="..\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />`
+- Line 15: `<PackageReference Include="Microsoft.AspNetCore.OpenApi" />`
+- Line 16: `<PackageReference Include="Microsoft.EntityFrameworkCore.Design">`
+- Line 20: `<PackageReference Include="Microsoft.Extensions.ApiDescription.Server">`
+- Line 24: `<PackageReference Include="Npgsql.OpenTelemetry" />`
+- Line 25: `<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />`
+- Line 26: `<PackageReference Include="OpenTelemetry.Extensions.Hosting" />`
+- Line 27: `<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />`
+- Line 28: `<PackageReference Include="Serilog.AspNetCore" />`
 
-#### What it means
+## Walkthrough and declaration map
 
-OpenAPI is a JSON description of every endpoint, request and response. ASP.NET Core can build it from the endpoint metadata (`Produces`, `WithName`...), and a build step can write it to a file that is committed and diffed in CI.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#631-contract-first-api-client-generation](../../../PROJECT_OVERVIEW2.md#631-contract-first-api-client-generation).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Build-time document generation.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Lines 4-5 and the two OpenAPI package references.
+```text
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <UserSecretsId>a0748b74-413e-4737-b25c-2a2e46b2d4e6</UserSecretsId>
+    <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+    <OpenApiDocumentsDirectory>$(MSBuildProjectDirectory)/../../frontend/openapi</OpenApiDocumentsDirectory>
+  </PropertyGroup>
+    <ItemGroup>
+    <ProjectReference Include="..\TutoringCentre.Application\TutoringCentre.Application.csproj" />
+    <ProjectReference Include="..\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="Serilog.AspNetCore" />
+  </ItemGroup>
+</Project>
+```
 
-#### Why it matters here
+## Before modifying this file
 
-Every build refreshes the committed contract; `git diff --exit-code -- frontend/openapi` in CI fails if someone forgot to commit it.
-
-### Secrets and configuration layering
-
-#### What it means
-
-Configuration comes from layered sources (JSON files, user-secrets, environment variables, command line) where later layers override earlier ones. Secrets must stay out of git: this repo keeps the connection string out of `appsettings.json`, reads it from user-secrets or an environment variable, and scans history with gitleaks.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
-
-#### Where it appears in this file
-
-User secrets id.
-
-#### How it works here
-
-`UserSecretsId`.
-
-#### Why it matters here
-
-A GUID naming the user-secrets folder; not a secret itself.
-
-### Dependency inversion, ports and adapters
-
-#### What it means
-
-A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
-
-#### Where it appears in this file
-
-Only Application and Infrastructure referenced.
-
-#### How it works here
-
-ProjectReferences.
-
-#### Why it matters here
-
-The Api is the composition root.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-`UserSecretsId`: a GUID naming the user-secrets folder.
-
-## Gotchas and Issues
-
-Mixed indentation/BOM at the top (cosmetic). Generation runs `Program.cs` inside `GetDocument.Insider`, which is why `Program.cs` has the `isDocumentGeneration` guard.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Program.cs`](Program.cs.md)
-- [`Directory.Packages.props`](../../Directory.Packages.props.md)
-- `frontend/openapi/TutoringCentre.Api.json` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs`](../../tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

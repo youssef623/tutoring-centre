@@ -1,118 +1,145 @@
-# tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs`
 
 ## Purpose
 
-Proves that PostgreSQL itself enforces the identity schema: exactly five identity tables, unique (centre, user) membership, foreign key to centres, and no deleting a centre that has members.
+Source summary (intent, not independent execution proof): Proves the database itself — not just application code — prevents duplicate, orphaned or cascaded identity data.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Identity; uses the real migrated schema from `PostgresFixture`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 109 lines and 4,741 bytes. Source hash: `b5b4a8fcf19fdd237b9841b8ed70ee3141fac0b520739372bc6e033484f35390`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `Migrations_AppliedToEmptyDatabase_CreateExactlyTheFiveIdentityTablesAndNoRoleTables` (17-34): queries `information_schema.tables where table_schema = 'identity'` and asserts the list equals `memberships, user_claims, user_logins, user_tokens, users` - so Identity role tables (`roles`, `user_roles`, `role_claims`) are absent.
-- `SaveChanges_SecondMembershipForSameCentreAndUser_ViolatesUniqueIndex` (36-52): two memberships for the same user and centre (different roles); second `SaveChangesAsync` throws `DbUpdateException` whose inner `PostgresException.SqlState` is `23505` (unique violation).
-- `SaveChanges_MembershipForNonExistentCentre_ViolatesForeignKey` (54-66): random centre id -> `23503` (foreign key violation).
-- `Delete_CentreWithAMembership_IsRejected` (68-85): raw `delete from platform.centres where id = @id` -> `PostgresException` `23503` (the FK is not cascading).
-Helpers `CreateCentreAsync` (86-91; sends `CreateCentreCommand` as `SystemActor(null)`) and `CreateUserAsync` (93-107; adds an `ApplicationUser` directly through `AppDbContext`).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Concurrency, TOCTOU and unique indexes
+- Line 1: `using Microsoft.EntityFrameworkCore;`
+- Line 2: `using Microsoft.Extensions.DependencyInjection;`
+- Line 3: `using Npgsql;`
+- Line 4: `using TutoringCentre.Application.Centres.Commands.CreateCentre;`
+- Line 5: `using TutoringCentre.Application.Common.Security;`
+- Line 6: `using TutoringCentre.Domain.Centres;`
+- Line 7: `using TutoringCentre.Domain.Identity;`
+- Line 8: `using TutoringCentre.Infrastructure.Identity;`
+- Line 9: `using TutoringCentre.Infrastructure.Persistence;`
+- Line 10: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-TOCTOU (time of check to time of use): code checks a condition then acts, but another request can change the condition in between. Only the database can make "no two rows share a slug" true, via a unique index; application checks just produce friendlier errors in the common case.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee](../../../../PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee).)
+- [Line 15](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L15): `public sealed class MembershipConstraintTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 18](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L18): `public async Task Migrations_AppliedToEmptyDatabase_CreateExactlyTheFiveIdentityTablesAndNoRoleTables()`
+- [Line 37](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L37): `public async Task SaveChanges_SecondMembershipForSameCentreAndUser_ViolatesUniqueIndex()`
+- [Line 55](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L55): `public async Task SaveChanges_MembershipForNonExistentCentre_ViolatesForeignKey()`
+- [Line 69](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L69): `public async Task Delete_CentreWithAMembership_IsRejected()`
+- [Line 87](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L87): `private async Task<Guid> CreateCentreAsync()`
+- [Line 94](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs#L94): `private static async Task<Guid> CreateUserAsync(AppDbContext context)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Constraints as the real guarantee.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`SaveChanges_SecondMembershipForSameCentreAndUser_ViolatesUniqueIndex`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
+using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Identity;
+using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-Same idea as the slug unique index: the database, not application code, makes duplicates impossible.
+namespace TutoringCentre.Infrastructure.Tests.Identity;
 
-### Identity and membership modelling
+/// <summary>Proves the database itself — not just application code — prevents duplicate, orphaned or cascaded identity data.</summary>
+public sealed class MembershipConstraintTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    [Fact]
+    public async Task Migrations_AppliedToEmptyDatabase_CreateExactlyTheFiveIdentityTablesAndNoRoleTables()
+    {
+        await using var connection = new NpgsqlConnection(Fixture.SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            "select table_name from information_schema.tables where table_schema = 'identity' order by table_name",
+            connection);
+        await using var reader = await command.ExecuteReaderAsync();
 
-#### What it means
+        var tables = new List<string>();
+        while (await reader.ReadAsync())
+        {
+            tables.Add(reader.GetString(0));
+        }
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+        Assert.Equal(["memberships", "user_claims", "user_logins", "user_tokens", "users"], tables);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+    [Fact]
+    public async Task SaveChanges_SecondMembershipForSameCentreAndUser_ViolatesUniqueIndex()
+    {
+        using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var centreId = await CreateCentreAsync();
+        var userId = await CreateUserAsync(context);
 
-#### Where it appears in this file
+        context.Add(Membership.Create(userId, centreId, StaffRole.Teacher).Value);
+        await context.SaveChangesAsync();
 
-Schema shape.
+        context.Add(Membership.Create(userId, centreId, StaffRole.Secretary).Value);
+        var exception = await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
 
-#### How it works here
+        Assert.IsType<PostgresException>(exception.InnerException);
+        Assert.Equal("23505", ((PostgresException)exception.InnerException).SqlState);
+    }
 
-`Migrations_AppliedToEmptyDatabase_CreateExactlyTheFiveIdentityTablesAndNoRoleTables`.
+    [Fact]
+    public async Task SaveChanges_MembershipForNonExistentCentre_ViolatesForeignKey()
+    {
+        using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var userId = await CreateUserAsync(context);
 
-#### Why it matters here
+        context.Add(Membership.Create(userId, Guid.CreateVersion7(), StaffRole.Owner).Value);
+        var exception = await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
 
-Documents the decision to use Identity's core user tables without role tables (roles live on `Membership`).
+        Assert.IsType<PostgresException>(exception.InnerException);
+        Assert.Equal("23503", ((PostgresException)exception.InnerException).SqlState);
+    }
 
-### ORM and EF Core
+    [Fact]
+    public async Task Delete_CentreWithAMembership_IsRejected()
+    {
+        using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var centreId = await CreateCentreAsync();
+        var userId = await CreateUserAsync(context);
+        context.Add(Membership.Create(userId, centreId, StaffRole.Owner).Value);
+        await context.SaveChangesAsync();
 
-#### What it means
+        await using var connection = new NpgsqlConnection(Fixture.SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var deleteCommand = new NpgsqlCommand("delete from platform.centres where id = @id", connection);
+        deleteCommand.Parameters.AddWithValue("id", centreId);
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => deleteCommand.ExecuteNonQueryAsync());
+        Assert.Equal("23503", exception.SqlState);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+    private async Task<Guid> CreateCentreAsync()
+    {
+        var command = new CreateCentreCommand("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar);
+        var result = await Fixture.SendAsAsync<CreateCentreCommand, CreateCentreResult>(new SystemActor(null), command);
+```
 
-#### Where it appears in this file
+The excerpt stops at line 90; use the original file for the remaining 19 lines.
 
-SQLSTATE codes.
+## Before modifying this file
 
-#### How it works here
-
-The `SqlState` assertions in the three constraint tests.
-
-#### Why it matters here
-
-`DbUpdateException` wraps the Npgsql exception; `23505`/`23503` are PostgreSQL's standard codes.
-
-### Database migrations
-
-#### What it means
-
-A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
-
-#### Where it appears in this file
-
-Applied migration shape.
-
-#### How it works here
-
-`Migrations_AppliedToEmptyDatabase_CreateExactlyTheFiveIdentityTablesAndNoRoleTables`.
-
-#### Why it matters here
-
-Tests the *result* of running the migration on an empty database.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-Needs Docker.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs`](../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs`](../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs.md)
-- [`src/TutoringCentre.Domain/Identity/Membership.cs`](../../../src/TutoringCentre.Domain/Identity/Membership.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](../Fixtures/PostgresFixture.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

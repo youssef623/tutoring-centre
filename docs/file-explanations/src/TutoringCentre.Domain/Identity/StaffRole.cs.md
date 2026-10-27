@@ -1,53 +1,45 @@
-# src/TutoringCentre.Domain/Identity/StaffRole.cs
+# `src/TutoringCentre.Domain/Identity/StaffRole.cs`
 
 ## Purpose
 
-Enum of the three staff roles within a centre: Owner, Teacher, Secretary.
+Source summary (intent, not independent execution proof): A staff member's role within one centre (not global). Secretary is the product's "Assistant" role.
 
-## Where It Fits
+## Where it fits
 
-Domain/Identity. Used by `Membership`, `StaffActor`, session claims, DTOs; persisted as `'owner'|'teacher'|'secretary'` by `MembershipConfiguration`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Identity/StaffRole.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 9 lines and 230 bytes. Source hash: `0b218ab802f92b2ca328d8b5e8777ba484ce08176d28ef1cdf3ff60df886d2f9`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Owner, Teacher, Secretary`. Doc: a role within *one* centre (not global); Secretary is the product's 'Assistant' role (frontend label `roles.secretary` = "Assistant").
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Identity and membership modelling
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+- [Line 4](../../../../../src/TutoringCentre.Domain/Identity/StaffRole.cs#L4): `public enum StaffRole`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Role per membership.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Enum.
+```csharp
+namespace TutoringCentre.Domain.Identity;
 
-#### Why it matters here
+/// <summary>A staff member's role within one centre (not global). Secretary is the product's "Assistant" role.</summary>
+public enum StaffRole
+{
+    Owner,
+    Teacher,
+    Secretary,
+}
+```
 
-One user can hold different roles in different centres.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Roles are stored and carried in the session but **not enforced** anywhere yet (docs: Month 2).
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Identity/Membership.cs`](Membership.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs`](../../TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs.md)
-- [`frontend/src/i18n/locales/en/auth.json`](../../../frontend/src/i18n/locales/en/auth.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

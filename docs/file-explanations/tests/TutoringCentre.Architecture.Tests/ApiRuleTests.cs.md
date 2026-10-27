@@ -1,97 +1,102 @@
-# tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs
+# `tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs`
 
 ## Purpose
 
-Architecture rules for the Api project: endpoints must not touch Infrastructure, repositories or domain entities, and only `Program` and the CLI may reference Infrastructure.
+Declares `ApiRuleTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests. Scans the Api assembly (via `SourceAssemblies.Api`) with NetArchTest, using helpers from `ArchitectureSupport`.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 62 lines and 3,056 bytes. Source hash: `c1a461aa82be1c8f8381ef9e34555527fec3c29c34c1cd82d4c353e58477bf09`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Constants (lines 7-9): namespaces `TutoringCentre.Api.Endpoints`, `TutoringCentre.Infrastructure`, `TutoringCentre.Api.Cli`.
-- `Endpoints_DoNotDependOnInfrastructureRepositoriesOrDomainEntities` (11-42): builds a *dynamic* forbidden list: (a) all Application interfaces named `I*Repository` (`ArchitectureSupport.IsRepositoryInterface`); (b) every Domain namespace except `TutoringCentre.Domain`, `...Domain.Common` and its children (so `Result`/`Error` mapping stays allowed, entities/value objects do not); (c) the Infrastructure namespace. Guards: asserts the endpoint type list, the repository list and the namespace list are non-empty (so the rule cannot pass vacuously). Then `Types.InAssembly(Api).That().ResideInNamespace(Endpoints).ShouldNot().HaveDependencyOnAny(forbidden)`.
-- `OnlyProgramAndCli_ReferenceInfrastructure` (44-54): all Api types except `Program` and those in `TutoringCentre.Api.Cli` must not depend on `TutoringCentre.Infrastructure`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Architecture tests (fitness functions)
+- Line 1: `using NetArchTest.Rules;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
+- [Line 5](../../../../tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs#L5): `public sealed class ApiRuleTests`
+- [Line 12](../../../../tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs#L12): `public void Endpoints_DoNotDependOnInfrastructureRepositoriesOrDomainEntities()`
+- [Line 52](../../../../tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs#L52): `public void OnlyProgramAndCli_ReferenceInfrastructure()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Both tests.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Both tests.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using NetArchTest.Rules;
 
-Turns 'endpoints only talk to Application via the Dispatcher' from a convention into a failing test.
+namespace TutoringCentre.Architecture.Tests;
 
-### Architecture rules beyond dependencies
+public sealed class ApiRuleTests
+{
+    private const string EndpointsNamespace = "TutoringCentre.Api.Endpoints";
+    private const string InfrastructureNamespace = "TutoringCentre.Infrastructure";
+    private const string CliNamespace = "TutoringCentre.Api.Cli";
 
-#### What it means
+    [Fact]
+    public void Endpoints_DoNotDependOnInfrastructureRepositoriesOrDomainEntities()
+    {
+        var repositoryInterfaces = SourceAssemblies.Application.GetTypes()
+            .Where(ArchitectureSupport.IsRepositoryInterface)
+            .Select(type => type.FullName!)
+            .ToArray();
 
-Beyond 'who references whom', tests can assert design conventions with reflection and IL scanning: every command has exactly one handler, handlers are sealed and internal, repositories live in the right project, endpoints do not touch Infrastructure.
+        // Every Domain type except Common: endpoints legitimately map Result/Error, never entities or value objects.
+        // Named per type, not per namespace, so StaffRole (Day 30 contract), SupportedLocale (Day 32 contract)
+        // and ParentRelationship (Day 41 contract) can be carved out on their own: pure enums, not entities,
+        // bound straight off the wire so an unknown value is refused at binding (400) instead of reaching a
+        // handler. Their namespace-mates (Membership, MembershipStatus, Permissions, RolePermissions, Centre,
+        // Student, Parent, StudentParentLink, StudentStatus) stay forbidden.
+        var domainEntityTypes = SourceAssemblies.Domain.GetTypes()
+            .Where(type => type.Namespace is not null
+                && type.Namespace != "TutoringCentre.Domain"
+                && type.Namespace != "TutoringCentre.Domain.Common"
+                && !type.Namespace.StartsWith("TutoringCentre.Domain.Common.", StringComparison.Ordinal)
+                && type.FullName != "TutoringCentre.Domain.Identity.StaffRole"
+                && type.FullName != "TutoringCentre.Domain.Centres.SupportedLocale"
+                && type.FullName != "TutoringCentre.Domain.Academics.ParentRelationship")
+            .Select(type => type.FullName!)
+            .ToArray();
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies](../../../PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies).)
+        var endpointTypes = Types.InAssembly(SourceAssemblies.Api).That().ResideInNamespace(EndpointsNamespace).GetTypes().ToList();
+        Assert.NotEmpty(endpointTypes);
+        Assert.NotEmpty(repositoryInterfaces);
+        Assert.NotEmpty(domainEntityTypes);
 
-#### Where it appears in this file
+        var forbidden = new[] { InfrastructureNamespace }.Concat(repositoryInterfaces).Concat(domainEntityTypes).ToArray();
 
-Dynamic forbidden lists and non-vacuity guards.
+        var result = Types.InAssembly(SourceAssemblies.Api)
+            .That().ResideInNamespace(EndpointsNamespace)
+            .ShouldNot().HaveDependencyOnAny(forbidden)
+            .GetResult();
 
-#### How it works here
+        Assert.True(result.IsSuccessful, ArchitectureSupport.Describe(result));
+    }
 
-The first test, from `repositoryInterfaces` through the `Assert.NotEmpty` guards (lines 14-32).
+    [Fact]
+    public void OnlyProgramAndCli_ReferenceInfrastructure()
+    {
+        var result = Types.InAssembly(SourceAssemblies.Api)
+            .That().DoNotHaveName("Program")
+            .And().DoNotResideInNamespace(CliNamespace)
+            .ShouldNot().HaveDependencyOn(InfrastructureNamespace)
+            .GetResult();
 
-#### Why it matters here
+        Assert.True(result.IsSuccessful, ArchitectureSupport.Describe(result));
+    }
+}
+```
 
-The forbidden set is derived from the code itself, so new repositories and new Domain namespaces are covered automatically.
+## Before modifying this file
 
-### Dependency inversion, ports and adapters
-
-#### What it means
-
-A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
-
-#### Where it appears in this file
-
-Who may know Infrastructure.
-
-#### How it works here
-
-`OnlyProgramAndCli_ReferenceInfrastructure` (44-54).
-
-#### Why it matters here
-
-Only the composition root (`Program`) and the CLI may reference Infrastructure; everything else depends on Application ports.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-`OnlyProgramAndCli_ReferenceInfrastructure` only inspects types compiled into the Api assembly; it cannot see which *namespaces* of other assemblies are legal, only the Infrastructure namespace string.
-
-## Related Files
-
-- [`tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs`](ArchitectureSupport.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs`](SourceAssemblies.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs`](IdentityRuleTests.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`](DependencyRuleTests.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../../src/TutoringCentre.Api/Program.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

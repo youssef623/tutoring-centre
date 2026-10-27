@@ -1,95 +1,137 @@
-# tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs
+# `tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs`
 
 ## Purpose
 
-Tests the tenant gate query handler: anonymous actor, no active membership, active membership.
+Declares `GetActiveMembershipHandlerTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Application.Tests/Identity. Tests `GetActiveMembershipHandler` with a real `CurrentActorContext` and `FakeMembershipReadService`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 90 lines and 3,755 bytes. Source hash: `0826411bff8ac2c0938285948d4eebaf53145241cdaf6d183d3c4823b26291f6`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Three `[Fact]`s, each constructing `new GetActiveMembershipHandler(actorContext, readService)`:
-- `HandleAsync_AnonymousActor_ReturnsNotAuthenticated` (12-26): default context (anonymous) -> failure `auth.not_authenticated`, `ErrorKind.Unauthenticated`.
-- `HandleAsync_NoActiveMembershipInCentre_ReturnsTenantNoMembership` (28-44): actor is `new StaffActor(userId, null, null)`, fake returns `null` -> failure `tenant.no_membership`, `ErrorKind.Forbidden`. Comment: one `null` covers unknown centre, non-member and inactive member alike, which is deliberate (no information about which case).
-- `HandleAsync_ActiveMembershipInCentre_Succeeds` (46-66): fake returns `new ActiveMembershipDto(centreId, "Nile Centre", StaffRole.Owner)` -> success with `CentreId` and `Role` copied through.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Actor and tenancy groundwork
+- Line 1: `using TutoringCentre.Application.Common.Security;`
+- Line 2: `using TutoringCentre.Application.Identity;`
+- Line 3: `using TutoringCentre.Application.Identity.Queries.GetActiveMembership;`
+- Line 4: `using TutoringCentre.Application.Tests.Fakes;`
+- Line 5: `using TutoringCentre.Domain.Common;`
+- Line 6: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
+- [Line 10](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L10): `public sealed class GetActiveMembershipHandlerTests`
+- [Line 13](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L13): `public async Task HandleAsync_AnonymousActor_ReturnsNotAuthenticated()`
+- [Line 29](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L29): `public async Task HandleAsync_NoActiveMembershipInCentre_ReturnsTenantNoMembership()`
+- [Line 47](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L47): `public async Task HandleAsync_MustChangePasswordPending_ReturnsPasswordChangeRequiredWithoutCheckingMembership()`
+- [Line 70](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs#L70): `public async Task HandleAsync_ActiveMembershipInCentre_Succeeds()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Actor kinds in tests.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-The tests build the anonymous actor (a fresh `CurrentActorContext` left unset) and staff actors (`actorContext.Set(new StaffActor(...))`) by hand.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Identity;
+using TutoringCentre.Application.Identity.Queries.GetActiveMembership;
+using TutoringCentre.Application.Tests.Fakes;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
-The handler's first check is 'is the actor a `StaffActor`'; tests show both branches.
+namespace TutoringCentre.Application.Tests.Identity;
 
-### The Result pattern (failures as values)
+public sealed class GetActiveMembershipHandlerTests
+{
+    [Fact]
+    public async Task HandleAsync_AnonymousActor_ReturnsNotAuthenticated()
+    {
+        // Arrange
+        var actorContext = new CurrentActorContext();
+        var handler = new GetActiveMembershipHandler(actorContext, new FakeMembershipReadService());
 
-#### What it means
+        // Act
+        var result = await handler.HandleAsync(new GetActiveMembershipQuery(Guid.CreateVersion7()), CancellationToken.None);
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.not_authenticated", result.Error!.Code);
+        Assert.Equal(ErrorKind.Unauthenticated, result.Error.Kind);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+    [Fact]
+    public async Task HandleAsync_NoActiveMembershipInCentre_ReturnsTenantNoMembership()
+    {
+        // Arrange — covers unknown centre, non-member and inactive member alike: the read service returns null for all three.
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new StaffActor(Guid.CreateVersion7(), null, null));
+        var readService = new FakeMembershipReadService { ActiveMembership = null };
+        var handler = new GetActiveMembershipHandler(actorContext, readService);
 
-#### Where it appears in this file
+        // Act
+        var result = await handler.HandleAsync(new GetActiveMembershipQuery(Guid.CreateVersion7()), CancellationToken.None);
 
-Asserting on `Result`.
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("tenant.no_membership", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+    }
 
-#### How it works here
+    [Fact]
+    public async Task HandleAsync_MustChangePasswordPending_ReturnsPasswordChangeRequiredWithoutCheckingMembership()
+    {
+        // Arrange
+        var centreId = Guid.CreateVersion7();
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new StaffActor(Guid.CreateVersion7(), null, null));
+        var readService = new FakeMembershipReadService
+        {
+            MustChangePassword = true,
+            ActiveMembership = new ActiveMembershipDto(centreId, "Nile Centre", StaffRole.Owner),
+        };
+        var handler = new GetActiveMembershipHandler(actorContext, readService);
 
-`result.IsFailure`, `result.Error!.Code`, `result.Error.Kind`.
+        // Act
+        var result = await handler.HandleAsync(new GetActiveMembershipQuery(centreId), CancellationToken.None);
 
-#### Why it matters here
+        // Assert — the gate fires even though an active membership exists: the flag is checked first.
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.password_change_required", result.Error!.Code);
+        Assert.Equal(ErrorKind.Forbidden, result.Error.Kind);
+    }
 
-Failures are values with a stable code, so tests assert the code, not an exception.
+    [Fact]
+    public async Task HandleAsync_ActiveMembershipInCentre_Succeeds()
+    {
+        // Arrange
+        var centreId = Guid.CreateVersion7();
+        var actorContext = new CurrentActorContext();
+        actorContext.Set(new StaffActor(Guid.CreateVersion7(), null, null));
+        var readService = new FakeMembershipReadService
+        {
+            ActiveMembership = new ActiveMembershipDto(centreId, "Nile Centre", StaffRole.Owner),
+        };
+        var handler = new GetActiveMembershipHandler(actorContext, readService);
 
-### Test doubles: fakes vs real dependencies
+        // Act
+        var result = await handler.HandleAsync(new GetActiveMembershipQuery(centreId), CancellationToken.None);
 
-#### What it means
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(centreId, result.Value.CentreId);
+        Assert.Equal(StaffRole.Owner, result.Value.Role);
+    }
+}
+```
 
-A *fake* is a small working substitute (in-memory repository). Real-dependency (integration) tests run actual components such as PostgreSQL. Fakes are fast and focused; integration tests prove behaviour only the real system provides.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
-
-#### Where it appears in this file
-
-`FakeMembershipReadService`.
-
-#### How it works here
-
-`new FakeMembershipReadService()` or `{ ActiveMembership = ... }` in each test.
-
-#### Why it matters here
-
-Handler logic is tested in isolation from PostgreSQL.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs`](../../../src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs`](../Fakes/FakeMembershipReadService.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

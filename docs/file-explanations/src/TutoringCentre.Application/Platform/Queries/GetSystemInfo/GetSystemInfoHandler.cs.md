@@ -1,104 +1,86 @@
-# src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs
+# `src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs`
 
 ## Purpose
 
-Builds `SystemInfoDto` from the read service and from the assembly's informational version.
+Source summary (intent, not independent execution proof): Returns version and migration status. No authorization check: the data is not sensitive and is served anonymously. Reads go through the read service; no entities and no EF types.
 
-## Where It Fits
+## Where it fits
 
-Application/Platform/Queries/GetSystemInfo, `internal`. Resolved by `Dispatcher.QueryAsync`; depends on `ISystemInfoReadService`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 41 lines and 1,919 bytes. Source hash: `a5850731067dfd8d3555d78608aa0b88f69b55bbee8b8b1dc50197ba92233926`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`HandleAsync` (18-): `await readService.GetSchemaStatusAsync(ct)`; new `SystemInfoDto(ReadApplicationVersion(), status.LatestAppliedMigration, DatabaseUpToDate: status.PendingMigrationCount == 0)`; returns `Result.Success`.
-`ReadApplicationVersion` (30-): reads `AssemblyInformationalVersionAttribute` from the handler's assembly via reflection; null/blank -> `"unknown"`; otherwise cuts at the first `+` (line 41) because SourceLink appends `+<commit sha>` and the API should not leak build metadata.
-No authorization check: documented as intentional (non-sensitive, anonymous). Attribute `[SuppressMessage CA1812]` because only DI instantiates it.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CQRS and the dispatcher pipeline
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using System.Reflection;`
+- Line 3: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 4: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 13](../../../../../../../src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs#L13): `internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService, IDemoModeProvider demoModeProvider)`
+- [Line 18](../../../../../../../src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs#L18): `public async Task<Result<SystemInfoDto>> HandleAsync(GetSystemInfoQuery query, CancellationToken cancellationToken)`
+- [Line 31](../../../../../../../src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs#L31): `private static string ReadApplicationVersion()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Query handler.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs:11](../../../../../../../tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs#L11)
 
-Class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Runs inside a read-only transaction.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Domain.Common;
 
-### Repository pattern and read services
+namespace TutoringCentre.Application.Platform.Queries.GetSystemInfo;
 
-#### What it means
+/// <summary>
+/// Returns version and migration status. No authorization check: the data is not sensitive and is served anonymously.
+/// Reads go through the read service; no entities and no EF types.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class GetSystemInfoHandler(ISystemInfoReadService readService, IDemoModeProvider demoModeProvider)
+    : IQueryHandler<GetSystemInfoQuery, SystemInfoDto>
+{
+    private const string UnknownVersion = "unknown";
 
-A *repository* looks like a collection of aggregates (`Add`, `ExistsBy...`) and hides how they are stored. A *read service* is a separate query-side abstraction that returns DTOs directly, so reads need not load and map domain entities.
+    public async Task<Result<SystemInfoDto>> HandleAsync(GetSystemInfoQuery query, CancellationToken cancellationToken)
+    {
+        var status = await readService.GetSchemaStatusAsync(cancellationToken);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services](../../../../../../PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services).)
+        var dto = new SystemInfoDto(
+            ReadApplicationVersion(),
+            status.LatestAppliedMigration,
+            DatabaseUpToDate: status.PendingMigrationCount == 0,
+            DemoMode: demoModeProvider.IsEnabled);
 
-#### Where it appears in this file
+        return Result<SystemInfoDto>.Success(dto);
+    }
 
-Read-service dependency.
+    private static string ReadApplicationVersion()
+    {
+        var informational = typeof(GetSystemInfoHandler).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
-#### How it works here
-
-Primary constructor.
-
-#### Why it matters here
-
-No EF in Application.
-
-### Assembly scanning and reflection
-
-#### What it means
-
-*Reflection* lets code inspect types at runtime (`assembly.GetTypes()`, `type.GetInterfaces()`). *Assembly scanning* uses it to find classes implementing a given interface and register them automatically, so adding a new handler needs no registration line.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
-
-#### Where it appears in this file
-
-Registration.
-
-#### How it works here
-
-No explicit registration anywhere.
-
-#### Why it matters here
-
-Found by `HandlerRegistration`.
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    Q["GetSystemInfoQuery"] --> H["GetSystemInfoHandler"]
-    H --> RS["ISystemInfoReadService.GetSchemaStatusAsync"]
-    RS --> DB[("migrations history")]
-    H --> V["assembly informational version, '+...' stripped"]
-    H --> DTO["SystemInfoDto"]
+        // The SDK appends "+<SourceRevisionId>" on its own once the Dockerfile (Task 34.2) passes
+        // -p:SourceRevisionId=<git sha> to `dotnet publish` — kept, not stripped, as of Task 34.2: this is
+        // precisely how an operator confirms which commit a running instance is actually serving.
+        return string.IsNullOrWhiteSpace(informational) ? UnknownVersion : informational;
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Reflection on every call (cheap here). If the assembly has no informational version the API reports `unknown`.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Platform/ISystemInfoReadService.cs`](../../ISystemInfoReadService.cs.md)
-- [`src/TutoringCentre.Application/Platform/SystemInfoDto.cs`](../../SystemInfoDto.cs.md)
-- [`src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoQuery.cs`](GetSystemInfoQuery.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs`](../../../../../tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs.md)
-- [`src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs`](../../../../TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

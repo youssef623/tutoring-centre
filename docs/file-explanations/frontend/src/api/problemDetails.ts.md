@@ -1,53 +1,66 @@
-# frontend/src/api/problemDetails.ts
+# `frontend/src/api/problemDetails.ts`
 
 ## Purpose
 
-Type for RFC 9457 Problem Details as the API returns them and a type guard to recognise them.
+Source comment (intent): RFC 9457 Problem Details as produced by the API (Day 11), including the project's extensions.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api. Tested by `problemDetails.test.ts`; used by `apiFetch.ts` (`toApiError`). Mirrors `Api/Http/ProblemResult` output.
+Category: **source**. [Open current file](../../../../../frontend/src/api/problemDetails.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 26 lines and 860 bytes. Source hash: `6cfd245257d76900b655f1d70147c0b5b8b4997ad3e1a68b0035ffd3544d2541`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`interface ProblemDetails { type?, title, status, detail?, instance?, code?, traceId?, correlationId?, errors? }`. `isProblemDetails(value: unknown): value is ProblemDetails` checks `typeof value === "object"`, non-null, `"title" in value` with string type, `"status" in value` with number type - a TypeScript *type predicate*: after it returns true the compiler treats the value as `ProblemDetails`. It validates only the minimum shape; extras are not checked.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Strict TypeScript and type-aware linting
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+- [Line 2](../../../../../frontend/src/api/problemDetails.ts#L2): `export interface ProblemDetails {`
+- [Line 17](../../../../../frontend/src/api/problemDetails.ts#L17): `export function isProblemDetails(value: unknown): value is ProblemDetails {`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+## Used by: verified name references
 
-#### Where it appears in this file
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-Type guards.
+- [frontend/src/api/apiFetch.ts:3](../../../../../frontend/src/api/apiFetch.ts#L3)
+- [frontend/src/api/problemDetails.test.ts:2](../../../../../frontend/src/api/problemDetails.test.ts#L2)
 
-#### How it works here
+## Current source excerpt
 
-`value is ProblemDetails`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```typescript
+/** RFC 9457 Problem Details as produced by the API (Day 11), including the project's extensions. */
+export interface ProblemDetails {
+  type?: string;
+  title: string;
+  status: number;
+  detail?: string;
+  instance?: string;
+  /** Stable machine-readable error code, e.g. "centre.slug_invalid". */
+  code?: string;
+  traceId?: string;
+  correlationId?: string;
+  /** Field name (camelCase) → messages; present on validation failures. */
+  errors?: Record<string, string[]>;
+}
 
-Safely narrows untrusted JSON from the network.
+/** True when `value` has the minimum Problem Details shape: a string `title` and a numeric `status`. */
+export function isProblemDetails(value: unknown): value is ProblemDetails {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "title" in value &&
+    typeof value.title === "string" &&
+    "status" in value &&
+    typeof value.status === "number"
+  );
+}
+```
 
-## Data and Control Flow
+## Before modifying this file
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Does not verify `code` or `errors` types.
-
-## Related Files
-
-- [`frontend/src/api/problemDetails.test.ts`](problemDetails.test.ts.md)
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](../../../src/TutoringCentre.Api/Http/ProblemResult.cs.md)
-- [`frontend/src/api/fixtures/problem-400.json`](fixtures/problem-400.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

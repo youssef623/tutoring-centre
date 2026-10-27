@@ -1,56 +1,86 @@
-# .github/workflows/codeql.yml
+# `.github/workflows/codeql.yml`
 
 ## Purpose
 
-Runs GitHub's CodeQL static security analysis on the C# and TypeScript code.
+Current CI/CD file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-GitHub Actions workflow independent of `ci.yml`. Results go to the repository's Security tab (`security-events: write`).
+Category: **CI/CD**. [Open current file](../../../../.github/workflows/codeql.yml). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 52 lines and 1,271 bytes. Source hash: `ba574a6a6987bdcf17f294416ddc821c7a865646cb5ff7bf724169fab19c5853`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Triggers: pull requests, pushes to `main`, weekly cron `27 3 * * 1` (Monday 03:27 UTC). Workflow-level `permissions: contents: read`; job-level adds `actions: read` and `security-events: write`.
-Matrix (`fail-fast: false`): `csharp` with `build-mode: manual`, `javascript-typescript` with `build-mode: none`.
-Steps: checkout; (C# only) `setup-dotnet` from `global.json`; `github/codeql-action/init@v4` with the language/build-mode; (manual only) `dotnet build TutoringCentre.slnx -c Release` so CodeQL can observe the compilation; `github/codeql-action/analyze@v4` with `category: /language:<lang>`.
-`fail-fast: false` means a failure in one language does not cancel the other.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Continuous Integration
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-CI runs automated build, test and analysis on every change in a clean machine so that regressions are caught before merge. Workflows are YAML files describing jobs (parallel units) made of steps.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Matrix job `analyze`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```yaml
+name: CodeQL
 
-One job instance per language; C# must be compiled under CodeQL's tracer, JavaScript/TypeScript is analysed from source.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "27 3 * * 1" # weekly, Monday 03:27 UTC
 
-#### Why it matters here
+permissions:
+  contents: read
 
-Security scanning without any code in the repo.
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write # upload results to the Security tab
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: csharp
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
 
-## Data and Control Flow
+      - name: Set up .NET from global.json
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
 
-## Configuration and Environment
+      - name: Build C# for analysis
+        if: matrix.build-mode == 'manual'
+        run: dotnet build TutoringCentre.slnx -c Release
 
-No variables or secrets (uses the automatic token). Cron `27 3 * * 1`.
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"
+```
 
-## Gotchas and Issues
+## Before modifying this file
 
-Weekly schedule means findings can appear without a code change.
-
-## Related Files
-
-- [`.github/workflows/ci.yml`](ci.yml.md)
-- [`.github/workflows/secret-scan.yml`](secret-scan.yml.md)
-- [`global.json`](../../global.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,77 +1,117 @@
-# tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs
+# `tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`
 
 ## Purpose
 
-Type-level architecture tests: fail when compiled code in a layer uses a forbidden namespace.
+Source summary (intent, not independent execution proof): Type-level dependency rule: fails when compiled code in a layer USES a forbidden namespace.
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests. Inspects the Domain, Application and Infrastructure assemblies via their `AssemblyMarker` types, using `NetArchTest.Rules`.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 73 lines and 2,609 bytes. Source hash: `18afe758a80ea2883057ea92c951fec686f2273d84695ccc5ea88bd1ce81e53d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Static assembly handles (10-12) and three string arrays of forbidden namespaces: Domain must not use `TutoringCentre.Application/Infrastructure/Api`, `Microsoft.EntityFrameworkCore`, `Microsoft.AspNetCore`, `Npgsql`; Application must not use Infrastructure/Api/EF/AspNetCore/Npgsql; Infrastructure must not use Api. `AssertNoDependencies(assembly, forbidden)`: `Types.InAssembly(assembly)`; `Assert.NotEmpty(types.GetTypes())` (guard against an empty/wrong assembly passing vacuously); `ShouldNot().HaveDependencyOnAny(forbidden).GetResult()`; assertion message lists failing type names. Three `[Fact]`s call it. A fourth, `Application_DoesNotDependOnSerilogHangfireOrHttpClient`, uses `SourceAssemblies.Application` directly and forbids the namespaces `Serilog`, `Hangfire` and `System.Net.Http`, with `ArchitectureSupport.Describe` as the failure message. Blind spot: a declared-but-unused project reference leaves nothing in IL (compiler drops it) - that is why `ProjectReferenceTests` exists. The Api assembly is scanned by the separate `ApiRuleTests` and `IdentityRuleTests`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Architecture tests (fitness functions)
+- Line 1: `using System.Reflection;`
+- Line 2: `using NetArchTest.Rules;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
+- [Line 7](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L7): `public sealed class DependencyRuleTests`
+- [Line 38](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L38): `public void Domain_DoesNotDependOnOtherLayersOrFrameworks() =>`
+- [Line 42](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L42): `public void Application_DoesNotDependOnInfrastructureApiOrFrameworks() =>`
+- [Line 46](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L46): `public void Infrastructure_DoesNotDependOnApi() =>`
+- [Line 50](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L50): `public void Application_DoesNotDependOnSerilogHangfireOrHttpClient()`
+- [Line 60](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L60): `private static void AssertNoDependencies(Assembly assembly, string[] forbidden)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Type-level rule.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`AssertNoDependencies`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System.Reflection;
+using NetArchTest.Rules;
 
-Catches real usage, not just declarations.
+namespace TutoringCentre.Architecture.Tests;
 
-### Generics and constraints
+/// <summary>Type-level dependency rule: fails when compiled code in a layer USES a forbidden namespace.</summary>
+public sealed class DependencyRuleTests
+{
+    private static readonly Assembly DomainAssembly = typeof(TutoringCentre.Domain.AssemblyMarker).Assembly;
+    private static readonly Assembly ApplicationAssembly = typeof(TutoringCentre.Application.AssemblyMarker).Assembly;
+    private static readonly Assembly InfrastructureAssembly = typeof(TutoringCentre.Infrastructure.AssemblyMarker).Assembly;
 
-#### What it means
+    private static readonly string[] ForbiddenForDomain =
+    [
+        "TutoringCentre.Application",
+        "TutoringCentre.Infrastructure",
+        "TutoringCentre.Api",
+        "Microsoft.EntityFrameworkCore",
+        "Microsoft.AspNetCore",
+        "Npgsql",
+    ];
 
-Generics let one definition work for many types (`Result<T>`, `ICommandHandler<TCommand,TResponse>`). Constraints (`where TCommand : ICommand<TResponse>`) restrict which types are legal so the compiler can check them; the `in` modifier (contravariance) lets a handler of a base type satisfy a derived one.
+    private static readonly string[] ForbiddenForApplication =
+    [
+        "TutoringCentre.Infrastructure",
+        "TutoringCentre.Api",
+        "Microsoft.EntityFrameworkCore",
+        "Microsoft.AspNetCore",
+        "Npgsql",
+    ];
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+    private static readonly string[] ForbiddenForInfrastructure =
+    [
+        "TutoringCentre.Api",
+    ];
 
-#### Where it appears in this file
+    [Fact]
+    public void Domain_DoesNotDependOnOtherLayersOrFrameworks() =>
+        AssertNoDependencies(DomainAssembly, ForbiddenForDomain);
 
-Reflection handles.
+    [Fact]
+    public void Application_DoesNotDependOnInfrastructureApiOrFrameworks() =>
+        AssertNoDependencies(ApplicationAssembly, ForbiddenForApplication);
 
-#### How it works here
+    [Fact]
+    public void Infrastructure_DoesNotDependOnApi() =>
+        AssertNoDependencies(InfrastructureAssembly, ForbiddenForInfrastructure);
 
-`typeof(...AssemblyMarker).Assembly`.
+    [Fact]
+    public void Application_DoesNotDependOnSerilogHangfireOrHttpClient()
+    {
+        var result = Types.InAssembly(SourceAssemblies.Application)
+            .ShouldNot()
+            .HaveDependencyOnAny("Serilog", "Hangfire", "System.Net.Http")
+            .GetResult();
 
-#### Why it matters here
+        Assert.True(result.IsSuccessful, ArchitectureSupport.Describe(result));
+    }
 
-Compile-checked assembly lookup.
+    private static void AssertNoDependencies(Assembly assembly, string[] forbidden)
+    {
+        var types = Types.InAssembly(assembly);
 
-## Data and Control Flow
+        // Guards against scanning the wrong (or an empty) assembly, which would always pass.
+        Assert.NotEmpty(types.GetTypes());
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+        var result = types.ShouldNot().HaveDependencyOnAny(forbidden).GetResult();
 
-## Configuration and Environment
+        Assert.True(
+            result.IsSuccessful,
+            $"{assembly.GetName().Name} has forbidden dependencies in: {string.Join(", ", result.FailingTypeNames ?? [])}");
+    }
+}
+```
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-NetArchTest reads IL (via Mono.Cecil); a dependency used only through a base type of another assembly may not be flagged - not verified here.
-
-## Related Files
-
-- [`tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs`](ProjectReferenceTests.cs.md)
-- [`src/TutoringCentre.Domain/AssemblyMarker.cs`](../../src/TutoringCentre.Domain/AssemblyMarker.cs.md)
-- [`src/TutoringCentre.Application/AssemblyMarker.cs`](../../src/TutoringCentre.Application/AssemblyMarker.cs.md)
-- [`src/TutoringCentre.Infrastructure/AssemblyMarker.cs`](../../src/TutoringCentre.Infrastructure/AssemblyMarker.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs`](ArchitectureSupport.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs`](SourceAssemblies.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs`](ApiRuleTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

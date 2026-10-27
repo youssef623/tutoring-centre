@@ -1,76 +1,128 @@
-# src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs
+# `src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs`
 
 ## Purpose
 
-The single EF Core database context for the whole application, extended with ASP.NET Core Identity's user, claim, login and token tables (no role tables).
+The single context combines Identity user storage and ordinary domain mappings with the platform Data Protection key context. It reads the actor's centre live, applies assembly configurations, allows a test-model extension, then installs tenant filters last. Only the required DataProtectionKeys DbSet is exposed explicitly; adapters use Set<T> for other types.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence. Registered by `AddDbContext` in `DependencyInjection.cs`; injected into `UnitOfWork`, `CentreRepository`, `SystemInfoReadService`, `MembershipReadService`, Identity's user store, `MigrationRunner` and some tests.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 62 lines and 3,326 bytes. Source hash: `287d32c65a1394be9449b35831579c03a63af5ca288db8fbb91a445bfd2bd612`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUserContext<ApplicationUser, Guid>(options)` (14). The doc comment: one transaction boundary across all modules; mapping in `IEntityTypeConfiguration` classes so Domain carries no persistence code; no `DbSet` properties (repositories use `Set<T>()`); it inherits `IdentityUserContext<TUser, TKey>` (users, claims, logins, tokens) *rather than* `IdentityDbContext` because there are no role tables - a role belongs to a user in a centre (`Membership`), not globally. `OnModelCreating(ModelBuilder builder)` (16-23): null check, `base.OnModelCreating(builder)` first (Identity's own model), then `builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly)` - the comment says the project's configurations run afterwards 'so they win'. Those configurations (in `Configurations/Identity/`) rename Identity's tables into the `identity` schema and snake_case names.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### ORM and EF Core
+- Line 1: `using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;`
+- Line 2: `using Microsoft.AspNetCore.Identity.EntityFrameworkCore;`
+- Line 3: `using Microsoft.EntityFrameworkCore;`
+- Line 4: `using TutoringCentre.Application.Common.Security;`
+- Line 5: `using TutoringCentre.Infrastructure.Identity;`
+- Line 6: `using TutoringCentre.Infrastructure.Persistence.Conventions;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 21](../../../../../src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs#L21): `public class AppDbContext : IdentityUserContext<ApplicationUser, Guid>, IDataProtectionKeyContext`
+- [Line 25](../../../../../src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs#L25): `public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentActor currentActor)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Inheriting an Identity context and applying configurations after the base model.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Cli/AppDbContextFactory.cs:15](../../../../../src/TutoringCentre.Api/Cli/AppDbContextFactory.cs#L15)
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:206](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L206)
+- [src/TutoringCentre.Infrastructure/Centres/CentreTimeZoneProvider.cs:19](../../../../../src/TutoringCentre.Infrastructure/Centres/CentreTimeZoneProvider.cs#L19)
+- [src/TutoringCentre.Infrastructure/DependencyInjection.cs:103](../../../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs#L103)
+- [src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs:16](../../../../../src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs#L16)
+- [src/TutoringCentre.Infrastructure/Identity/StaffDirectory.cs:16](../../../../../src/TutoringCentre.Infrastructure/Identity/StaffDirectory.cs#L16)
+- [src/TutoringCentre.Infrastructure/Persistence/Conventions/TenantQueryFilterConvention.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Conventions/TenantQueryFilterConvention.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Interceptors/TenantWriteGuardInterceptor.cs:38](../../../../../src/TutoringCentre.Infrastructure/Persistence/Interceptors/TenantWriteGuardInterceptor.cs#L38)
+- [src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs:31](../../../../../src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs#L31)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.Designer.cs#L14)
+- [src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs:14](../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.Designer.cs#L14)
+- 42 further name-reference locations are omitted from this compact list.
 
-Lines 14 and 20-22.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-The order is significant: the base class builds the default Identity model, then the project's configuration classes override table names, schemas and column details.
+```csharp
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Infrastructure.Persistence.Conventions;
 
-### Unit of Work and transactions
+namespace TutoringCentre.Infrastructure.Persistence;
 
-#### What it means
+/// <summary>
+/// The single EF Core context: one transaction boundary across all modules. Mapping lives in
+/// IEntityTypeConfiguration classes in this assembly, so Domain entities carry no persistence code.
+/// Deliberately no DbSet properties beyond <see cref="DataProtectionKeys"/> — repositories use Set&lt;T&gt;() for
+/// everything else; the Data Protection key ring (Task 34.6) is the one documented exception, because
+/// <see cref="IDataProtectionKeyContext"/> requires exactly that property.
+/// Inherits <see cref="IdentityUserContext{TUser,TKey}"/> (users, claims, logins, tokens) rather than
+/// IdentityDbContext: there are no role tables — a role belongs to a user in a centre (Membership), not globally.
+/// Not sealed only so the test-only probe context (Task 20.3) can extend it via <see cref="ExtendModel"/>; nothing
+/// else about it is open for override.
+/// </summary>
+public class AppDbContext : IdentityUserContext<ApplicationUser, Guid>, IDataProtectionKeyContext
+{
+    private readonly ICurrentActor _currentActor;
 
-A *transaction* makes several database operations all-or-nothing and isolated from concurrent work. A *unit of work* groups the changes of one business operation and commits them together. EF Core's `DbContext` already tracks changes and is a unit of work; the repository adds a small port so the dispatcher can control the transaction without referencing EF.
+    public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentActor currentActor)
+        : base(options)
+    {
+        ArgumentNullException.ThrowIfNull(currentActor);
+        _currentActor = currentActor;
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions](../../../../PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions).)
+    /// <summary>
+    /// The acting actor's centre, read live from <see cref="ICurrentActor"/> on every access rather than cached at
+    /// construction: a request can build this context (e.g. through DI) before the actor is set on it — login sets
+    /// the actor after the scope, and therefore after the context, already exists. Paths that build a context with
+    /// no request (migrations, design-time tooling) supply an anonymous actor, so this is null there.
+    /// </summary>
+    public Guid? CurrentCentreId => _currentActor.Actor.CentreId;
 
-#### Where it appears in this file
+    /// <summary>The Data Protection key ring (Task 34.6) — platform-level, not tenant-owned, no RLS.</summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
-One context, one transaction boundary.
+    protected sealed override void OnModelCreating(ModelBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
 
-#### How it works here
+        // Identity's own user/claims/logins/tokens model runs first; the project's configurations below are applied after, so they win.
+        base.OnModelCreating(builder);
+        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-Class doc comment.
+        // Test-only extra mappings (Task 20.3) go here, strictly before the tenant filter convention below, so the
+        // convention sees every mapped entity — including a test probe — and nothing can be configured after it.
+        ExtendModel(builder);
 
-#### Why it matters here
+        TenantQueryFilterConvention.Apply(builder, this);
+    }
 
-Centres and identity data are saved atomically by the same `SaveChangesAsync`.
+    /// <summary>Extension point for the test-only probe context (Task 20.3) to map its extra entity. No production override.</summary>
+    protected virtual void ExtendModel(ModelBuilder builder)
+    {
+    }
+}
+```
 
-## Data and Control Flow
+## Before modifying this file
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-A new entity needs an `IEntityTypeConfiguration` class to be mapped as intended. The `identity` schema's tables are renamed by project configurations, not by Identity defaults, so removing them would silently put tables back in the default schema with Identity's names.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs`](Configurations/Centres/CentreConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs`](Configurations/Identity/ApplicationUserConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs`](Configurations/Identity/MembershipConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/DependencyInjection.cs`](../DependencyInjection.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs`](UnitOfWork.cs.md)
-- [`src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs`](../Identity/ApplicationUser.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,52 +1,42 @@
-# frontend/src/api/fixtures/problem-404.json
+# `frontend/src/api/fixtures/problem-404.json`
 
 ## Purpose
 
-Sample Problem Details body for an unknown API route (`route.not_found`).
+JSON data with top-level keys `title`, `status`, `detail`, `code`, `traceId`, `correlationId`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api/fixtures. Imported by `apiFetch.test.ts` to test the 404 mapping.
+Category: **configuration**. [Open current file](../../../../../../frontend/src/api/fixtures/problem-404.json). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 8 lines and 279 bytes. Source hash: `1c25f9a567c5116e6ca36ad6693828cbe09e6138a24d8cd7be8d360a758f4236`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`title` 'The requested resource was not found.', `status` 404, `detail` 'The requested route does not exist.', `code` 'route.not_found', placeholder ids - matching `Program.cs` fallback + `ResultHttpExtensions` NotFound title.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Problem Details (RFC 9457) and centralised error handling
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Example payload.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "title": "The requested resource was not found.",
+  "status": 404,
+  "detail": "The requested route does not exist.",
+  "code": "route.not_found",
+  "traceId": "00-00000000000000000000000000000000-0000000000000000-00",
+  "correlationId": "00000000000000000000000000000000"
+}
+```
 
-Whole file.
+## Before modifying this file
 
-#### Why it matters here
-
-Shows the wire format.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Used by one test.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Program.cs`](../../../../src/TutoringCentre.Api/Program.cs.md)
-- [`frontend/src/api/problemDetails.ts`](../problemDetails.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

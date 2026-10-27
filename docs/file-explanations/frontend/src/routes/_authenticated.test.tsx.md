@@ -1,74 +1,135 @@
-# frontend/src/routes/_authenticated.test.tsx
+# `frontend/src/routes/_authenticated.test.tsx`
 
 ## Purpose
 
-Component-level tests of the protected layout guard and of global 401 / logout handling, using the real route tree.
+Declares `me`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes. Uses `renderRouter` (real `routeTree`, memory history) and MSW. `routeFileIgnorePattern` in `vite.config.ts` stops the router plugin from treating `*.test.tsx` as routes.
+Category: **test**. [Open current file](../../../../../frontend/src/routes/_authenticated.test.tsx). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 93 lines and 3,943 bytes. Source hash: `ae66854383fb9b9c543e6d1f77f96231df2dc9b79946cfc913c53e937bf6d0fa`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Helpers: `me(overrides)` builds a `MeDto`-shaped object for a two-centre teacher (default active centre `c-nile`). Guard tests: signed-out visitor at `/` ends at `/login` with search `{ redirect: "/" }`; a signed-in user with `activeCentreId: null` ends at `/select-centre`; with a centre set the shell shows the display name and centre name. Global 401 tests: with a signed-in session, a later `POST /api/session/centre` that returns 401 (opened through the user menu -> `Switch centre` -> picking `Maadi Learning Hub`) leads to `/login` and `queryClient.getQueryData(meQueryOptions.queryKey)` is `undefined` (cache cleared); logout (menu item `Log out`, 204) also ends at `/login` with the cache cleared. 5 tests.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Frontend route guards, session state and global 401 handling
+- Line 1: `import { fireEvent, screen, waitFor } from "@testing-library/react";`
+- Line 2: `import { http, HttpResponse } from "msw";`
+- Line 3: `import { describe, expect, it } from "vitest";`
+- Line 4: `import { server } from "@/test/msw/server";`
+- Line 5: `import { renderRouter } from "@/test/renderRouter";`
+- Line 6: `import { meQueryOptions } from "@/features/session/meQueryOptions";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
+- [Line 15](../../../../../frontend/src/routes/_authenticated.test.tsx#L15): `function me(overrides: Partial<{ activeCentreId: string | null; memberships: unknown[] }> = {}) {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Guard and 401 handling tested together.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-All five tests.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```tsx
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { describe, expect, it } from "vitest";
+import { server } from "@/test/msw/server";
+import { renderRouter } from "@/test/renderRouter";
+import { meQueryOptions } from "@/features/session/meQueryOptions";
 
-The tests drive the real router, so they prove the wiring between `beforeLoad`, `queryClient.ts` and `main.tsx`-style setup.
+const meUrl = "/api/me";
+const selectCentreUrl = "/api/session/centre";
+const logoutUrl = "/api/auth/logout";
 
-### Mocking the network with MSW
+const nileMembership = { centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "teacher" };
+const maadiMembership = { centreId: "c-maadi", centreName: "Maadi Learning Hub", centreSlug: "maadi-hub", role: "teacher" };
 
-#### What it means
+function me(overrides: Partial<{ activeCentreId: string | null; memberships: unknown[] }> = {}) {
+  const memberships = overrides.memberships ?? [nileMembership, maadiMembership];
+  const activeCentreId = overrides.activeCentreId === undefined ? "c-nile" : overrides.activeCentreId;
+  return {
+    userId: "u-1",
+    displayName: "Two-Centre Teacher",
+    email: "teacher@both.test",
+    preferredLocale: "en",
+    activeCentreId,
+    activeRole: activeCentreId === null ? null : "teacher",
+    memberships,
+    permissions: [],
+  };
+}
 
-Mock Service Worker intercepts `fetch` at the network layer, so components and hooks run unchanged while the test decides what the 'server' answers.
+describe("the protected layout's guard", () => {
+  it("redirects a signed-out visitor to /login?redirect=%2F", async () => {
+    // The default msw handler already returns 401 for /api/me.
+    const { router } = renderRouter("/");
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/login");
+    });
+    expect(router.state.location.search).toEqual({ redirect: "/" });
+  });
 
-#### Where it appears in this file
+  it("redirects a signed-in user with no active centre to /select-centre", async () => {
+    server.use(http.get(meUrl, () => HttpResponse.json(me({ activeCentreId: null }))));
 
-Per-test server states.
+    const { router } = renderRouter("/");
 
-#### How it works here
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/select-centre");
+    });
+  });
 
-`server.use(...)` calls.
+  it("renders the shell with the display name and active centre when a centre is set", async () => {
+    server.use(http.get(meUrl, () => HttpResponse.json(me())));
 
-#### Why it matters here
+    renderRouter("/");
 
-Signed-in / signed-out / revoked states are simulated by changing what `/api/me` and `/api/session/centre` return.
+    expect(await screen.findByText("Two-Centre Teacher", {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(screen.getByText("Nile Tutoring Centre")).toBeInTheDocument();
+  });
+});
 
-## Data and Control Flow
+describe("global 401 handling", () => {
+  it("a later request returning 401 clears the cache and returns to login", async () => {
+    server.use(http.get(meUrl, () => HttpResponse.json(me())));
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    const { router, queryClient } = renderRouter("/");
+    await screen.findByText("Two-Centre Teacher");
 
-## Configuration and Environment
+    // Switch centre (a real mutation already in the app) now comes back unauthenticated,
+    // as if the session had just been revoked server-side.
+    server.use(http.post(selectCentreUrl, () => HttpResponse.json({ title: "Unauthorized", status: 401 }, { status: 401 })));
+    fireEvent.click(await screen.findByRole("button", { name: "Two-Centre Teacher" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Switch centre" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Maadi Learning Hub/ }));
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/login");
+    });
+    expect(queryClient.getQueryData(meQueryOptions.queryKey)).toBeUndefined();
+  });
 
-## Gotchas and Issues
+  it("logout clears the cache", async () => {
+    server.use(http.get(meUrl, () => HttpResponse.json(me())), http.post(logoutUrl, () => new HttpResponse(null, { status: 204 })));
 
-No bugs or surprises found while reading this file.
+    const { router, queryClient } = renderRouter("/");
+    fireEvent.click(await screen.findByRole("button", { name: "Two-Centre Teacher" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Log out" }));
 
-## Related Files
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/login");
+    });
+```
 
-- [`frontend/src/routes/_authenticated.tsx`](_authenticated.tsx.md)
-- [`frontend/src/test/renderRouter.tsx`](../test/renderRouter.tsx.md)
-- [`frontend/src/app/queryClient.ts`](../app/queryClient.ts.md)
-- [`frontend/src/features/shell/AppShell.tsx`](../features/shell/AppShell.tsx.md)
+The excerpt stops at line 90; use the original file for the remaining 3 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

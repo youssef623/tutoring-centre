@@ -1,74 +1,78 @@
-# src/TutoringCentre.Api/Http/ProblemResult.cs
+# `src/TutoringCentre.Api/Http/ProblemResult.cs`
 
 ## Purpose
 
-The single writer of error bodies: serialises a `ProblemDetails` as `application/problem+json` with `traceId` and `correlationId`.
+Source summary (intent, not independent execution proof): Writes a Problem Details body (RFC 9457) with the standard extensions. The single writer for every error response.
 
-## Where It Fits
+## Where it fits
 
-Api/Http, `internal`. Used by `ResultHttpExtensions.ToProblemResult`, `GlobalExceptionHandler`, and (via `Enrich`) `ProblemDetailsSetup`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Http/ProblemResult.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 32 lines and 1,281 bytes. Source hash: `66a08d54111d4e0b08b5e2d7a1ab8d6821e233eac4738a795ed46acb968181df`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ProblemResult(ProblemDetails problem) : IResult` (7). `ExecuteAsync(HttpContext)` (11-): null-check; `Enrich(problem, httpContext)`; `StatusCode = problem.Status ?? 500`; `WriteAsJsonAsync(problem, problem.GetType(), options: null, contentType: "application/problem+json", ct)` - passing the runtime type makes derived types (`ValidationProblemDetails`) serialise their extra `errors` member; uses `RequestAborted`. `Enrich` (27-31, `internal static`): `Extensions["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier`; `Extensions["correlationId"] = httpContext.Items[HttpContextKeys.CorrelationId]` (null when the middleware did not run).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Problem Details (RFC 9457) and centralised error handling
+- Line 1: `using System.Diagnostics;`
+- Line 2: `using Microsoft.AspNetCore.Mvc;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+- [Line 7](../../../../../src/TutoringCentre.Api/Http/ProblemResult.cs#L7): `internal sealed class ProblemResult(ProblemDetails problem) : IResult`
+- [Line 11](../../../../../src/TutoringCentre.Api/Http/ProblemResult.cs#L11): `public Task ExecuteAsync(HttpContext httpContext)`
+- [Line 27](../../../../../src/TutoringCentre.Api/Http/ProblemResult.cs#L27): `internal static void Enrich(ProblemDetails problem, HttpContext httpContext)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The writer.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/RateLimitRejection.cs:34](../../../../../src/TutoringCentre.Api/Auth/RateLimitRejection.cs#L34)
+- [src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs:33](../../../../../src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs#L33)
+- [src/TutoringCentre.Api/Http/ProblemDetailsSetup.cs:11](../../../../../src/TutoringCentre.Api/Http/ProblemDetailsSetup.cs#L11)
+- [src/TutoringCentre.Api/Http/ResultHttpExtensions.cs:77](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L77)
 
-Class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Every error body has the same shape.
+```csharp
+using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 
-### Minimal APIs, routing and route groups
+namespace TutoringCentre.Api.Http;
 
-#### What it means
+/// <summary>Writes a Problem Details body (RFC 9457) with the standard extensions. The single writer for every error response.</summary>
+internal sealed class ProblemResult(ProblemDetails problem) : IResult
+{
+    public const string ContentType = "application/problem+json";
 
-Minimal APIs map a URL pattern and HTTP verb straight to a delegate (`MapGet("/x", handler)`). The framework binds delegate parameters from DI (services), the route, query, body or `CancellationToken`. A *route group* shares a prefix and metadata across endpoints.
+    public Task ExecuteAsync(HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+        Enrich(problem, httpContext);
+        httpContext.Response.StatusCode = problem.Status ?? StatusCodes.Status500InternalServerError;
 
-#### Where it appears in this file
+        return httpContext.Response.WriteAsJsonAsync(
+            problem,
+            problem.GetType(),
+            options: null,
+            contentType: ContentType,
+            cancellationToken: httpContext.RequestAborted);
+    }
 
-`IResult`.
+    /// <summary>Adds <c>traceId</c> and <c>correlationId</c> (null only when the correlation middleware did not run).</summary>
+    internal static void Enrich(ProblemDetails problem, HttpContext httpContext)
+    {
+        problem.Extensions["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+        problem.Extensions["correlationId"] = httpContext.Items[HttpContextKeys.CorrelationId];
+    }
+}
+```
 
-#### How it works here
+## Before modifying this file
 
-Interface.
-
-#### Why it matters here
-
-Endpoints return it like any built-in result.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Because everything funnels through here, a bug here affects all errors.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](ResultHttpExtensions.cs.md)
-- [`src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs`](GlobalExceptionHandler.cs.md)
-- [`src/TutoringCentre.Api/Http/HttpContextKeys.cs`](HttpContextKeys.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs`](../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,80 +1,132 @@
-# src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs
+# `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs`
 
 ## Purpose
 
-The second migration: creates the `identity` schema with `users`, `memberships`, `user_claims`, `user_logins` and `user_tokens`, their keys, foreign keys, indexes and CHECK constraints.
+Declares `AddIdentityAndMemberships`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence/Migrations (EF-generated). Applied by `MigrationRunner`; verified by `MembershipConstraintTests` and `SystemInfoQueryTests`; paired with a Designer file and the model snapshot (both generated, not explained separately).
+Category: **migration**. [Open current file](../../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 213 lines and 10,047 bytes. Source hash: `07ce524b516a1fdbb76eda33f131751c0e6d82e1f0a0735b61dc648cf2710eac`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Up` (13-187): `EnsureSchema("identity")` (15). **`users`** (18-46): `id uuid`, `display_name varchar(120)`, `preferred_locale varchar(2)`, `must_change_password boolean`, then Identity's columns (`user_name`, `normalized_user_name`, `email varchar(256)`, `normalized_email`, `email_confirmed`, `password_hash text`, `security_stamp text`, `concurrency_stamp`, `phone_number`..., `lockout_end timestamptz`, `lockout_enabled`, `access_failed_count int`); PK `pk_users`; CHECK `ck_users_preferred_locale`. **`memberships`** (48-80): `id`, `user_id`, `centre_id`, `role varchar(20)`, `status varchar(10)`, `created_at`, `updated_at`; PK; CHECKs `ck_memberships_role`/`_status`; FKs `fk_memberships_centres_centre_id` (-> `platform.centres`) and `fk_memberships_users_user_id`, both `ReferentialAction.Restrict`. **`user_claims`** (identity column `id`, FK cascade), **`user_logins`** (composite PK `(login_provider, provider_key)`), **`user_tokens`** (composite PK `(user_id, login_provider, name)`). Indexes (149-186): `ix_memberships_user_id`, `ux_memberships_centre_user` (unique, composite), `ix_user_claims_user_id`, `ix_user_logins_user_id`, `UserNameIndex` (unique, Identity default name), `ux_users_normalized_email` (unique).
-`Down` (190-211): drops the five tables (not the schema). Timestamp id `20261004112858` = 2026-10-04 11:28:58 UTC. `.editorconfig` disables CA1861 for this folder because generated composite-column array literals trip the analyzer.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Database migrations
+- Line 1: `using System;`
+- Line 2: `using Microsoft.EntityFrameworkCore.Migrations;`
+- Line 3: `using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 10](../../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs#L10): `public partial class AddIdentityAndMemberships : Migration`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Second migration.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Whole file.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-Adds the identity tables to an existing database without touching `platform.centres`.
+#nullable disable
 
-### ORM and EF Core
+namespace TutoringCentre.Infrastructure.Persistence.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddIdentityAndMemberships : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.EnsureSchema(
+                name: "identity");
 
-#### What it means
+            migrationBuilder.CreateTable(
+                name: "users",
+                schema: "identity",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    display_name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                    preferred_locale = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
+                    must_change_password = table.Column<bool>(type: "boolean", nullable: false),
+                    user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    normalized_user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    normalized_email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    email_confirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    password_hash = table.Column<string>(type: "text", nullable: true),
+                    security_stamp = table.Column<string>(type: "text", nullable: true),
+                    concurrency_stamp = table.Column<string>(type: "text", nullable: true),
+                    phone_number = table.Column<string>(type: "text", nullable: true),
+                    phone_number_confirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    two_factor_enabled = table.Column<bool>(type: "boolean", nullable: false),
+                    lockout_end = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    lockout_enabled = table.Column<bool>(type: "boolean", nullable: false),
+                    access_failed_count = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_users", x => x.id);
+                    table.CheckConstraint("ck_users_preferred_locale", "preferred_locale IN ('ar','en')");
+                });
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+            migrationBuilder.CreateTable(
+                name: "memberships",
+                schema: "identity",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    centre_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    status = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_memberships", x => x.id);
+                    table.CheckConstraint("ck_memberships_role", "role IN ('owner','teacher','secretary')");
+                    table.CheckConstraint("ck_memberships_status", "status IN ('active','inactive')");
+                    table.ForeignKey(
+                        name: "fk_memberships_centres_centre_id",
+                        column: x => x.centre_id,
+                        principalSchema: "platform",
+                        principalTable: "centres",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_memberships_users_user_id",
+                        column: x => x.user_id,
+                        principalSchema: "identity",
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
-
-#### Where it appears in this file
-
-Generated from configuration.
-
-#### How it works here
-
-Mirrors `ApplicationUserConfiguration`, `MembershipConfiguration`, Identity base model.
-
-#### Why it matters here
-
-CI would fail if the model changed without a new migration.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    M["MigrateAsync"] --> H{"AddIdentityAndMemberships in history?"}
-    H -->|no| UP["Up: schema identity, 5 tables, FKs, indexes"] --> REC["insert history row"]
-    H -->|yes| SKIP["skip"]
+            migrationBuilder.CreateTable(
+                name: "user_claims",
+                schema: "identity",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    claim_type = table.Column<string>(type: "text", nullable: true),
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 123 lines.
 
-Creates objects in schema `identity` and foreign keys into `platform.centres`.
+## Before modifying this file
 
-## Gotchas and Issues
-
-Inherited Identity columns include some the app never uses (`phone_number`, `two_factor_enabled`, `lockout_enabled`...). `password_hash` stores Identity's hashed password; no plaintext password column exists.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs`](../Configurations/Identity/MembershipConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs`](../Configurations/Identity/ApplicationUserConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs`](20261002222404_InitialPlatform.cs.md)
-- [`.editorconfig`](../../../../.editorconfig.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

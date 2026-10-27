@@ -1,51 +1,90 @@
-# tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs
+# `tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs`
 
 ## Purpose
 
-Unit tests for `CreateCentreValidator`.
+Declares `CreateCentreValidatorTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Application.Tests/Centres.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 48 lines and 1,444 bytes. Source hash: `4d662caa92a7b3f56f7d2029d43703dfaedaebf3741f7bd8563c5997c9bdb9dc`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Validate_EmptyName_ReportsErrorOnName`; `Validate_SlugOverSixtyCharacters_ReportsErrorOnSlug` (61 'a's); `Validate_ValidCommand_HasNoErrors`. Uses the synchronous `Validate` overload and checks `PropertyName`. Not tested: time-zone length, undefined enum value, name over 120.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Two-tier validation
+- Line 1: `using TutoringCentre.Application.Centres.Commands.CreateCentre;`
+- Line 2: `using TutoringCentre.Domain.Centres;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
+- [Line 6](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs#L6): `public sealed class CreateCentreValidatorTests`
+- [Line 9](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs#L9): `public void Validate_EmptyName_ReportsErrorOnName()`
+- [Line 23](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs#L23): `public void Validate_SlugOverSixtyCharacters_ReportsErrorOnSlug()`
+- [Line 37](../../../../../tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs#L37): `public void Validate_ValidCommand_HasNoErrors()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Shape validator tests.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-All three.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Domain.Centres;
 
-Document which rules exist.
+namespace TutoringCentre.Application.Tests.Centres;
 
-## Data and Control Flow
+public sealed class CreateCentreValidatorTests
+{
+    [Fact]
+    public void Validate_EmptyName_ReportsErrorOnName()
+    {
+        // Arrange
+        var command = new CreateCentreCommand("", "nile-centre", "Africa/Cairo", SupportedLocale.Ar);
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+        // Act
+        var result = new CreateCentreValidator().Validate(command);
 
-## Configuration and Environment
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.PropertyName == "Name");
+    }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    [Fact]
+    public void Validate_SlugOverSixtyCharacters_ReportsErrorOnSlug()
+    {
+        // Arrange
+        var command = new CreateCentreCommand("Nile Tutoring Centre", new string('a', 61), "Africa/Cairo", SupportedLocale.Ar);
 
-## Gotchas and Issues
+        // Act
+        var result = new CreateCentreValidator().Validate(command);
 
-No bugs or surprises found while reading this file.
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.PropertyName == "Slug");
+    }
 
-## Related Files
+    [Fact]
+    public void Validate_ValidCommand_HasNoErrors()
+    {
+        // Arrange
+        var command = new CreateCentreCommand("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar);
 
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs`](../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs.md)
+        // Act
+        var result = new CreateCentreValidator().Validate(command);
+
+        // Assert
+        Assert.True(result.IsValid);
+    }
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

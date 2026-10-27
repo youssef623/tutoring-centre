@@ -1,119 +1,201 @@
-# src/TutoringCentre.Api/Cli/SeedCommand.cs
+# `src/TutoringCentre.Api/Cli/SeedCommand.cs`
 
 ## Purpose
 
-The `seed` command: creates two demo centres through the dispatcher as the system actor, then seeds the development staff accounts and memberships.
+Source summary (intent, not independent execution proof): Creates the two demo centres and their demo subjects through the dispatcher. A CLI is just another client of the Application layer.
 
-## Where It Fits
+## Where it fits
 
-Api/Cli, `public static`. Called by `Program.cs:76` and by `SeedCommandTests`, `LoginFlowTests`, `SecurityTests`. Depends on `CurrentActorContext`, `Dispatcher`, `CreateCentreCommand`, `SystemActor` and (since the identity work) `DevelopmentIdentitySeeder` from Infrastructure - allowed because the `Cli` namespace is exempt from the 'only Program references Infrastructure' rule.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 674 lines and 36,963 bytes. Source hash: `12a8f8ff4b53e2aa61d82c81d128eed2e8b79685fd3d93f7bc709214d82dc658`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Static array `Centres` (15-19): `Nile Tutoring Centre / nile-centre / Africa/Cairo / Ar` and `Maadi Learning Hub / maadi-hub / Africa/Cairo / En`. `RunAsync(IServiceProvider)` (30-80): obtains a logger; **centres loop** (37-61): for each centre a new async scope (40) with its own `CurrentActorContext`, `UnitOfWork` and `DbContext`; `Set(new SystemActor(null))` (41); `SendAsync<CreateCentreCommand,CreateCentreResult>` (44). Success -> info 'created'; `centre.slug_taken` -> info 'already exists' (idempotent); anything else -> error log and `exitCode = 1` (59). **Staff step** (63-77): another scope; resolves `DevelopmentIdentitySeeder` and calls `SeedAsync(CancellationToken.None)`; success logs `staff accounts and memberships are up to date`, failure logs the error code and sets `exitCode = 1`. Returns the exit code (79). The seeder reads `Seed:Password`; the result of the seed is 2 centres, 5 users and 6 memberships (one inactive), which `SeedCommandTests.RunAsync_CalledTwice_CreatesExactlyTheStaffSetIdempotently` asserts.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CQRS and the dispatcher pipeline
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using Microsoft.AspNetCore.Identity;`
+- Line 3: `using Microsoft.EntityFrameworkCore;`
+- Line 4: `using Microsoft.Extensions.DependencyInjection;`
+- Line 5: `using Microsoft.Extensions.Hosting;`
+- Line 6: `using Microsoft.Extensions.Logging;`
+- Line 7: `using TutoringCentre.Application.Academics.Enrollments.Commands.EnrollStudent;`
+- Line 8: `using TutoringCentre.Application.Academics.Groups;`
+- Line 9: `using TutoringCentre.Application.Academics.Groups.Commands.CreateGroup;`
+- Line 10: `using TutoringCentre.Application.Academics.Groups.Queries.ListGroups;`
+- Line 11: `using TutoringCentre.Application.Academics.Parents;`
+- Line 12: `using TutoringCentre.Application.Academics.Parents.Queries.LookupParentByPhone;`
+- Line 13: `using TutoringCentre.Application.Academics.Scheduling;`
+- Line 14: `using TutoringCentre.Application.Academics.Scheduling.Commands.AddScheduleRule;`
+- Line 15: `using TutoringCentre.Application.Academics.Scheduling.Queries.ListGroupScheduleRules;`
+- Line 16: `using TutoringCentre.Application.Academics.Students;`
+- Line 17: `using TutoringCentre.Application.Academics.Students.Commands.RegisterStudent;`
+- Line 18: `using TutoringCentre.Application.Academics.Students.Queries.ListStudents;`
+- Line 19: `using TutoringCentre.Application.Academics.Subjects;`
+- Line 20: `using TutoringCentre.Application.Academics.Subjects.Commands.CreateSubject;`
+- Line 21: `using TutoringCentre.Application.Academics.Subjects.Queries.ListSubjects;`
+- Line 22: `using TutoringCentre.Application.Academics.Teachers;`
+- Line 23: `using TutoringCentre.Application.Academics.Teachers.Commands.CreateTeacher;`
+- Line 24: `using TutoringCentre.Application.Academics.Teachers.Commands.SetTeacherAccount;`
+- Line 25: `using TutoringCentre.Application.Academics.Teachers.Queries.GetTeacher;`
+- Line 26: `using TutoringCentre.Application.Academics.Teachers.Queries.ListTeachers;`
+- Line 27: `using TutoringCentre.Application.Centres.Commands.CreateCentre;`
+- Line 28: `using TutoringCentre.Application.Centres.Contracts;`
+- Line 29: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 30: `using TutoringCentre.Application.Common.Ports;`
+- Line 31: `using TutoringCentre.Application.Common.Security;`
+- Line 32: `using TutoringCentre.Application.Common.Time;`
+- Line 33: `using TutoringCentre.Domain.Academics;`
+- Line 34: `using TutoringCentre.Domain.Centres;`
+- Line 35: `using TutoringCentre.Domain.Common;`
+- Line 36: `using TutoringCentre.Infrastructure.Identity;`
+- Line 37: `using TutoringCentre.Infrastructure.Persistence;`
 
-#### What it means
+## Walkthrough and declaration map
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 42](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L42): `public static class SeedCommand`
+- [Line 83](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L83): `// The same person (the two-centre teacher account) is linked to one teacher record per centre, so the demo`
+- [Line 150](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L150): `public static async Task<int> RunAsync(IServiceProvider services)`
+- [Line 331](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L331): `private static async Task<bool> SeedEnrollmentsAsync(IServiceProvider services, Dictionary<string, Guid> centreIdsBySlug, ILogger logger)`
+- [Line 412](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L412): `private static async Task<bool> SeedTeachersAndGroupsAsync(IServiceProvider services, Dictionary<string, Guid> centreIdsBySlug, ILogger logger)`
+- [Line 562](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L562): `private static async Task<bool> SeedScheduleRulesAsync(IServiceProvider services, Dictionary<string, Guid> centreIdsBySlug, ILogger logger)`
+- [Line 652](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L652): `private static AsyncServiceScope CreateCentreScope(IServiceProvider services, Guid centreId, out Dispatcher dispatcher)`
+- [Line 660](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L660): `private sealed record SeedTeacher(string CentreSlug, string FullName, bool LinkTwoCentreTeacher);`
+- [Line 662](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L662): `private sealed record SeedGroup(string CentreSlug, string Name, string SubjectName, string TeacherName, int Capacity);`
+- [Line 664](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L664): `private sealed record SeedEnrollment(string CentreSlug, string GroupName, string[] StudentNames);`
+- [Line 666](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L666): `private sealed record SeedScheduleRule(`
+- [Line 669](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L669): `private sealed record SeedCentre(string Name, string Slug, string TimeZoneId, SupportedLocale DefaultLocale);`
+- [Line 671](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L671): `private sealed record SeedSubjects(string CentreSlug, string[] Names);`
+- [Line 673](../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L673): `private sealed record SeedFamily(string CentreSlug, string ParentFullName, string ParentPhone, string[] StudentNames);`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Centres go through the dispatcher.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/reconcile_backend_ledger.py:17](../../../../onboarding-work/reconcile_backend_ledger.py#L17)
+- [src/TutoringCentre.Api/Program.cs:142](../../../../../src/TutoringCentre.Api/Program.cs#L142)
+- [tests/TutoringCentre.Api.Tests/Academics/EnrollmentCrossTenantTests.cs:25](../../../../../tests/TutoringCentre.Api.Tests/Academics/EnrollmentCrossTenantTests.cs#L25)
+- [tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs:31](../../../../../tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs#L31)
+- [tests/TutoringCentre.Api.Tests/Academics/EnrollmentTeacherScopeTests.cs:25](../../../../../tests/TutoringCentre.Api.Tests/Academics/EnrollmentTeacherScopeTests.cs#L25)
+- [tests/TutoringCentre.Api.Tests/Academics/GroupCrossTenantTests.cs:21](../../../../../tests/TutoringCentre.Api.Tests/Academics/GroupCrossTenantTests.cs#L21)
+- [tests/TutoringCentre.Api.Tests/Academics/GroupEndpointTests.cs:22](../../../../../tests/TutoringCentre.Api.Tests/Academics/GroupEndpointTests.cs#L22)
+- [tests/TutoringCentre.Api.Tests/Academics/GroupTeacherScopeTests.cs:23](../../../../../tests/TutoringCentre.Api.Tests/Academics/GroupTeacherScopeTests.cs#L23)
+- [tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs:32](../../../../../tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs#L32)
+- [tests/TutoringCentre.Api.Tests/Academics/ParentCrossTenantProbeTests.cs:19](../../../../../tests/TutoringCentre.Api.Tests/Academics/ParentCrossTenantProbeTests.cs#L19)
+- [tests/TutoringCentre.Api.Tests/Academics/ParentEndpointTests.cs:18](../../../../../tests/TutoringCentre.Api.Tests/Academics/ParentEndpointTests.cs#L18)
+- [tests/TutoringCentre.Api.Tests/Academics/ScheduleCrossTenantTests.cs:27](../../../../../tests/TutoringCentre.Api.Tests/Academics/ScheduleCrossTenantTests.cs#L27)
+- [tests/TutoringCentre.Api.Tests/Academics/ScheduleDoubleBookingHttpTests.cs:27](../../../../../tests/TutoringCentre.Api.Tests/Academics/ScheduleDoubleBookingHttpTests.cs#L27)
+- [tests/TutoringCentre.Api.Tests/Academics/ScheduleEndpointTests.cs:36](../../../../../tests/TutoringCentre.Api.Tests/Academics/ScheduleEndpointTests.cs#L36)
+- [tests/TutoringCentre.Api.Tests/Academics/ScheduleTeacherScopeTests.cs:25](../../../../../tests/TutoringCentre.Api.Tests/Academics/ScheduleTeacherScopeTests.cs#L25)
+- [tests/TutoringCentre.Api.Tests/Academics/StudentCrossTenantProbeTests.cs:21](../../../../../tests/TutoringCentre.Api.Tests/Academics/StudentCrossTenantProbeTests.cs#L21)
+- [tests/TutoringCentre.Api.Tests/Academics/StudentEndpointTests.cs:17](../../../../../tests/TutoringCentre.Api.Tests/Academics/StudentEndpointTests.cs#L17)
+- [tests/TutoringCentre.Api.Tests/Academics/SubjectCrossTenantProbeTests.cs:19](../../../../../tests/TutoringCentre.Api.Tests/Academics/SubjectCrossTenantProbeTests.cs#L19)
+- [tests/TutoringCentre.Api.Tests/Academics/SubjectEndpointTests.cs:17](../../../../../tests/TutoringCentre.Api.Tests/Academics/SubjectEndpointTests.cs#L17)
+- [tests/TutoringCentre.Api.Tests/Academics/SubjectPermissionHttpTests.cs:21](../../../../../tests/TutoringCentre.Api.Tests/Academics/SubjectPermissionHttpTests.cs#L21)
+- 15 further name-reference locations are omitted from this compact list.
 
-Lines 40-46.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-A CLI is just another client of the Application layer.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using TutoringCentre.Application.Academics.Enrollments.Commands.EnrollStudent;
+using TutoringCentre.Application.Academics.Groups;
+using TutoringCentre.Application.Academics.Groups.Commands.CreateGroup;
+using TutoringCentre.Application.Academics.Groups.Queries.ListGroups;
+using TutoringCentre.Application.Academics.Parents;
+using TutoringCentre.Application.Academics.Parents.Queries.LookupParentByPhone;
+using TutoringCentre.Application.Academics.Scheduling;
+using TutoringCentre.Application.Academics.Scheduling.Commands.AddScheduleRule;
+using TutoringCentre.Application.Academics.Scheduling.Queries.ListGroupScheduleRules;
+using TutoringCentre.Application.Academics.Students;
+using TutoringCentre.Application.Academics.Students.Commands.RegisterStudent;
+using TutoringCentre.Application.Academics.Students.Queries.ListStudents;
+using TutoringCentre.Application.Academics.Subjects;
+using TutoringCentre.Application.Academics.Subjects.Commands.CreateSubject;
+using TutoringCentre.Application.Academics.Subjects.Queries.ListSubjects;
+using TutoringCentre.Application.Academics.Teachers;
+using TutoringCentre.Application.Academics.Teachers.Commands.CreateTeacher;
+using TutoringCentre.Application.Academics.Teachers.Commands.SetTeacherAccount;
+using TutoringCentre.Application.Academics.Teachers.Queries.GetTeacher;
+using TutoringCentre.Application.Academics.Teachers.Queries.ListTeachers;
+using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Application.Centres.Contracts;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Common.Time;
+using TutoringCentre.Domain.Academics;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Infrastructure.Persistence;
 
-### Service lifetimes (singleton, scoped, transient)
+namespace TutoringCentre.Api.Cli;
 
-#### What it means
+/// <summary>Creates the two demo centres and their demo subjects through the dispatcher. A CLI is just another client of the Application layer.</summary>
+public static class SeedCommand
+{
+    private static readonly SeedCentre[] Centres =
+    [
+        new("Nile Tutoring Centre", "nile-centre", "Africa/Cairo", SupportedLocale.Ar),
+        new("Maadi Learning Hub", "maadi-hub", "Africa/Cairo", SupportedLocale.En),
+    ];
 
-Lifetime says how long a container-built instance lives. *Singleton*: one for the whole application. *Scoped*: one per scope; in ASP.NET one scope = one HTTP request, and code can create its own scope (as the seed command does). *Transient*: a new instance on every resolution. A longer-lived service must not hold a shorter-lived one (a "captive dependency"), which `ValidateScopes` detects.
+    // Empty on purpose: no subjects, staff (beyond its owner), students or groups, so the full-setup journey builds
+    // everything itself through the UI. Development and Testing only (SeedGate.IncludesSetupCentre).
+    private static readonly SeedCentre SetupCentre =
+        new("مركز الجيزة الجديد", DevelopmentIdentitySeeder.SetupCentreSlug, "Africa/Cairo", SupportedLocale.Ar);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+    private static readonly SeedSubjects[] Subjects =
+    [
+        new("nile-centre", ["رياضيات", "فيزياء", "كيمياء"]),
+        new("maadi-hub", ["Mathematics", "Physics"]),
+    ];
 
-#### Where it appears in this file
+    // Phones are synthetic, in a block no real Egyptian number could collide with (010 + six zeros + a running
+    // index), never a value that looks like it could belong to an actual person. Three families per centre list
+    // two student names (siblings sharing a parent); the rest list one.
+    private static readonly SeedFamily[] Families =
+    [
+        new("nile-centre", "محمود حسن", "01000000001", ["أحمد محمود", "سارة محمود"]),
+        new("nile-centre", "علي سعيد", "01000000002", ["إبراهيم علي", "ياسمين علي"]),
+        new("nile-centre", "حسن عبدالله", "01000000003", ["فاطمة حسن", "يوسف حسن"]),
+        new("nile-centre", "السيد محمد", "01000000004", ["مصطفى السيد"]),
+        new("nile-centre", "أحمد فوزي", "01000000005", ["نور الدين أحمد"]),
+        new("nile-centre", "طارق سمير", "01000000006", ["ريم طارق"]),
+        new("nile-centre", "عادل منصور", "01000000007", ["كريم عادل"]),
+        new("nile-centre", "وليد جمال", "01000000008", ["هبة وليد"]),
+        new("nile-centre", "خالد رضا", "01000000009", ["عمر خالد"]),
+        new("maadi-hub", "Robert Wilson", "01000000010", ["James Wilson"]),
+        new("maadi-hub", "Michael Clark", "01000000011", ["Emma Clark"]),
+        new("maadi-hub", "David Brown", "01000000012", ["Oliver Brown"]),
+        new("maadi-hub", "Daniel Davis", "01000000013", ["Sophia Davis"]),
+        new("maadi-hub", "Thomas Miller", "01000000014", ["Lucas Miller"]),
+        new("maadi-hub", "Christopher Anderson", "01000000015", ["Mia Anderson"]),
+    ];
 
-One scope per unit of work.
-
-#### How it works here
-
-Lines 40 and 63.
-
-#### Why it matters here
-
-Scoped services (actor, unit of work, DbContext) are per scope.
-
-### Actor and tenancy groundwork
-
-#### What it means
-
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
-
-#### Where it appears in this file
-
-System actor for centre creation.
-
-#### How it works here
-
-Line 41.
-
-#### Why it matters here
-
-Satisfies `CreateCentreHandler`'s authorization (only `SystemActor` may create centres).
-
-### Identity and membership modelling
-
-#### What it means
-
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
-
-#### Where it appears in this file
-
-Staff seeding is not a command.
-
-#### How it works here
-
-Lines 63-77.
-
-#### Why it matters here
-
-The seeder talks to `UserManager` and `AppDbContext` directly because it is a development tool, not a use case (see `DevelopmentIdentitySeeder`).
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    CLI["dotnet run -- seed"] --> P["Program.cs"] --> M["ApplyMigrationsAsync"] --> S["SeedCommand.RunAsync"]
-    S --> SC["scope + SystemActor(null)"] --> D["Dispatcher.SendAsync(CreateCentreCommand)"] --> DB[("platform.centres")]
-    S --> SS["scope"] --> DS["DevelopmentIdentitySeeder.SeedAsync"] --> IDB[("identity.users and memberships")]
+    // The same person (the two-centre teacher account) is linked to one teacher record per centre, so the demo
+    // shows the ownership guard: one account, different groups per selected centre. In Nile the linked teacher
+    // owns exactly one group and the unlinked one the other three, including the two-seat last-seat demo group.
+    private static readonly SeedTeacher[] Teachers =
+    [
+        new("nile-centre", "كريم فتحي", LinkTwoCentreTeacher: true),
+        new("nile-centre", "منى السيد", LinkTwoCentreTeacher: false),
+        new("maadi-hub", "Karim Fathy", LinkTwoCentreTeacher: true),
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 584 lines.
 
-Same connection string as the app, plus `Seed:Password` (required by the seeder; supply it with user-secrets or the environment variable `Seed__Password`).
+## Before modifying this file
 
-## Gotchas and Issues
-
-Exit code 1 is returned only for non-`slug_taken` centre failures and for a failed staff seed; exceptions (database down) propagate and crash the process with a non-zero exit code by the runtime's default behaviour (not coded here). The step order matters: the staff seed needs the centres to exist for its memberships.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Program.cs`](../Program.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](../../TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md)
-- [`src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs`](../../TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Cli/SeedCommandTests.cs`](../../../tests/TutoringCentre.Api.Tests/Cli/SeedCommandTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

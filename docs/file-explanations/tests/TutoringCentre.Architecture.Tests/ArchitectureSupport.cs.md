@@ -1,57 +1,75 @@
-# tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs
+# `tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs`
 
 ## Purpose
 
-Shared helpers for the architecture tests: recognising repository interfaces/classes by name and describing a failing result.
+Source summary (intent, not independent execution proof): An interface named I*Repository (for example ICentreRepository).
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests. Used by `ApiRuleTests`, `CqrsRuleTests`, `DependencyRuleTests` and `RepositoryRuleTests`.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 23 lines and 911 bytes. Source hash: `3b611178ff8736ef38fb7d0e84f815ce366d013a7b25748dc1d336f02a5865b3`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ArchitectureSupport` (5-23).
-- `IsRepositoryInterface(Type)` (8-12): an interface, name longer than `IRepository`, starts with `I`, ends with `Repository` (so `ICentreRepository` matches, a bare `IRepository` does not).
-- `IsRepositoryClass(Type)` (15-16): a class whose name ends with `Repository`.
-- `Describe(TestResult)` (18-22): `"ok"` or `"Violating types: ..."` joined from `FailingTypeNames`; used as the assertion message so a failure names the offending types.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Architecture rules beyond dependencies
+- Line 1: `using NetArchTest.Rules;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Beyond 'who references whom', tests can assert design conventions with reflection and IL scanning: every command has exactly one handler, handlers are sealed and internal, repositories live in the right project, endpoints do not touch Infrastructure.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies](../../../PROJECT_OVERVIEW2.md#630-architecture-rules-beyond-dependencies).)
+- [Line 5](../../../../tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs#L5): `internal static class ArchitectureSupport`
+- [Line 7](../../../../tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs#L7): `/// <summary>An interface named I*Repository (for example ICentreRepository).</summary>`
+- [Line 8](../../../../tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs#L8): `public static bool IsRepositoryInterface(Type type) =>`
+- [Line 14](../../../../tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs#L14): `/// <summary>A class named *Repository (for example CentreRepository).</summary>`
+- [Line 15](../../../../tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs#L15): `public static bool IsRepositoryClass(Type type) =>`
+- [Line 18](../../../../tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs#L18): `public static string Describe(TestResult result)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Name-based classification.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/components/shared/FilterBar.tsx:3](../../../../frontend/src/components/shared/FilterBar.tsx#L3)
+- [tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs:15](../../../../tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs#L15)
+- [tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs:50](../../../../tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs#L50)
+- [tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs:57](../../../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs#L57)
+- [tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs:27](../../../../tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs#L27)
+- [tests/TutoringCentre.Architecture.Tests/ModuleBoundaryRuleTests.cs:99](../../../../tests/TutoringCentre.Architecture.Tests/ModuleBoundaryRuleTests.cs#L99)
+- [tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs:10](../../../../tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs#L10)
+- [tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRowLevelSecurityCatalogueTests.cs:40](../../../../tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRowLevelSecurityCatalogueTests.cs#L40)
 
-`IsRepositoryInterface` and `IsRepositoryClass`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Rules about 'repositories' need a definition; this one is a naming convention, so a repository named differently would escape the rules.
+```csharp
+using NetArchTest.Rules;
 
-## Data and Control Flow
+namespace TutoringCentre.Architecture.Tests;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+internal static class ArchitectureSupport
+{
+    /// <summary>An interface named I*Repository (for example ICentreRepository).</summary>
+    public static bool IsRepositoryInterface(Type type) =>
+        type.IsInterface
+        && type.Name.Length > "IRepository".Length
+        && type.Name.StartsWith('I')
+        && type.Name.EndsWith("Repository", StringComparison.Ordinal);
 
-## Configuration and Environment
+    /// <summary>A class named *Repository (for example CentreRepository).</summary>
+    public static bool IsRepositoryClass(Type type) =>
+        type.IsClass && type.Name.EndsWith("Repository", StringComparison.Ordinal);
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    public static string Describe(TestResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return result.IsSuccessful ? "ok" : "Violating types: " + string.Join(", ", result.FailingTypeNames ?? []);
+    }
+}
+```
 
-## Gotchas and Issues
+## Before modifying this file
 
-The classification is purely by name; a repository class that does not end in `Repository` is invisible to `RepositoryRuleTests` and `ApiRuleTests`.
-
-## Related Files
-
-- [`tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs`](ApiRuleTests.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs`](CqrsRuleTests.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs`](RepositoryRuleTests.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`](DependencyRuleTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

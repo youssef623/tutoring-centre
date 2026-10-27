@@ -1,52 +1,77 @@
-# src/TutoringCentre.Api/Auth/RequestValidation.cs
+# `src/TutoringCentre.Api/Auth/RequestValidation.cs`
 
 ## Purpose
 
-Converts a FluentValidation result into the same `validation.failed` Error the dispatcher produces, for requests that bypass the dispatcher.
+Source summary (intent, not independent execution proof): Turns a FluentValidation result into the same validation.failed shape the dispatcher produces for CQRS requests (Dispatcher.cs), so a non-CQRS request like login fails exactly like every other validation failure.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth, `internal static`. Used by `AuthEndpoints.LoginAsync`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/RequestValidation.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 34 lines and 1,274 bytes. Source hash: `040d28a32ca65af2061be8d102690b8f1e79a8c9f0305b5c8827b03de6de9dfb`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ToValidationError(ValidationResult)` (12-29): null when valid; otherwise groups failures by camel-cased property name (`ToCamelCase`, 31-33, same algorithm as `Dispatcher`), distinct messages per field, and returns `Error.Validation("validation.failed", "One or more fields are invalid.", fields)`. Result: a login validation failure looks exactly like any other validation failure on the wire.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Two-tier validation
+- Line 1: `using FluentValidation.Results;`
+- Line 2: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
+- [Line 10](../../../../../src/TutoringCentre.Api/Auth/RequestValidation.cs#L10): `internal static class RequestValidation`
+- [Line 12](../../../../../src/TutoringCentre.Api/Auth/RequestValidation.cs#L12): `public static Error? ToValidationError(ValidationResult result)`
+- [Line 31](../../../../../src/TutoringCentre.Api/Auth/RequestValidation.cs#L31): `private static string ToCamelCase(string propertyName) =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Reusing the error shape.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:91](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L91)
 
-Lines 21-28.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-One validation response format.
+```csharp
+using FluentValidation.Results;
+using TutoringCentre.Domain.Common;
 
-## Data and Control Flow
+namespace TutoringCentre.Api.Auth;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>
+/// Turns a FluentValidation result into the same validation.failed shape the dispatcher produces for CQRS
+/// requests (Dispatcher.cs), so a non-CQRS request like login fails exactly like every other validation failure.
+/// </summary>
+internal static class RequestValidation
+{
+    public static Error? ToValidationError(ValidationResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
 
-## Configuration and Environment
+        if (result.IsValid)
+        {
+            return null;
+        }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+        var fields = result.Errors
+            .GroupBy(failure => ToCamelCase(failure.PropertyName), StringComparer.Ordinal)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(failure => failure.ErrorMessage).Distinct(StringComparer.Ordinal).ToArray(),
+                StringComparer.Ordinal);
 
-## Gotchas and Issues
+        return Error.Validation("validation.failed", "One or more fields are invalid.", fields);
+    }
 
-The camel-casing and grouping logic is duplicated from `Dispatcher.ValidateAsync` (a small duplication the code comment acknowledges by cross-reference).
+    private static string ToCamelCase(string propertyName) =>
+        string.Join('.', propertyName.Split('.').Select(segment =>
+            segment.Length == 0 ? segment : char.ToLowerInvariant(segment[0]) + segment[1..]));
+}
+```
 
-## Related Files
+## Before modifying this file
 
-- [`src/TutoringCentre.Api/Auth/LoginRequest.cs`](LoginRequest.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](../../TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

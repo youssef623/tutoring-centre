@@ -1,54 +1,87 @@
-# frontend/src/i18n/locales/en/shell.json
+# `frontend/src/i18n/locales/en/shell.json`
 
 ## Purpose
 
-English strings for the authenticated app shell and dashboard (namespace `shell`).
+JSON data with top-level keys `nav`, `header`, `userMenu`, `noAccess`, `dashboard`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/i18n/locales/en. Bundled by `i18n/index.ts` as namespace `shell`; the `ar` twin must have the same keys (checked by `scripts/check-i18n-keys.mjs`).
+Category: **configuration**. [Open current file](../../../../../../../frontend/src/i18n/locales/en/shell.json). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 53 lines and 1,526 bytes. Source hash: `523fa2184e6fc98c1a4695bc8c8c2e8ce354046971a3679bfb326286cc5ec621`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`nav` (`dashboard`, `openMenu`, `closeMenu`), `header.activeCentre`, `userMenu` (`switchCentre` `Switch centre`, `logout` `Log out`), `dashboard` (`welcome` `Welcome, {name}`, `activeCentre` `You are working in {centreName}.`, `placeholder`). The `{name}` and `{centreName}` placeholders use ICU single-brace syntax.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Internationalisation (i18next) and RTL layout
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Translation resource.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "subjects": "Subjects",
+    "students": "Students",
+    "teachers": "Teachers",
+    "groups": "Groups",
+    "timetable": "Timetable",
+    "staff": "Staff",
+    "settings": "Settings",
+    "audit": "Audit log",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "home": "Hessa home"
+  },
+  "header": {
+    "activeCentre": "Active centre"
+  },
+  "userMenu": {
+    "switchCentre": "Switch centre",
+    "changePassword": "Change password",
+    "logout": "Log out"
+  },
+  "noAccess": {
+    "title": "You don't have access to this page",
+    "description": "Your role doesn't include this permission. If you think this is a mistake, ask your centre's owner.",
+    "backToDashboard": "Back to dashboard"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "activeCentre": "You are working in {centreName}.",
+    "actions": {
+      "registerStudent": "Register student",
+      "students": "Students",
+      "groups": "Groups"
+    },
+    "loadingLabel": "Loading the overview",
+    "errorTitle": "The overview could not be loaded",
+    "stats": {
+      "activeGroups": "Active groups",
+      "seatsTaken": "Seats taken",
+      "openSeats": "Open seats",
+      "fullGroups": "Full groups"
+    },
+    "fillingUp": {
+      "title": "Groups filling up",
+      "description": "Active groups with 80% or more of their seats taken.",
+      "viewAll": "All groups",
+      "empty": "No group is close to full.",
+      "noGroups": "There are no active groups yet."
+    }
+  }
+}
+```
 
-Nested keys looked up by `t("key.path")`.
+## Before modifying this file
 
-#### Why it matters here
-
-Keeping text in JSON lets the same component render in either language.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/i18n/index.ts`](../../index.ts.md)
-- [`frontend/src/i18n/locales/ar/shell.json`](../ar/shell.json.md)
-- [`frontend/src/features/shell/AppShell.tsx`](../../../features/shell/AppShell.tsx.md)
-- [`frontend/src/routes/_authenticated/index.tsx`](../../../routes/_authenticated/index.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

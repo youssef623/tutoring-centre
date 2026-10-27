@@ -1,117 +1,72 @@
-# docs/architecture/authentication.md
+# `docs/architecture/authentication.md`
 
 ## Purpose
 
-Authoritative description of the authentication flow: login, centre selection, per-request pipeline, anonymous routes, logout, cookie and claims, CSRF, revalidation, lockout and rate limiting, error codes, and what is deferred.
+Documentation covering Authentication; Login; A request that already carries a session; Centre selection; Password change and the first-login gate. Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Documentation (docs/architecture). Written from `src/TutoringCentre.Api/Auth/`, `src/TutoringCentre.Application/Identity/` and `src/TutoringCentre.Infrastructure/Identity/` (its own words: every name, code and number was checked against that code). Linked from the root `README.md`, `docs/architecture/overview.md` and ADR 0005.
+Category: **documentation**. [Open current file](../../../architecture/authentication.md). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 249 lines and 17,106 bytes. Source hash: `88e91b23696c38cf33ec0effdffa036cd7521132d528e8cd5bdbc0448ae66a98`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Sections: **Login** (`POST /api/auth/login`: validate body, verify through `IAuthenticationService`, unknown email still pays a real hash verification against a dummy user, identical `auth.invalid_credentials` 401 for unknown / wrong / locked, actor set with `CurrentActorContext.Reauthenticate`, `GetMyMembershipsQuery`, auto-select a single active membership, cookie issued *after* the membership read, response is a `MeDto`); **A request that already carries a session** (why `Reauthenticate` exists); **Centre selection** (`GetActiveMembershipQuery`, identical `tenant.no_membership` 403, cookie unchanged on failure, re-issued with the same user id and stamp on success, 204); **Every authenticated request** (order: `UseAuthentication` with `OnValidatePrincipal`, `ActorMiddleware`, `UseAuthorization`, `UseRateLimiter`, `AntiforgeryEndpointFilter`); **Anonymous routes** table (six routes plus a pattern-less fallback); **Logout** (`SignOutAsync`, 204); **The cookie and its claims** (name, `HttpOnly`, `Secure` Always, `SameSite` Lax, `Path /`, 8 h sliding; claims `sub`, `stamp`, `centre`, `role`); **CSRF** (`__Host-tcm.xsrf` `SameSite=Strict`, token returned in the JSON body with `no-store`, `X-XSRF-TOKEN`, filter on the whole `/api` group, login covered); **Revalidation and revocation** (cached valid results 60 s keyed by user, stamp, centre; invalid never cached and signs out); **Lockout and rate limiting** (5 failures / 15 min; fixed window 10 per minute per IP; the `Testing`-only partition header); **Error codes** table; **What Month 2 adds** (permissions, persisted Data Protection keys, forwarded headers).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Cookie authentication and server-side sessions
+## Walkthrough and declaration map
 
-#### What it means
+- Line 1: Authentication
+- Line 8: Login
+- Line 38: A request that already carries a session
+- Line 48: Centre selection
+- Line 61: Password change and the first-login gate
+- Line 96: Every authenticated request
+- Line 115: Anonymous routes
+- Line 135: Logout
+- Line 141: The cookie and its claims
+- Line 165: CSRF
+- Line 183: Revalidation and revocation
+- Line 210: Lockout and rate limiting
+- Line 235: Error codes
 
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-The whole document.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+# Authentication
 
-Cookie and claims sections.
+How staff sign in, how a session is carried and revalidated, and how the frontend defends every
+state-changing request against CSRF. Written from the implementation in `src/TutoringCentre.Api/Auth/`,
+`src/TutoringCentre.Application/Identity/` and `src/TutoringCentre.Infrastructure/Identity/` — every name,
+code and number below is checked against that code, not against the plan that produced it.
 
-#### Why it matters here
+## Login
 
-The overview's authentication section is checked against the same code, and where the two agree this document is the shorter statement.
+`POST /api/auth/login` (`AuthEndpoints.LoginAsync`), anonymous, rate-limited, CSRF-protected.
 
-### CSRF protection with antiforgery tokens
+1. The request body is validated (`LoginRequestValidator`); a validation failure returns 400 before any
+   credential check runs.
+2. Credentials are verified through a port, `IAuthenticationService.VerifyCredentialsAsync` — not a CQRS
+   command, since signing in has no transaction boundary of its own. The one implementation,
+   `IdentityAuthenticationService` (Infrastructure), calls ASP.NET Core Identity's `UserManager<ApplicationUser>`
+   directly: it is the first of two intentional write paths outside the dispatcher pipeline, because
+   `UserManager` saves its own counters (failed-attempt count, lockout end, security stamp) as it goes. The
+   second is the Data Protection key ring itself (Task 34.6, `platform.data_protection_keys`): the framework
+   writes a new key there on its own schedule, not through anything this document's request flow touches.
+   - An unknown email still pays a real password-hash verification, against a fixed dummy user, so response
+     time carries no signal about whether the account exists.
+   - A locked-out user, a wrong password, and an unknown email all return the identical failure:
+     `auth.invalid_credentials`, 401.
+```
 
-#### What it means
+The excerpt stops at line 24; use the original file for the remaining 225 lines.
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+## Before modifying this file
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
-
-#### Where it appears in this file
-
-CSRF section.
-
-#### How it works here
-
-Double-submit description.
-
-#### Why it matters here
-
-Matches `AntiforgerySetup` and `AntiforgeryEndpointFilter`.
-
-### Rate limiting, lockout and enumeration resistance
-
-#### What it means
-
-*Rate limiting* caps how many requests one source may make in a time window (stops password spraying from one place). *Lockout* temporarily blocks one account after repeated failures (stops many guesses against one account). *Enumeration resistance* means failure responses (and their timing) reveal nothing about whether an account exists.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance](../../../PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance).)
-
-#### Where it appears in this file
-
-Lockout and rate limiting section.
-
-#### How it works here
-
-Numbers: 5 attempts, 15 minutes, 10 per minute.
-
-#### Why it matters here
-
-The same numbers appear in `DependencyInjection.cs` (Identity options) and `LoginRateLimiting.cs`.
-
-### Session revalidation and revocation
-
-#### What it means
-
-A self-contained cookie cannot be cancelled by itself. Revalidation re-checks the cookie's claims against the database on requests (here via a *security stamp* and the active membership), so a changed password or revoked access ends the session; a short cache bounds the database cost.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation](../../../PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation).)
-
-#### Where it appears in this file
-
-Revalidation section.
-
-#### How it works here
-
-60-second cache, never cache failure.
-
-#### Why it matters here
-
-Matches `SessionValidationOptions` and `SessionRevalidationHandler`.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The document says forwarded-header-aware client IPs and persisted Data Protection keys are future work; both are still missing in code (`LoginRateLimiting` reads `Connection.RemoteIpAddress`; `AddDataProtection()` uses the local key ring).
-
-## Related Files
-
-- [`docs/adr/0005-cookie-authentication.md`](../adr/0005-cookie-authentication.md.md)
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs.md)
-- [`src/TutoringCentre.Api/Auth/AuthenticationSetup.cs`](../../src/TutoringCentre.Api/Auth/AuthenticationSetup.cs.md)
-- [`src/TutoringCentre.Api/Auth/AntiforgerySetup.cs`](../../src/TutoringCentre.Api/Auth/AntiforgerySetup.cs.md)
-- [`src/TutoringCentre.Api/Auth/LoginRateLimiting.cs`](../../src/TutoringCentre.Api/Auth/LoginRateLimiting.cs.md)
-- [`src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs`](../../src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../../src/TutoringCentre.Api/Program.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

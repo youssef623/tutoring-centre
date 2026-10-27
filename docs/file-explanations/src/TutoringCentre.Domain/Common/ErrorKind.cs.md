@@ -1,54 +1,51 @@
-# src/TutoringCentre.Domain/Common/ErrorKind.cs
+# `src/TutoringCentre.Domain/Common/ErrorKind.cs`
 
 ## Purpose
 
-Closed enum of failure categories; each maps to exactly one HTTP status.
+Source summary (intent, not independent execution proof): Closed set of expected business-failure kinds. The Api maps each kind to exactly one HTTP status (Day 11), so adding a kind is an API-contract change.
 
-## Where It Fits
+## Where it fits
 
-Domain/Common. Switched on in `ResultHttpExtensions.ToProblemResult` (default branch throws); mirrored by the frontend `ErrorKind` type (`frontend/src/api/errors.ts`).
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Common/ErrorKind.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 15 lines and 345 bytes. Source hash: `a29b933e4bbc6793999a9ae9cca86cf437699d0324aae84b8de1c5df8bc283f9`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Members: `Validation, NotFound, Conflict, Rule, Forbidden, Unauthenticated` (the last added for 'we do not know who you are'). Doc comment: adding a kind is an API-contract change. Mapping (in the Api): 400, 404, 409, 422, 403, 401. The frontend adds a seventh, `unexpected`, for failures that have no business meaning, and maps *status codes* back to kinds in `apiFetch.ts` (`kindFromStatus`).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### The Result pattern (failures as values)
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+- [Line 7](../../../../../src/TutoringCentre.Domain/Common/ErrorKind.cs#L7): `public enum ErrorKind`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Closed set of error kinds.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Enum members.
+```csharp
+namespace TutoringCentre.Domain.Common;
 
-#### Why it matters here
+/// <summary>
+/// Closed set of expected business-failure kinds. The Api maps each kind to exactly one HTTP status (Day 11),
+/// so adding a kind is an API-contract change.
+/// </summary>
+public enum ErrorKind
+{
+    Validation,
+    NotFound,
+    Conflict,
+    Rule,
+    Forbidden,
+    Unauthenticated,
+}
+```
 
-Every failure in the system is one of a few categories, each with exactly one status.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The frontend list is a hand-maintained copy (the generated client does not include the enum); adding a kind needs changes in `ResultHttpExtensions`, `errors.ts`, `apiFetch.ts` and the translation files.
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Common/Error.cs`](Error.cs.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../../TutoringCentre.Api/Http/ResultHttpExtensions.cs.md)
-- [`frontend/src/api/errors.ts`](../../../frontend/src/api/errors.ts.md)
-- [`frontend/src/api/apiFetch.ts`](../../../frontend/src/api/apiFetch.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

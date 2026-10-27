@@ -1,52 +1,74 @@
-# tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj
+# `tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj`
 
 ## Purpose
 
-Project file for HTTP-level tests that host the real Api in-process.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-tests/. Uses `Microsoft.NET.Sdk.Web` (unlike the others) because `WebApplicationFactory` needs the web SDK's content-root conventions.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 31 lines and 1,049 bytes. Source hash: `73de6627359bc04b628350ac9d24d8c9a6cde6e86da83101c6ee8330eb68845a`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Every test project sets `IsPackable=false` (never published as a NuGet package), adds `<Using Include="Xunit" />` (a global using so test files need no `using Xunit;`), and references `coverlet.collector`, `Microsoft.NET.Test.Sdk`, `xunit` and `xunit.runner.visualstudio` (with `IncludeAssets`/`PrivateAssets` so the runner is not flowed). Versions come from `Directory.Packages.props`. No code coverage step runs in CI even though `coverlet.collector` is referenced. Extras: `Microsoft.AspNetCore.Mvc.Testing` (`WebApplicationFactory`), `Respawn`, `Testcontainers.PostgreSql`; references `TutoringCentre.Api`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### In-process hosting with WebApplicationFactory
+- Line 12: `<PackageReference Include="coverlet.collector">`
+- Line 16: `<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />`
+- Line 17: `<PackageReference Include="Microsoft.NET.Test.Sdk" />`
+- Line 18: `<PackageReference Include="Respawn" />`
+- Line 19: `<PackageReference Include="Testcontainers.PostgreSql" />`
+- Line 20: `<PackageReference Include="xunit" />`
+- Line 21: `<PackageReference Include="xunit.runner.visualstudio">`
+- Line 28: `<ProjectReference Include="..\..\src\TutoringCentre.Api\TutoringCentre.Api.csproj" />`
 
-#### What it means
+## Walkthrough and declaration map
 
-`WebApplicationFactory<Program>` starts the real application inside the test process with an in-memory test server, so real middleware, DI and routing run without opening a network port. Tests can override configuration and services before the host is built.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Mvc.Testing package.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Item.
+```text
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
-#### Why it matters here
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
-Hosts `Program` in memory.
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 
-## Data and Control Flow
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Respawn" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TutoringCentre.Api\TutoringCentre.Api.csproj" />
+  </ItemGroup>
 
-## Configuration and Environment
+</Project>
+```
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs`](Fixtures/ApiFactory.cs.md)
-- [`src/TutoringCentre.Api/TutoringCentre.Api.csproj`](../../src/TutoringCentre.Api/TutoringCentre.Api.csproj.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

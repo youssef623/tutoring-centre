@@ -1,74 +1,89 @@
-# src/TutoringCentre.Api/Auth/SessionClaims.cs
+# `src/TutoringCentre.Api/Auth/SessionClaims.cs`
 
 ## Purpose
 
-Defines the four session claim names and the factory that builds the principal stored in the encrypted cookie.
+Source summary (intent, not independent execution proof): Claim names for the session cookie, defined once and read nowhere else but here and ActorMiddleware. Minimal by design: no email, no display name (those come from GET /api/me), no permissions (Month 2 resolves them server-side) — fewer claims means less to leak and less to go stale.
 
-## Where It Fits
+## Where it fits
 
-Api/Auth, `internal`. Used by `AuthEndpoints` (create), `ActorMiddleware` and `SessionRevalidationHandler` (read).
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/SessionClaims.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 41 lines and 1,666 bytes. Source hash: `77a8b90a4337798f0a56f067d9620a3ed61b4b355224df7abe91aa06a805dc60`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`SessionClaimNames` (12-18): `UserId = "sub"`, `SecurityStamp = "stamp"`, `CentreId = "centre"`, `Role = "role"`. Doc: minimal by design - no email or display name (from `GET /api/me`), no permissions (Month 2 resolves them server-side).
-`SessionPrincipalFactory.Create(userId, securityStamp, centreId?, role?)` (23-40): always adds `sub` and `stamp`; adds `centre` and `role` **only together** (comment: a role with no selected centre is meaningless); returns `new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme))`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Cookie authentication and server-side sessions
+- Line 1: `using System.Security.Claims;`
+- Line 2: `using Microsoft.AspNetCore.Authentication.Cookies;`
+- Line 3: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
+- [Line 12](../../../../../src/TutoringCentre.Api/Auth/SessionClaims.cs#L12): `internal static class SessionClaimNames`
+- [Line 21](../../../../../src/TutoringCentre.Api/Auth/SessionClaims.cs#L21): `internal static class SessionPrincipalFactory`
+- [Line 23](../../../../../src/TutoringCentre.Api/Auth/SessionClaims.cs#L23): `public static ClaimsPrincipal Create(Guid userId, string securityStamp, Guid? centreId, StaffRole? role)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Claim set in the ticket.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/ActorMiddleware.cs:33](../../../../../src/TutoringCentre.Api/Auth/ActorMiddleware.cs#L33)
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:121](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L121)
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:168](../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L168)
+- [src/TutoringCentre.Api/Auth/ChangePasswordRateLimiting.cs:61](../../../../../src/TutoringCentre.Api/Auth/ChangePasswordRateLimiting.cs#L61)
+- [src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs:25](../../../../../src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs#L25)
 
-Whole file.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Fewer claims = less to leak and less to go stale.
+```csharp
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using TutoringCentre.Domain.Identity;
 
-### Session revalidation and revocation
+namespace TutoringCentre.Api.Auth;
 
-#### What it means
+/// <summary>
+/// Claim names for the session cookie, defined once and read nowhere else but here and <c>ActorMiddleware</c>.
+/// Minimal by design: no email, no display name (those come from GET /api/me), no permissions (Month 2
+/// resolves them server-side) — fewer claims means less to leak and less to go stale.
+/// </summary>
+internal static class SessionClaimNames
+{
+    public const string UserId = "sub";
+    public const string SecurityStamp = "stamp";
+    public const string CentreId = "centre";
+    public const string Role = "role";
+}
 
-A self-contained cookie cannot be cancelled by itself. Revalidation re-checks the cookie's claims against the database on requests (here via a *security stamp* and the active membership), so a changed password or revoked access ends the session; a short cache bounds the database cost.
+/// <summary>Builds the principal the cookie scheme signs in — the server-issued, encrypted claim set.</summary>
+internal static class SessionPrincipalFactory
+{
+    public static ClaimsPrincipal Create(Guid userId, string securityStamp, Guid? centreId, StaffRole? role)
+    {
+        var claims = new List<Claim>
+        {
+            new(SessionClaimNames.UserId, userId.ToString()),
+            new(SessionClaimNames.SecurityStamp, securityStamp),
+        };
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation](../../../../PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation).)
+        // Centre and role travel together: a role with no selected centre is meaningless.
+        if (centreId is not null && role is not null)
+        {
+            claims.Add(new Claim(SessionClaimNames.CentreId, centreId.Value.ToString()));
+            claims.Add(new Claim(SessionClaimNames.Role, role.Value.ToString()));
+        }
 
-#### Where it appears in this file
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        return new ClaimsPrincipal(identity);
+    }
+}
+```
 
-`stamp` claim.
+## Before modifying this file
 
-#### How it works here
-
-Line 15, 28.
-
-#### Why it matters here
-
-Compared against the database on every request to revoke sessions.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The claim `role` is stored as the enum name (`Owner`, `Teacher`, `Secretary`) and parsed back with `Enum.TryParse`, whereas the database stores lowercase text.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/ActorMiddleware.cs`](ActorMiddleware.cs.md)
-- [`src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs`](SessionRevalidationHandler.cs.md)
-- [`src/TutoringCentre.Api/Auth/AuthEndpoints.cs`](AuthEndpoints.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,95 +1,97 @@
-# src/TutoringCentre.Application/Common/Security/Actor.cs
+# `src/TutoringCentre.Application/Common/Security/Actor.cs`
 
 ## Purpose
 
-Defines who is executing a use case: the abstract `Actor` and its kinds `SystemActor`, `AnonymousActor` and `StaffActor`.
+Source summary (intent, not independent execution proof): Who is executing a use case and in which centre. Exactly one per request or job scope; handlers read it, they never receive identity or tenant from request data.
 
-## Where It Fits
+## Where it fits
 
-Application/Common/Security. Read through `ICurrentActor` by handlers (`CreateCentreHandler`, `GetMyMembershipsHandler`, `GetActiveMembershipHandler`); set by `SeedCommand`, by `ActorMiddleware` (from the session claims) and by `CurrentActorContext.Reauthenticate` at login; test helpers create them directly.
+Category: **source**. [Open current file](../../../../../../src/TutoringCentre.Application/Common/Security/Actor.cs). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 34 lines and 1,314 bytes. Source hash: `03a58c2709ad43422817b9f0ea80d4f6d3899dae4b93e8916f08eb2152187512`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`abstract record Actor { abstract Guid? CentreId { get; } }` (9-13). `SystemActor(Guid? CentreId) : Actor` (16-19) with `public override Guid? CentreId { get; } = CentreId;` - the positional parameter initialises the override property. `AnonymousActor : Actor` (22-25) with `CentreId => null`. New: `StaffActor(Guid UserId, Guid? CentreId, StaffRole? Role) : Actor` (31-34), a signed-in staff member; `CentreId` is null right after login (before a centre is chosen) and `Role` is the role in that centre and null whenever `CentreId` is null (doc comment). It imports `TutoringCentre.Domain.Identity` for `StaffRole`. Handlers never receive identity or tenant from request data.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Actor and tenancy groundwork
+- Line 1: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
+- [Line 9](../../../../../../src/TutoringCentre.Application/Common/Security/Actor.cs#L9): `public abstract record Actor`
+- [Line 16](../../../../../../src/TutoringCentre.Application/Common/Security/Actor.cs#L16): `public sealed record SystemActor(Guid? CentreId) : Actor`
+- [Line 22](../../../../../../src/TutoringCentre.Application/Common/Security/Actor.cs#L22): `public sealed record AnonymousActor : Actor`
+- [Line 31](../../../../../../src/TutoringCentre.Application/Common/Security/Actor.cs#L31): `public sealed record StaffActor(Guid UserId, Guid? CentreId, StaffRole? Role) : Actor`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The actor hierarchy.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/routes/_authenticated/audit.test.tsx:156](../../../../../../frontend/src/routes/_authenticated/audit.test.tsx#L156)
+- [src/TutoringCentre.Api/Auth/ActorMiddleware.cs:29](../../../../../../src/TutoringCentre.Api/Auth/ActorMiddleware.cs#L29)
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:107](../../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L107)
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:167](../../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L167)
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:162](../../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L162)
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentHandler.cs:30](../../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentHandler.cs#L30)
+- [src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentHandler.cs:30](../../../../../../src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentHandler.cs#L30)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs:27](../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs#L27)
+- [src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentHandler.cs:17](../../../../../../src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentHandler.cs#L17)
+- [src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleHandler.cs:33](../../../../../../src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleHandler.cs#L33)
+- [src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentHandler.cs:23](../../../../../../src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentHandler.cs#L23)
+- [src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectHandler.cs:17](../../../../../../src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectHandler.cs#L17)
+- [src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherHandler.cs:17](../../../../../../src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherHandler.cs#L17)
+- [src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountHandler.cs:37](../../../../../../src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountHandler.cs#L37)
+- [src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs:17](../../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs#L17)
+- [src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsHandler.cs:20](../../../../../../src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsHandler.cs#L20)
+- [src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsHandler.cs:15](../../../../../../src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsHandler.cs#L15)
+- [src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs:159](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L159)
+- [src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs:162](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L162)
+- [src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs:185](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L185)
+- 151 further name-reference locations are omitted from this compact list.
 
-Whole file.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Authorization and tenancy read the same object everywhere (HTTP, CLI, tests).
+```csharp
+using TutoringCentre.Domain.Identity;
 
-### Records, immutability and primary constructors
+namespace TutoringCentre.Application.Common.Security;
 
-#### What it means
+/// <summary>
+/// Who is executing a use case and in which centre. Exactly one per request or job scope;
+/// handlers read it, they never receive identity or tenant from request data.
+/// </summary>
+public abstract record Actor
+{
+    /// <summary>The centre (tenant) the actor acts in; null when no centre applies.</summary>
+    public abstract Guid? CentreId { get; }
+}
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+/// <summary>The application itself: background jobs, the seed command, CLI tools. May act in one centre or platform-wide (null).</summary>
+public sealed record SystemActor(Guid? CentreId) : Actor
+{
+    public override Guid? CentreId { get; } = CentreId;
+}
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+/// <summary>No authenticated caller (for example the login request itself). Never has a centre.</summary>
+public sealed record AnonymousActor : Actor
+{
+    public override Guid? CentreId => null;
+}
 
-#### Where it appears in this file
+/// <summary>
+/// A signed-in staff member. <see cref="CentreId"/> is null right after login, before a centre is selected;
+/// <see cref="Role"/> is the actor's role in that centre and is null whenever <see cref="CentreId"/> is.
+/// </summary>
+public sealed record StaffActor(Guid UserId, Guid? CentreId, StaffRole? Role) : Actor
+{
+    public override Guid? CentreId { get; } = CentreId;
+}
+```
 
-Positional records with an overridden property.
+## Before modifying this file
 
-#### How it works here
-
-Lines 16-19 and 31-34.
-
-#### Why it matters here
-
-The positional parameter `CentreId` initialises the overriding property so the abstract member is satisfied.
-
-### Identity and membership modelling
-
-#### What it means
-
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
-
-#### Where it appears in this file
-
-Staff identity in Application.
-
-#### How it works here
-
-`StaffActor`.
-
-#### Why it matters here
-
-Application knows *who* (user id) and *where/as what* (centre, role) without knowing cookies or ASP.NET Core Identity.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-`SystemActor.CentreId` and `StaffActor.CentreId` are read by `GetActiveMembershipHandler`-style checks, but no repository or query is filtered by `Actor.CentreId` yet (tenant filtering is planned for Month 2); roles are carried but not enforced by any permission check.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs`](CurrentActorContext.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/ICurrentActor.cs`](ICurrentActor.cs.md)
-- [`src/TutoringCentre.Domain/Identity/StaffRole.cs`](../../../TutoringCentre.Domain/Identity/StaffRole.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](../../Centres/Commands/CreateCentre/CreateCentreHandler.cs.md)
-- [`src/TutoringCentre.Api/Auth/ActorMiddleware.cs`](../../../TutoringCentre.Api/Auth/ActorMiddleware.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

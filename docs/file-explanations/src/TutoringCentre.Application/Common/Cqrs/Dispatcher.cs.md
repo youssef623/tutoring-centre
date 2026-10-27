@@ -1,208 +1,170 @@
-# src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs
+# `src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`
 
 ## Purpose
 
-The single entry point for every use case: validates, opens the right kind of transaction, runs the handler, saves once, commits or rolls back, and logs one outcome line.
-
-## Where It Fits
-
-Application/Common/Cqrs, `public sealed`, scoped. Called by `PlatformEndpoints.GetSystemInfoAsync`, `SeedCommand`, test helpers. Depends on `IServiceProvider`, `IUnitOfWork`, `ILogger<Dispatcher>`, FluentValidation `IValidator<>`, `Result`/`Error`.
-
-## Walkthrough
-
-- Constructor (22-30): null-guards services, unit of work, logger.
-- **`SendAsync<TCommand,TResponse>`** (33-74): start stopwatch; `ValidateAsync` - failure returns `Result.Failure(validationError)` **before** anything else (no handler resolved, no transaction); `GetRequiredService<ICommandHandler<...>>()` (47); comment marks where Month-2 tenant/permission steps will go; `BeginAsync(readOnly:false)` (52); `try`: `handler.HandleAsync`; if `IsFailure` -> `RollbackAsync` and return the *same* result (58); else `SaveChangesAsync` (63) then `CommitAsync` (64); `catch` -> `RollbackAsync(CancellationToken.None)` (71) and `throw;` (rethrow preserving stack).
-- **`QueryAsync<TQuery,TResponse>`** (77-107): same validation; `BeginAsync(readOnly:true)` (94); handler; `CommitAsync` only (98, 'there is deliberately no save'); catch -> rollback + rethrow.
-- **`ValidateAsync<TRequest>`** (109-139): `_services.GetServices<IValidator<TRequest>>().ToArray()` (111) - zero or more validators; if none, returns null (valid). Creates one `ValidationContext<TRequest>`, runs each validator, concatenates `ValidationFailure`s. Groups by camel-cased property path, `Distinct` messages, builds `Error.Validation("validation.failed", "One or more fields are invalid.", fields)`.
-- **`ToCamelCase`** (141): `"Slug"` -> `"slug"`, `"Address.Street"` -> `"address.street"`.
-- **`LogOutcome`** (153-): one structured log line `{RequestKind} {RequestType} completed with {Outcome} ({ErrorCode}) in {ElapsedMs} ms`; `Information` for success, `Warning` for failure; **the request object is never logged**.
-Edge cases: exceptions thrown by `CommitAsync` are also caught -> rollback no-op -> rethrow. A missing handler registration throws before any transaction exists. Nested dispatch from a handler fails in `UnitOfWork.BeginAsync` ('Nested units of work are not supported').
-
-## Concepts Used
-
-### CQRS and the dispatcher pipeline
-
-#### What it means
-
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-Both pipelines.
-
-#### How it works here
-
-`SendAsync` and `QueryAsync`.
-
-#### Why it matters here
-
-One place guarantees validation + transaction + logging.
-
-### Unit of Work and transactions
-
-#### What it means
-
-A *transaction* makes several database operations all-or-nothing and isolated from concurrent work. A *unit of work* groups the changes of one business operation and commits them together. EF Core's `DbContext` already tracks changes and is a unit of work; the repository adds a small port so the dispatcher can control the transaction without referencing EF.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions](../../../../../PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions).)
-
-#### Where it appears in this file
-
-`_unitOfWork` calls.
-
-#### How it works here
-
-Lines 52-71 and 94-104.
-
-#### Why it matters here
-
-Dispatcher decides when to begin/save/commit/rollback; the implementation hides EF.
-
-### Two-tier validation
-
-#### What it means
-
-Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
-
-#### Where it appears in this file
-
-`ValidateAsync`.
-
-#### How it works here
-
-Lines 109-139.
-
-#### Why it matters here
-
-Shape errors become a uniform `validation.failed` with per-field messages.
-
-### The Result pattern (failures as values)
-
-#### What it means
-
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
-
-#### Where it appears in this file
-
-Returned `Result<TResponse>`.
-
-#### How it works here
-
-All return statements.
-
-#### Why it matters here
-
-Failures travel as values; exceptions are rethrown.
-
-### Dependency Injection (DI) and the container
-
-#### What it means
-
-A class that needs a collaborator can create it itself (`new X()`), which hard-wires the choice, or it can *receive* it, usually as a constructor parameter. That second approach is dependency injection. A DI *container* stores *registrations* ("when asked for type A, build type B with lifetime L") and performs *resolution*: it picks a constructor, resolves each parameter recursively, builds the object and caches it according to the lifetime. This is inversion of control: the class no longer decides what it depends on.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
-
-#### Where it appears in this file
-
-Service-locator use of `IServiceProvider`.
-
-#### How it works here
-
-`_services.GetRequiredService` (47, 91) and `GetServices` (111).
-
-#### Why it matters here
-
-Handler types are generic and only known at call time; a contained use of the service-locator pattern.
-
-### async/await and cancellation
-
-#### What it means
-
-`async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-`CancellationToken.None` on rollback.
-
-#### How it works here
-
-Lines 71 and 104.
-
-#### Why it matters here
-
-Rollback must run even if the request was cancelled.
-
-### Structured logging, Serilog and correlation IDs
-
-#### What it means
-
-Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
-
-#### Where it appears in this file
-
-`LogOutcome` with message template.
-
-#### How it works here
-
-Lines 153-170.
-
-#### Why it matters here
-
-Searchable structured line per use case without leaking request data.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant C as Caller
-    participant D as Dispatcher
-    participant V as Validators
-    participant H as Handler
-    participant U as IUnitOfWork
-    C->>D: SendAsync(command)
-    D->>V: ValidateAsync
-    alt invalid
-        D-->>C: Failure(validation.failed) - no transaction
-    else valid
-        D->>U: BeginAsync(rw)
-        D->>H: HandleAsync
-        alt Result failure
-            D->>U: RollbackAsync
-            D-->>C: same failure
-        else exception
-            D->>U: RollbackAsync(None)
-            D--xC: rethrow
-        else success
-            D->>U: SaveChangesAsync then CommitAsync
-            D-->>C: success
-        end
-    end
+The shared application entry point validates requests, enforces selected-centre and permission markers, resolves typed handlers, and owns command versus query transaction sequencing. Command save can itself return a translated failure, so handler success is provisional. It logs request type and outcome without values. Preserve pre-transaction check order, rollback cleanup, and the prohibition on nested dispatch within one unit of work.
+
+## Where it fits
+
+Category: **source**. [Open current file](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
+
+The reviewed file has 280 lines and 11,532 bytes. Source hash: `f8f1da4e77a067e5c573d597a2a3a0abcdeacca5feff5619f8a6690f16f2d417`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
+
+## Dependencies visible in the file
+
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
+
+- Line 1: `using System.Diagnostics;`
+- Line 2: `using System.Diagnostics.CodeAnalysis;`
+- Line 3: `using FluentValidation;`
+- Line 4: `using FluentValidation.Results;`
+- Line 5: `using Microsoft.Extensions.DependencyInjection;`
+- Line 6: `using Microsoft.Extensions.Logging;`
+- Line 7: `using TutoringCentre.Application.Common.Ports;`
+- Line 8: `using TutoringCentre.Application.Common.Security;`
+- Line 9: `using TutoringCentre.Domain.Common;`
+- Line 10: `using TutoringCentre.Domain.Identity;`
+
+## Walkthrough and declaration map
+
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
+
+- [Line 15](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L15): `public sealed class Dispatcher`
+- [Line 24](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L24): `public Dispatcher(IServiceProvider services, IUnitOfWork unitOfWork, ILogger<Dispatcher> logger)`
+- [Line 35](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L35): `public async Task<Result<TResponse>> SendAsync<TCommand, TResponse>(TCommand command, CancellationToken ct)`
+- [Line 100](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L100): `public async Task<Result<TResponse>> QueryAsync<TQuery, TResponse>(TQuery query, CancellationToken ct)`
+- [Line 152](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L152): `private Error? CheckTenantScope<TRequest>(TRequest request)`
+- [Line 174](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L174): `private Error? CheckPermission<TRequest>(TRequest request)`
+- [Line 207](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L207): `private void LogPermissionDenied(string requestType, string permission, Actor actor)`
+- [Line 219](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L219): `private async Task<Error?> ValidateAsync<TRequest>(TRequest request, CancellationToken ct)`
+- [Line 251](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L251): `private static string ToCamelCase(string propertyName) =>`
+- [Line 263](../../../../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs#L263): `private void LogOutcome(string requestKind, string requestType, Result result, long startTimestamp)`
+
+## Used by: verified name references
+
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
+
+- [src/TutoringCentre.Api/Auth/AuthEndpoints.cs:88](../../../../../../src/TutoringCentre.Api/Auth/AuthEndpoints.cs#L88)
+- [src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs:47](../../../../../../src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs#L47)
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:163](../../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L163)
+- [src/TutoringCentre.Api/Endpoints/AuditEndpoints.cs:32](../../../../../../src/TutoringCentre.Api/Endpoints/AuditEndpoints.cs#L32)
+- [src/TutoringCentre.Api/Endpoints/CentreSettingsEndpoints.cs:36](../../../../../../src/TutoringCentre.Api/Endpoints/CentreSettingsEndpoints.cs#L36)
+- [src/TutoringCentre.Api/Endpoints/EnrollmentEndpoints.cs:77](../../../../../../src/TutoringCentre.Api/Endpoints/EnrollmentEndpoints.cs#L77)
+- [src/TutoringCentre.Api/Endpoints/GroupEndpoints.cs:94](../../../../../../src/TutoringCentre.Api/Endpoints/GroupEndpoints.cs#L94)
+- [src/TutoringCentre.Api/Endpoints/ParentEndpoints.cs:56](../../../../../../src/TutoringCentre.Api/Endpoints/ParentEndpoints.cs#L56)
+- [src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs:24](../../../../../../src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs#L24)
+- [src/TutoringCentre.Api/Endpoints/ScheduleEndpoints.cs:81](../../../../../../src/TutoringCentre.Api/Endpoints/ScheduleEndpoints.cs#L81)
+- [src/TutoringCentre.Api/Endpoints/StaffEndpoints.cs:62](../../../../../../src/TutoringCentre.Api/Endpoints/StaffEndpoints.cs#L62)
+- [src/TutoringCentre.Api/Endpoints/StudentEndpoints.cs:106](../../../../../../src/TutoringCentre.Api/Endpoints/StudentEndpoints.cs#L106)
+- [src/TutoringCentre.Api/Endpoints/SubjectEndpoints.cs:68](../../../../../../src/TutoringCentre.Api/Endpoints/SubjectEndpoints.cs#L68)
+- [src/TutoringCentre.Api/Endpoints/TeacherEndpoints.cs:78](../../../../../../src/TutoringCentre.Api/Endpoints/TeacherEndpoints.cs#L78)
+- [src/TutoringCentre.Application/DependencyInjection.cs:23](../../../../../../src/TutoringCentre.Application/DependencyInjection.cs#L23)
+- [tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs:215](../../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L215)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs:17](../../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L17)
+- [tests/TutoringCentre.Application.Tests/Academics/EnrollmentDispatcherPermissionTests.cs:85](../../../../../../tests/TutoringCentre.Application.Tests/Academics/EnrollmentDispatcherPermissionTests.cs#L85)
+- [tests/TutoringCentre.Application.Tests/Academics/GroupDispatcherPermissionTests.cs:90](../../../../../../tests/TutoringCentre.Application.Tests/Academics/GroupDispatcherPermissionTests.cs#L90)
+- [tests/TutoringCentre.Application.Tests/Academics/ParentDispatcherAuthorizationTests.cs:33](../../../../../../tests/TutoringCentre.Application.Tests/Academics/ParentDispatcherAuthorizationTests.cs#L33)
+- 11 further name-reference locations are omitted from this compact list.
+
+## Current source excerpt
+
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
+
+```csharp
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
+
+namespace TutoringCentre.Application.Common.Cqrs;
+
+/// <summary>The single entry point for every use case. Commands and queries take different pipelines.</summary>
+public sealed class Dispatcher
+{
+    private const string CommandKind = "Command";
+    private const string QueryKind = "Query";
+
+    private readonly IServiceProvider _services;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<Dispatcher> _logger;
+
+    public Dispatcher(IServiceProvider services, IUnitOfWork unitOfWork, ILogger<Dispatcher> logger)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(unitOfWork);
+        ArgumentNullException.ThrowIfNull(logger);
+        _services = services;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    /// <summary>Command pipeline: validate → begin read-write → handler → save once → commit. Failures and exceptions roll back.</summary>
+    public async Task<Result<TResponse>> SendAsync<TCommand, TResponse>(TCommand command, CancellationToken ct)
+        where TCommand : ICommand<TResponse>
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        var started = Stopwatch.GetTimestamp();
+
+        var validationError = await ValidateAsync(command, ct);
+        if (validationError is not null)
+        {
+            var invalid = Result<TResponse>.Failure(validationError);
+            LogOutcome(CommandKind, typeof(TCommand).Name, invalid, started);
+            return invalid;
+        }
+
+        var tenantError = CheckTenantScope(command);
+        if (tenantError is not null)
+        {
+            var refused = Result<TResponse>.Failure(tenantError);
+            LogOutcome(CommandKind, typeof(TCommand).Name, refused, started);
+            return refused;
+        }
+
+        var permissionError = CheckPermission(command);
+        if (permissionError is not null)
+        {
+            var forbidden = Result<TResponse>.Failure(permissionError);
+            LogOutcome(CommandKind, typeof(TCommand).Name, forbidden, started);
+            return forbidden;
+        }
+
+        var handler = _services.GetRequiredService<ICommandHandler<TCommand, TResponse>>();
+
+        await _unitOfWork.BeginAsync(readOnly: false, ct);
+        try
+        {
+            var result = await handler.HandleAsync(command, ct);
+            if (result.IsFailure)
+            {
+                await _unitOfWork.RollbackAsync(ct);
+                LogOutcome(CommandKind, typeof(TCommand).Name, result, started);
+                return result;
+            }
+
+            var saveResult = await _unitOfWork.SaveChangesAsync(ct);
+            if (saveResult.IsFailure)
+            {
+                await _unitOfWork.RollbackAsync(ct);
+                var failedSave = Result<TResponse>.Failure(saveResult.Error!);
+                LogOutcome(CommandKind, typeof(TCommand).Name, failedSave, started);
+                return failedSave;
+            }
+
+            await _unitOfWork.CommitAsync(ct);
+            LogOutcome(CommandKind, typeof(TCommand).Name, result, started);
+            return result;
+        }
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 190 lines.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-Tenant/permission steps are comments only (not implemented). Two `[SuppressMessage]` attributes silence logger analyzers with written justifications. `ValidateAsync` runs validators sequentially and shares one `ValidationContext`.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs`](HandlerRegistration.cs.md)
-- [`src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs`](../Ports/IUnitOfWork.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs`](../../../TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Cqrs/DispatcherTests.cs`](../../../../tests/TutoringCentre.Application.Tests/Cqrs/DispatcherTests.cs.md)
-- [`docs/notes/pipeline-cases.md`](../../../../docs/notes/pipeline-cases.md.md)
-- [`docs/architecture/overview.md`](../../../../docs/architecture/overview.md.md)
-- [`src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs`](../../../TutoringCentre.Api/Endpoints/PlatformEndpoints.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

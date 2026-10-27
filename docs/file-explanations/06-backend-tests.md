@@ -1,203 +1,325 @@
-# `tests/` (backend test projects)
+# Current area file guide
 
-Folder map generated from the per-file explanations. Part of the [file index](INDEX.md); the teaching overview is [`../PROJECT_OVERVIEW2.md`](../PROJECT_OVERVIEW2.md). Each row links to the full explanation of that file (purpose, where it fits, walkthrough, concepts, flow, configuration, gotchas, related files). **65 files.**
+This refreshed area contains 317 application files. [Complete index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md). Historical overview documents remain unchanged.
 
-## `tests`
+The per-file guides distinguish source-comment intent, recognized declarations and executed verification. Read the complete execution paths in the overview before changing shared boundaries. A source excerpt is evidence of current bytes, not proof that all branches passed a test.
 
-| File | Purpose | Explanation |
+| File | Category | Current guide |
 | --- | --- | --- |
-| `.semantic.md` | Generated description of the five test projects at the skeleton stage. | [Explanation](./tests/.semantic.md.md) |
-
-## `tests/TutoringCentre.Api.Tests`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `TutoringCentre.Api.Tests.csproj` | Project file for HTTP-level tests that host the real Api in-process. | [Explanation](./tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj.md) |
-
-## `tests/TutoringCentre.Api.Tests/Auth`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `LoginFlowTests.cs` | HTTP-level tests of the happy paths of authentication: login, automatic and manual centre selection, re-login while signed in, logout and the session after logout. | [Explanation](./tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs.md) |
-| `SecurityTests.cs` | Proves that the attacks the authentication design is meant to close are actually closed: user enumeration, CSRF, cookie tampering, stale and revoked sessions, tenant escalation, password spraying, lockout and forgotten authorization. | [Explanation](./tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs.md) |
-
-## `tests/TutoringCentre.Api.Tests/Cli`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `SeedCommandTests.cs` | Proves the seed command is idempotent and creates exactly the two demo centres and the development staff set. | [Explanation](./tests/TutoringCentre.Api.Tests/Cli/SeedCommandTests.cs.md) |
-
-## `tests/TutoringCentre.Api.Tests/Fixtures`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `AntiforgeryTestHelper.cs` | Test helper that fetches a real antiforgery token and attaches it (plus a per-call rate-limit partition) to every POST, so tests exercise the CSRF protection instead of bypassing it. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs.md) |
-| `ApiCollection.cs` | xUnit collection for tests sharing `ApiFactory`. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/ApiCollection.cs.md) |
-| `ApiFactory.cs` | Hosts the real Api in-process against a throw-away PostgreSQL 17 container, for database-backed HTTP/CLI tests. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs.md) |
-| `ConventionEndpoints.cs` | Defines the test-only `/api/test/*` endpoints used to trigger each error kind, strict-JSON failures and sensitive-data logging. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs.md) |
-| `ConventionEndpointsStartupFilter.cs` | `IStartupFilter` that appends the test-only endpoints after the real middleware pipeline. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs.md) |
-| `ConventionTestTypes.cs` | Test-only commands, handlers and validator that produce every error kind on demand. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs.md) |
-| `ConventionsCollection.cs` | xUnit collection for tests sharing `ConventionsFactory`. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs.md) |
-| `ConventionsFactory.cs` | The real Api plus test-only endpoints, handlers and an in-memory log sink, used to test HTTP conventions. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs.md) |
-| `InMemoryLogSink.cs` | Serilog sink that stores log events in memory so tests can assert on logging. | [Explanation](./tests/TutoringCentre.Api.Tests/Fixtures/InMemoryLogSink.cs.md) |
-
-## `tests/TutoringCentre.Api.Tests/Health`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `HealthEndpointTests.cs` | Tests liveness and readiness endpoints without a database. | [Explanation](./tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs.md) |
-| `ReadinessWithDatabaseTests.cs` | Tests that readiness returns 200 when a real database is reachable. | [Explanation](./tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs.md) |
-
-## `tests/TutoringCentre.Api.Tests/Http`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CorrelationIdTests.cs` | Tests the correlation-ID middleware's generation, validation and propagation. | [Explanation](./tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs.md) |
-| `LoggingConventionTests.cs` | Tests log levels for successful and failing requests. | [Explanation](./tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs.md) |
-| `ProblemDetailsTests.cs` | Tests the HTTP error conventions end to end through the real pipeline. | [Explanation](./tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs.md) |
-| `ResultHttpExtensionsTests.cs` | Unit tests of the `Result` -> HTTP mapping without starting a host. | [Explanation](./tests/TutoringCentre.Api.Tests/Http/ResultHttpExtensionsTests.cs.md) |
-
-## `tests/TutoringCentre.Api.Tests/Logging`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `SensitiveDataDestructuringPolicyTests.cs` | Tests that the policy masks sensitive properties and leaves others alone. | [Explanation](./tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs.md) |
-
-## `tests/TutoringCentre.Application.Tests`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `TutoringCentre.Application.Tests.csproj` | Project file for Application unit tests; references Application and the DI package used to build a service provider in `DispatcherTests`. | [Explanation](./tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj.md) |
-
-## `tests/TutoringCentre.Application.Tests/Centres`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CreateCentreHandlerTests.cs` | Unit tests for `CreateCentreHandler` branches using fakes. | [Explanation](./tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs.md) |
-| `CreateCentreValidatorTests.cs` | Unit tests for `CreateCentreValidator`. | [Explanation](./tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs.md) |
-
-## `tests/TutoringCentre.Application.Tests/Cqrs`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `DispatcherTests.cs` | Tests every branch of the dispatcher pipeline using a call-recording fake unit of work. | [Explanation](./tests/TutoringCentre.Application.Tests/Cqrs/DispatcherTests.cs.md) |
-| `TestRequests.cs` | Test-only commands, queries, handlers and validators used to drive `Dispatcher` in isolation. | [Explanation](./tests/TutoringCentre.Application.Tests/Cqrs/TestRequests.cs.md) |
-
-## `tests/TutoringCentre.Application.Tests/Fakes`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `FakeCentreRepository.cs` | In-memory `ICentreRepository` with pre-seeded rows and a record of additions. | [Explanation](./tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs.md) |
-| `FakeMembershipReadService.cs` | In-memory fake of `IMembershipReadService` that returns whatever the test assigned to three properties. | [Explanation](./tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs.md) |
-| `FakeUnitOfWork.cs` | In-memory `IUnitOfWork` that records every call in order. | [Explanation](./tests/TutoringCentre.Application.Tests/Fakes/FakeUnitOfWork.cs.md) |
-
-## `tests/TutoringCentre.Application.Tests/Identity`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `GetActiveMembershipHandlerTests.cs` | Tests the tenant gate query handler: anonymous actor, no active membership, active membership. | [Explanation](./tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs.md) |
-| `GetMyMembershipsHandlerTests.cs` | Tests the handler behind `GET /api/me`: anonymous actor, unknown profile, and how the active centre/role are reported or dropped. | [Explanation](./tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs.md) |
-| `ValidateStaffSessionHandlerTests.cs` | Tests the session-revalidation rule: unknown user, wrong security stamp, inactive membership, and the two valid cases. | [Explanation](./tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs.md) |
-
-## `tests/TutoringCentre.Application.Tests/Platform`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `GetSystemInfoHandlerTests.cs` | Unit tests for `GetSystemInfoHandler` with a private fake read service. | [Explanation](./tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs.md) |
-
-## `tests/TutoringCentre.Application.Tests/Security`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CurrentActorContextTests.cs` | Tests the actor holder's default and set-once behaviour. | [Explanation](./tests/TutoringCentre.Application.Tests/Security/CurrentActorContextTests.cs.md) |
-
-## `tests/TutoringCentre.Architecture.Tests`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `ApiRuleTests.cs` | Architecture rules for the Api project: endpoints must not touch Infrastructure, repositories or domain entities, and only `Program` and the CLI may reference Infrastructure. | [Explanation](./tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs.md) |
-| `ArchitectureSupport.cs` | Shared helpers for the architecture tests: recognising repository interfaces/classes by name and describing a failing result. | [Explanation](./tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs.md) |
-| `CqrsRuleTests.cs` | Reflection-based architecture rules for CQRS: exactly one handler per request, handlers sealed and non-public, query handlers never depend on repositories. | [Explanation](./tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs.md) |
-| `DependencyRuleTests.cs` | Type-level architecture tests: fail when compiled code in a layer uses a forbidden namespace. | [Explanation](./tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs.md) |
-| `IdentityRuleTests.cs` | Architecture rules that isolate ASP.NET Core Identity: Application and the Api (except Program and the CLI) must not depend on Identity types or on `TutoringCentre.Infrastructure.Identity`. | [Explanation](./tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs.md) |
-| `ProjectFiles.cs` | Helper that reads the `ProjectReference` items of a `src` project from its `.csproj` XML. | [Explanation](./tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs.md) |
-| `ProjectReferenceTests.cs` | Declared-reference architecture tests: each `src` project's `ProjectReference` list must equal the allowed set. | [Explanation](./tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs.md) |
-| `RepositoryRuleTests.cs` | Architecture rules about repository placement: `I*Repository` interfaces live in Application, `*Repository` classes live in Infrastructure. | [Explanation](./tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs.md) |
-| `SourceAssemblies.cs` | Single place that names the four production assemblies for architecture tests, obtained from marker types. | [Explanation](./tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs.md) |
-| `TutoringCentre.Architecture.Tests.csproj` | Project file for the architecture tests; references all four `src` projects and the NetArchTest library. | [Explanation](./tests/TutoringCentre.Architecture.Tests/TutoringCentre.Architecture.Tests.csproj.md) |
-
-## `tests/TutoringCentre.Domain.Tests`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `TutoringCentre.Domain.Tests.csproj` | Project file for the Domain unit tests; references only the Domain project. | [Explanation](./tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj.md) |
-
-## `tests/TutoringCentre.Domain.Tests/Centres`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CentreTests.cs` | Unit tests for the `Centre.Create` business rules. | [Explanation](./tests/TutoringCentre.Domain.Tests/Centres/CentreTests.cs.md) |
-
-## `tests/TutoringCentre.Domain.Tests/Common`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `EntityTests.cs` | Tests the `Entity` base class's identity generation. | [Explanation](./tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs.md) |
-| `ErrorTests.cs` | Tests the two `Error.Validation` overloads. | [Explanation](./tests/TutoringCentre.Domain.Tests/Common/ErrorTests.cs.md) |
-| `ResultTests.cs` | Tests `Result`/`Result<T>` invariants. | [Explanation](./tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs.md) |
-
-## `tests/TutoringCentre.Domain.Tests/Identity`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `MembershipTests.cs` | Unit tests of the `Membership` entity: creation rules and the Activate/Deactivate state transitions. | [Explanation](./tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs.md) |
-
-## `tests/TutoringCentre.Infrastructure.Tests`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `TutoringCentre.Infrastructure.Tests.csproj` | Project file for database-backed Infrastructure tests. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj.md) |
-
-## `tests/TutoringCentre.Infrastructure.Tests/Centres`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `CentreSlugRaceTests.cs` | Proves that two simultaneous creates with the same slug leave exactly one row, because the unique index is the real guarantee. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs.md) |
-| `CreateCentreTests.cs` | Integration tests of the create-centre use case through the real dispatcher and PostgreSQL. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs.md) |
-
-## `tests/TutoringCentre.Infrastructure.Tests/Fixtures`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `DispatchExtensions.cs` | Test helpers that dispatch a command or query in a fresh scope as a chosen actor. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs.md) |
-| `PostgresCollection.cs` | xUnit collection definition that makes all database tests share one `PostgresFixture`. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs.md) |
-| `PostgresFixture.cs` | Shared test fixture: starts one PostgreSQL 17 container per test run, applies the real migrations, builds a production-identical DI container and resets data between tests with Respawn. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs.md) |
-| `PostgresTestBase.cs` | Base class for database tests: puts the class into the postgres collection and resets all rows before each test. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs.md) |
-
-## `tests/TutoringCentre.Infrastructure.Tests/Identity`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `IdentityAuthenticationServiceTests.cs` | Proves the credential adapter against real PostgreSQL: correct and wrong passwords, unknown email, lockout after five failures, counter reset, and that the email is never logged. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs.md) |
-| `MembershipConstraintTests.cs` | Proves that PostgreSQL itself enforces the identity schema: exactly five identity tables, unique (centre, user) membership, foreign key to centres, and no deleting a centre that has members. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs.md) |
-| `MembershipReadServiceTests.cs` | Proves the membership read service against real PostgreSQL: who sees which centres, that inactive members see none, and that nobody sees another user's memberships. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs.md) |
-
-## `tests/TutoringCentre.Infrastructure.Tests/Persistence`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `MigrationTests.cs` | Proves a brand-new database built only from the migrations has the expected objects. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs.md) |
-| `ReadOnlyQueryTests.cs` | Proves the database itself refuses writes made inside a query handler. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Persistence/ReadOnlyQueryTests.cs.md) |
-| `TransactionBoundaryTests.cs` | Proves rollback on exception and on failure results, with a success control. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs.md) |
-
-## `tests/TutoringCentre.Infrastructure.Tests/Platform`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `SystemInfoQueryTests.cs` | End-to-end test of `GetSystemInfoQuery` against a migrated database. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs.md) |
-
-## `tests/TutoringCentre.Infrastructure.Tests/Time`
-
-| File | Purpose | Explanation |
-| --- | --- | --- |
-| `SystemClockTests.cs` | Unit tests for `SystemClock` using `FakeTimeProvider`. | [Explanation](./tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs.md) |
+| `tests/.semantic.md` | documentation | [Explanation](tests/.semantic.md.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/EnrollmentCrossTenantTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/EnrollmentCrossTenantTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/EnrollmentTeacherScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/EnrollmentTeacherScopeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/GroupCrossTenantTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/GroupCrossTenantTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/GroupEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/GroupEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/GroupTeacherScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/GroupTeacherScopeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/ParentCrossTenantProbeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/ParentCrossTenantProbeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/ParentEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/ParentEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/ScheduleCrossTenantTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/ScheduleCrossTenantTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/ScheduleDoubleBookingHttpTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/ScheduleDoubleBookingHttpTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/ScheduleEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/ScheduleEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/ScheduleTeacherScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/ScheduleTeacherScopeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/StudentCrossTenantProbeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/StudentCrossTenantProbeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/StudentEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/StudentEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/SubjectCrossTenantProbeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/SubjectCrossTenantProbeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/SubjectEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/SubjectEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/SubjectPermissionHttpTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/SubjectPermissionHttpTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/TeacherCrossTenantTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/TeacherCrossTenantTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Academics/TeacherEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Academics/TeacherEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Audit/AuditEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Audit/AuditEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Auth/ForwardedRateLimitTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Auth/ForwardedRateLimitTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Authorization/EndpointInventoryTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Authorization/EndpointInventoryTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Authorization/PermissionMatrixTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Authorization/PermissionMatrixTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Centres/CentreSettingsEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Centres/CentreSettingsEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Cli/MigrateCommandTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Cli/MigrateCommandTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Cli/ResetPasswordCommandTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Cli/ResetPasswordCommandTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Cli/SeedCommandTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Cli/SeedCommandTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ApiCollection.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ApiCollection.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbe.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbe.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbeSelfTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbeSelfTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/FixableTimeProvider.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/FixableTimeProvider.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ForwardedHeadersCollection.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ForwardedHeadersCollection.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/ForwardedHeadersFactory.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/ForwardedHeadersFactory.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/InMemoryLogSink.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/InMemoryLogSink.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/RoleBootstrap.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/RoleBootstrap.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/SignedInClient.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/SignedInClient.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/SimulatedDirectConnectionStartupFilter.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/SimulatedDirectConnectionStartupFilter.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/SpaHostingCollection.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/SpaHostingCollection.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Fixtures/SpaHostingFactory.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Fixtures/SpaHostingFactory.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Health/ReadinessPrivilegeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Health/ReadinessPrivilegeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/DataProtectionPersistenceTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/DataProtectionPersistenceTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/ForwardedHeadersTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/ForwardedHeadersTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/ProxyOptionsValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/ProxyOptionsValidatorTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/ResultHttpExtensionsTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/ResultHttpExtensionsTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/SecurityHeadersTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/SecurityHeadersTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Http/SpaHostingTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Http/SpaHostingTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Staff/ChangePasswordHttpTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Staff/ChangePasswordHttpTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Staff/StaffCrossTenantProbeTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Staff/StaffCrossTenantProbeTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Staff/StaffEndpointTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Staff/StaffEndpointTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Staff/StaffSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Staff/StaffSecurityTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/Telemetry/TelemetrySetupTests.cs` | test | [Explanation](tests/TutoringCentre.Api.Tests/Telemetry/TelemetrySetupTests.cs.md) |
+| `tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj` | test | [Explanation](tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/AddScheduleRuleHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/AddScheduleRuleHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ArchiveGroupHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ArchiveGroupHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ArchiveRestoreStudentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ArchiveRestoreStudentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ArchiveSubjectHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ArchiveSubjectHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ArchiveSubjectValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ArchiveSubjectValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ArchiveTeacherHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ArchiveTeacherHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ArchiveTeacherValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ArchiveTeacherValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/AssignGroupTeacherHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/AssignGroupTeacherHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CancelSessionHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CancelSessionHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ChangeGroupCapacityHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ChangeGroupCapacityHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CreateGroupHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CreateGroupHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CreateParentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CreateParentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CreateParentValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CreateParentValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CreateSubjectHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CreateSubjectHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CreateSubjectValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CreateSubjectValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CreateTeacherHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CreateTeacherHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/CreateTeacherValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/CreateTeacherValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/EndScheduleRuleHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/EndScheduleRuleHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/EnrollStudentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/EnrollStudentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/EnrollmentDispatcherPermissionTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/EnrollmentDispatcherPermissionTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/EnrollmentQueryHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/EnrollmentQueryHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ExtendScheduleHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ExtendScheduleHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/GetParentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/GetParentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/GetStudentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/GetStudentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/GetSubjectHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/GetSubjectHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/GetTeacherHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/GetTeacherHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/GroupDispatcherPermissionTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/GroupDispatcherPermissionTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/GroupQueryHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/GroupQueryHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/GroupValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/GroupValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ListStudentsHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ListStudentsHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ListStudentsValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ListStudentsValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ListSubjectsHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ListSubjectsHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ListTeachersHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ListTeachersHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/LookupParentByPhoneHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/LookupParentByPhoneHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ParentDispatcherAuthorizationTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ParentDispatcherAuthorizationTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ParentLinkHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ParentLinkHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RegisterStudentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RegisterStudentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RegisterStudentValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RegisterStudentValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RenameGroupHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RenameGroupHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RenameSubjectHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RenameSubjectHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RenameSubjectValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RenameSubjectValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RestoreGroupHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RestoreGroupHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RestoreSubjectHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RestoreSubjectHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RestoreSubjectValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RestoreSubjectValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RestoreTeacherHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RestoreTeacherHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/RestoreTeacherValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/RestoreTeacherValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ScheduleDispatcherPermissionTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ScheduleDispatcherPermissionTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ScheduleQueryHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ScheduleQueryHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/ScheduleTestData.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/ScheduleTestData.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/SetTeacherAccountHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/SetTeacherAccountHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/SetTeacherAccountValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/SetTeacherAccountValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/StudentDispatcherAuthorizationTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/StudentDispatcherAuthorizationTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/SubjectDispatcherPermissionTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/SubjectDispatcherPermissionTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/SubjectDispatcherTenantScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/SubjectDispatcherTenantScopeTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/TeacherDispatcherPermissionTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/TeacherDispatcherPermissionTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/TransferEnrollmentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/TransferEnrollmentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/UpdateParentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/UpdateParentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/UpdateStudentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/UpdateStudentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/UpdateTeacherHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/UpdateTeacherHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/UpdateTeacherValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/UpdateTeacherValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Academics/WithdrawEnrollmentHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Academics/WithdrawEnrollmentHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Audit/AuditDispatcherAuthorizationTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Audit/AuditDispatcherAuthorizationTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Audit/GetAuditLogHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Audit/GetAuditLogHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Audit/GetAuditLogValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Audit/GetAuditLogValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Centres/CentreCalendarTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Centres/CentreCalendarTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Centres/CentreSettingsDispatcherAuthorizationTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Centres/CentreSettingsDispatcherAuthorizationTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Centres/GetCentreSettingsHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Centres/GetCentreSettingsHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Centres/UpdateCentreSettingsHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Centres/UpdateCentreSettingsHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Centres/UpdateCentreSettingsValidatorTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Centres/UpdateCentreSettingsValidatorTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Cqrs/DispatcherTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Cqrs/DispatcherTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Cqrs/TestRequests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Cqrs/TestRequests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeAuditReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeAuditReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeCentreReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeCentreReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeCentreTimeZoneProvider.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeCentreTimeZoneProvider.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeClassSessionRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeClassSessionRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeClock.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeClock.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeCurrentActor.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeCurrentActor.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeEnrollmentReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeEnrollmentReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeEnrollmentRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeEnrollmentRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeGroupReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeGroupReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeGroupRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeGroupRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeParentReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeParentReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeParentRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeParentRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeScheduleReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeScheduleReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeScheduleRuleRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeScheduleRuleRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeStaffAccountService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeStaffAccountService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeStaffDirectory.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeStaffDirectory.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeStaffReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeStaffReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeStudentReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeStudentReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeStudentRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeStudentRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeSubjectReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeSubjectReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeSubjectRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeSubjectRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherReadService.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherReadService.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherRepository.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherRepository.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherScopeProvider.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherScopeProvider.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Fakes/FakeUnitOfWork.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Fakes/FakeUnitOfWork.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Security/CorrelationContextTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Security/CorrelationContextTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Security/CurrentActorContextTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Security/CurrentActorContextTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Security/TeacherScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Security/TeacherScopeTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Staff/ChangeStaffRoleHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Staff/ChangeStaffRoleHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Staff/CreateStaffHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Staff/CreateStaffHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Staff/DeactivateStaffHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Staff/DeactivateStaffHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Staff/ListStaffHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Staff/ListStaffHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Staff/ReactivateStaffHandlerTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Staff/ReactivateStaffHandlerTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Staff/StaffDispatcherAuthorizationTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Staff/StaffDispatcherAuthorizationTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/Staff/StaffValidatorsTests.cs` | test | [Explanation](tests/TutoringCentre.Application.Tests/Staff/StaffValidatorsTests.cs.md) |
+| `tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj` | test | [Explanation](tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj.md) |
+| `tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/AuthorizationRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/AuthorizationRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/ModuleBoundaryRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/ModuleBoundaryRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/QueryFilterBypassTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/QueryFilterBypassTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/SourceFiles.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/SourceFiles.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/TenantModelTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/TenantModelTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/TenantScopeRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/TenantScopeRuleTests.cs.md) |
+| `tests/TutoringCentre.Architecture.Tests/TutoringCentre.Architecture.Tests.csproj` | test | [Explanation](tests/TutoringCentre.Architecture.Tests/TutoringCentre.Architecture.Tests.csproj.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/EnrollmentTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/EnrollmentTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/GroupTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/GroupTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/ParentTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/ParentTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/Scheduling/ClassSessionTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/Scheduling/ClassSessionTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/Scheduling/ScheduleRuleTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/Scheduling/ScheduleRuleTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/Scheduling/SessionGeneratorTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/Scheduling/SessionGeneratorTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/StudentTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/StudentTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/SubjectTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/SubjectTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Academics/TeacherTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Academics/TeacherTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Centres/CentreTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Centres/CentreTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Common/ErrorTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Common/ErrorTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Common/PhoneNumberTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Common/PhoneNumberTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Common/SearchTextTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Common/SearchTextTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Identity/PermissionsTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Identity/PermissionsTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Identity/RolePermissionsTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Identity/RolePermissionsTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/Identity/RoleScopesTests.cs` | test | [Explanation](tests/TutoringCentre.Domain.Tests/Identity/RoleScopesTests.cs.md) |
+| `tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj` | test | [Explanation](tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/AuditTrailTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/AuditTrailTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentIntegrityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentIntegrityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTeacherScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTeacherScopeTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTenantIsolationTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTenantIsolationTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTestBase.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTestBase.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTransferTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTransferTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentUseCaseTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentUseCaseTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/GroupIntegrityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/GroupIntegrityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/GroupRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/GroupRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTeacherScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTeacherScopeTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTenantIsolationTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTenantIsolationTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTestBase.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTestBase.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/GroupUseCaseTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/GroupUseCaseTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/LastSeatConcurrencyTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/LastSeatConcurrencyTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ParentAuditTrailTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ParentAuditTrailTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ParentPersistenceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ParentPersistenceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ParentRaceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ParentRaceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/RowLevelSecurityCoverageTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/RowLevelSecurityCoverageTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleDstPersistenceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleDstPersistenceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTeacherScopeTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTeacherScopeTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTenantIsolationTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTenantIsolationTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTestBase.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTestBase.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleUseCaseTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleUseCaseTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SessionExclusionConstraintTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SessionExclusionConstraintTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/StudentAggregatePersistenceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/StudentAggregatePersistenceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentAuditTrailTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentAuditTrailTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentIntegrityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentIntegrityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentTestRequests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentTestRequests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/StudentReadServicePhoneSmokeTest.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/StudentReadServicePhoneSmokeTest.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/StudentUseCaseIntegrationTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/StudentUseCaseIntegrationTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectCrossTenantTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectCrossTenantTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectPersistenceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectPersistenceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectRaceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectRaceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectRawSqlRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectRawSqlRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectStaleVersionTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectStaleVersionTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectTestRequests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectTestRequests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectUseCaseTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectUseCaseTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherAccountLinkTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherAccountLinkTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherUseCaseTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherUseCaseTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Academics/UnlinkParentReconciliationSmokeTest.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Academics/UnlinkParentReconciliationSmokeTest.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Audit/AuditDiffBuilderMaskingTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Audit/AuditDiffBuilderMaskingTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Audit/AuditDiffBuilderTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Audit/AuditDiffBuilderTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Audit/AuditImmutabilityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Audit/AuditImmutabilityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Audit/AuditPolicyTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Audit/AuditPolicyTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Audit/AuditReadServiceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Audit/AuditReadServiceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSettingsTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSettingsTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Centres/CentreTimeZoneProviderTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Centres/CentreTimeZoneProviderTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Fixtures/ProbeScopeExtensions.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Fixtures/ProbeScopeExtensions.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Fixtures/RoleBootstrap.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Fixtures/RoleBootstrap.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/StaffAccountServiceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/StaffAccountServiceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/StaffAccountTestRequests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/StaffAccountTestRequests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/StaffCrossTenantTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/StaffCrossTenantTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/StaffDirectoryTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/StaffDirectoryTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/StaffProbeTestBase.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/StaffProbeTestBase.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/StaffRaceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/StaffRaceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/StaffUseCaseTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/StaffUseCaseTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Identity/TeacherScopeProviderTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Identity/TeacherScopeProviderTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Persistence/DatabaseOptionsValidationTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Persistence/DatabaseOptionsValidationTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Persistence/PersistenceErrorTranslatorTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Persistence/PersistenceErrorTranslatorTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Persistence/ReadOnlyQueryTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Persistence/ReadOnlyQueryTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Persistence/RuntimeRolePrivilegeTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Persistence/RuntimeRolePrivilegeTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Persistence/TenantRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Persistence/TenantRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRawSqlRowLevelSecurityTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRawSqlRowLevelSecurityTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRowLevelSecurityCatalogueTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRowLevelSecurityCatalogueTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantContextLifetimeTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantContextLifetimeTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantIndependenceProbeRequests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantIndependenceProbeRequests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantIsolationIndependenceTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantIsolationIndependenceTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbe.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbe.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeChild.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeChild.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeChildConfiguration.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeChildConfiguration.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeCompositeForeignKeyTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeCompositeForeignKeyTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeConfiguration.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeConfiguration.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeDbContext.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeDbContext.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeSmokeTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeSmokeTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeTestBase.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeTestBase.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantQueryFilterTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantQueryFilterTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantSettingProbeRequests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantSettingProbeRequests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantWriteGuardTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantWriteGuardTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs.md) |
+| `tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj` | test | [Explanation](tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj.md) |

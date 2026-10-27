@@ -1,53 +1,71 @@
-# .github/dependabot.yml
+# `.github/dependabot.yml`
 
 ## Purpose
 
-Tells GitHub Dependabot to open weekly pull requests updating NuGet, npm and GitHub Actions dependencies.
+Current CI/CD file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Read by GitHub. Targets `/` (NuGet - edits `Directory.Packages.props`), `/frontend` (npm - edits `package.json`/`package-lock.json`) and `/` for `github-actions` (edits workflow files).
+Category: **CI/CD**. [Open current file](../../../.github/dependabot.yml). [Complete file index](../INDEX.md). [Current teaching overview](../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 37 lines and 788 bytes. Source hash: `07413419f600ab87ea13af910e8944bb977b32e82929506265d7b91dfd31612e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Three `updates` entries, each `schedule.interval: weekly`, each with a group (`nuget-minor-and-patch`, `npm-minor-and-patch`, `actions-minor-and-patch`) containing all packages (`patterns: ["*"]`) limited to `update-types: [minor, patch]`. Effect: minor and patch bumps arrive as one PR per ecosystem; major bumps arrive as individual PRs. Because CI runs on those PRs, the CI is the safety net for upgrades.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Continuous Integration
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-CI runs automated build, test and analysis on every change in a clean machine so that regressions are caught before merge. Workflows are YAML files describing jobs (parallel units) made of steps.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Dependabot grouping.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```yaml
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      nuget-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
 
-Dependabot opens PRs which trigger `ci.yml`.
+  - package-ecosystem: npm
+    directory: "/frontend"
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
 
-#### Why it matters here
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
 
-Keeps dependencies current with little noise.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      docker-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+```
 
-## Data and Control Flow
+## Before modifying this file
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None.
-
-## Gotchas and Issues
-
-Version-pinned tools outside these ecosystems (the `dotnet-ef` tool in `.config/dotnet-tools.json`, `global.json` SDK) are not covered by these entries.
-
-## Related Files
-
-- [`.github/workflows/ci.yml`](workflows/ci.yml.md)
-- [`Directory.Packages.props`](../Directory.Packages.props.md)
-- [`frontend/package.json`](../frontend/package.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

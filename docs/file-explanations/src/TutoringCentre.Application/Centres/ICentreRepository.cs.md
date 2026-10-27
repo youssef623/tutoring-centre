@@ -1,73 +1,64 @@
-# src/TutoringCentre.Application/Centres/ICentreRepository.cs
+# `src/TutoringCentre.Application/Centres/ICentreRepository.cs`
 
 ## Purpose
 
-Write-side persistence port for the Centre aggregate.
+Source summary (intent, not independent execution proof): Write-side persistence port for the Centre aggregate. Methods are named by use; nothing here saves — the dispatcher does.
 
-## Where It Fits
+## Where it fits
 
-Application/Centres. Used by `CreateCentreHandler`; implemented by `Infrastructure/Repositories/CentreRepository`; faked by `FakeCentreRepository`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Application/Centres/ICentreRepository.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 18 lines and 816 bytes. Source hash: `468ab2a05653e62319dd3faa68ee8e2cf4bfa743b92f38c0910a20e39eeb1f7f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Task<bool> ExistsBySlugAsync(string slug, CancellationToken ct)` and `void Add(Centre centre)`. Doc: methods are named by use; nothing saves (dispatcher does). `Add` is synchronous because it only starts tracking.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Repository pattern and read services
+- Line 1: `using TutoringCentre.Domain.Centres;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *repository* looks like a collection of aggregates (`Add`, `ExistsBy...`) and hides how they are stored. A *read service* is a separate query-side abstraction that returns DTOs directly, so reads need not load and map domain entities.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services](../../../../PROJECT_OVERVIEW2.md#68-repository-pattern-and-read-services).)
+- [Line 6](../../../../../src/TutoringCentre.Application/Centres/ICentreRepository.cs#L6): `public interface ICentreRepository`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The interface.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs:9](../../../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs#L9)
+- [src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsHandler.cs:14](../../../../../src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsHandler.cs#L14)
+- [src/TutoringCentre.Infrastructure/DependencyInjection.cs:124](../../../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs#L124)
+- [src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs:9](../../../../../src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs#L9)
+- [tests/TutoringCentre.Application.Tests/Centres/CentreSettingsDispatcherAuthorizationTests.cs:97](../../../../../tests/TutoringCentre.Application.Tests/Centres/CentreSettingsDispatcherAuthorizationTests.cs#L97)
+- [tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs:7](../../../../../tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs#L7)
+- [tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs:66](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L66)
 
-Declaration.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Handler logic is testable with an in-memory fake.
+```csharp
+using TutoringCentre.Domain.Centres;
 
-### Dependency inversion, ports and adapters
+namespace TutoringCentre.Application.Centres;
 
-#### What it means
+/// <summary>Write-side persistence port for the Centre aggregate. Methods are named by use; nothing here saves — the dispatcher does.</summary>
+public interface ICentreRepository
+{
+    Task<bool> ExistsBySlugAsync(string slug, CancellationToken ct);
 
-A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
+    /// <summary>
+    /// Loads one centre for modification, expecting it to still be at <paramref name="expectedVersion"/>; the
+    /// save, not the handler, detects a stale version. Returns null when no centre with this id exists —
+    /// callers that pass the acting actor's own centre id treat that as a bug, not a business outcome.
+    /// </summary>
+    Task<Centre?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+    void Add(Centre centre);
+}
+```
 
-#### Where it appears in this file
+## Before modifying this file
 
-Port in Application.
-
-#### How it works here
-
-Namespace `TutoringCentre.Application.Centres`.
-
-#### Why it matters here
-
-EF stays in Infrastructure.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No `GetBySlug`/update methods yet.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs`](../../TutoringCentre.Infrastructure/Repositories/CentreRepository.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](Commands/CreateCentre/CreateCentreHandler.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs`](../../../tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

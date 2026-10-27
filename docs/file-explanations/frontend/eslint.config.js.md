@@ -1,53 +1,77 @@
-# frontend/eslint.config.js
+# `frontend/eslint.config.js`
 
 ## Purpose
 
-ESLint flat configuration: strict, type-aware TypeScript rules plus React hooks and fast-refresh rules.
+Source comment (intent): "]), { files: ["*
 
-## Where It Fits
+## Where it fits
 
-Frontend config used by `npm run lint` (CI step 'Lint').
+Category: **configuration**. [Open current file](../../../frontend/eslint.config.js). [Complete file index](../INDEX.md). [Current teaching overview](../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 36 lines and 1,284 bytes. Source hash: `9c78d7d14fff9836bd89d18025ee5676bf5b08dfda9b413694020ba3b78aa05c`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`defineConfig([...])`: (1) `globalIgnores(["dist","coverage","src/routeTree.gen.ts","src/api/generated/**"])` (the generated client is not linted). (2) For `**/*.{ts,tsx}`: `extends` `js.configs.recommended`, `tseslint.configs.strictTypeChecked`, `reactHooks.configs.flat.recommended`, `reactRefresh.configs.vite`; `languageOptions.globals = globals.browser`; `parserOptions.projectService: true` (type-aware rules find the right tsconfig per file) with `tsconfigRootDir: import.meta.dirname`. (3) For `src/routes/**`: `react-refresh/only-export-components` as `warn` with `allowExportNames: ["Route"]` (TanStack Router files export `Route` beside a component). Running `npm run lint` after the merge (with dependencies installed by `npm ci`) reported 0 errors and 6 warnings, all `react-refresh/only-export-components`, one per route file that exports `Route` next to a component: `src/routes/__root.tsx:14`, `_authenticated.tsx:29`, `_authenticated/index.tsx:11`, `login.tsx:60`, `select-centre.tsx:29` and `status.tsx:10`; the override does not fully silence the pattern.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Strict TypeScript and type-aware linting
+- Line 1: `import js from "@eslint/js";`
+- Line 2: `import globals from "globals";`
+- Line 3: `import reactHooks from "eslint-plugin-react-hooks";`
+- Line 4: `import reactRefresh from "eslint-plugin-react-refresh";`
+- Line 5: `import tseslint from "typescript-eslint";`
+- Line 6: `import { defineConfig, globalIgnores } from "eslint/config";`
 
-#### What it means
+## Walkthrough and declaration map
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Type-aware strict linting.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`strictTypeChecked`, `projectService`.
+```text
+import js from "@eslint/js";
+import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import tseslint from "typescript-eslint";
+import { defineConfig, globalIgnores } from "eslint/config";
 
-#### Why it matters here
+export default defineConfig([
+  // Build output, coverage and the router's generated file are not linted.
+  globalIgnores(["dist", "coverage", "src/routeTree.gen.ts", "src/api/generated/**"]),
+  {
+    files: ["**/*.{ts,tsx}"],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.strictTypeChecked,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: {
+        // Type-aware rules need the TypeScript program; the project service finds the right tsconfig per file.
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    // TanStack Router's file-based routes always export `Route` alongside the page
+    // component; this is the framework's own documented pattern, not a disable.
+    files: ["src/routes/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": ["warn", { allowExportNames: ["Route"] }],
+    },
+  },
+]);
+```
 
-Catches unsafe `any`, floating promises, misused promises.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Six lint warnings currently exist (observed by running lint after the merge); no errors.
-
-## Related Files
-
-- [`frontend/tsconfig.app.json`](tsconfig.app.json.md)
-- [`frontend/package.json`](package.json.md)
-- [`.github/workflows/ci.yml`](../.github/workflows/ci.yml.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

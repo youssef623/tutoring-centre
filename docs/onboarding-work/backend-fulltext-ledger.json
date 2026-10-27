@@ -1,0 +1,2429 @@
+{
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentCommand.cs": {
+    "sha256": "8bfcd8fc228b81b91ff2e5b0da21e4dbc9e9fe179fa20802a50f032594209568",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentResult.cs": {
+    "sha256": "6a8753f26b449525e6f9294a4762084a9eaa74d7bdbcd9b7490ece055a6b2872",
+    "lines": 3,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentValidator.cs": {
+    "sha256": "c79e664006614748b61b0fe1eb292743f774e833c502b8792eeca7915c70670f",
+    "lines": 12,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentCommand.cs": {
+    "sha256": "35135349f2ae327c01fbfdd9faee051e2d09e05d3b1b3f354945adc621e1fed7",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentResult.cs": {
+    "sha256": "9ada4adc68f6b54dad9b874457581b1774f4dd8be602458659080239ba40adfd",
+    "lines": 4,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentValidator.cs": {
+    "sha256": "41ee0f10fd7963f09ea43a8804e4e90062d6f6957521b1f673f4f987f6fa0f3b",
+    "lines": 12,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentCommand.cs": {
+    "sha256": "c29b7b9cea383fec98418c139ead0a090eda965f216340935d07957afc7fb7fe",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentHandler.cs": {
+    "sha256": "e015461759977c90e1ae410895a648f7931871c1ecf0f56fb15526bece4bef49",
+    "lines": 29,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/WithdrawEnrollment/WithdrawEnrollmentValidator.cs": {
+    "sha256": "73df4111b0a09bee8b3c698fe80a40475033a8b099509a55cdf26c0da2e3d065",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/EnrollmentErrors.cs": {
+    "sha256": "b6a78ee7547790a45867283c11298ece8add11f5f3543135a5a45732f79fd152",
+    "lines": 25,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/IEnrollmentReadService.cs": {
+    "sha256": "3b6c9d494904f9ce28cea66439c7a87991e684d0f6405e1996ee39cf9ab12661",
+    "lines": 43,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/IEnrollmentRepository.cs": {
+    "sha256": "eef553b5a0caa344e1d3c6313214f83502c1edada4a40a7094ca093735f83f23",
+    "lines": 32,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterHandler.cs": {
+    "sha256": "72df746624179cc42c14d66967f45d037d6ea4a66090e0b16f4237b96df3095e",
+    "lines": 23,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Queries/GetGroupRoster/GetGroupRosterQuery.cs": {
+    "sha256": "b204c26945bb393e7d8ab0cc561890b75fc393b927323b5cd9c860e82649bae6",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsHandler.cs": {
+    "sha256": "c51ee8e31f0d3f250cf38f5cd32fdfe8d7b4af65634a58f5f72afbc1913812fd",
+    "lines": 25,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Queries/ListStudentEnrollments/ListStudentEnrollmentsQuery.cs": {
+    "sha256": "ce431af1dce3939aaf555721d611bb8de9eca77ef11bc4cb3cf5a270b1ba3c3f",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupCommand.cs": {
+    "sha256": "a419cd840fb239a0655452ff19f67289a6c76f091257cddb9de171093f400c89",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupHandler.cs": {
+    "sha256": "a130d457e25d5ce1fc9bbdaf1ce45e068b4a5be83c58212aafdc8da94c32d082",
+    "lines": 51,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/ArchiveGroup/ArchiveGroupValidator.cs": {
+    "sha256": "4249351cd70fe42e2d37920ecae66017dd88f238471ef6c90833bef54357db32",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherCommand.cs": {
+    "sha256": "c1ee4f6aa43c1aaa584e7ae39d138c0ad3d30306cf98100427bfadb57a042697",
+    "lines": 13,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherValidator.cs": {
+    "sha256": "680098b7ea0ff1a5281f42f4b57a657483b813289da311950c03a07e89fcacc1",
+    "lines": 12,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityCommand.cs": {
+    "sha256": "4d740d18dc94bb4ea404fdbb5c0f171a7f3775e7e7bf6825d5bd0bb2f1a81ba5",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityHandler.cs": {
+    "sha256": "932259f89ada42e9c732ee199c63f7cf540421f256d5c5c64f02f7b834505849",
+    "lines": 31,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/ChangeGroupCapacity/ChangeGroupCapacityValidator.cs": {
+    "sha256": "06c1f0a23b27684b2a4fb33002d58421183d93ddce97679663039e014c2fab04",
+    "lines": 12,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupCommand.cs": {
+    "sha256": "77774c422641c79fdfdae66eadb5e7be4f529cccd851590642424a0fa4e7ab2a",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs": {
+    "sha256": "786a534415c45a3beccaeb242f00a8d3c2107cbd380664ea388c637f193ea3e0",
+    "lines": 65,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupResult.cs": {
+    "sha256": "f0c49bf359901db8f0b857269b807b8abaa3f1e1dc9ab12e7fc855142ec7fe04",
+    "lines": 3,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupValidator.cs": {
+    "sha256": "3a52ae6f41ff4d04aa9d1f7201d36586a713042955424326f87046073aa1ba84",
+    "lines": 15,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupCommand.cs": {
+    "sha256": "f347877401d5528bfbcdea06be9d1eea19e3a4d299876611fdf50993de0fe788",
+    "lines": 10,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupHandler.cs": {
+    "sha256": "7935b2ab47a7e3cd58124c2292092dee91be18f1f30834c9836563f5f4a5e781",
+    "lines": 38,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/RenameGroup/RenameGroupValidator.cs": {
+    "sha256": "deba757c19ae574382f9e8e4e180236163ea6dcecba2d95731844f04d7d46a1e",
+    "lines": 14,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupCommand.cs": {
+    "sha256": "b2e4c479a8e5ffe53d2ebc53d1d9a8e5d4720d597851acb6e28b63a74433400c",
+    "lines": 10,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupHandler.cs": {
+    "sha256": "481d9caf2408a93ba9bacffbfcc3e91a1775d6f5d046b5da714225ac7e4c154a",
+    "lines": 41,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/RestoreGroup/RestoreGroupValidator.cs": {
+    "sha256": "21fcb2bad2854feabfa4be4c8e80228b6378f47718b2e1a46538e13252ae9300",
+    "lines": 11,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/GroupErrors.cs": {
+    "sha256": "dbda862e12adb628c7774c808f90c4058b7568f69569f97a30455e63a2f3be0f",
+    "lines": 35,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/IGroupReadService.cs": {
+    "sha256": "79c4459c729a379e2c0f20bd8c15a9533d0b4bc89e8006827d936750d28d4e20",
+    "lines": 34,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/IGroupRepository.cs": {
+    "sha256": "8fe2dfeb07d60bed73420a27ce99d4721d8d2cb4cad093f903703bbe4e1be8f6",
+    "lines": 52,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupHandler.cs": {
+    "sha256": "41396117542586a444906d9c530632e7d3e733f9404117c47e81031e49eeb0be",
+    "lines": 22,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Queries/GetGroup/GetGroupQuery.cs": {
+    "sha256": "739ae823804dc40ac03447b824c0f3ddb19c3a46b6651dfad845993810a53203",
+    "lines": 10,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsHandler.cs": {
+    "sha256": "812836fca83eff7cb3a69f0834e6f33055ed2109873c797506ce1e4d692402cb",
+    "lines": 20,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Queries/ListGroups/ListGroupsQuery.cs": {
+    "sha256": "afc1911fc381b3ef401768e1afccc845ce38ba8f7c54a5f29af891e2e4db85b4",
+    "lines": 14,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentCommand.cs": {
+    "sha256": "d0db6e61207a5420f81df3f3ad9e14db2ec3509e914eb952d322a1f9f3abd148",
+    "lines": 10,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentHandler.cs": {
+    "sha256": "95b83a9ae6fc4509cf98b2fc20bb73508147ef67342f23eed88c1f6609d2be44",
+    "lines": 40,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentResult.cs": {
+    "sha256": "f2707d8acb879c77c71891ef245e3ed53d992cae48a040d6b6e1a36c81653b1b",
+    "lines": 3,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Commands/CreateParent/CreateParentValidator.cs": {
+    "sha256": "bbb408cd1333e581967eb693b3b4b3b409fc22fa5512d68802894bf737353994",
+    "lines": 16,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentCommand.cs": {
+    "sha256": "381587673704de210cd172903ad5b94ff9426bf1ca653b077fca3918a31b5f16",
+    "lines": 10,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentHandler.cs": {
+    "sha256": "c85d4caef1c1e5fe188703a92706efe6c78403bd046bce2164527192290001b5",
+    "lines": 46,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Commands/UpdateParent/UpdateParentValidator.cs": {
+    "sha256": "a361078a54c2a9cfbb8908b299e37d1b222821b8d1802f02170729afeecc56e6",
+    "lines": 17,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/IParentReadService.cs": {
+    "sha256": "03c8d7603c506370f072ec6362b123635f6d9e7c7b16e7d7baaf01cd077fad89",
+    "lines": 26,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/IParentRepository.cs": {
+    "sha256": "444118baaada1d62d58df9cf4d75fc9b2b6eac3c5b8953041c42728569b26bfd",
+    "lines": 31,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/ParentErrors.cs": {
+    "sha256": "962d116b7a94a69eb24eb9da019ac98302b8c464dba53d88f5b60f99fe6d4db1",
+    "lines": 25,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentHandler.cs": {
+    "sha256": "ed6b8ad03c7c4bda6ca609acb8f987cc5fc293a00ca776660f17d5b39b2bdae1",
+    "lines": 16,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Queries/GetParent/GetParentQuery.cs": {
+    "sha256": "c3dec11eb8d43fb37feb69387c49a76264a42cbe7109a9f8bdf7bba09b6c7f49",
+    "lines": 10,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneHandler.cs": {
+    "sha256": "8226ff93dd8109609339db09cdb289a7b1efe41f588c7895e8004992d2d6e2af",
+    "lines": 22,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneQuery.cs": {
+    "sha256": "1389a8deff548708875441cded4e5a28c531c0d07ada86aa01b8df61b6be00cd",
+    "lines": 14,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Parents/Queries/LookupParentByPhone/LookupParentByPhoneValidator.cs": {
+    "sha256": "573c119ddc3901becf24cd42a2edf49fef67fd197f981ab8b56cfa39dc84337e",
+    "lines": 14,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleCommand.cs": {
+    "sha256": "936fc9f7cd46d6359e2d0dd7f01c0daccad41c0b63d8d20248466a037204c2a7",
+    "lines": 15,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleResult.cs": {
+    "sha256": "c6876c0f640edc2fc5142df6da979970e8bbc2be25c30336a8b29aeabdc49f59",
+    "lines": 3,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleValidator.cs": {
+    "sha256": "919ba5ca9efe63ed5afa601a42b75ae82d79bc1c2f370cde4ec92a4f6c683845",
+    "lines": 20,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionCommand.cs": {
+    "sha256": "fa9910ab6a0f18d54f0cad46ecd9429ef6dc1e641b25514ca9afdee699a91c78",
+    "lines": 10,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionHandler.cs": {
+    "sha256": "e093eb8ef4f8926233244a40b1d7c0b71def75c1f845f949b9f174f7fc853bd3",
+    "lines": 27,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/CancelSession/CancelSessionValidator.cs": {
+    "sha256": "ff9dee57f4310dfb58f7059ccce353606fd48ddaad73cbc1e0e59bae508ec97a",
+    "lines": 11,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleCommand.cs": {
+    "sha256": "95dca2fcd0fae010c950889cbdecc235ca4316e20228d314781585a1ce09529a",
+    "lines": 11,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleValidator.cs": {
+    "sha256": "1860faa727b26848a816f31d34898b6d66deaa5cfb1e19c3b3e7b3150dd8f8da",
+    "lines": 12,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleCommand.cs": {
+    "sha256": "4dc6f51e57d09ea9ed27ff00a73db660d4d45899d4a8c15820aa134f26632872",
+    "lines": 13,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleResult.cs": {
+    "sha256": "be272a8a637ee2393359e6954cc22d9194895111c212b2e3cd193f497afbc89f",
+    "lines": 3,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleValidator.cs": {
+    "sha256": "28071e91b25ed7fe3e81a69c6e209385663214a665e60c53ffff079b883f412c",
+    "lines": 11,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/IClassSessionRepository.cs": {
+    "sha256": "b481280cb4105e49fc26d5382be3473e3091648d03e3337c5ac32c1a335bd409",
+    "lines": 44,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/IScheduleReadService.cs": {
+    "sha256": "95770ecfee705d62dbc3c0f223fc6e8334ae8eccdadadc1a489868d516fbe745",
+    "lines": 53,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/IScheduleRuleRepository.cs": {
+    "sha256": "390cd7f9020b54cbee34eaab3d735a15b3449f998bdf4c40ca82ce34b78ed48d",
+    "lines": 29,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableHandler.cs": {
+    "sha256": "214f702856f77b2bd3d926a2d34bd7156f62aa20c74a566dbec7af1aa8ad049d",
+    "lines": 28,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableQuery.cs": {
+    "sha256": "694acd96934e2e9dd3852f47ba0f68ae68e35744b177a45ab10a6f8e6772dba6",
+    "lines": 14,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Queries/GetTimetable/GetTimetableValidator.cs": {
+    "sha256": "ff0f388bef0b64475959136035510792910c1a262cf7ae4fba1bfde36f5c0aa0",
+    "lines": 11,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Queries/ListGroupScheduleRules/ListGroupScheduleRulesHandler.cs": {
+    "sha256": "91ffb233b3d90def204ba1b52da9c2382b3f86bf4d94618e480c301fe68622d3",
+    "lines": 25,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Queries/ListGroupScheduleRules/ListGroupScheduleRulesQuery.cs": {
+    "sha256": "c523dcc01ffe459b195e47d5d7b55991eda77a99148a96576d12c2d60e0386b9",
+    "lines": 11,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/ScheduleErrors.cs": {
+    "sha256": "0f8d26631352719e662fa56f2e260b52a51030876f2d914986d8c1e6d752c479",
+    "lines": 23,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/ScheduleHorizon.cs": {
+    "sha256": "bcd1a6637ee1e913abb8490dd2d6789df5297fdda0253baf67588297515f5943",
+    "lines": 14,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentCommand.cs": {
+    "sha256": "b0ba04498207f9df80fcea4dac77a3a276a02a730310d412439ef3762bca41d5",
+    "lines": 10,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentHandler.cs": {
+    "sha256": "17f4928eabd37f918ec5ee2275a83446f5b17eeab95898fca40cf483060b0588",
+    "lines": 29,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/ArchiveStudent/ArchiveStudentValidator.cs": {
+    "sha256": "139790b60cbf6deb9666e11e7254ada6ba7c5cf47f4dfbeccda4da350e5e9c37",
+    "lines": 11,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentCommand.cs": {
+    "sha256": "a3ff67dc434f203cf7ac8e24de9791a1b14ddde547d43cbb5607efe1f0ab937c",
+    "lines": 12,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentHandler.cs": {
+    "sha256": "eccde904713ea4e4af00cc5ef063625478a9dd371f0acd0d29df1c7b6e174b5c",
+    "lines": 33,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/LinkParent/LinkParentValidator.cs": {
+    "sha256": "6abdc9dd8a282018732072093d0e67b49b19a721444fb9ff47a5593d40346d6b",
+    "lines": 13,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentCommand.cs": {
+    "sha256": "b66aa7b0d29af39d019b392d1b62670ade14f6d10ac9549ed5befb8ca04a684f",
+    "lines": 20,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentResult.cs": {
+    "sha256": "6ee26b0706fe22195709fb4582870638cba40f555ba026a519a8376a61816d74",
+    "lines": 3,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentValidator.cs": {
+    "sha256": "21e4b19116675def2538078c202d873de98337ac2f0bfe2222a7d3b4a8d38c50",
+    "lines": 41,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentCommand.cs": {
+    "sha256": "37ab654e0536e662263b5bdca808a623144c99cc4cbfb58a8535b611a5be420c",
+    "lines": 10,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentHandler.cs": {
+    "sha256": "c8d3969203e1ee2956280566e3e353c18df11ecfe0224d246914753c40ee26f9",
+    "lines": 22,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/RestoreStudent/RestoreStudentValidator.cs": {
+    "sha256": "3cfc38eeca4207b4e14783cc91aebbbc00bdff5deeb2c70499e75f5e65186a79",
+    "lines": 11,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentCommand.cs": {
+    "sha256": "e177d02b448d57d2a95f51fe9f704df60d8267c98d79a6217fe953bb930882b3",
+    "lines": 10,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentHandler.cs": {
+    "sha256": "9182376393e7ad6338c7520004cc5c1f0918df7cbdb140b83e0bf060e7fcb43c",
+    "lines": 22,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/SetPrimaryParent/SetPrimaryParentValidator.cs": {
+    "sha256": "ef379218d0809360f00ab7a05f404e3f8723a923949209e01ef7243d5a2421b8",
+    "lines": 12,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentCommand.cs": {
+    "sha256": "9c8596cd36fb6cf504c42e2ca0ff03b981e1f66c21bd7dbedaa37f3a82b5c57d",
+    "lines": 10,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentHandler.cs": {
+    "sha256": "88dbe038458c503ced628b611dd686677fac725c0897e0fb8e5d4b428a7bb1af",
+    "lines": 26,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/UnlinkParent/UnlinkParentValidator.cs": {
+    "sha256": "1cb1f2a4d935b9e2b6dc0301ad10e382c1fc272bee18b1e50c533af94cbb68cb",
+    "lines": 12,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentCommand.cs": {
+    "sha256": "4b93033efbbb75fcaa621648bad9f3120011fae80235ed8638073385257572cd",
+    "lines": 15,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentHandler.cs": {
+    "sha256": "6b6ef10d57a8065bf7320b46bb011a5b378b8c7d80b00365a0b0842cba54ebfd",
+    "lines": 38,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/UpdateStudent/UpdateStudentValidator.cs": {
+    "sha256": "89b6b84987e08785294dcd88d97bed9d1d72feecb6b299b6874d8bcdcd87896a",
+    "lines": 17,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/IStudentReadService.cs": {
+    "sha256": "c57f35be92b5d1d7601fb3914696884bffebbfdd3f99a556a684965e0e57a586",
+    "lines": 28,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/IStudentRepository.cs": {
+    "sha256": "d6e52bcdc887045e3d56f0c2b3f43d170ebdd9e5964c77566998f1e2f8058fc1",
+    "lines": 25,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Queries/GetStudent/GetStudentHandler.cs": {
+    "sha256": "f6b51b70a5bf494ee1c99bdaaeaeadb1245b26f7832d0e5b14d7805a0009a346",
+    "lines": 16,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Queries/GetStudent/GetStudentQuery.cs": {
+    "sha256": "de0de58b2aeba9b696226b755d9323d89dc24cf4ffb5733ad048f3277e9a10d4",
+    "lines": 10,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsHandler.cs": {
+    "sha256": "172b334c9c6289739f7d037bed1554025ce014fc38854f0af4ff3fe4b623adcb",
+    "lines": 16,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsQuery.cs": {
+    "sha256": "4d8ac780725814b0b54b47d9ba860e2aa89d1d308b6739f79206dc11b5d82e9b",
+    "lines": 11,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Queries/ListStudents/ListStudentsValidator.cs": {
+    "sha256": "c2ea2e72d9569d23e128825a33e2b1c4b64b4447b572af4dd682e100070d4e3d",
+    "lines": 16,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/StudentCursor.cs": {
+    "sha256": "cffa8fffc3fcf9d03135b00f4531dc5f04f7d40d1f3f64db38ff72085577cf21",
+    "lines": 58,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Students/StudentErrors.cs": {
+    "sha256": "247751e70fdaeed79b346066e82968de9639880b83fc50b21cc7cb729cf5b999",
+    "lines": 33,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectCommand.cs": {
+    "sha256": "826891e09c146c1ee99b8ea7f1d1d46b2f61a653443522aaf77c2463d78dc4f2",
+    "lines": 10,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectHandler.cs": {
+    "sha256": "c3f46be8ccba40ed0611295709e8d5b5a297b48e002c29c517587c203e886326",
+    "lines": 28,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/ArchiveSubject/ArchiveSubjectValidator.cs": {
+    "sha256": "971ba56b4621e3958d4e2d92611cef9d46d33fe5ad86ed852d8c192a27715fbe",
+    "lines": 11,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectCommand.cs": {
+    "sha256": "128518c95300edee741b1bec6ea7e87fc88f27181b850d5d3f67855811e1c937",
+    "lines": 10,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectHandler.cs": {
+    "sha256": "df309cabe16d2e8bb3d263fdfb87af981e5c098c665ee2dbfea45aafde27c6db",
+    "lines": 36,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectResult.cs": {
+    "sha256": "5b97a96cf108720ba21b21376f9811ed801af835b5d7553347734b62975e38d8",
+    "lines": 3,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/CreateSubject/CreateSubjectValidator.cs": {
+    "sha256": "80df441171d33c0bdf7fbdc270028c9ea0853f4e310523f5c85b452dc68fca4a",
+    "lines": 13,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectCommand.cs": {
+    "sha256": "009cc400c0a7c9e836cc4bccecea29fb1dfd51f32a92dd2b14918924da6cd581",
+    "lines": 10,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectHandler.cs": {
+    "sha256": "e5956849c88e309164d646d2a1642d396707e5290072fa54545f180956547e94",
+    "lines": 41,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/RenameSubject/RenameSubjectValidator.cs": {
+    "sha256": "af8c23a88b4e6021f0779cffb441c8406266fd50d7b850e09500abb781dd48fc",
+    "lines": 14,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectCommand.cs": {
+    "sha256": "96502fa83868288e7576397d9d015476698a6ac8789b274a5c3a72733a95393f",
+    "lines": 10,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectHandler.cs": {
+    "sha256": "e92564075ce03b00078503613a48ecb3579bb3a20395c92a55a236b9dd650968",
+    "lines": 22,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Commands/RestoreSubject/RestoreSubjectValidator.cs": {
+    "sha256": "ba15bd384fba0ba07f393fd669616ea12f69c0002527879b39a4d9aafc672cd7",
+    "lines": 11,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/ISubjectReadService.cs": {
+    "sha256": "49087f5194f35e2ad8d317fdcca24f9f4d7b968ec60f70761376656fabbbd0d0",
+    "lines": 16,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/ISubjectRepository.cs": {
+    "sha256": "654192145567219af8f9e248fec6657f5ee940eb72aacab8f7b53c258bc3d02d",
+    "lines": 27,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Queries/GetSubject/GetSubjectHandler.cs": {
+    "sha256": "2be8d54132521c684ad7fe593c71e9eed73118c908daf8e283f015c99ca735d4",
+    "lines": 18,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Queries/GetSubject/GetSubjectQuery.cs": {
+    "sha256": "6cd8a33aa1053d7534427bca0d712924fe4c18e70dbd399042a9a626546af7a9",
+    "lines": 10,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Queries/ListSubjects/ListSubjectsHandler.cs": {
+    "sha256": "1ac186922dbaef62c9f8b81a1088faf6c528f750fdcc2fa84c43093c22338559",
+    "lines": 16,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Subjects/Queries/ListSubjects/ListSubjectsQuery.cs": {
+    "sha256": "ba3fa700cbe068c081e26a2931e541fbe289dd2d4a208ca98341e5cb0ada5a85",
+    "lines": 10,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherCommand.cs": {
+    "sha256": "4d993d6858a7e9ce9df76b2cc2c5e34ecc666f71070181b35eb34530fd2d053a",
+    "lines": 10,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherHandler.cs": {
+    "sha256": "70952c29b068f3ec1c6cdb38911886a29fa68f49494237842c8bd4ab5b34de09",
+    "lines": 28,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/ArchiveTeacher/ArchiveTeacherValidator.cs": {
+    "sha256": "3a1fd1a6b78af7ed9b1981cff146373a503c69184af16e487713163f935cc8e8",
+    "lines": 11,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherCommand.cs": {
+    "sha256": "dd29ec0e83534baedb8092f16ca02805c1f66404ce7a10ce5ed7e662281352ff",
+    "lines": 14,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherHandler.cs": {
+    "sha256": "5df9c7361d465f3c95be9f156a0a8d905379ad3f5bae7a7eec01ca2842d79e97",
+    "lines": 40,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherResult.cs": {
+    "sha256": "2f83434cc694c5551bb6272b1ba46ef444134a1550daa9229063a60bbf2f0968",
+    "lines": 3,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/CreateTeacher/CreateTeacherValidator.cs": {
+    "sha256": "0c169d1baa9421a90afe83f6b96d556168db556e8658eb10e6f6eed89c33dc5b",
+    "lines": 16,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherCommand.cs": {
+    "sha256": "5e592b6061c3d700d303e4e02580895b94028e643f6fd5277ac7ebcf7959ad85",
+    "lines": 10,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherHandler.cs": {
+    "sha256": "80a9fd25c47bc2ea08eb00c7b4c611ace5c2b562289077a419d3aba47a92a6c1",
+    "lines": 22,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/RestoreTeacher/RestoreTeacherValidator.cs": {
+    "sha256": "f2b0c22b2463094c88ba4c468e02f5e42b3456253f9a17ce6b3820feba102421",
+    "lines": 11,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountCommand.cs": {
+    "sha256": "b822d5a753b38471497af752f36a808a8e34aaa446e2e25e76d819b6b46367c9",
+    "lines": 15,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountValidator.cs": {
+    "sha256": "f612e385ab91c8b8629fe4e0cb938eb341773797f366a0f430f32f190f0f182b",
+    "lines": 11,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherCommand.cs": {
+    "sha256": "8a0583c2649f7b6af2ce7eb2e0011566f5842a62433fecac97fe951f76556a8d",
+    "lines": 15,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherHandler.cs": {
+    "sha256": "8daff2d47b82789ed447f45956f87f9556ba086123875f990eb6e54ed8b3b537",
+    "lines": 38,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/UpdateTeacher/UpdateTeacherValidator.cs": {
+    "sha256": "6fa1d62faee323be8a07b5169a7ec539f43c0c3d534ec7dd4c5fdb84ac44ca54",
+    "lines": 17,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/ITeacherReadService.cs": {
+    "sha256": "02daeb70584d4f3b1fc2d94d1e794aebd2cee6270bd3d502644f663bc43d11fa",
+    "lines": 30,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/ITeacherRepository.cs": {
+    "sha256": "abb7cf0451927ca998db95c4abf1702c1479df8c5cf4d77b8c8bb1c0763aa864",
+    "lines": 27,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Queries/GetTeacher/GetTeacherHandler.cs": {
+    "sha256": "333f1cccc431638ef9a95c5219f4c05a3fd909d5ff0df07d8c3275c27c40543a",
+    "lines": 16,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Queries/GetTeacher/GetTeacherQuery.cs": {
+    "sha256": "c7e78774fe4ac2125e80ac911dd3b7e7d375fef6f7d4bc41746d25daa7539d89",
+    "lines": 10,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Queries/ListTeachers/ListTeachersHandler.cs": {
+    "sha256": "98f8508184cb840e9dfeb0a59c755a3e37aee5bee623b86771641cbff8be3e3a",
+    "lines": 16,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Queries/ListTeachers/ListTeachersQuery.cs": {
+    "sha256": "9dd823dff4d22f195282e2f92da841a0a59525887bdf2b0aebc5898f3a8fb700",
+    "lines": 10,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/TeacherErrors.cs": {
+    "sha256": "b3df8ac678f260c4c21a75a0fd37b24adc8703e5af0f4783e62532e3a3d55693",
+    "lines": 36,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/AssemblyMarker.cs": {
+    "sha256": "fa538f12d586a741bcc4be3bded3a7c29a0b89778d40b08ad8468948d4584ed4",
+    "lines": 4,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Audit/AuditCursor.cs": {
+    "sha256": "73c57d09ba6c3bd14055802b93ed53218a16006884e4aad7ee768907581aca92",
+    "lines": 59,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Audit/IAuditReadService.cs": {
+    "sha256": "6bfeecbd0621d5f555fc0c7873dec0a2e852165147a72dce2e3855dc1b826e33",
+    "lines": 43,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogHandler.cs": {
+    "sha256": "ecfa6ddc65097d390a5f664a907ccd9337ca437b09439573e0c9adf6cb4b41c3",
+    "lines": 25,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogQuery.cs": {
+    "sha256": "463b33f2dd071ad45f799348ff60120d23b5b70db7ea966fc50560ff4180828e",
+    "lines": 18,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Audit/Queries/GetAuditLog/GetAuditLogValidator.cs": {
+    "sha256": "f52bf9e2302d1f10d01387758363d50f3402e1d3216201da8f1d14fba5a964b4",
+    "lines": 37,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreCommand.cs": {
+    "sha256": "98577e852f858a1721a74b7f8174d82e43def420375f14b82418d946c294ad0f",
+    "lines": 8,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs": {
+    "sha256": "d3bef3f8939ccc98f0a0bb2d9ca417a03ca1099497085765ca623f11713e8f1a",
+    "lines": 42,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreResult.cs": {
+    "sha256": "34dde0ed0dc7e84402950aab1f822576e6bdf452dbcf8d1846d63cfbc1d6a1f8",
+    "lines": 4,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs": {
+    "sha256": "1ab24f3867d657a017b537b59a84ee6b5c4b14d6567375c55b1cc2bb86f1b17e",
+    "lines": 18,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsCommand.cs": {
+    "sha256": "51b6ceb31a412dc1842c61b7819bac9c76efc041273b8e6125c1aa653c16e61d",
+    "lines": 12,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsHandler.cs": {
+    "sha256": "de9f2bdccf19e3871193ae5c38303ba8adc9a47bdf7aca5b13c0348549ce0574",
+    "lines": 28,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Commands/UpdateCentreSettings/UpdateCentreSettingsValidator.cs": {
+    "sha256": "b6a15dfc2c8ad63a2f168415edb039d63cbb82971860e770cee1e92def478317",
+    "lines": 14,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Contracts/ICentreTimeZoneProvider.cs": {
+    "sha256": "85405ebd7e20f3702e6681aebad9f739bbbaa7ac843e4edc65f73012125be84e",
+    "lines": 15,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/ICentreReadService.cs": {
+    "sha256": "9cde18fbc43f332430a98c5841acbd1c0b451e179a47de3dde9bac73a4b87bfc",
+    "lines": 13,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/ICentreRepository.cs": {
+    "sha256": "468ab2a05653e62319dd3faa68ee8e2cf4bfa743b92f38c0910a20e39eeb1f7f",
+    "lines": 18,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsHandler.cs": {
+    "sha256": "82b1f0b6309e3bcc4372d4ce083074ef57af9505ebcc3b789b8b2e69d06b6ad8",
+    "lines": 22,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Centres/Queries/GetCentreSettings/GetCentreSettingsQuery.cs": {
+    "sha256": "ddf12b41f7d057fcd8b3b202b4732ce0570c4bbedbc4c8395521370a30621ad7",
+    "lines": 10,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs": {
+    "sha256": "cf3343f79b0acadae6673ef0bcdab59897724f2fceb095cc936afed711cb4795",
+    "lines": 36,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/ICommand.cs": {
+    "sha256": "13c9aedc103982b53ac4de24ce215152af7131ff470486d7ec26d9b78fbb0d46",
+    "lines": 7,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/ICommandHandler.cs": {
+    "sha256": "3f3f04bfcc59024f0e6aa45d280599138216031e6bd69cf952d9403130db44f1",
+    "lines": 10,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/IQuery.cs": {
+    "sha256": "3481313cdb3bdfb5da7fe8188c457198a69cb462269b4a66ebc56f77d1eb8960",
+    "lines": 4,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/IQueryHandler.cs": {
+    "sha256": "fe0cb41249807b8c10f2db27802731ea6d94dc3ea4b38b38d8c345a17472ee16",
+    "lines": 10,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/IRequirePermission.cs": {
+    "sha256": "d1d3026196d3bbd92d64fd4c2ba686ba33ee879abad830e92bab4ce8da84ed7b",
+    "lines": 14,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/ITenantScoped.cs": {
+    "sha256": "661c40fb4679b451ea6013a2cf3a24d44d1eed48092f072b5d3ba7e3c06afea9",
+    "lines": 8,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/Unit.cs": {
+    "sha256": "1d1c17bc806828c9956efb182a7a316c97284fb91e1ed22e65e5f81dfbf61f12",
+    "lines": 8,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Ports/IClock.cs": {
+    "sha256": "055d3cdd4a94f26a5779b7b17c2ad0d400f9c0ba62b7c12b850e5fde59b2bb4b",
+    "lines": 14,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Ports/IUnitOfWork.cs": {
+    "sha256": "980698acbe1643d3b851ff4a82c276a58a17807b6cc9f1adf8649d94e7c2905c",
+    "lines": 32,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/Actor.cs": {
+    "sha256": "03a58c2709ad43422817b9f0ea80d4f6d3899dae4b93e8916f08eb2152187512",
+    "lines": 34,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/CorrelationContext.cs": {
+    "sha256": "c4040500a120728192eebf5d8795369f583244e98fd5d4ae0a64247bdc4d2dca",
+    "lines": 27,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs": {
+    "sha256": "7ddbe55729480e04e52388b54ec2fc1bac7180926ff397302420925d89bfb3a0",
+    "lines": 41,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs": {
+    "sha256": "fd4b8abcfbaceae02bfa420369d846c2ba950f82ca84a22b29203d5ad1088667",
+    "lines": 24,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/ICorrelationContext.cs": {
+    "sha256": "482646b09e98067648b727515719500df01ae59253f050ad9db7a712bcd31465",
+    "lines": 7,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/ICurrentActor.cs": {
+    "sha256": "b02915dd56d902ddf9720cc8bc7bb6f9a176c9c3d5529b40dacf195b11b71423",
+    "lines": 7,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/ITeacherScopeProvider.cs": {
+    "sha256": "8fce0aa778213cb139afb7bf9b7a6758d404e9e5c433bc6bf832c4f5a7c0c638",
+    "lines": 11,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Security/TeacherScope.cs": {
+    "sha256": "d7403f43b68aa3eb56157052e90f9bebbeaf4e06580e3a51e44ea463ebccdd0f",
+    "lines": 42,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Common/Time/CentreCalendar.cs": {
+    "sha256": "e4dc7b1aae00339d5f883f36366cde322c6d888cd4600d94d0987b18cebe1a76",
+    "lines": 18,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/DependencyInjection.cs": {
+    "sha256": "24d4a51f4e612655bf39f88da59410b68f06f21f99418db8b54a8c3035a269e6",
+    "lines": 27,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Contracts/IStaffDirectory.cs": {
+    "sha256": "70e48cc2537778ea94c385be9840194a4b1dd7ce90afe5ade27f15aab69f673a",
+    "lines": 16,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/IMembershipReadService.cs": {
+    "sha256": "f54082b3d98e4e8363da50bff0fc284ab8080d4b6ce01744656ea87d38a6b8b6",
+    "lines": 42,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipHandler.cs": {
+    "sha256": "fa0a28bc7446dfe499abd1ff6d31feab9d850949b3d8a0677a7ce3261c09fcdc",
+    "lines": 41,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Queries/GetActiveMembership/GetActiveMembershipQuery.cs": {
+    "sha256": "8d88019a8019753176a9b79723bc7f74f4497d6be890946cdf4cd8a923dc8e3e",
+    "lines": 6,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs": {
+    "sha256": "e0626e327d3eec0b6a82da7ad3e563c0598fb7aaa0d480d0b1b23221b168e8e1",
+    "lines": 52,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsQuery.cs": {
+    "sha256": "8f4eb0b3a5716acfd4ae99e3f64b97f5b8ec1359a951984054424836d5394b47",
+    "lines": 6,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs": {
+    "sha256": "2ff62a7a62f4d049a31308cf8ee9dbbb5020ea4ec4bb6f3b9309d0bf4d8ef7ad",
+    "lines": 20,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs": {
+    "sha256": "e831e2d3954fb4887d355f1711a77e1d490a1a3536f41e49f07bc9e7a27c1317",
+    "lines": 27,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs": {
+    "sha256": "97031f25e70898c90d63d3b031aeed9da3184f0b5098243bce6309e2fbb7e1da",
+    "lines": 13,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Platform/IDemoModeProvider.cs": {
+    "sha256": "7bf40949e85de485b80c521961d9f6c90b2d831e7ec255fc2271da82077b70f8",
+    "lines": 12,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Platform/ISystemInfoReadService.cs": {
+    "sha256": "b85572f52ef52d50537f30c2fa4097c77070d07e75c3df9ce6542e81a4edd4c2",
+    "lines": 10,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs": {
+    "sha256": "a5850731067dfd8d3555d78608aa0b88f69b55bbee8b8b1dc50197ba92233926",
+    "lines": 41,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoQuery.cs": {
+    "sha256": "dbfe5903907d9e7aa7972e1b67b126102358eee67d31da2c69822de3fe78968a",
+    "lines": 6,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Platform/SystemInfoDto.cs": {
+    "sha256": "7fa6fe60a563db20f7268333dae780f92b8f18c6e55e1b548510fbe361853263",
+    "lines": 4,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleCommand.cs": {
+    "sha256": "b2dd527529596872fdbcd23dcf13c23f9eca964f0cb2495cfd00946233c3a176",
+    "lines": 11,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleValidator.cs": {
+    "sha256": "ada2b053e5460f858e0f79964669eb552d289892ab2c46dcc4abadd4dfb626f1",
+    "lines": 12,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffCommand.cs": {
+    "sha256": "744284405094b45f144e54d78037ce503989e8bc9cafcc811b2e64386df2e61c",
+    "lines": 13,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffValidator.cs": {
+    "sha256": "2960bae8ed6f999c2d026c77635f8d7ae0dc63384cebfcd654250ac0912a914c",
+    "lines": 18,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffCommand.cs": {
+    "sha256": "c115405033cb2816643e80141a57e81b87d25abfa777b2d4184091a43fb29ace",
+    "lines": 11,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffValidator.cs": {
+    "sha256": "13262922ee0a5f4b92a3858536f594955eafae20c29407c8f688a41729ce5c39",
+    "lines": 11,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffCommand.cs": {
+    "sha256": "ef2011e518a873a1a5567d8ff0f9d5a5d0e03f06765474ba90aa4b15e95f2d71",
+    "lines": 11,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffHandler.cs": {
+    "sha256": "dd33f5d9135bf80c5a046b578b63a48dc8ddc939b58474dbafcfaee02030b4ec",
+    "lines": 26,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/ReactivateStaff/ReactivateStaffValidator.cs": {
+    "sha256": "786c450237a86697cfac08b10e273e8c2e0452c0afb91c54af58991374f55450",
+    "lines": 11,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/IMembershipRepository.cs": {
+    "sha256": "0f9cb0aa451422cc732b73643ce7bd4e9d6fb4bba78cf9eb92f036460d4c5704",
+    "lines": 33,
+    "packet": 7,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/IStaffAccountService.cs": {
+    "sha256": "78ad352421b66af99c24f8da68f796b479253d8df209e0d92a410ec0fe2909c8",
+    "lines": 22,
+    "packet": 8,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/IStaffReadService.cs": {
+    "sha256": "f431c61306a9a8cb59a092502fcc8e70bb2aa931f2deeccaff62648581e1e18f",
+    "lines": 24,
+    "packet": 8,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Queries/ListStaff/ListStaffHandler.cs": {
+    "sha256": "27d1d2a8286c35618e789c56e169f2117900668d2951cef588d7367eae455f03",
+    "lines": 21,
+    "packet": 8,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/Queries/ListStaff/ListStaffQuery.cs": {
+    "sha256": "b25f8862d8b7ed61316454f34872da966175412bb43f1c30f3a13406f00537f8",
+    "lines": 10,
+    "packet": 8,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/Staff/StaffErrors.cs": {
+    "sha256": "ecbc55a9d7035f886a00bbef5368b06dc211c14ffae0427dbd95ad473abfdcbd",
+    "lines": 13,
+    "packet": 8,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Application/TutoringCentre.Application.csproj": {
+    "sha256": "ba8a031af8f158d0f7207176231328ab4c0405153ae9afc5bf6d2d536ae6de2d",
+    "lines": 15,
+    "packet": 8,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/EnrollmentEndReason.cs": {
+    "sha256": "5def600eb11743612dc3764331a6dc8f314240cd8989e91db947cff215a29561",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/EnrollmentStatus.cs": {
+    "sha256": "1ece1985f4b2d280037af3f71c515ec118482de02947862b4d9ef735453aa7c0",
+    "lines": 7,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/GroupStatus.cs": {
+    "sha256": "4f7767da4b3183e25882809ae0212d070e80960e5f23ce6ab29aabfe4bf7cf48",
+    "lines": 7,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/Parent.cs": {
+    "sha256": "4876ec6d491437e8b09ed12fea4a33de589d6bd1cde56ec005b585a92fc5c02b",
+    "lines": 91,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/ParentRelationship.cs": {
+    "sha256": "668d6cbe03973fa7cd480537c014bb267b2254af2587989269205fa2823034be",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/Scheduling/ClassSessionStatus.cs": {
+    "sha256": "9234aacc98fae28b6f3ddce3ba5bb76bf33689088b88ec511363c10195578e43",
+    "lines": 7,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/StudentParentLink.cs": {
+    "sha256": "6bc555e8c45acadb72c0b0c9facbd522795194a0e6080ad8aeb8518967827f84",
+    "lines": 39,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/StudentStatus.cs": {
+    "sha256": "7e95ccb29450f787220d687fdd95a2d91a14cffe58d19588bb30f6050a6731cd",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/Subject.cs": {
+    "sha256": "721ee50cc30bd5e00ac69877462393bf6e981173099ce469590672dcbbb2ffa4",
+    "lines": 115,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/SubjectStatus.cs": {
+    "sha256": "1357a4f2f2bfb113493e12ada1c94da55c09e166a63f5aae7a8c73a25dafd53a",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Academics/TeacherStatus.cs": {
+    "sha256": "bab214c0f7d408182800cfd6d282f58b5f6bdf7427d44af962a59557fa12f41d",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/AssemblyMarker.cs": {
+    "sha256": "fc15d041fd7c1a4c307c51e9b5cff063228e43bf955069f756d74b30de64a9d4",
+    "lines": 4,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Centres/Centre.cs": {
+    "sha256": "05ff0af5aab9aff7a0aa2c42e9c03b18ee51064d2f86a0d7b797c8a18a4908ac",
+    "lines": 120,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Centres/SupportedLocale.cs": {
+    "sha256": "1556332714b6d5821faa93338eb8ad60daf7b476401306b67aa4854194709ced",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Common/Entity.cs": {
+    "sha256": "b2b8b18298466ef95e14ff72e00729cb6f493187ff3ad8ba6c4ee6d2c5f85ffd",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Common/Error.cs": {
+    "sha256": "021a7446014519a640c56f84e003031697f9d0fcdd6075eb98774c74f87da4d9",
+    "lines": 35,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Common/ErrorKind.cs": {
+    "sha256": "a29b933e4bbc6793999a9ae9cca86cf437699d0324aae84b8de1c5df8bc283f9",
+    "lines": 15,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Common/ITenantOwned.cs": {
+    "sha256": "cef5df4f4527562ed57e828ba239aba7db42f63261604dded1aa1bce0ba8e95a",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Common/Result.cs": {
+    "sha256": "0c0e79416f52e29b4267468790df29e5b5dbb4d455c65ef98494c72dd6a6d640",
+    "lines": 70,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Identity/Membership.cs": {
+    "sha256": "97157928a3f481a67b8a23cb6d40dd433841ff46f4323c6589db59fc2c93ae19",
+    "lines": 85,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Identity/MembershipStatus.cs": {
+    "sha256": "0207f9dc3e97d290c51876f0c7f8972f2d82a6d2dd5ed7166ee513d35039daa3",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Identity/Permissions.cs": {
+    "sha256": "834dbf668492ac97495a431118ca7958f30cdbba2367b95ef614b2be7cbf2ceb",
+    "lines": 42,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Identity/RoleScopes.cs": {
+    "sha256": "dc31e47d91c6d35389d2b047aaa29290b4e9b05835d756b14fca73ff70b4cdd0",
+    "lines": 12,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/Identity/StaffRole.cs": {
+    "sha256": "0b218ab802f92b2ca328d8b5e8777ba484ce08176d28ef1cdf3ff60df886d2f9",
+    "lines": 9,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Domain/TutoringCentre.Domain.csproj": {
+    "sha256": "3301b419232c1cbcd3cc51687269ab7d36c0802472304bdd46b2e0db417ba5d3",
+    "lines": 7,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/appsettings.Development.json": {
+    "sha256": "817db0bf2ecca78364c41dbaf7949bf2504cf47a1c3d0d54f3be8178fefc030b",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/appsettings.json": {
+    "sha256": "ac4ff3f785b02cbf2bd561b8ae84545551d4e86d3d08ee92938c8ad4d2a0aa3e",
+    "lines": 20,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/AssemblyMarker.cs": {
+    "sha256": "5688106a8598e208a74be2f8820eff75a685c3b404f0ed65f8a3cfc3db4cb54e",
+    "lines": 4,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs": {
+    "sha256": "2f3f8756e4f4584ff5d26a7d6fb33b17d72b1e4ddfc955a641c1fdaea960c4d8",
+    "lines": 42,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/AntiforgerySetup.cs": {
+    "sha256": "47ecea882f8778ec755222ac6c7ff714b794747ab8c41a486f2d8a0e64c9f0b2",
+    "lines": 30,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/AntiforgeryTokenResponse.cs": {
+    "sha256": "68382a087d2aba15f0f753a1a9273290b227dcd6fe1a8ae1af7df0b360ab0c4c",
+    "lines": 4,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/ChangePasswordRateLimiting.cs": {
+    "sha256": "710dd1faf1a372fced6d3cfd61cfed07dfe5d51d78b91580f863cf12bb8069f1",
+    "lines": 63,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/LoginRateLimiting.cs": {
+    "sha256": "c282b79e6a045fe584522c06d310d41ad50bdf6124663d03ccb1b5789c03b778",
+    "lines": 74,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/LoginRequest.cs": {
+    "sha256": "d203fd55fc4ad5d4e4e869c259f3b88942b655edaace53c98d6fa74a057d0be4",
+    "lines": 34,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/RateLimitRejection.cs": {
+    "sha256": "a1e9e30461804e07a11629fc6fe214881c48a9df5a3b779c8344b2171f8a5d1a",
+    "lines": 36,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/RequestValidation.cs": {
+    "sha256": "040d28a32ca65af2061be8d102690b8f1e79a8c9f0305b5c8827b03de6de9dfb",
+    "lines": 34,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/SelectCentreRequest.cs": {
+    "sha256": "12520f5d106708dc0411cc668a72e20aa59e3c3ec9c3346d8609e659b45b2700",
+    "lines": 7,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/SessionClaims.cs": {
+    "sha256": "77a8b90a4337798f0a56f067d9620a3ed61b4b355224df7abe91aa06a805dc60",
+    "lines": 41,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Auth/SessionValidationOptions.cs": {
+    "sha256": "7ed7bf9c90360a53dab10fd33ce354c60b64d72ffb2ecb19a0a538927ff761a7",
+    "lines": 9,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Cli/AppDbContextFactory.cs": {
+    "sha256": "c2d90e4794dcb6a148894d856ecc0577551b6c75d750178d5a8a955b39ae80c7",
+    "lines": 42,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Cli/DemoModeProvider.cs": {
+    "sha256": "8ad0e68e1805ca191ca282341455aad538f7b677ad8154ed2cee618b8f85b0ca",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Cli/DemoOptions.cs": {
+    "sha256": "142a990b5b6bf6ddc9ef2f4d6fc1fb4a0ba386694e62a2dd77d858edb9579133",
+    "lines": 11,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Cli/MigrateCommand.cs": {
+    "sha256": "b4c9865a97375d51bc0ddbc5ab5ad45edaff8ebb9f0fcfe30c4a6d0ecd36d25e",
+    "lines": 38,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Cli/SeedCommand.cs": {
+    "sha256": "12a8f8ff4b53e2aa61d82c81d128eed2e8b79685fd3d93f7bc709214d82dc658",
+    "lines": 674,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Cli/SeedGate.cs": {
+    "sha256": "23676f5ce000374aebb890605946ac87e0e271d5cc26d71d97efeddf89fb5939",
+    "lines": 32,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/AuditEndpoints.cs": {
+    "sha256": "4ee5e368a9206fc64544045ee03850bd6af087755022ef5bf6dc8a4eec974506",
+    "lines": 46,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/CentreSettingsEndpoints.cs": {
+    "sha256": "86ba8df7f7aa9360126acf80093e91c419f449201ed12ec5b351723e4809f5fc",
+    "lines": 58,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/EnrollmentEndpoints.cs": {
+    "sha256": "8a2818c3add35eb1570f5e5c523ba960bdc0733c8eb4587bd7a3a3b067c57a0b",
+    "lines": 140,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/GroupEndpoints.cs": {
+    "sha256": "d7129ef56691191308533513a95d47c429e605afc54124f909f352f5fa6877ff",
+    "lines": 200,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/ParentEndpoints.cs": {
+    "sha256": "afd7ed0664f8258b4d9c648ebdb18ccd81869eb07ec56c6faf1f09df404304a3",
+    "lines": 103,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs": {
+    "sha256": "fb5f2b1fd74cd8fe08201c9fa478fcaf9041a8e5a72a279f7c6a0318202710f9",
+    "lines": 29,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/ScheduleEndpoints.cs": {
+    "sha256": "4f2f000accce6975b4f4777f24c4684536ab267861b1803dd3d91f14972cd42f",
+    "lines": 176,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/StaffEndpoints.cs": {
+    "sha256": "852118fe33aadc2c2dafeddeaf6203b1cd944a20c478427e69d16ff35544e247",
+    "lines": 121,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/StudentEndpoints.cs": {
+    "sha256": "5888cee7f7c07b5d3b7643e8878fc2e4329eb6af6ebd148f7b0ecddc05ccc54d",
+    "lines": 224,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/SubjectEndpoints.cs": {
+    "sha256": "c0d3d72aa791c38a4381e1690497b139429dac2f6df87d1f099506734e1fbfae",
+    "lines": 129,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Endpoints/TeacherEndpoints.cs": {
+    "sha256": "4e2748faee068aba1ff10d3f76712d5d510ea958a54948f61622ec3e21ab1ef7",
+    "lines": 159,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/CorrelationIdMiddleware.cs": {
+    "sha256": "757b9d9731282b638a75e199874f21f93b6616f0f39930aa63f6922f9386a413",
+    "lines": 49,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/ForwardedHeadersSetup.cs": {
+    "sha256": "546f68fed3cbbca591c0333abc18091a7a500d8b5151a184b893f6da4856bb69",
+    "lines": 65,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs": {
+    "sha256": "f93372990a8ee777c2c8ff61a38d72e3aee73b7d39a60dee98831d2ab1c5d7ea",
+    "lines": 49,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/HourMinuteTimeOnlyJsonConverter.cs": {
+    "sha256": "e052ca1f9b451c16d8520549eb809fa82b554483e32e29825182edcf4a78e6d4",
+    "lines": 34,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/HttpContextKeys.cs": {
+    "sha256": "0e5bad6cb72997c738e791b997cabed19e9c05c5d165f3e4ad2dceb992ea2c6b",
+    "lines": 7,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/ProblemDetailsSetup.cs": {
+    "sha256": "2c7a79057afad88dd8bb0cd50fa5fe986b8f1f44c83dbe837f8a25c29213fa34",
+    "lines": 17,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/ProblemResult.cs": {
+    "sha256": "66a08d54111d4e0b08b5e2d7a1ab8d6821e233eac4738a795ed46acb968181df",
+    "lines": 32,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/ProxyOptions.cs": {
+    "sha256": "deeb8f3b7134e24f9fbe88ca8a78bf465aa5e6fde0c6050762bafa9b3d7e0369",
+    "lines": 16,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/ProxyOptionsValidator.cs": {
+    "sha256": "836f7fb39aa19cd89f942604ba79dc6d29abea0f954bfebb614c334f486dfef3",
+    "lines": 36,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/SecurityHeadersSetup.cs": {
+    "sha256": "41bee8e2936d5d01694fad8c67be38aec461600302f678da04d4d0a4908bf64b",
+    "lines": 61,
+    "packet": 5,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/SpaHostingSetup.cs": {
+    "sha256": "61fc8563ca9feba9ed16b99297eca28a667d5f32fb66ae10896d213125edce62",
+    "lines": 65,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Http/UtcInstantJsonConverter.cs": {
+    "sha256": "202759ad4ba2a29bda78ad1ebc2b3e3ad572015137e4c0fa607ed46f7c05f72a",
+    "lines": 26,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Logging/SensitiveDataDestructuringPolicy.cs": {
+    "sha256": "7f1b06fdf9f5c360f8563796c8b36bd8a3f1863b0e860dac8238f9650f1cb394",
+    "lines": 62,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Properties/launchSettings.json": {
+    "sha256": "c61f67139e2a06e17500f4d031afdeee876d294e04aee5f88537466ba3a07eb3",
+    "lines": 23,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Telemetry/TelemetrySetup.cs": {
+    "sha256": "e06611801d8700cfb4e520918fab0da625ca706e786fb63d77a5a0626835807b",
+    "lines": 71,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/TutoringCentre.Api.csproj": {
+    "sha256": "15f0b5fa2e959fd23116ba2cf0f276739d102b9340c30114d575041c57494fae",
+    "lines": 30,
+    "packet": 6,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/AssemblyMarker.cs": {
+    "sha256": "6cb944d4ef5421efa068c07430e3eda1b051cf600810c3110336f3e54389cb3a",
+    "lines": 4,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditAction.cs": {
+    "sha256": "a06714912b245003f37f23d7c3339363c329450221680f7341c5965e6f63188f",
+    "lines": 9,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditActorType.cs": {
+    "sha256": "1b962c1df34adbbc5590dfd7e9b16814ed5b94e4d80993790a8094f78e22383a",
+    "lines": 8,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditEntityType.cs": {
+    "sha256": "98ce8a964a000b686b23322d40fe5a868780b5a3815193212be61cc0d1b44f87",
+    "lines": 17,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditEntityTypeNames.cs": {
+    "sha256": "a76cc699cd6ab950e84841ef24e7729930dfab7316db28aa2382bb3ee8def46a",
+    "lines": 85,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditEntry.cs": {
+    "sha256": "740220e97b1ad8b7bd9d640d372a08739c855e3602a8ba05332f9e5bd1932fbb",
+    "lines": 33,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditPolicy.cs": {
+    "sha256": "4e52debaf107ec9022c8a59e9845d32db8bd95d9b887cfcf1c508e634211a8ed",
+    "lines": 118,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditPolicyEntry.cs": {
+    "sha256": "5cac8a5c88f51d49828fd928168b0988641aff3f44adf993ecb1774c56b2f600",
+    "lines": 28,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditPropertyChange.cs": {
+    "sha256": "94fbd87d21bc423c837e09c574922efce8b066f3ec7d77bb1fcf4d1aa8f265d7",
+    "lines": 7,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Centres/CentreTimeZoneProvider.cs": {
+    "sha256": "b6f3aad4e6e0ec78a707cd5e47c6ca4dd5a7a8eb0b242855378dcebe9295d4ce",
+    "lines": 42,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs": {
+    "sha256": "ffb4842034ba8c37dbf4fb3d64d0dbaa26e35182e6d3b0a83a73bae912b2f17a",
+    "lines": 20,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Identity/DevelopmentIdentitySeeder.cs": {
+    "sha256": "c4b6f72e77976d6e4321dac943b7bd39ed6513222933b5d401f278f8a2fdf279",
+    "lines": 123,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Identity/StaffDirectory.cs": {
+    "sha256": "0c633ac5cb702a4de9701602a98904a03b687032158bedc8405f1db8b9b10f3e",
+    "lines": 27,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/AppDbContextOptionsConfigurator.cs": {
+    "sha256": "d4a64f5861aec0e1167eb820bd2b6951b95df435ee3dfca2a28635b50da56fd8",
+    "lines": 34,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ClassSessionConfiguration.cs": {
+    "sha256": "0ff0e17fce7224216c935aba83ce15eb5bebac64990dc1e108e53d30acef93dd",
+    "lines": 121,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/EnrollmentConfiguration.cs": {
+    "sha256": "7c89db853f234d3a4b15345e49ca1721b033b52416e69ee14d110a65fea8c8b4",
+    "lines": 130,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/GroupConfiguration.cs": {
+    "sha256": "99e15834fc192a34755034ab4689312783910e6760250f70725e2e24173ccea5",
+    "lines": 100,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ParentConfiguration.cs": {
+    "sha256": "3b30c78b40f8d57cb05194d2a4af632a886cb07f6e3911ac9783e2baa31ecc1c",
+    "lines": 51,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/PhoneFormatCheck.cs": {
+    "sha256": "2faead2626c8efb7c5d0000dad55af259e88c48c58e389ee30e668ed6c6f461f",
+    "lines": 13,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/PhoneNumberConverters.cs": {
+    "sha256": "b7f03cfeed4ec8a26e809522716720a6ca792b286f60ae9128193b22776a4f6c",
+    "lines": 21,
+    "packet": 1,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/ScheduleRuleConfiguration.cs": {
+    "sha256": "bf5377e3ccb6a4a19f9f5ab9d1b16521e4a039969eec1d69a6ee3c3e1bc93e22",
+    "lines": 65,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/StudentConfiguration.cs": {
+    "sha256": "d185c48111fc86a1f2e93a6b198dbe07f61c7b00899d63e857dbc45b6efd1d1e",
+    "lines": 88,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/StudentParentLinkConfiguration.cs": {
+    "sha256": "ebd7ee5ab414521236b1a800ea245c8199b6403ccb86cb8bd99872754f5f65e4",
+    "lines": 91,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/SubjectConfiguration.cs": {
+    "sha256": "17b99d678cb0f139c4b54d9d7aedbf34fc2dfc2d2e28537ea49897258f12ea98",
+    "lines": 64,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Academics/TeacherConfiguration.cs": {
+    "sha256": "e2a03f87d5f8d8fe178859991f14f1cd7caab60b3968ebae3e87044b7ca7c2ca",
+    "lines": 85,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Audit/AuditEntryConfiguration.cs": {
+    "sha256": "facb17c07616c814d187e5c4d2fddbea3cd387c33cc903cce8421cc128e2bb90",
+    "lines": 120,
+    "packet": 2,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs": {
+    "sha256": "3735a73cc2500ee37b2c95cba76948384716e67624f8a37fa649254c80353196",
+    "lines": 62,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs": {
+    "sha256": "da95552fc46cee4450d1a915dd4f45f86880074826757cd1756d4f1b1c793bc1",
+    "lines": 28,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserClaimConfiguration.cs": {
+    "sha256": "e417079f648abafd844683d4474e9fae66a9f0087cb03af89b1f13b10f954097",
+    "lines": 15,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs": {
+    "sha256": "84bbdeeb074b0ebd8161fd1d8f0483ee19a59ec98cd9977c2ec761564fa24143",
+    "lines": 15,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserTokenConfiguration.cs": {
+    "sha256": "d95fecc2460a03c92f3bfba05ba3070dbadb40291fb30c156eb8b68a2eac81e3",
+    "lines": 15,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/MembershipConfiguration.cs": {
+    "sha256": "a5fb7ea8462e64ea4d6d234a2ccca511a231e403b1f9dcff92b9bc53e27ba805",
+    "lines": 103,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/Platform/DataProtectionKeyConfiguration.cs": {
+    "sha256": "2ac4135acfd23219e291628e2919de32eca78adf4c2d8e341b03f3d250fb0eaa",
+    "lines": 22,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs": {
+    "sha256": "e16a7ea7a84b6839fc2b76569711fb3045aecbbbf6bc25ca0704a167fa149000",
+    "lines": 22,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/DatabaseRoles.cs": {
+    "sha256": "b56480f1599729bc92ddc4bcc27d24c44733dcaa5d7c8f0b09a3216007a90d9a",
+    "lines": 14,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Interceptors/TimestampInterceptor.cs": {
+    "sha256": "583a501be1041a0af96f872228dd00cc8542e63b9777c3d95056333ee092d320",
+    "lines": 61,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs": {
+    "sha256": "2e9d65b95f283181b4631e5c67abddd14c7fe284923bb7495ebbdab36343d859",
+    "lines": 52,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.Designer.cs": {
+    "sha256": "cc3c827f73294bab760ed225d86b2bc1c8235dae5ecff5854eb127b0aaea19e7",
+    "lines": 81,
+    "packet": 3,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261004112858_AddIdentityAndMemberships.cs": {
+    "sha256": "07ce524b516a1fdbb76eda33f131751c0e6d82e1f0a0735b61dc648cf2710eac",
+    "lines": 213,
+    "packet": 4,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261005101209_AddRuntimeRoleGrants.cs": {
+    "sha256": "3e48e6f95ba2381ced1da2e86f557ba70917899c32e44eab6298e24f83da4e65",
+    "lines": 61,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261008190450_AddSubjects.cs": {
+    "sha256": "a188dfed1f7f9ff691af62f5fe7ebadaa537796ecc3f0d6ac1558c30ba0506b9",
+    "lines": 77,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009092027_AddMembershipRowVersion.cs": {
+    "sha256": "ca29f3cdae0e3c64b238db6c84c2b11d8a0d07f2fd0774b293ad762f14f5a844",
+    "lines": 24,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261009210855_AddAuditLog.cs": {
+    "sha256": "02f4921e408fa8c0f9b58ad5accb89bfcd53c15bd41dbfcf9e23601b38586f28",
+    "lines": 94,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010052343_AddCentreRowVersion.cs": {
+    "sha256": "1ea1d9eb674577fc362a21dc4c4bcb0996d680a864c320a4f8743b4e33982e64",
+    "lines": 24,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261010163013_AddDataProtectionKeys.cs": {
+    "sha256": "97d4bcce86009c0973bf5dd524cabf22c8317c9fbaf041842d5042093cccca22",
+    "lines": 48,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261012053358_AddStudentsAndParents.cs": {
+    "sha256": "a29bfda9f1fb684d1ce9e360fae50e74e630e77115dfcbae506cac2f5133c91a",
+    "lines": 194,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261017042944_AddTeachers.cs": {
+    "sha256": "7d39a01c8bf4097831f7c4b17757c581169f868d9a05be02ab89db6bd11a8d03",
+    "lines": 92,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261018053631_AddGroups.cs": {
+    "sha256": "036d6e0aaffff8386475bef97490c55f53cb6ff5f3149bb11cb9079516b00fdd",
+    "lines": 97,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261023174541_AddEnrollments.cs": {
+    "sha256": "2c9211b5b2e50f35be72301ccb387e62a3b419304d813221f58474c0d1028074",
+    "lines": 99,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/20261024105240_AddSchedule.cs": {
+    "sha256": "7571f9c9beda60cabc3e81a1e57f6bf5d9b3e6b077ca77a8d4ed8288db7f7fe0",
+    "lines": 194,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/AppendOnlyAccessGrants.cs": {
+    "sha256": "9e158144916d78e6d0fe353eda64803584013a332861a1ae8ba465df3a48be76",
+    "lines": 35,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/RuntimeAccessGrants.cs": {
+    "sha256": "023940fba8e35eecf8475f476ea10a3b2f6aee444e6ae658a9685589bf645cd8",
+    "lines": 34,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/RuntimeRolePrivilegeHealthCheck.cs": {
+    "sha256": "be8b5efa81e1fc744d9de976c86ebb0f78e29c4d9048f2a96e28715e8c6cd765",
+    "lines": 33,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Schemas.cs": {
+    "sha256": "641a4d850ec192770bcef4a0ee0ed26206666a58ac371a127c301362f12a9697",
+    "lines": 10,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/TenantViolationException.cs": {
+    "sha256": "9f333e1e7da58af85cd17927b39c17faee8e4cf4aa5072413f03e4de0457fb31",
+    "lines": 13,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/CentreReadService.cs": {
+    "sha256": "bbf3a08fc2d1239bead9df48da8ca15f41db7e44ee4715bdeca88685935ec891",
+    "lines": 24,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/EnrollmentReadService.cs": {
+    "sha256": "39ad64e85e65b8de51b9169047137fbd88abdd9aa5ad997d786a6de7639b1467",
+    "lines": 101,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/GroupReadService.cs": {
+    "sha256": "ac9b7620d34ddd2598738a63dd5ec51faecd625559c13d520357696a8a29226e",
+    "lines": 88,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs": {
+    "sha256": "f71068c0902b8bea8c1ce6bfa4ef8e8391eed1d8d3428f0f729652f386bf1696",
+    "lines": 79,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/ParentReadService.cs": {
+    "sha256": "8a03e14b7450ce7201cc26f2924cf2f7c97a278eee3890eeb5b7549605b9f255",
+    "lines": 62,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/StaffReadService.cs": {
+    "sha256": "7105295517d032e6088dbacf2a9f087d6d4bb39ecc4a7ae5d8e1949772a418e2",
+    "lines": 35,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/SubjectReadService.cs": {
+    "sha256": "6ab99a4147f15d4cd78917962c4a8d76c08145fbb6808e3c34137688fb402f8b",
+    "lines": 39,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/SystemInfoReadService.cs": {
+    "sha256": "24cedac997dadcd5059c3b0f3128a67f1ccf17b65a806a9f97168e8fb162aed4",
+    "lines": 19,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/TeacherReadService.cs": {
+    "sha256": "4a28d969d4309583b6d1341779361461b77f08c1bdc2c59b1d6ef3841b464b58",
+    "lines": 77,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/CentreRepository.cs": {
+    "sha256": "53d6e1d4f0acbc0d2c30d6f45acf0f91ae0aeecf728a576a7bb17ce337ab89bd",
+    "lines": 33,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/EnrollmentRepository.cs": {
+    "sha256": "d59e25941e25f933d1d17749d0b8694c6b5117540d82adbaaeb0ed5420aede58",
+    "lines": 49,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/MembershipRepository.cs": {
+    "sha256": "dc33a5eb769b610480ba9c209686d6e890e8be2646231babe48247ddb1565b96",
+    "lines": 93,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/ParentRepository.cs": {
+    "sha256": "8d92e0bcc2213b734eb7dda83abf86880cea42f37d9d7b7d8b8fe7ecedac61e9",
+    "lines": 46,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/ScheduleRuleRepository.cs": {
+    "sha256": "0859fb009ae263089158457de9b50f2c08161555b6959dd0612c0af95807f14e",
+    "lines": 49,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/StudentRepository.cs": {
+    "sha256": "33cf07ee063fe3d3404f5a879c0bfaff64ee03de44d8e67a80936db960988f34",
+    "lines": 40,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/SubjectRepository.cs": {
+    "sha256": "448685fa61b672705bbdcd2a034332c73c98f085730f2f4d3c7a8adc832d5f4b",
+    "lines": 43,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/TeacherRepository.cs": {
+    "sha256": "0854641ad4feaae4fd0977cb84c3cb5abe2ae4df81bc7296afe841a066699c73",
+    "lines": 42,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/Time/SystemClock.cs": {
+    "sha256": "607588fd94b2e7ed4294dcc663c30f0fc85d3b2e92c821d3dfd7df1a150086eb",
+    "lines": 31,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj": {
+    "sha256": "30f9bbbfe82700f56ec632cc461fcc0f242ef7579927cae283cbd0549521ffa7",
+    "lines": 20,
+    "packet": 0,
+    "status": "full text opened and read in backend inspection packets; truncated slices reopened separately"
+  },
+  "src/TutoringCentre.Api/Program.cs": {
+    "sha256": "8a22a3fce66ffc0651f89ef79b83891c665dd5f48a0316374ef3d8ecd4be17c9",
+    "lines": 252,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs": {
+    "sha256": "f8f1da4e77a067e5c573d597a2a3a0abcdeacca5feff5619f8a6690f16f2d417",
+    "lines": 280,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/DependencyInjection.cs": {
+    "sha256": "cbaa54589b6b8c372d9fddddd8cf8a25d40286894b0d77afa4a62e02cd1c4977",
+    "lines": 183,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs": {
+    "sha256": "07153457f53488aa5aee07f54055bcc18c240734ddb8005c542850724b1e124d",
+    "lines": 166,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/AppDbContext.cs": {
+    "sha256": "287d32c65a1394be9449b35831579c03a63af5ca288db8fbb91a445bfd2bd612",
+    "lines": 62,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Conventions/TenantQueryFilterConvention.cs": {
+    "sha256": "9ae3fda5a8cdb74e8757fd64d789381508b2b6d869ce08c2fefe86c90d8f3d55",
+    "lines": 52,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Interceptors/TenantWriteGuardInterceptor.cs": {
+    "sha256": "09a8a1b1bff38ab6298520dfc6d2d7b4cefc4b58286b80b80f8761379ce10cca",
+    "lines": 71,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Interceptors/AuditInterceptor.cs": {
+    "sha256": "cfdee416ed6f138a34ead459d5d283aa437938aa07b270cc24d307352e77f30b",
+    "lines": 143,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Audit/AuditDiffBuilder.cs": {
+    "sha256": "e3b912d7874d4e4156ef6da12b2773bad1e637015f1ea64952f2076be03fd34d",
+    "lines": 110,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Migrations/TenantRowLevelSecurity.cs": {
+    "sha256": "40eb02560f8d6e26b4541ea3a1d5819e82c39cc3e5d6e4fc536d16fde776736f",
+    "lines": 79,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/TenantOwnedConfiguration.cs": {
+    "sha256": "319804ab88c0cb36a1e87bf03d2a8783221e4e7cd3bf4256b55de78aa47b2fed",
+    "lines": 38,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/Configurations/RowVersionConfiguration.cs": {
+    "sha256": "ffc9a550b80d2dc104e98220215c2963827cae1169055aa010f725726e00ad4d",
+    "lines": 26,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/PersistenceErrorTranslator.cs": {
+    "sha256": "41f2b531bd2f1268bacf5a20dca1b5c27b7fbb76b8013e0ddd0fc1dda16711b0",
+    "lines": 65,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/ConstraintErrorCatalog.cs": {
+    "sha256": "3b13f15d6a733137179593ade1ad80ccf097a32fa795ceb328d1bec490e01348",
+    "lines": 93,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Api/Auth/AuthEndpoints.cs": {
+    "sha256": "cf6265db2622f1fe45df7062742f635e868d5a349c2e0b9c2f318d5774840814",
+    "lines": 203,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Api/Auth/AuthenticationSetup.cs": {
+    "sha256": "340eb3e2b77a9ef302bbc2ecf4051f05e4d82e40307bdb5067a86f730180594f",
+    "lines": 59,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs": {
+    "sha256": "1cecaf6b7733a3923177b92b45d92e47e8ba83e096ee70ca4d87a0bfc04fe6ce",
+    "lines": 70,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Api/Auth/ActorMiddleware.cs": {
+    "sha256": "194113963787d1176fdf34bfd5a80d3c51a46dbc2cc64364a1dfb5c2b3fd6db4",
+    "lines": 67,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs": {
+    "sha256": "3ca9da422b66855951f923d6a7324f8ca110510044de0b99ccf43859607c2bf6",
+    "lines": 101,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Identity/StaffAccountService.cs": {
+    "sha256": "c0790f8e942574c75620d7dbd9f2fa2111a8aa7851cdefbbf09c72ef9f26c3b2",
+    "lines": 56,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/CreateStaff/CreateStaffHandler.cs": {
+    "sha256": "16150f6528c0d8eacae6661af38c982025f7872161f6817030ec5599398acfdd",
+    "lines": 52,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/ChangeStaffRole/ChangeStaffRoleHandler.cs": {
+    "sha256": "fbcd761686504b1a0e524974160b94a8c692cfb54f5c7b3b6d4e5eaf930b71c6",
+    "lines": 45,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Staff/Commands/DeactivateStaff/DeactivateStaffHandler.cs": {
+    "sha256": "ee2f1a4f6b9c176852b39319e948a20e3809c49e14549de664c9a0a3bfce94ff",
+    "lines": 45,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Identity/TeacherScopeProvider.cs": {
+    "sha256": "71f836b1ea947f39e37701ec25045978b15a462aa6928e02501f3fa9128cd8f5",
+    "lines": 49,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Identity/RolePermissions.cs": {
+    "sha256": "c6dd2cdb578cec9f664f08720eec5fb05d38732f82f34fc2c019f09a6df19222",
+    "lines": 58,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Common/PhoneNumber.cs": {
+    "sha256": "8cc8cfca699103eca51797f14ac5d17f5930fbdd095166470bfe1485dcdb2cb5",
+    "lines": 118,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Common/SearchText.cs": {
+    "sha256": "93dce91fe20082974452ed4c59189b03b45a9fb90327b79bcbbb27f212756090",
+    "lines": 51,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Academics/Student.cs": {
+    "sha256": "7a1a5ec8cc1aefe40e7869e77e2eb17066784600f70c99493b899419088dac6d",
+    "lines": 269,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Students/Commands/RegisterStudent/RegisterStudentHandler.cs": {
+    "sha256": "3ca48dd7275ce0a1384638944115c47bd1f8ddabc61e2b4f4bf0829a58bc447f",
+    "lines": 80,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Academics/Teacher.cs": {
+    "sha256": "e68b44b6bd27395f82386f798f9e0f263f175ad5a1a427b5b2172b7096c78350",
+    "lines": 164,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Teachers/Commands/SetTeacherAccount/SetTeacherAccountHandler.cs": {
+    "sha256": "64464f27f10e1ffc8d4c3d8eb2800d06fd8952df38577a14ddb29711d95f3f55",
+    "lines": 55,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Academics/Group.cs": {
+    "sha256": "5f47b1804c103f8ebd7d79828179bc64d79c42c27bf377103b3753ae240739a5",
+    "lines": 238,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/GroupRepository.cs": {
+    "sha256": "9597d71dee4c1a7e256c536e541a068de3b035bcc002d7f05dc009b722dff17b",
+    "lines": 77,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Academics/Enrollment.cs": {
+    "sha256": "c4180d99475de31f85fb8963e2b2101a06b240c48b62424875782836931638bc",
+    "lines": 87,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/EnrollStudent/EnrollStudentHandler.cs": {
+    "sha256": "764423063f2a2416a76a663acba46e86503030b8bb380c253ad9791c4b1a265a",
+    "lines": 69,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Enrollments/Commands/TransferEnrollment/TransferEnrollmentHandler.cs": {
+    "sha256": "637d5c491400619cc889bafdf7afca6fc6c790c1817662da4fc66bbf56048866",
+    "lines": 94,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Academics/Scheduling/ScheduleRule.cs": {
+    "sha256": "4f6863a9efce8624b45df60086b6cb289b303227782e385fd8fc48d2e9679bd7",
+    "lines": 125,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Academics/Scheduling/SessionGenerator.cs": {
+    "sha256": "a42b9eb0921cb2ecddc355aa30d8d2147649414a47808a5c3458ab83084a4592",
+    "lines": 75,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Domain/Academics/Scheduling/ClassSession.cs": {
+    "sha256": "7824cc28e94485ab1d02febb25c5f50c2cb1d83046344a076e19960147582049",
+    "lines": 109,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Repositories/ClassSessionRepository.cs": {
+    "sha256": "01000020cd8df69581f8cf2eb50b4bf4e33a4ff40aab36ac2617d5e08147a63c",
+    "lines": 75,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/AddScheduleRule/AddScheduleRuleHandler.cs": {
+    "sha256": "0e7be3a04a225723131945d87a569ec243c04a1e530cad8eea917d376ffbe95a",
+    "lines": 73,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/ExtendSchedule/ExtendScheduleHandler.cs": {
+    "sha256": "22713769eeefb26b8a037f1824813112c7cd242a05d2c8089b86ef592fa72a52",
+    "lines": 64,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Scheduling/Commands/EndScheduleRule/EndScheduleRuleHandler.cs": {
+    "sha256": "aea713feeabf3847ece195cc9b0bd610982c864acc582d2b6fd87a6bc6c7024f",
+    "lines": 45,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Application/Academics/Groups/Commands/AssignGroupTeacher/AssignGroupTeacherHandler.cs": {
+    "sha256": "9a444fc1ebc669754dc340a76a0f2dd56c496bf1719bce9de6877b1fce7eec19",
+    "lines": 67,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/ScheduleReadService.cs": {
+    "sha256": "7d30d96cfedaa6c581420e346cdc9841b92b91f1234f899aa4bb0dd6e3bf7349",
+    "lines": 109,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/StudentReadService.cs": {
+    "sha256": "c4192f20f1d85d63e1218f9a5d1585b7acd39e2a381bb57260b2eff3f9347b38",
+    "lines": 189,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/ReadServices/AuditReadService.cs": {
+    "sha256": "d19d41de0f9f3b6edecabec9bfba983a55782aede4fa20ca84ae41ad37f2c240",
+    "lines": 121,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Api/Http/ResultHttpExtensions.cs": {
+    "sha256": "16fe3323b98a0770e9fbd81edb7f5c3f141781afd96137315392aacf79157173",
+    "lines": 79,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs": {
+    "sha256": "d07be826a75f7c27ebc41d70c8a4202ca79fc651d11f368c147cfae3c65c8187",
+    "lines": 38,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/TutoringCentre.Api/Cli/ResetPasswordCommand.cs": {
+    "sha256": "684483de7cada957d446220b365767714e1bf4061f2481d87708e12993c2911a",
+    "lines": 62,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  },
+  "src/.semantic.md": {
+    "sha256": "1236ec54b6eb96f2c8e0b1d6af5fb8ea424f2484648318da107bfd28f5f12533",
+    "lines": 62,
+    "status": "opened and semantically inspected for backend teaching chapter"
+  }
+}

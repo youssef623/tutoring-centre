@@ -1,52 +1,64 @@
-# tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs
+# `tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs`
 
 ## Purpose
 
-Tests that readiness returns 200 when a real database is reachable.
+Declares `ReadinessWithDatabaseTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Health; collection `api`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 22 lines and 640 bytes. Source hash: `5a7843d4b7932d08babbb6367ee179b8d6d0e2776530b6fe004ed38e80539247`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`InitializeAsync` resets the DB. `GetReady_WithReachableDatabase_Returns200`: `factory.CreateClient()`, `GET /health/ready`, assert 200. Pairs with the 503 test.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Health checks: liveness vs readiness
+- Line 1: `using System.Net;`
+- Line 2: `using TutoringCentre.Api.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Liveness* answers "is the process alive?"; *readiness* answers "can it serve traffic (dependencies up)?". Orchestrators restart on liveness failure and stop routing on readiness failure, so the two must not be conflated.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks).)
+- [Line 7](../../../../../tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs#L7): `public sealed class ReadinessWithDatabaseTests(ApiFactory factory) : IAsyncLifetime`
+- [Line 9](../../../../../tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs#L9): `public Task InitializeAsync() => factory.ResetAsync();`
+- [Line 11](../../../../../tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs#L11): `public Task DisposeAsync() => Task.CompletedTask;`
+- [Line 14](../../../../../tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs#L14): `public async Task GetReady_WithReachableDatabase_Returns200()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Readiness success.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Test.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System.Net;
+using TutoringCentre.Api.Tests.Fixtures;
 
-Completes the readiness contract.
+namespace TutoringCentre.Api.Tests.Health;
 
-## Data and Control Flow
+[Collection(ApiCollection.Name)]
+public sealed class ReadinessWithDatabaseTests(ApiFactory factory) : IAsyncLifetime
+{
+    public Task InitializeAsync() => factory.ResetAsync();
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    public Task DisposeAsync() => Task.CompletedTask;
 
-## Configuration and Environment
+    [Fact]
+    public async Task GetReady_WithReachableDatabase_Returns200()
+    {
+        using var client = factory.CreateClient();
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+        using var response = await client.GetAsync(new Uri("/health/ready", UriKind.Relative));
 
-## Gotchas and Issues
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+}
+```
 
-No bugs or surprises found while reading this file.
+## Before modifying this file
 
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs`](../Fixtures/ApiFactory.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs`](HealthEndpointTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

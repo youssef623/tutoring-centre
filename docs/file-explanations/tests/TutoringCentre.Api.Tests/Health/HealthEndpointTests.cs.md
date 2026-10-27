@@ -1,73 +1,91 @@
-# tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs
+# `tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs`
 
 ## Purpose
 
-Tests liveness and readiness endpoints without a database.
+Declares `HealthEndpointTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Health; builds its own `WebApplicationFactory<Program>` (not in a DB collection).
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 49 lines and 1,695 bytes. Source hash: `22d4d282b879de1ff9b5aae3cd0d308e84991107098b916c7409c7a6b5ecb58e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`UnreachableDatabase = "Host=127.0.0.1;Port=1;Database=x;Username=x;Password=x;Timeout=2"` - value present (so startup validation passes) but unreachable; port 1 refuses immediately. `CreateFactory()` sets environment `Testing` and `UseSetting(...)`. `Liveness_ReturnsOk`: `GET /health` -> 200. `Readiness_WhenDatabaseUnreachable_Returns503`: `GET /health/ready` -> 503. Proves liveness never touches the DB and readiness reports failure.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Health checks: liveness vs readiness
+- Line 1: `using System.Net;`
+- Line 2: `using Microsoft.AspNetCore.Mvc.Testing;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Liveness* answers "is the process alive?"; *readiness* answers "can it serve traffic (dependencies up)?". Orchestrators restart on liveness failure and stop routing on readiness failure, so the two must not be conflated.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks).)
+- [Line 6](../../../../../tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs#L6): `public sealed class HealthEndpointTests`
+- [Line 15](../../../../../tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs#L15): `public async Task Liveness_ReturnsOk()`
+- [Line 29](../../../../../tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs#L29): `public async Task Readiness_WhenDatabaseUnreachable_Returns503()`
+- [Line 43](../../../../../tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs#L43): `private static WebApplicationFactory<Program> CreateFactory() =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Liveness vs readiness.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Both tests.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System.Net;
+using Microsoft.AspNetCore.Mvc.Testing;
 
-Outage must not look like a dead process.
+namespace TutoringCentre.Api.Tests.Health;
 
-### In-process hosting with WebApplicationFactory
+public sealed class HealthEndpointTests
+{
+    // Port 1 on loopback has nothing listening, so the connection is refused immediately;
+    // Timeout=2 caps the wait on systems that retry before refusing. The value is present (startup validation
+    // requires it) but unreachable (readiness must report 503).
+    private const string UnreachableDatabase =
+        "Host=127.0.0.1;Port=1;Database=x;Username=x;Password=x;Timeout=2";
 
-#### What it means
+    [Fact]
+    public async Task Liveness_ReturnsOk()
+    {
+        // Arrange
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
 
-`WebApplicationFactory<Program>` starts the real application inside the test process with an in-memory test server, so real middleware, DI and routing run without opening a network port. Tests can override configuration and services before the host is built.
+        // Act
+        using var response = await client.GetAsync("/health");
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 
-#### Where it appears in this file
+    [Fact]
+    public async Task Readiness_WhenDatabaseUnreachable_Returns503()
+    {
+        // Arrange
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
 
-Ad-hoc factory.
+        // Act
+        using var response = await client.GetAsync("/health/ready");
 
-#### How it works here
+        // Assert
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
 
-`CreateFactory`.
+    // "Testing" = no development auto-migration, no user-secrets, no dev seed: the test controls the configuration.
+    private static WebApplicationFactory<Program> CreateFactory() =>
+        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Testing");
+            builder.UseSetting("ConnectionStrings:Postgres", UnreachableDatabase);
+        });
+}
+```
 
-#### Why it matters here
+## Before modifying this file
 
-Own configuration per test.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-Fake credentials in a connection string (`x`/`x`), not real secrets.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Program.cs`](../../../src/TutoringCentre.Api/Program.cs.md)
-- [`src/TutoringCentre.Infrastructure/DependencyInjection.cs`](../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs`](ReadinessWithDatabaseTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

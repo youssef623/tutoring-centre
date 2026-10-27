@@ -1,60 +1,91 @@
-# src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs
+# `src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs`
 
 ## Purpose
 
-The only migration: creates the `platform` schema, the `centres` table, its primary key, locale CHECK constraint and unique slug index.
+Declares `InitialPlatform`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence/Migrations (EF-generated, project-owned). Applied by `MigrationRunner`/`MigrateAsync`; verified by `MigrationTests`; paired with `...Designer.cs` and `AppDbContextModelSnapshot.cs`.
+Category: **migration**. [Open current file](../../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 52 lines and 2,081 bytes. Source hash: `2e9d65b95f283181b4631e5c67abddd14c7fe284923bb7495ebbdab36343d859`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Up` (11-): `EnsureSchema("platform")`; `CreateTable("centres", schema "platform")` with columns `id uuid`, `name varchar(120)`, `slug varchar(60)`, `time_zone_id varchar(64)`, `default_locale varchar(2)`, `created_at timestamptz` (all NOT NULL), `updated_at timestamptz` nullable; constraints `PrimaryKey("pk_centres", id)` and `CheckConstraint("ck_centres_default_locale", "default_locale IN ('ar','en')")`; `CreateIndex("ux_centres_slug", unique)` on `slug`.
-`Down`: `DropTable("centres", "platform")` (does not drop the schema).
-Name `20261002222404` is a UTC timestamp (2026-10-02 22:24:04); EF orders migrations by it. The file begins with a UTF-8 BOM.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Database migrations
+- Line 1: `using System;`
+- Line 2: `using Microsoft.EntityFrameworkCore.Migrations;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 9](../../../../../../src/TutoringCentre.Infrastructure/Persistence/Migrations/20261002222404_InitialPlatform.cs#L9): `public partial class InitialPlatform : Migration`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-This migration.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`Up`/`Down`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
-Builds a brand-new environment from nothing (`MigrationTests`).
+#nullable disable
 
-## Data and Control Flow
+namespace TutoringCentre.Infrastructure.Persistence.Migrations
+{
+    /// <inheritdoc />
+    public partial class InitialPlatform : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.EnsureSchema(
+                name: "platform");
 
-```mermaid
-flowchart LR
-    M["MigrateAsync"] --> H{"in platform.__ef_migrations_history?"}
-    H -->|no| UP["Up(): schema, table, PK, CHECK, unique index"] --> REC["insert history row"]
-    H -->|yes| SKIP["skip"]
+            migrationBuilder.CreateTable(
+                name: "centres",
+                schema: "platform",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                    slug = table.Column<string>(type: "character varying(60)", maxLength: 60, nullable: false),
+                    time_zone_id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    default_locale = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_centres", x => x.id);
+                    table.CheckConstraint("ck_centres_default_locale", "default_locale IN ('ar','en')");
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "ux_centres_slug",
+                schema: "platform",
+                table: "centres",
+                column: "slug",
+                unique: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "centres",
+                schema: "platform");
+        }
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-Connects through the DbContext's connection string. Creates objects in schema `platform`.
-
-## Gotchas and Issues
-
-Editing an applied migration does nothing on databases that already ran it; add a new migration instead.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs`](../Configurations/Centres/CentreConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs`](../MigrationRunner.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs`](../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

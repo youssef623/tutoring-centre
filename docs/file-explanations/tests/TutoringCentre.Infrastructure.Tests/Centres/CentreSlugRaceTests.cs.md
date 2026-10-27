@@ -1,73 +1,81 @@
-# tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs`
 
 ## Purpose
 
-Proves that two simultaneous creates with the same slug leave exactly one row, because the unique index is the real guarantee.
+Source summary (intent, not independent execution proof): TOCTOU (time-of-check to time-of-use): the application checks "slug free?" and then inserts. Two requests can both see "free". The unique index is the real guarantee. Task 25.3/25.4 closes the gap this test used to document: the loser now always receives a translated centre.slug_taken Result, never an unhandled exception.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Centres. Targets the TOCTOU window between `ExistsBySlugAsync` and `INSERT`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 38 lines and 1,722 bytes. Source hash: `6e9d99f35fb10aafe3c6701b8d8ae283f35d772115a38f29568b6ed2b2b5e3cb`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Arrange: command for `race-centre`; `TaskCompletionSource gate` and local `AttemptAsync()` that awaits the gate, sends as `SystemActor`, and maps outcomes to an enum: `Created`, `SlugTakenResult` (failure result), or `UniqueViolationException` (catches `DbUpdateException` whose `InnerException` is `PostgresException { SqlState: "23505" }`). Act: start two `Task.Run(AttemptAsync)`, `gate.SetResult()` to release both together, `await Task.WhenAll`. Assert: exactly one `Created`, exactly one other outcome, and exactly one row. Either losing outcome is accepted: if the loser's existence check ran late it gets the friendly result; if both checks passed, the unique index rejects the second insert. The summary notes Month 2 will translate the exception into 409.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Concurrency, TOCTOU and unique indexes
+- Line 1: `using TutoringCentre.Application.Centres.Commands.CreateCentre;`
+- Line 2: `using TutoringCentre.Application.Common.Security;`
+- Line 3: `using TutoringCentre.Domain.Centres;`
+- Line 4: `using TutoringCentre.Domain.Common;`
+- Line 5: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-TOCTOU (time of check to time of use): code checks a condition then acts, but another request can change the condition in between. Only the database can make "no two rows share a slug" true, via a unique index; application checks just produce friendlier errors in the common case.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee](../../../../PROJECT_OVERVIEW2.md#610-concurrency-the-slug-race-and-why-the-unique-index-is-the-real-guarantee).)
+- [Line 14](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs#L14): `public sealed class CentreSlugRaceTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 17](../../../../../tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs#L17): `public async Task SendAsync_TwoParallelCreatesWithSameSlug_LeavesExactlyOneRowAndLoserGetsSlugTakenConflict()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-TOCTOU test.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Whole test.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Application.Centres.Commands.CreateCentre;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-Documents a real concurrency hazard and its guarantee.
+namespace TutoringCentre.Infrastructure.Tests.Centres;
 
-### async/await and cancellation
+/// <summary>
+/// TOCTOU (time-of-check to time-of-use): the application checks "slug free?" and then inserts. Two requests can both
+/// see "free". The unique index is the real guarantee. Task 25.3/25.4 closes the gap this test used to document:
+/// the loser now always receives a translated centre.slug_taken Result, never an unhandled exception.
+/// </summary>
+public sealed class CentreSlugRaceTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    [Fact]
+    public async Task SendAsync_TwoParallelCreatesWithSameSlug_LeavesExactlyOneRowAndLoserGetsSlugTakenConflict()
+    {
+        var command = new CreateCentreCommand("Race Centre", "race-centre", "Africa/Cairo", SupportedLocale.En);
+        var gate = new TaskCompletionSource();
 
-#### What it means
+        async Task<Result<CreateCentreResult>> AttemptAsync()
+        {
+            await gate.Task;
+            return await Fixture.SendAsAsync<CreateCentreCommand, CreateCentreResult>(new SystemActor(null), command);
+        }
 
-`async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
+        var first = Task.Run(AttemptAsync);
+        var second = Task.Run(AttemptAsync);
+        gate.SetResult();
+        var results = await Task.WhenAll(first, second);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+        Assert.Equal(1, results.Count(result => result.IsSuccess));
+        var loser = Assert.Single(results, result => result.IsFailure);
+        Assert.Equal("centre.slug_taken", loser.Error!.Code);
+        Assert.Equal(1, await Fixture.CountCentresAsync());
+    }
+}
+```
 
-#### Where it appears in this file
+## Before modifying this file
 
-`TaskCompletionSource` gate, `Task.Run`, `WhenAll`.
-
-#### How it works here
-
-Test body.
-
-#### Why it matters here
-
-Forces concurrent execution.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Timing-dependent which outcome occurs; the assertion is deliberately outcome-agnostic.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](../../../src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs`](../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs`](../Fixtures/PostgresTestBase.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

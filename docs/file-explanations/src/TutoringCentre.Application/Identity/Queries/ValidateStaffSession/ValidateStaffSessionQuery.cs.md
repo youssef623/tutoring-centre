@@ -1,52 +1,56 @@
-# src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs
+# `src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs`
 
 ## Purpose
 
-Asks whether an existing session is still valid; internal to the authentication pipeline.
+Source summary (intent, not independent execution proof): Asks whether an existing session is still valid. Runs inside the authentication pipeline before an actor exists, so it takes the user ID explicitly rather than reading it from the actor. Internal to that pipeline: no endpoint may expose it, because it would let a caller probe security stamps and membership state directly. `Role` is the role the session's cookie claims for `CentreId` (Day 29); a mismatch against the membership's current role is treated exactly like a deactivated membership.
 
-## Where It Fits
+## Where it fits
 
-Application/Identity/Queries/ValidateStaffSession. Dispatched only by `SessionRevalidationHandler`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 13 lines and 861 bytes. Source hash: `97031f25e70898c90d63d3b031aeed9da3184f0b5098243bce6309e2fbb7e1da`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed record ValidateStaffSessionQuery(Guid UserId, string SecurityStamp, Guid? CentreId) : IQuery<bool>;` Doc: it takes the user id explicitly because it runs before an actor exists; no endpoint may expose it, because it would let a caller probe security stamps and membership state.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Session revalidation and revocation
+- Line 1: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 2: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A self-contained cookie cannot be cancelled by itself. Revalidation re-checks the cookie's claims against the database on requests (here via a *security stamp* and the active membership), so a changed password or revoked access ends the session; a short cache bounds the database cost.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation](../../../../../../PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation).)
+- [Line 13](../../../../../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs#L13): `public sealed record ValidateStaffSessionQuery(Guid UserId, string SecurityStamp, Guid? CentreId, StaffRole? Role) : IQuery<bool>;`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The question asked per request.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs:48](../../../../../../../src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs#L48)
+- [src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs:10](../../../../../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs#L10)
+- [tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs:19](../../../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L19)
 
-Declaration.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Input = what the cookie claims.
+```csharp
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Domain.Identity;
 
-## Data and Control Flow
+namespace TutoringCentre.Application.Identity.Queries.ValidateStaffSession;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>
+/// Asks whether an existing session is still valid. Runs inside the authentication pipeline before an actor
+/// exists, so it takes the user ID explicitly rather than reading it from the actor. Internal to that pipeline:
+/// no endpoint may expose it, because it would let a caller probe security stamps and membership state directly.
+/// <see cref="Role"/> is the role the session's cookie claims for <see cref="CentreId"/> (Day 29); a mismatch
+/// against the membership's current role is treated exactly like a deactivated membership.
+/// </summary>
+public sealed record ValidateStaffSessionQuery(Guid UserId, string SecurityStamp, Guid? CentreId, StaffRole? Role) : IQuery<bool>;
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The 'no endpoint may expose it' rule is a convention in a doc comment, not an architecture test.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs`](ValidateStaffSessionHandler.cs.md)
-- [`src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs`](../../../../TutoringCentre.Api/Auth/SessionRevalidationHandler.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

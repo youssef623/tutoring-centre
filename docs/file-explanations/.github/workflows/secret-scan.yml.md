@@ -1,53 +1,61 @@
-# .github/workflows/secret-scan.yml
+# `.github/workflows/secret-scan.yml`
 
 ## Purpose
 
-Scans the full git history for committed secrets with gitleaks.
+Current CI/CD file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-GitHub Actions workflow on pull requests and pushes to `main`. Complements the repo's secret hygiene (empty `ConnectionStrings:Postgres`, git-ignored `.env`).
+Category: **CI/CD**. [Open current file](../../../../.github/workflows/secret-scan.yml). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 27 lines and 540 bytes. Source hash: `7feeace7b8ead46520066098a14f7f170b70a5254dee3f6f11d82d5702b5eb4f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`permissions`: workflow `contents: read`; job adds `pull-requests: write` so the action can comment on a PR when it finds a leak. Steps: `actions/checkout@v6` with `fetch-depth: 0` (full history - the default shallow clone would hide old commits); `gitleaks/gitleaks-action@v3` with `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`. No `.gitleaks.toml` exists, so gitleaks default rules apply.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Secrets and configuration layering
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-Configuration comes from layered sources (JSON files, user-secrets, environment variables, command line) where later layers override earlier ones. Secrets must stay out of git: this repo keeps the connection string out of `appsettings.json`, reads it from user-secrets or an environment variable, and scans history with gitleaks.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../../../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-The gitleaks step.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```yaml
+name: Secret scan
 
-Scans every commit in history against pattern rules.
+on:
+  pull_request:
+  push:
+    branches: [main]
 
-#### Why it matters here
+permissions:
+  contents: read
 
-Backstop for the convention that secrets live only in user-secrets/env vars.
+jobs:
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # lets the action comment on a PR when it finds a leak
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-## Data and Control Flow
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-Uses the built-in `secrets.GITHUB_TOKEN` (provided by GitHub, not defined in the repo).
-
-## Gotchas and Issues
-
-Gitleaks only detects patterns; a weak but pattern-less password would pass.
-
-## Related Files
-
-- [`.github/workflows/ci.yml`](ci.yml.md)
-- [`.gitignore`](../../.gitignore.md)
-- [`.env.example`](../../.env.example.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

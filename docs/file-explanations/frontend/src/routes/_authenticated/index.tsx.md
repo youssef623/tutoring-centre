@@ -1,73 +1,83 @@
-# frontend/src/routes/_authenticated/index.tsx
+# `frontend/src/routes/_authenticated/index.tsx`
 
 ## Purpose
 
-The dashboard page at `/` (inside the protected layout): a welcome heading, the active centre name and a placeholder card.
+Source comment (intent): The landing page after sign-in: shortcuts, then the centre's seats at a glance. Each part follows permissions.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes/_authenticated. Replaces the former `routes/index.tsx` status page at `/`. Uses `useSession` and the shell namespace.
+Category: **source**. [Open current file](../../../../../../frontend/src/routes/_authenticated/index.tsx). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 38 lines and 1,307 bytes. Source hash: `0b29c6599bf4f0531b2b0aa20d9a3c27418af78e7d9b75998343a3a451c9135f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Route = createFileRoute("/_authenticated/")({ component: DashboardPage })`. `DashboardPage` (11-40): `useSession()`; returns `null` if `me` is null; `activeCentre` found from memberships; renders `h1` with `t("dashboard.welcome", { name: me.displayName })` (`dir="auto"` so mixed-direction names display correctly), a paragraph with the centre name, and a dashed `Card` with `dashboard.placeholder`. A comment marks it as a placeholder: 'real dashboard content lands after Day 17'.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### File-based routing with TanStack Router
+- Line 1: `import { createFileRoute } from "@tanstack/react-router";`
+- Line 2: `import { useTranslation } from "react-i18next";`
+- Line 3: `import { PageHeader } from "@/components/shared/PageHeader";`
+- Line 4: `import { GroupsOverview, QuickActions } from "@/features/dashboard/DashboardOverview";`
+- Line 5: `import { Can } from "@/features/session/Can";`
+- Line 6: `import { Permissions } from "@/features/session/permissions";`
+- Line 7: `import { useSession } from "@/features/session/useSession";`
 
-#### What it means
+## Walkthrough and declaration map
 
-A router maps URLs to components. In file-based routing a Vite plugin scans `src/routes/` and generates a route tree file, so adding a file adds a route with type-safe links.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+- [Line 9](../../../../../../frontend/src/routes/_authenticated/index.tsx#L9): `export const Route = createFileRoute("/_authenticated/")({`
+- [Line 14](../../../../../../frontend/src/routes/_authenticated/index.tsx#L14): `function DashboardPage() {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Index route of a layout.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`createFileRoute("/_authenticated/")`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```tsx
+import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { GroupsOverview, QuickActions } from "@/features/dashboard/DashboardOverview";
+import { Can } from "@/features/session/Can";
+import { Permissions } from "@/features/session/permissions";
+import { useSession } from "@/features/session/useSession";
 
-The trailing slash marks the index child of the pathless layout, so the URL is `/`.
+export const Route = createFileRoute("/_authenticated/")({
+  component: DashboardPage,
+});
 
-### Internationalisation (i18next) and RTL layout
+/** The landing page after sign-in: shortcuts, then the centre's seats at a glance. Each part follows permissions. */
+function DashboardPage() {
+  const { t } = useTranslation("shell");
+  const { me } = useSession();
 
-#### What it means
+  if (me === null) {
+    return null;
+  }
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+  const activeCentre = me.memberships.find((membership) => membership.centreId === me.activeCentreId);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+  return (
+    <section className="space-y-6">
+      <PageHeader
+        title={t("dashboard.welcome", { name: me.displayName })}
+        {...(activeCentre === undefined
+          ? {}
+          : { description: t("dashboard.activeCentre", { centreName: activeCentre.centreName }) })}
+      />
+      <QuickActions />
+      <Can permission={Permissions.GroupsView}>
+        <GroupsOverview />
+      </Can>
+    </section>
+  );
+}
+```
 
-#### Where it appears in this file
+## Before modifying this file
 
-ICU placeholders.
-
-#### How it works here
-
-Lines 25, 29.
-
-#### Why it matters here
-
-`{name}` and `{centreName}` are filled by i18next's ICU plugin.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Placeholder content only; no real data besides the session profile.
-
-## Related Files
-
-- [`frontend/src/routes/_authenticated.tsx`](../_authenticated.tsx.md)
-- [`frontend/src/features/session/useSession.ts`](../../features/session/useSession.ts.md)
-- [`frontend/src/i18n/locales/en/shell.json`](../../i18n/locales/en/shell.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

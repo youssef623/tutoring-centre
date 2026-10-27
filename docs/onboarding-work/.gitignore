@@ -1,0 +1,4 @@
+# Local validation dependencies and temporary extraction caches.
+.mermaid-tools/
+__pycache__/
+generated-model-packets/

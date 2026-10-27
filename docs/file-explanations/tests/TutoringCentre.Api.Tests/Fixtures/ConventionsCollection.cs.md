@@ -1,51 +1,57 @@
-# tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs
+# `tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs`
 
 ## Purpose
 
-xUnit collection for tests sharing `ConventionsFactory`.
+Source summary (intent, not independent execution proof): Convention tests share one factory/container; they run sequentially.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Fixtures; name `"conventions"`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 14 lines and 561 bytes. Source hash: `5451f52d2304f5815b80cca86bee3fb3361d92b315755c3adfe4c1f2fa556efa`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`[CollectionDefinition(Name)] class ConventionsCollection : ICollectionFixture<ConventionsFactory>`; used by CorrelationId, LoggingConvention and ProblemDetails tests.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### xUnit mechanics (facts, theories, collections, fixtures)
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
 
-#### What it means
+## Walkthrough and declaration map
 
-`[Fact]` is a test; `[Theory]` + `[InlineData]` runs one test with several inputs. A *collection fixture* (`ICollectionFixture<T>` + `[Collection]`) shares one expensive object (a database container) across test classes and serialises them; `IAsyncLifetime` runs async setup/teardown.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+- [Line 11](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs#L11): `public sealed class ConventionsCollection : ICollectionFixture<ConventionsFactory>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Collection fixture.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs:23](../../../../../tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs#L23)
+- [tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs:6](../../../../../tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs#L6)
+- [tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs:6](../../../../../tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs#L6)
+- [tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs:8](../../../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs#L8)
 
-Class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-One host with test-only endpoints.
+```csharp
+using System.Diagnostics.CodeAnalysis;
 
-## Data and Control Flow
+namespace TutoringCentre.Api.Tests.Fixtures;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>Convention tests share one factory/container; they run sequentially.</summary>
+[SuppressMessage(
+    "Naming",
+    "CA1711:Identifiers should not have incorrect suffix",
+    Justification = "xUnit collection-definition convention; 'Collection' here names an xUnit concept, not .NET's ICollection.")]
+[CollectionDefinition(Name)]
+public sealed class ConventionsCollection : ICollectionFixture<ConventionsFactory>
+{
+    public const string Name = "conventions";
+}
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs`](ConventionsFactory.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

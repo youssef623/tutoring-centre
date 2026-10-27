@@ -1,74 +1,76 @@
-# src/TutoringCentre.Api/Auth/AntiforgerySetup.cs
+# `src/TutoringCentre.Api/Auth/AntiforgerySetup.cs`
 
 ## Purpose
 
-Configures the ASP.NET Core antiforgery system: header name and the hardened `__Host-tcm.xsrf` cookie.
+Source summary (intent, not independent execution proof): Double-submit CSRF protection: the browser sends the antiforgery cookie automatically, but the header value must be read by our own script from our own origin (see AntiforgeryEndpointFilter for enforcement).
 
-## Where It Fits
+## Where it fits
 
-Api/Auth. `AddApiAntiforgery` is called at `Program.cs:48`; `HeaderName` is also used by tests (`AntiforgeryTestHelper`) and mirrored by the frontend (`apiFetch.ts`: `CsrfHeaderName`).
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Auth/AntiforgerySetup.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 30 lines and 1,157 bytes. Source hash: `47ecea882f8778ec755222ac6c7ff714b794747ab8c41a486f2d8a0e64c9f0b2`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`HeaderName = "X-XSRF-TOKEN"` (9). `AddAntiforgery(options => ...)` (15-26): `HeaderName`; cookie `Name = "__Host-tcm.xsrf"`, `HttpOnly = true`, `SecurePolicy = Always`, `SameSite = Strict`, `Path = "/"`. Comment: `__Host-` forces Secure, Path `/` and no Domain; `Strict` rather than `Lax` (unlike the session cookie) because this cookie is never needed on a top-level cross-site navigation, only on same-origin script requests.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### CSRF protection with antiforgery tokens
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+- [Line 7](../../../../../src/TutoringCentre.Api/Auth/AntiforgerySetup.cs#L7): `public static class AntiforgerySetup`
+- [Line 11](../../../../../src/TutoringCentre.Api/Auth/AntiforgerySetup.cs#L11): `public static IServiceCollection AddApiAntiforgery(this IServiceCollection services)`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
+## Used by: verified name references
 
-#### Where it appears in this file
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-Antiforgery configuration.
+- [tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs:748](../../../../../tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs#L748)
+- [tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs:92](../../../../../tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs#L92)
+- [tests/TutoringCentre.Api.Tests/Academics/ScheduleDoubleBookingHttpTests.cs:60](../../../../../tests/TutoringCentre.Api.Tests/Academics/ScheduleDoubleBookingHttpTests.cs#L60)
+- [tests/TutoringCentre.Api.Tests/Academics/ScheduleEndpointTests.cs:625](../../../../../tests/TutoringCentre.Api.Tests/Academics/ScheduleEndpointTests.cs#L625)
+- [tests/TutoringCentre.Api.Tests/Auth/ForwardedRateLimitTests.cs:68](../../../../../tests/TutoringCentre.Api.Tests/Auth/ForwardedRateLimitTests.cs#L68)
+- [tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs:32](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs#L32)
+- [tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbe.cs:84](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbe.cs#L84)
+- [tests/TutoringCentre.Api.Tests/Staff/StaffSecurityTests.cs:96](../../../../../tests/TutoringCentre.Api.Tests/Staff/StaffSecurityTests.cs#L96)
 
-#### How it works here
+## Current source excerpt
 
-Lines 15-26.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+namespace TutoringCentre.Api.Auth;
 
-The cookie half of the token pair is never script-readable (`HttpOnly`).
+/// <summary>
+/// Double-submit CSRF protection: the browser sends the antiforgery cookie automatically, but the header value
+/// must be read by our own script from our own origin (see AntiforgeryEndpointFilter for enforcement).
+/// </summary>
+public static class AntiforgerySetup
+{
+    public const string HeaderName = "X-XSRF-TOKEN";
 
-### Cookie authentication and server-side sessions
+    public static IServiceCollection AddApiAntiforgery(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
 
-#### What it means
+        services.AddAntiforgery(options =>
+        {
+            options.HeaderName = HeaderName;
 
-After a successful login the server must remember *who* the browser is on later requests (HTTP itself is stateless). Cookie authentication does that with one cookie that the browser attaches automatically. Here the cookie holds an **encrypted, tamper-proof ticket** (the user's claims); only the server can read or create it, and flags such as `HttpOnly`, `Secure`, `SameSite` and the `__Host-` name prefix limit where and how browsers send it.
+            // __Host- forces Secure, Path "/" and no Domain. Strict (not Lax, unlike the session cookie): this
+            // cookie is never needed on a top-level cross-site navigation, only on same-origin script requests.
+            options.Cookie.Name = "__Host-tcm.xsrf";
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.Cookie.Path = "/";
+        });
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions](../../../../PROJECT_OVERVIEW2.md#624-cookie-authentication-and-server-side-sessions).)
+        return services;
+    }
+}
+```
 
-#### Where it appears in this file
+## Before modifying this file
 
-Second cookie, stricter flags.
-
-#### How it works here
-
-`SameSite = Strict`.
-
-#### Why it matters here
-
-Defence in depth next to the session cookie.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-Cookie `__Host-tcm.xsrf`; header `X-XSRF-TOKEN`.
-
-## Gotchas and Issues
-
-Because `SecurePolicy = Always`, antiforgery hard-checks that the request the backend receives is HTTPS (see `frontend/playwright.config.ts` comment) - this is why local development runs the API on its https profile.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Auth/AntiforgeryEndpointFilter.cs`](AntiforgeryEndpointFilter.cs.md)
-- [`src/TutoringCentre.Api/Auth/AntiforgeryTokenResponse.cs`](AntiforgeryTokenResponse.cs.md)
-- [`frontend/src/api/apiFetch.ts`](../../../frontend/src/api/apiFetch.ts.md)
-- [`frontend/src/api/csrf.ts`](../../../frontend/src/api/csrf.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

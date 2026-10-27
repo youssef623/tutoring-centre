@@ -1,54 +1,65 @@
-# docs/adr/0001-clean-architecture.md
+# `docs/adr/0001-clean-architecture.md`
 
 ## Purpose
 
-Architecture Decision Record explaining why the backend is four projects with inward-only dependencies, plus the alternatives that were rejected.
+Documentation covering ADR 0001: Clean Architecture; Status; Context; Decision; Alternatives Considered. Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Documentation. Referenced by README, `OVERVIEW.semantic.md`, and code comments (`Dispatcher`). The decision it records is enforced by `tests/TutoringCentre.Architecture.Tests`.
+Category: **documentation**. [Open current file](../../../adr/0001-clean-architecture.md). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 41 lines and 4,147 bytes. Source hash: `1c5c5a55302bb44b4b01f22e9d3e75487b14b43d0ed0f2a9f7f7e5597db8112d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Status Accepted. **Context:** portfolio project aimed at .NET roles; same business logic must serve a staff web app, a WhatsApp assistant and background jobs; rules must be testable without a database; ~8 months growth. **Decision:** `Domain` references nothing; `Application` -> `Domain`; `Infrastructure` -> `Application`+`Domain` (implements Application's interfaces); `Api` -> `Application`+`Infrastructure` (Infrastructure only in the composition root); feature folders inside layers (`Application/Payments/Commands/RecordPayment/`); boundaries enforced by architecture tests in CI. **Alternatives:** layered monolith without enforced boundaries; one project per module; microservices. **Consequences:** executable rules, isolated testability, shared use cases; but 4-6 files per feature, indirection, mapping boilerplate, ~15% more hours (from a document not in the repo). This is one of the few places the repo *states* its reasons.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Dependency inversion, ports and adapters
+## Walkthrough and declaration map
 
-#### What it means
+- Line 1: ADR 0001: Clean Architecture
+- Line 3: Status
+- Line 7: Context
+- Line 11: Decision
+- Line 24: Alternatives Considered
+- Line 30: Consequences
 
-A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Whole ADR.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+# ADR 0001: Clean Architecture
 
-Explains the rationale for ports/adapters and project boundaries.
+## Status
 
-#### Why it matters here
+Accepted
 
-Provides documented (not inferred) reasons.
+## Context
 
-## Data and Control Flow
+This is a portfolio project aimed at .NET roles, so the architecture itself is part of what's being evaluated, not just the features. The same business logic has to serve three different front doors: a staff web app, a WhatsApp assistant, and background jobs (reminders, billing runs) — none of which should duplicate rules like "a payment can't be recorded against a cancelled enrollment." Those rules need to be testable without spinning up a database, both for fast feedback during development and because the AI assistant path depends on the same use cases behaving identically to the web path. The project is expected to grow over roughly eight months, so the structure needs to hold up as features accumulate, not just look clean on day one.
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Decision
 
-## Configuration and Environment
+Split the codebase into four projects — `TutoringCentre.Domain`, `TutoringCentre.Application`, `TutoringCentre.Infrastructure`, `TutoringCentre.Api` — with references allowed inward only:
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+- `Domain` references nothing.
+- `Application` references `Domain`.
+- `Infrastructure` references `Application` and `Domain` (it implements Application's interfaces — Dependency Inversion Principle).
+- `Api` references `Application` and `Infrastructure`, and uses the `Infrastructure` reference only in its composition root (`Program.cs`) to register concrete services; that reference must never leak into endpoint code.
 
-## Gotchas and Issues
+Within each layer, organize by feature rather than by technical type: `Application/Payments/Commands/RecordPayment/` holds the command, handler, and validator for that one use case together, instead of scattering them across `Commands/`, `Handlers/`, `Validators/` folders.
 
-Mentions 'Day 2/Day 4' and an 'Architecture v2' analysis that are not in the repository.
+Module and layer boundaries are not just a convention — they're enforced by architecture tests running in CI (see Day 2/Day 4), so a reference that violates the allowed direction fails the build, not just a code review.
 
-## Related Files
+## Alternatives Considered
+```
 
-- [`docs/adr/0002-dotnet-react.md`](0002-dotnet-react.md.md)
-- [`README.md`](../../README.md.md)
-- [`tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs`](../../tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs.md)
-- [`docs/architecture/overview.md`](../architecture/overview.md.md)
+The excerpt stops at line 24; use the original file for the remaining 17 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

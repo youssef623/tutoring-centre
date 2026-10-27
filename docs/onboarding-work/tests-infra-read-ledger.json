@@ -1,0 +1,1862 @@
+[
+  {
+    "path": ".config/dotnet-tools.json",
+    "lines": 13,
+    "sha256": "e48342794ccf9dd33332c04e3c946488ab797c138f07d13b1a26c95b5664b3b9"
+  },
+  {
+    "path": ".dockerignore",
+    "lines": 41,
+    "sha256": "4b5334d446080b7a2711f7c52f269a34ccc1e990afec3c2c0de59df54119e490"
+  },
+  {
+    "path": ".editorconfig",
+    "lines": 40,
+    "sha256": "bf308a1a2ba343fa08cc5c9d6c2931c0793673ecfb8e6b3dcc72a9f6df586399"
+  },
+  {
+    "path": ".env.example",
+    "lines": 15,
+    "sha256": "47693a26f73b0dc3bdeccdca3ff14206570dd9aff10ee7a713f8a2f7c8009b9c"
+  },
+  {
+    "path": ".gitattributes",
+    "lines": 3,
+    "sha256": "2d66cc5f10fd5927283f2bd7a8743fe0fa2f31c9dccd4ac3a8f5ecb1530ac813"
+  },
+  {
+    "path": ".github/dependabot.yml",
+    "lines": 37,
+    "sha256": "07413419f600ab87ea13af910e8944bb977b32e82929506265d7b91dfd31612e"
+  },
+  {
+    "path": ".github/workflows/ci.yml",
+    "lines": 346,
+    "sha256": "f9a3a693c83b11e5a3923c7a2f459040c7a51dabf5ebb8e54114a47be5d35994"
+  },
+  {
+    "path": ".github/workflows/codeql.yml",
+    "lines": 52,
+    "sha256": "ba574a6a6987bdcf17f294416ddc821c7a865646cb5ff7bf724169fab19c5853"
+  },
+  {
+    "path": ".github/workflows/secret-scan.yml",
+    "lines": 27,
+    "sha256": "7feeace7b8ead46520066098a14f7f170b70a5254dee3f6f11d82d5702b5eb4f"
+  },
+  {
+    "path": ".gitignore",
+    "lines": 492,
+    "sha256": "3fe4108f141cd8e460462cfef8e9392f63655f68e81620c59d4743caf2fbe9cd"
+  },
+  {
+    "path": ".gitleaksignore",
+    "lines": 3,
+    "sha256": "b5a1cce3bba4ba3197f59ed8bf36cd32015c2e391522938194ec760da2b70dfc"
+  },
+  {
+    "path": "CLAUDE.md",
+    "lines": 4,
+    "sha256": "d7105921c35a33b6ccdedc6cab3d82d9d347bece3f143eb2acbc846f4c1e22d6"
+  },
+  {
+    "path": "Caddyfile",
+    "lines": 8,
+    "sha256": "f4f07c253ffc60ffa26dc2e1d4dc7b1b6a2dae951e68b4e841a90fff467d088a"
+  },
+  {
+    "path": "Directory.Build.props",
+    "lines": 11,
+    "sha256": "40dfba2071837c2a4a789a134a1a3850222dd83498c7719fb5a6870bac8d0cf4"
+  },
+  {
+    "path": "Directory.Packages.props",
+    "lines": 42,
+    "sha256": "c9c83f2d23300532e829e35e1b331a24ea349fc96ab9f5a264086d99d0cf283d"
+  },
+  {
+    "path": "Dockerfile",
+    "lines": 62,
+    "sha256": "4a09a36c9b9d4ef7ded4ce773394592283d93d993bc4e90878417adf30daf55c"
+  },
+  {
+    "path": "README.md",
+    "lines": 235,
+    "sha256": "77ef5ceac37170312603e300c78fcafbbcf7356fff6ccd6ba124d925f752a50b"
+  },
+  {
+    "path": "TutoringCentre.slnx",
+    "lines": 15,
+    "sha256": "3088377cf26cc12f20c780c0c6d855dc8f2947d3a01c24a576b56ddeec9abd9f"
+  },
+  {
+    "path": "compose.prod.yaml",
+    "lines": 95,
+    "sha256": "bea077f7c16e4279e727c30e294d640921fe62f5ecce9621b31690319d05fd8f"
+  },
+  {
+    "path": "compose.yaml",
+    "lines": 22,
+    "sha256": "fa4cd9c8824980897e323f51a2a58143ec100e3fe1daee5afab73fc0938b3cb9"
+  },
+  {
+    "path": "database/demos/week4-rls.sql",
+    "lines": 61,
+    "sha256": "719c5c7354f7fbfae63ed0a1d0fe36c408a72827be31dfcb11f6593320f13abd"
+  },
+  {
+    "path": "db/bootstrap-roles.sh",
+    "lines": 121,
+    "sha256": "d6c8da097a8f8f531ca492d972fed12f7cf3bccddc25aa0eb9fb3776f0ec6869"
+  },
+  {
+    "path": "docs/adr/0001-clean-architecture.md",
+    "lines": 41,
+    "sha256": "1c5c5a55302bb44b4b01f22e9d3e75487b14b43d0ed0f2a9f7f7e5597db8112d"
+  },
+  {
+    "path": "docs/adr/0002-dotnet-react.md",
+    "lines": 21,
+    "sha256": "5b0cab9f361340c29e808c1768b7c3ea90544bbdfe29d6d1939ec130984eccfe"
+  },
+  {
+    "path": "docs/adr/0003-custom-cqrs-dispatcher.md",
+    "lines": 30,
+    "sha256": "29c292a3ff8af56ea2a9b9005aba92cc0234a22071495b07608fc541a3c7d1e1"
+  },
+  {
+    "path": "docs/adr/0004-unit-of-work-port.md",
+    "lines": 38,
+    "sha256": "f74b6ce3808b71b4b6a5ea02feaeec9deeb244193790c9fc04161697c69f47e5"
+  },
+  {
+    "path": "docs/adr/0005-cookie-authentication.md",
+    "lines": 67,
+    "sha256": "8fc02c27073086ce4505cb87d5bb18b6a52d094cc8f0f0e5f8f39933de6e0112"
+  },
+  {
+    "path": "docs/adr/0006-tenant-isolation.md",
+    "lines": 85,
+    "sha256": "246a3990525f4e2fde7b0167bf15e19fe829015c962e35be05d3ee5c20ca9b2c"
+  },
+  {
+    "path": "docs/adr/0007-code-defined-permissions.md",
+    "lines": 46,
+    "sha256": "37ab3b0de3fc4db07464772532a4d643f1d9c55802e8b562a1aec3a602b6f846"
+  },
+  {
+    "path": "docs/adr/0008-audit-log-in-transaction.md",
+    "lines": 64,
+    "sha256": "7e176dae23cc9069e607a2267cc21059deeb9607b6dedddc0ce2ca89e99f52dc"
+  },
+  {
+    "path": "docs/adr/0009-azure-container-apps-and-oidc.md",
+    "lines": 71,
+    "sha256": "d6470590017758ec394719ef4bcc5029cd761a82bda2f10b14a8696853cf7108"
+  },
+  {
+    "path": "docs/adr/0010-student-aggregate-and-value-objects.md",
+    "lines": 94,
+    "sha256": "d61c650f4cbe61b4288ec32bfe44eccc3c5c08287d56f4ff334dbc8508f6223a"
+  },
+  {
+    "path": "docs/adr/0011-pessimistic-lock-for-enrollment-capacity.md",
+    "lines": 155,
+    "sha256": "4b41ea4cb312c1d2c3bd4bf2657ccee1a48e146cde18bb534e6e0d2d0057ee33"
+  },
+  {
+    "path": "docs/adr/0012-sessions-as-generated-instants.md",
+    "lines": 135,
+    "sha256": "72d83976f7400d63d272bf1b3a13ed3f50cbf3067ed7ff4c986fb605c66055ba"
+  },
+  {
+    "path": "docs/architecture/academics.md",
+    "lines": 490,
+    "sha256": "414cdd5f255e88396bbd507eb32bd1fac6e9aeea0d8c936c09c8e166945c4af9"
+  },
+  {
+    "path": "docs/architecture/api-conventions.md",
+    "lines": 157,
+    "sha256": "30b054f94b9583021384f9afca3fdd26c24af5be77048fabbb368d58725e3072"
+  },
+  {
+    "path": "docs/architecture/audit.md",
+    "lines": 166,
+    "sha256": "01d812ac375e5e0001fa6159ba2651f09a974eebceb78e8aad84a3fd14c4eb34"
+  },
+  {
+    "path": "docs/architecture/authentication.md",
+    "lines": 249,
+    "sha256": "88e91b23696c38cf33ec0effdffa036cd7521132d528e8cd5bdbc0448ae66a98"
+  },
+  {
+    "path": "docs/architecture/authorization.md",
+    "lines": 207,
+    "sha256": "2033431833f5cf630dfc33354ac067b6dd66efd9ad71f5bde7582a5d5b837559"
+  },
+  {
+    "path": "docs/architecture/deployment.md",
+    "lines": 185,
+    "sha256": "76e49d456a0a3d2f485ab2ea9ada2574bfe8b8b415c4462916bea8607adb9f52"
+  },
+  {
+    "path": "docs/architecture/overview.md",
+    "lines": 202,
+    "sha256": "da5b375e9905740f5ef9eee41513b2c1a262b2e31d713866e6a87eee352c82c7"
+  },
+  {
+    "path": "docs/architecture/scheduling.md",
+    "lines": 288,
+    "sha256": "513d43d79332e2dfbb24475023decc4f363147022e6002f7b9b353bbc3ff02b8"
+  },
+  {
+    "path": "docs/architecture/tenancy.md",
+    "lines": 326,
+    "sha256": "2be0bf14d2eb6124b72ca9d834e157651cf4c63846c4ac227f88e160c115e20a"
+  },
+  {
+    "path": "docs/operations/live-verification.md",
+    "lines": 62,
+    "sha256": "59edd0a7316daaea8cfed8bbe5920782e9075d30a8aa2c74ffa823471c9c2794"
+  },
+  {
+    "path": "docs/operations/month3-local-verification.md",
+    "lines": 56,
+    "sha256": "21d6e429e4f72b534cecb1457baa98596124815b656969142abf561037a9f5b4"
+  },
+  {
+    "path": "docs/operations/runbook.md",
+    "lines": 214,
+    "sha256": "99a115ab57b1f60406c6da469841ca83d97a0c7ffa9cc26a4aa4ec93737f0a1f"
+  },
+  {
+    "path": "global.json",
+    "lines": 6,
+    "sha256": "884c3d68b436980197e5c5871b6be07dc75b894b2a9e210f70a73468e9f9bd8e"
+  },
+  {
+    "path": "later.md",
+    "lines": 59,
+    "sha256": "471f2c79dba52907e347f4b1aa23ad1a33d659452f293b8b3c62f9d0d801166b"
+  },
+  {
+    "path": "smoke/.gitignore",
+    "lines": 6,
+    "sha256": "a207192c2da06139c72655c8dc282ba61171067b4b1736267918b80a0b02ea6e"
+  },
+  {
+    "path": "smoke/README.md",
+    "lines": 33,
+    "sha256": "3cc30df9bf3409ec9f2b4e133b631e830fb68758912fa5ac380639f9ba474607"
+  },
+  {
+    "path": "smoke/package-lock.json",
+    "lines": 60,
+    "sha256": "6475704f2c59469ce91365380838868efac833dffd497f6ff595dbbe612cea91"
+  },
+  {
+    "path": "smoke/package.json",
+    "lines": 13,
+    "sha256": "01a55a30508f97b51624c5bd5c270e55dfd5ef604eb4ca38ead29dab741afa49"
+  },
+  {
+    "path": "smoke/playwright.config.ts",
+    "lines": 31,
+    "sha256": "ae2fbb9879523480c6048e944c1bf156b1ded53ce7beec1f71076a964fa4d118"
+  },
+  {
+    "path": "smoke/tests/smoke.spec.ts",
+    "lines": 88,
+    "sha256": "cf49f7cf495bc4cee87c607d91d1a38784058e0672e30d3d32afa2278ef0cfe0"
+  },
+  {
+    "path": "smoke/tsconfig.json",
+    "lines": 12,
+    "sha256": "dcf591902ef7ae2fe37bfd59b01142568a70285683e21203f639950d60828a67"
+  },
+  {
+    "path": "tests/.semantic.md",
+    "lines": 98,
+    "sha256": "f334d6bad968d1dde99baf18e827e160ab08f54050f32025ccea190d370abc13"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/EnrollmentCrossTenantTests.cs",
+    "lines": 254,
+    "sha256": "032a80f535d13587c41a945ceda0661460b77fedc417cd61ad2784a317684be0"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/EnrollmentEndpointTests.cs",
+    "lines": 764,
+    "sha256": "3fd0b8eeaff282543c1571bfc016f3ebd01659872b627f9382b946f967ad0223"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/EnrollmentTeacherScopeTests.cs",
+    "lines": 205,
+    "sha256": "8caba2ebb15907014610cb5246ce53806a14f2fd8329dd3198c6dc33c61fa3f4"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/GroupCrossTenantTests.cs",
+    "lines": 200,
+    "sha256": "cf00640b738769fefcfa2b4f311fdc469c13a255082b41a8fb0c2ab66368ec5c"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/GroupEndpointTests.cs",
+    "lines": 654,
+    "sha256": "3af17885fc885e10b9ea2a099f66111921e98924f88cedf3777d3a0a640251b2"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/GroupTeacherScopeTests.cs",
+    "lines": 288,
+    "sha256": "de2f11415fbd9ac48432d680c36b035b3fb99032d7c33aa77fb10b60aa083400"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/LastSeatHttpTests.cs",
+    "lines": 173,
+    "sha256": "546a4cdf6114685e29a72b4d6153c367345ce2722d2a7cb0f81bb175a897fd18"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/ParentCrossTenantProbeTests.cs",
+    "lines": 77,
+    "sha256": "4b813101c300a41b2ef3b7af1d594d25f98a8fcdeaef54bd775fcb65415f53d4"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/ParentEndpointTests.cs",
+    "lines": 268,
+    "sha256": "ec7e39383a04bc48dcd00344a436c578ba8fd83bee41dab0fe104f664e99aad0"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/ScheduleCrossTenantTests.cs",
+    "lines": 231,
+    "sha256": "28964bce61fb322ecd0502a2d2f41e731cce261730ea9f1573f154db9786d1a6"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/ScheduleDoubleBookingHttpTests.cs",
+    "lines": 104,
+    "sha256": "a252fcbb0e7c47c98737385a0f85bff7dc8f8286d6d942941fb757b339b5973f"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/ScheduleEndpointTests.cs",
+    "lines": 642,
+    "sha256": "49b1c1b608c79d47112e5ee5cbfcaf0dc7615889c8ecc4d45f9adb99f113ed8b"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/ScheduleTeacherScopeTests.cs",
+    "lines": 226,
+    "sha256": "84c3b694640e11df3875e2a50d9deb160c71db098d513c9ee1508809ec6b5376"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/StudentCrossTenantProbeTests.cs",
+    "lines": 158,
+    "sha256": "a3438d46b3f84ae671dfa33f7270c48912b1e7f6fe207275aaf90fafd52c8555"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/StudentEndpointTests.cs",
+    "lines": 632,
+    "sha256": "a937019934b4dfecaccfcb7480935111e1f052119000cf46b06d10c4b08a0233"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/SubjectCrossTenantProbeTests.cs",
+    "lines": 113,
+    "sha256": "048f53b83385abded67e4c04d1a0d94e8c1dbfa2b0e102edcc48ce57c16094ca"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/SubjectEndpointTests.cs",
+    "lines": 255,
+    "sha256": "8e083dbfe76d879b62804a04a980cd8c5ed2f7f38994e9a0cc0e02c3f4f8836c"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/SubjectPermissionHttpTests.cs",
+    "lines": 204,
+    "sha256": "29408a0963cd0a856e3e6975e7bab7d33ec4755af859b1479c6f68aa306190fc"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/TeacherCrossTenantTests.cs",
+    "lines": 118,
+    "sha256": "62bd40a9f20b0ff5992bf3004d2afe1d603c4714b16cc69264fa7182e897d140"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Academics/TeacherEndpointTests.cs",
+    "lines": 309,
+    "sha256": "fcc56eaf2f2306e6495217551cb1fcb25eb67c433a69236df5eb32dc67848493"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Audit/AuditEndpointTests.cs",
+    "lines": 283,
+    "sha256": "fa32498b5eb1032c3c9e4500fa631caf4fb98a113b4aaf15ed82e5801a27f336"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Auth/ForwardedRateLimitTests.cs",
+    "lines": 75,
+    "sha256": "2b9dcacdafa54752575396d70fc98f92ef1169bee3d687031af0ed9b8bc75cf1"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Auth/LoginFlowTests.cs",
+    "lines": 273,
+    "sha256": "3ebca3331b9768bb5df1bd08f928660b71a6e753d5578f80031a338163fbb12e"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Auth/SecurityTests.cs",
+    "lines": 358,
+    "sha256": "bbbfe1f8515b4486c14650fecd2d945bccef7733226464804a4839b2dbda9f4d"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Authorization/EndpointInventoryTests.cs",
+    "lines": 100,
+    "sha256": "68b994768e71e89ca8e54edb1458a0fa244c9be20009466edaf1296152b772eb"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Authorization/PermissionMatrixTests.cs",
+    "lines": 1486,
+    "sha256": "2a23ec6874719bf5e1cabc44ef2d9965279b269ce39454f8dde1b5fcb492c5ba"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Centres/CentreSettingsEndpointTests.cs",
+    "lines": 151,
+    "sha256": "5c98ed72a33cdc0314f44cb18925fab0bb2f352c740edd46587725c68889139c"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Cli/MigrateCommandTests.cs",
+    "lines": 23,
+    "sha256": "73d13acf8eebd44090365d7e5e14737586c9f7fcc28424745850f5a4a0cdba25"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Cli/ResetPasswordCommandTests.cs",
+    "lines": 41,
+    "sha256": "de9a3e1df48946ab7a2ca1e9dde3e25265dcfa53af2a8db9a7bf2acb144be148"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Cli/SeedCommandTests.cs",
+    "lines": 403,
+    "sha256": "a08489fccd50918ce4622100d735c1cacbd67453c60d4aa6dfa8cdbf14f28a02"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/AntiforgeryTestHelper.cs",
+    "lines": 51,
+    "sha256": "80bbff828a0b271dfa91a31ca05ce14825e887a733515569e9aaef58bd54eaab"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ApiCollection.cs",
+    "lines": 14,
+    "sha256": "9d476d57711755842897022ac0b97e63826ea87978ab37aba7a145d434f07903"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ApiFactory.cs",
+    "lines": 126,
+    "sha256": "97b457716515d51a0f960df91494bfe9c6f5ed5668678ff8408e2d800ee683e1"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs",
+    "lines": 41,
+    "sha256": "d24342b03180e19981434a31631ef74ae9d5b1308e49dd8d529d0df3258798af"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs",
+    "lines": 18,
+    "sha256": "38aa09a98d5c64b6923deba6bc0551c1d620aca2e0d26f2892f4768f3be5fd72"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs",
+    "lines": 80,
+    "sha256": "002bf110e7d49fcf3cf11586039c34558087ba523d397368f28eec41a9324931"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ConventionsCollection.cs",
+    "lines": 14,
+    "sha256": "5451f52d2304f5815b80cca86bee3fb3361d92b315755c3adfe4c1f2fa556efa"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs",
+    "lines": 29,
+    "sha256": "7559ef33178d94dcedcb74b92e7ee359a8f9807dc7c1821d45941eb72e87329d"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbe.cs",
+    "lines": 98,
+    "sha256": "54e79155ecc5372ab80c4d8b32b0e7a9040cc8a2141237070fe7991f2a2bb66c"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/CrossTenantProbeSelfTests.cs",
+    "lines": 50,
+    "sha256": "bfee61916f80508a446427ed9faee207ac8878af09cc0d6772296d5002e376a7"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/FixableTimeProvider.cs",
+    "lines": 18,
+    "sha256": "9baf1d25a76a0cc9775dc6a326d8a457d4e5253bffa0331ecbd9e94eb5f6d152"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ForwardedHeadersCollection.cs",
+    "lines": 14,
+    "sha256": "bce8ab7a9ca6aef2bb864d20ed71f2e484c267c8ea46a52cae7a2bc004f563c4"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/ForwardedHeadersFactory.cs",
+    "lines": 26,
+    "sha256": "53d30ced30bdfa266879e2870b0a34c320d1e5b217d1e515bafd28004c32e034"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/InMemoryLogSink.cs",
+    "lines": 45,
+    "sha256": "d558535a65f62822edafd0efa8b3d2c84095497ca16d84177a5e000822e21687"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/RoleBootstrap.cs",
+    "lines": 47,
+    "sha256": "81b79b255419e9a6af80449761781fdda0fd632a98dc6fff373a98d53f68d47d"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/SignedInClient.cs",
+    "lines": 157,
+    "sha256": "36c625b2969e8d92d241309b62c236e6c4541d8d561634e7068e3a13f8cf2283"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/SimulatedDirectConnectionStartupFilter.cs",
+    "lines": 39,
+    "sha256": "413165d21c649f6fafb968de543b18a93ee6d5fdba6357d9c8b37bce94cc1cf6"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/SpaHostingCollection.cs",
+    "lines": 14,
+    "sha256": "14c9134df1edaa9d5f7c952bff0addec018c05dbac6e0954fb99108b1095ca48"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Fixtures/SpaHostingFactory.cs",
+    "lines": 38,
+    "sha256": "5e952e3add71e2562cda3ae0039a90ea22fb82cdacd270dbe0a4418c34a047f4"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Health/HealthEndpointTests.cs",
+    "lines": 49,
+    "sha256": "22d4d282b879de1ff9b5aae3cd0d308e84991107098b916c7409c7a6b5ecb58e"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Health/ReadinessPrivilegeTests.cs",
+    "lines": 22,
+    "sha256": "bcfb1c9b11156365ec23bd07c0b25404b6ad9990d25c6487e5d08044af73b202"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Health/ReadinessWithDatabaseTests.cs",
+    "lines": 22,
+    "sha256": "5a7843d4b7932d08babbb6367ee179b8d6d0e2776530b6fe004ed38e80539247"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/CorrelationIdTests.cs",
+    "lines": 79,
+    "sha256": "837884b46e3e750a6fa4ab95c16418ab37ac2a5254f3d490cf4066e3ed5c8812"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/DataProtectionPersistenceTests.cs",
+    "lines": 69,
+    "sha256": "1bfc5038d6b6d1c2110b18f9891a79f91fe200e4dbb02f9e7c377fd9c5e6b4a2"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/ForwardedHeadersTests.cs",
+    "lines": 44,
+    "sha256": "22ae1930b550643ba03cae0f57c9911c538ffed668818c16cb78844abd75d75f"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/LoggingConventionTests.cs",
+    "lines": 37,
+    "sha256": "26f84a4c0546bdd513fab26546092e143079c4e0005619760d8c26892d35c4a0"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs",
+    "lines": 211,
+    "sha256": "57ee9d8af3da1fa088f0dfb0fb725d5f689217968e97cb96d91238a3f219ee1f"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/ProxyOptionsValidatorTests.cs",
+    "lines": 60,
+    "sha256": "3cd5083690c2404734d988f9d22b652f5f74623eec35e860aa0db11a4a2d422b"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/ResultHttpExtensionsTests.cs",
+    "lines": 183,
+    "sha256": "a1924721d500e576da7ed9a180020f41a5d91364438aff51ce992637228a5149"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/SecurityHeadersTests.cs",
+    "lines": 66,
+    "sha256": "df5d09eba2dfe3be32f71677dcad04c5f3c817a7381e1b7343aebd0408e30227"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Http/SpaHostingTests.cs",
+    "lines": 84,
+    "sha256": "c02c931a98b01dc10965b2145b924695ddbb90415a30173d8f75422c0ad06917"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Logging/SensitiveDataDestructuringPolicyTests.cs",
+    "lines": 60,
+    "sha256": "2e1c88494f3bb28bf973c4e1df0fea454b1f9904ad93daa4ab62a43b8423c732"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Staff/ChangePasswordHttpTests.cs",
+    "lines": 143,
+    "sha256": "24b395e7863ed5e9d817c9abd3853006a4179812ea1209c4ab961e6bfab21a3d"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Staff/StaffCrossTenantProbeTests.cs",
+    "lines": 81,
+    "sha256": "3ec306ec2cf3a894a20c4443d8cfde5cb799b10fa9f9e01c13d8857ac279ef56"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Staff/StaffEndpointTests.cs",
+    "lines": 235,
+    "sha256": "6b09ab1ff2cda1349c3d528ba2c591de18d16ef096563e6745fbb80910444400"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Staff/StaffSecurityTests.cs",
+    "lines": 163,
+    "sha256": "3795d2efaa6586cc02f8900985ef34c1b4e2c53f66ae48fef58ae7a805ebf745"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/Telemetry/TelemetrySetupTests.cs",
+    "lines": 36,
+    "sha256": "0e3ea64fc606f3ee1cd365df723013955e943445bec5d314cac037d91c115021"
+  },
+  {
+    "path": "tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj",
+    "lines": 31,
+    "sha256": "73de6627359bc04b628350ac9d24d8c9a6cde6e86da83101c6ee8330eb68845a"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/AddScheduleRuleHandlerTests.cs",
+    "lines": 158,
+    "sha256": "ed7360a8e4970360014c35ee039d3b07485fcfc9eed3ab47805fa3ec6a6ef85d"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ArchiveGroupHandlerTests.cs",
+    "lines": 132,
+    "sha256": "bda3b9573a1dcab3ab2e1c9b1421e84b92589146e45cb5571b14196418c8229b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ArchiveRestoreStudentHandlerTests.cs",
+    "lines": 128,
+    "sha256": "eac3a589ed12baaf8f5d896a6809aa7a71e8ef8d8879c49ed97147bd1cf621ac"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ArchiveSubjectHandlerTests.cs",
+    "lines": 90,
+    "sha256": "8fd271d1bdd36e3fb3f0f017891f13c29ce68bab2dd342ea24ef1f5806110629"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ArchiveSubjectValidatorTests.cs",
+    "lines": 23,
+    "sha256": "f4eee4603d5a5a6833db1410705d7c20b0f92d224537e1558d90ca4de1763c32"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ArchiveTeacherHandlerTests.cs",
+    "lines": 93,
+    "sha256": "b3322dae16e5f3c441098174410b3727f8c245ffc347b32ec8e48046240ff736"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ArchiveTeacherValidatorTests.cs",
+    "lines": 23,
+    "sha256": "328d2c0a9298892f7465c1ac0ac213ba2d6c009d49ef50e515e467cd3ebf9221"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/AssignGroupTeacherHandlerTests.cs",
+    "lines": 148,
+    "sha256": "2c04b45917d747a7b39995b72c55f752073cb1223266736927d8e0723ce9f0bd"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CancelSessionHandlerTests.cs",
+    "lines": 72,
+    "sha256": "d699107f27fab8459a346c60087875892a674b567f40eb912797d9f0dde5ca0e"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ChangeGroupCapacityHandlerTests.cs",
+    "lines": 118,
+    "sha256": "2afffc14eb91bd5806f21162dbd22d24efbae06f215f0e7b1c2bb6137b331674"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CreateGroupHandlerTests.cs",
+    "lines": 156,
+    "sha256": "dfe61c3d7e2626a26d5497b57fc6149fd68700b90f05c6c65c93e6c1afd3b326"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CreateParentHandlerTests.cs",
+    "lines": 80,
+    "sha256": "547ff94037ae6609fbb041fd813c31986ed427cf79b87ee79155dcd0e64f6e49"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CreateParentValidatorTests.cs",
+    "lines": 32,
+    "sha256": "92d453162bdf4d9c8952ff834deda90646a899d5cb9429e86338d6eb6d3d9e0e"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CreateSubjectHandlerTests.cs",
+    "lines": 72,
+    "sha256": "2272474426cc21020eb17dc9de9b88d9bea9b94a284ff1da9f28b4fe2e7ecf0f"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CreateSubjectValidatorTests.cs",
+    "lines": 32,
+    "sha256": "e9605d324ce5be3cc890ddf6ce9e9657bd73cb45159bd28b024b77c2ecf94410"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CreateTeacherHandlerTests.cs",
+    "lines": 76,
+    "sha256": "cfdc519259c655e5bc50f02eb167e688480143dc9eff4084101119341bb47dfb"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/CreateTeacherValidatorTests.cs",
+    "lines": 41,
+    "sha256": "589d663ad858668f3371f9a631054709cd940d42c70200e8f0c95eb0866816a9"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/EndScheduleRuleHandlerTests.cs",
+    "lines": 94,
+    "sha256": "2bf4e882a6f5bb361b123f864522522b52409ac2f21566d356ae77d9bf924be0"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/EnrollStudentHandlerTests.cs",
+    "lines": 145,
+    "sha256": "b103c296059aae3280f7e7b395eba4f594463796a31f9c5c08d2746efdedaff5"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/EnrollmentDispatcherPermissionTests.cs",
+    "lines": 193,
+    "sha256": "a8b5cf7f13457b469ba4ba5af698c1fbc492b0d21887515fe53e3cd6184ccedb"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/EnrollmentQueryHandlerTests.cs",
+    "lines": 74,
+    "sha256": "5d8beb8db856632577a5cc7738dfc94d44c416592ec318c8c483df9a4468eed9"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ExtendScheduleHandlerTests.cs",
+    "lines": 119,
+    "sha256": "2c1af86880e82198c9ec779d16d21be154f66235b724fac42d765ac40a47a195"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/GetParentHandlerTests.cs",
+    "lines": 36,
+    "sha256": "d4422d5e0d7ebda67f41072666266c357179355102a37c08c7c9905bc2257ea1"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/GetStudentHandlerTests.cs",
+    "lines": 34,
+    "sha256": "01ab5a6c5f467b50de295fb6108b25f578c64d60adec60ba1042e32334ef17c4"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/GetSubjectHandlerTests.cs",
+    "lines": 37,
+    "sha256": "503a9a0a8cf7f84593ad1c746550b39df7a44712974238811d7480168e501c70"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/GetTeacherHandlerTests.cs",
+    "lines": 37,
+    "sha256": "fafe9e5d0a8a6245fa0930e358628155081ad0a0c281cda25daef0e1f087b08b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/GroupDispatcherPermissionTests.cs",
+    "lines": 203,
+    "sha256": "9cddd31eac4266b5c4cfa7478e0056c150e37eeb961030b5641767951d0ebd71"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/GroupQueryHandlerTests.cs",
+    "lines": 109,
+    "sha256": "9b6bd41c8e99447e24e6918b6f4497a383ba14e80a0e6b6d3682c3d60d080710"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/GroupValidatorTests.cs",
+    "lines": 88,
+    "sha256": "1f8c5648ac7048155e29b2944624f4af8e288e5c36d611ded42543ea497dcffa"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ListStudentsHandlerTests.cs",
+    "lines": 23,
+    "sha256": "5c368f512ff9b880bc33a82e18e2a9d4db65a18383f98daddd750d76f25e5bf8"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ListStudentsValidatorTests.cs",
+    "lines": 41,
+    "sha256": "ff25514a267e8b062e986037c0b66678d4204024296d7af1044080bf9ca7e583"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ListSubjectsHandlerTests.cs",
+    "lines": 36,
+    "sha256": "59e34f3c6faf47ee38bbe5e69815f3f9adc72b5a6e866204d3efb5137aecf537"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ListTeachersHandlerTests.cs",
+    "lines": 36,
+    "sha256": "78dc77760c2e9f8a074ae5ebcee9b8bf06010f8b4a66b1f12c6f6f6b2028d562"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/LookupParentByPhoneHandlerTests.cs",
+    "lines": 48,
+    "sha256": "1c60c40fd6a6392813a0c3ca7921ca84fb068653f8364526233f47fbb6bc5c97"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ParentDispatcherAuthorizationTests.cs",
+    "lines": 192,
+    "sha256": "8b0bd5b75794d291313b4c42bdfb2ec2bb9c2e131148b7f5fb6478eb850432f2"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ParentLinkHandlerTests.cs",
+    "lines": 136,
+    "sha256": "9180a6333fa86d024893296acc0043a7812608be61508fba9dd1b8398d1aace4"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RegisterStudentHandlerTests.cs",
+    "lines": 145,
+    "sha256": "5c62b0d9f9c5703f8bc11f9fe871be66ae2d9ce8d8c233fb2ba979757841efca"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RegisterStudentValidatorTests.cs",
+    "lines": 78,
+    "sha256": "ec2285fbe804aeb5fd8259cef79a97a3ee9333ff69586ab2b98b084f4b2e9bdb"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RenameGroupHandlerTests.cs",
+    "lines": 88,
+    "sha256": "969a60475bdd797baffcf8e3e3b3740da7d094a8b76008987b1a61abda8a347b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RenameSubjectHandlerTests.cs",
+    "lines": 85,
+    "sha256": "348de97dff13698724a542b7155e714cf2cdff36d397da767975f4b0371d232f"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RenameSubjectValidatorTests.cs",
+    "lines": 32,
+    "sha256": "c23832bbb025ea501099bd9b108405c497925a326e2c23e46f5b8cb69e2c0ca5"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RestoreGroupHandlerTests.cs",
+    "lines": 95,
+    "sha256": "5585a7947c9d6be0a67a34d1c2b7282a4992d0fd72c578756567a2aa58ee17af"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RestoreSubjectHandlerTests.cs",
+    "lines": 53,
+    "sha256": "60596b59c05b8fe3736a349fcff8888740fc73fa559d1da055a29734952ce53c"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RestoreSubjectValidatorTests.cs",
+    "lines": 23,
+    "sha256": "a60b71e87adc2a52a50e8334ca162ecf0a4fec391c14e02379aa517405be9e56"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RestoreTeacherHandlerTests.cs",
+    "lines": 54,
+    "sha256": "ec90f322151ebfc3d062b26bea3c7f923166475b942b9976af6f3e2f5264f660"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/RestoreTeacherValidatorTests.cs",
+    "lines": 23,
+    "sha256": "d66ec64dde4534228249857d29d1a7b9a8d214bec5c0a226654d3097b023da0f"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ScheduleDispatcherPermissionTests.cs",
+    "lines": 186,
+    "sha256": "b045baa940625ea6733f6a6aa73c041ae87c21d7b6e709f3b516aa75b180a7b6"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ScheduleQueryHandlerTests.cs",
+    "lines": 92,
+    "sha256": "40a1ef381ef2f02466d2ccc58e7c4ba98fb2539a273313276b11da26f5619ef7"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/ScheduleTestData.cs",
+    "lines": 33,
+    "sha256": "fbe07e21f3d2ba095c4935e4eba489c4f0e5f36818d11e0dd898365f5910ddc4"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/SetTeacherAccountHandlerTests.cs",
+    "lines": 162,
+    "sha256": "2d63ff45a42c331244e22121cc2bbf814aacbd9a0e28bcce1cd17ea77ebb2bf0"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/SetTeacherAccountValidatorTests.cs",
+    "lines": 23,
+    "sha256": "f4b6d97e8dbdaed0770c5e92644bbc4ff13bf59b7fa89eaab4f48207de6a0ee0"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/StudentDispatcherAuthorizationTests.cs",
+    "lines": 215,
+    "sha256": "8c0006a4642c086285daa9a784004354fb746a5cc2843b27968bbdd945e1f446"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/SubjectDispatcherPermissionTests.cs",
+    "lines": 224,
+    "sha256": "0eced575ff1845a9d28e862e1a4272c67d781b8cbe993733d7ee806422cb3c3c"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/SubjectDispatcherTenantScopeTests.cs",
+    "lines": 143,
+    "sha256": "4d3def72261623f7aedccff4f428c4f0ec3beb2359f11a1861c0b44682b9e719"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/TeacherDispatcherPermissionTests.cs",
+    "lines": 275,
+    "sha256": "98674450375b01a7d0d5c2ec466683c1b95da79a3720c7be9cd0c7482be58e59"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/TransferEnrollmentHandlerTests.cs",
+    "lines": 165,
+    "sha256": "a0043ff3a1bfae8b02183d824bec16995c099971eb12fe83c5070fa08d2308a6"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/UpdateParentHandlerTests.cs",
+    "lines": 90,
+    "sha256": "eb2650b570fb79d2bdba0acb94f958f246a3d3450c916157cb5602e6159eaee9"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/UpdateStudentHandlerTests.cs",
+    "lines": 83,
+    "sha256": "1fe13630e4f0549a9e6ba3ba0f53ad41a45e54246e0a21a3d98d9ff707c3e915"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/UpdateTeacherHandlerTests.cs",
+    "lines": 74,
+    "sha256": "0519e0db9b87b13378776d534f248744ef3a0bd5ff595f0f4ebcd40e2eb68560"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/UpdateTeacherValidatorTests.cs",
+    "lines": 32,
+    "sha256": "9233115e71d8cf5d482e7c23c3d4d5b8c9b42cb1b23e0319c796257143de2447"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Academics/WithdrawEnrollmentHandlerTests.cs",
+    "lines": 60,
+    "sha256": "3b2d43dfb441a9f2c98bcf21a4791e5f2cc7166cbc887c65c23d827e51451c0e"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Audit/AuditDispatcherAuthorizationTests.cs",
+    "lines": 76,
+    "sha256": "2099c3bf2e614924a98c440b2018b24500d33e40993979d9421e1945ad090aab"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Audit/GetAuditLogHandlerTests.cs",
+    "lines": 48,
+    "sha256": "893e60e6797b9f891970330c87754a42fa74ecaf86c8dc40c989dbfd17bc6f6b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Audit/GetAuditLogValidatorTests.cs",
+    "lines": 120,
+    "sha256": "4f40a1eb17520ccbef78f6b5897892de23554fb483547cbcb48a13f63a095034"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Centres/CentreCalendarTests.cs",
+    "lines": 27,
+    "sha256": "009ea53e068fb3e353a98dd9316fcd7d8c3e89c3e8fc3fcd829d1a6355a0064c"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Centres/CentreSettingsDispatcherAuthorizationTests.cs",
+    "lines": 114,
+    "sha256": "2500cbd339c97dfbb73318835d10a685d60fe1201f2f9fe8cc5bc64c4becc1ec"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Centres/CreateCentreHandlerTests.cs",
+    "lines": 92,
+    "sha256": "fe2f2980725cdddf7780b6891dd58105c8469c5ab5a5982b686aa59432b30ce4"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Centres/CreateCentreValidatorTests.cs",
+    "lines": 48,
+    "sha256": "4d662caa92a7b3f56f7d2029d43703dfaedaebf3741f7bd8563c5997c9bdb9dc"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Centres/GetCentreSettingsHandlerTests.cs",
+    "lines": 38,
+    "sha256": "8168319a9c363817abc994bce00ace5a27d8d54c3068516ef6d4b802f73f8b9d"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Centres/UpdateCentreSettingsHandlerTests.cs",
+    "lines": 56,
+    "sha256": "f1684f5e41621ac4309b360e5649cbea77d5ebe9650c3942f4d801c6eb34a4fb"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Centres/UpdateCentreSettingsValidatorTests.cs",
+    "lines": 44,
+    "sha256": "e87ff07436708dfa3d97a19db6250da6cf3a59a0646fa1f321d7cfdc7734c9c9"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Cqrs/DispatcherTests.cs",
+    "lines": 390,
+    "sha256": "7332787d3d5b837d55075a7e2da529f9950dc8a8e731a38c4c4e1219dc1cfe83"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Cqrs/TestRequests.cs",
+    "lines": 160,
+    "sha256": "fda98ecc2fee2ef879cb456b6353cfcb50db7c42306b1163539bbecb7945c66c"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeAuditReadService.cs",
+    "lines": 43,
+    "sha256": "16ba9a8019816c4422846f575d05dbddd9a9e378c9577bf7e3e1ed56136a454b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeCentreReadService.cs",
+    "lines": 12,
+    "sha256": "823f4409318efdbf68c0e27552c11cd9b71f8578b7b4d7d6883c399b30942d97"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeCentreRepository.cs",
+    "lines": 20,
+    "sha256": "c2b433c6fcbc9319922cefda849ed06a2968a910ce7cdd9c608f60fca82186de"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeCentreTimeZoneProvider.cs",
+    "lines": 11,
+    "sha256": "4a98f00d91795874bd771d6cb7fffa4a28e3c09115cfcb6eae60dcef1cd38533"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeClassSessionRepository.cs",
+    "lines": 48,
+    "sha256": "5e1bf808645f543e1a6d1586e5243ac19f159144bdda714f0739a490778d0cee"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeClock.cs",
+    "lines": 13,
+    "sha256": "d5665286cb5a06af6a3f6b06567f2ad725760010a499bfaa3b49c35b8549a718"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeCurrentActor.cs",
+    "lines": 9,
+    "sha256": "d35377f058992beee36208dd30ff0b1e801ac513ef552c3b16a84e080fd984c7"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeEnrollmentReadService.cs",
+    "lines": 44,
+    "sha256": "ed6af4f8a175471eeff67742ee82b5992cf04df9b1ef3fe4e41aa18841bc817c"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeEnrollmentRepository.cs",
+    "lines": 29,
+    "sha256": "12606ccde6042bf3cafaa791e1b16d9b93d3558becaf131ac8b5d3c1eb349f5d"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeGroupReadService.cs",
+    "lines": 31,
+    "sha256": "6408534e95da47b645c73b183b9d96f574e324d530091300ed7eee8562754ff6"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeGroupRepository.cs",
+    "lines": 50,
+    "sha256": "92b64672a89704366e2a5c36bcb572d1c39bdb8f2dffb09259ee0a6fb513f190"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs",
+    "lines": 25,
+    "sha256": "309919e3de5f42ea2e5e994aa5a3a6001389fa3f71f555bfdca6485b06089db8"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipRepository.cs",
+    "lines": 26,
+    "sha256": "f01ad3125a0b2824fe2116f77ddce3425880c07ffe925025a757967331cdeca4"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeParentReadService.cs",
+    "lines": 18,
+    "sha256": "bf6de692ec768187b0e10bd5b38f86955aceb2b7a652989891a6fd94678ec3d2"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeParentRepository.cs",
+    "lines": 36,
+    "sha256": "ce240ef0ab63bdcba78ff4cae521486081d674cab7a112cc7f8b8674ec07037b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeScheduleReadService.cs",
+    "lines": 45,
+    "sha256": "69f4071a745f27ebcc812fbe587faf772ac2726ecb08a2b32c9f4c18860f1162"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeScheduleRuleRepository.cs",
+    "lines": 31,
+    "sha256": "abe39b5f0d5085a55010af523de6a1615c2d5707c9f3efaad7682ec88ef8fb95"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeStaffAccountService.cs",
+    "lines": 27,
+    "sha256": "e450fa58370f857da5e8e2d2ff24157fb2f4b174976f442667c81b2a8990ff6b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeStaffDirectory.cs",
+    "lines": 18,
+    "sha256": "7617ebff1d5ae6546cb7bbc14ecdf87a652d017ce44fffdcc5ae52bfef69b064"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeStaffReadService.cs",
+    "lines": 20,
+    "sha256": "9d9965a69da306f3ec8b4925a2ec6c2ab1ac59ef9fd1afda23c12a607c35d86b"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeStudentReadService.cs",
+    "lines": 16,
+    "sha256": "91508451c65bff86198a7f24839cd90c99c051de51447776eb1728ac983fd8da"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeStudentRepository.cs",
+    "lines": 20,
+    "sha256": "b4ead4849031b278aec59aaa0c0bbf769b7ceb75538e725a976091be845a2c48"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeSubjectReadService.cs",
+    "lines": 20,
+    "sha256": "990b7ce0362cf8bf0f8f5e9c94ef937064eb250dd8a8eb9ca6c041074d5577d1"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeSubjectRepository.cs",
+    "lines": 24,
+    "sha256": "4e77cb0beebdcf31a0e605960889e28936960ecf6ebaf280ebc6d703ec2f8e46"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherReadService.cs",
+    "lines": 24,
+    "sha256": "c474fd5fff645b48b90c9333a80ec544191393a3a68af63f2016e1f1dc94cb49"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherRepository.cs",
+    "lines": 24,
+    "sha256": "78d21338bcda15ae62ce01cc9e36da79365fe66e518f9b9e93d24cfcc11f8210"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeTeacherScopeProvider.cs",
+    "lines": 11,
+    "sha256": "ac32f39e8e7aa5c6bcbe94f9079105c60be3573075bba1ce9b4dd6576ba03799"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Fakes/FakeUnitOfWork.cs",
+    "lines": 50,
+    "sha256": "cbc9362644fbbf2092fd3e6fc780c3f1fa0dbb8cd62711640c9ab29331dd43e5"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Identity/GetActiveMembershipHandlerTests.cs",
+    "lines": 90,
+    "sha256": "0826411bff8ac2c0938285948d4eebaf53145241cdaf6d183d3c4823b26291f6"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs",
+    "lines": 121,
+    "sha256": "af203d0f099a26c5fe51f70d559b09f8eb3c702722d2a356e3ec2596ca52d5a7"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs",
+    "lines": 103,
+    "sha256": "4534778cc075500bb6961b8d428334b30ea72b61a6f9b3a57cb56990183c7f69"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Platform/GetSystemInfoHandlerTests.cs",
+    "lines": 74,
+    "sha256": "d99e2f676a47e096fc4282a2fddcf61e96b08887af51a363fa1a34739ead7bbc"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Security/CorrelationContextTests.cs",
+    "lines": 33,
+    "sha256": "2f07bb87c9de3128fbce73ca589b014be7f162e028cb5235f35f02a81a6cf736"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Security/CurrentActorContextTests.cs",
+    "lines": 64,
+    "sha256": "211b013e90517cee274abbe5d9d046f6126c2b015b700ed51f8be9378bc35829"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Security/TeacherScopeTests.cs",
+    "lines": 28,
+    "sha256": "759cdc234a92103089050e986cc172fb9646ceaf359470e2a2b21c6b447103d1"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Staff/ChangeStaffRoleHandlerTests.cs",
+    "lines": 111,
+    "sha256": "a3f3cd24926ea4cef0629e33ab579ca21a3f82bbb9fad913f9b927144fad52b4"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Staff/CreateStaffHandlerTests.cs",
+    "lines": 93,
+    "sha256": "e1fe4afd10e74a1bded7d63db6f382d8e515b698056be4b6a069e8121480e0a5"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Staff/DeactivateStaffHandlerTests.cs",
+    "lines": 82,
+    "sha256": "fede9e3ff254417c41edc6c171fb4a6d144fc2a3d29cd060f28492db18ddf17f"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Staff/ListStaffHandlerTests.cs",
+    "lines": 26,
+    "sha256": "d07c11e1e2f8cc061e4aea61520b468900465347451b4d8a27a1ab2b43a5ff75"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Staff/ReactivateStaffHandlerTests.cs",
+    "lines": 49,
+    "sha256": "dd649782cc715427aff892a0102e9f0ca85d4a4aef1e9a55bfba8d0b4a5ab555"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Staff/StaffDispatcherAuthorizationTests.cs",
+    "lines": 196,
+    "sha256": "0e64c04aea3b7da65fc8416f90cb520952e30c64a96d965890d3558051a0effd"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/Staff/StaffValidatorsTests.cs",
+    "lines": 109,
+    "sha256": "8f11d16934eb446f0bd6d24ac023b9e7193b1ec87fb8008c93ad9cade49f30c3"
+  },
+  {
+    "path": "tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj",
+    "lines": 29,
+    "sha256": "06ff4b00a4202c9d85ededbc57c3a76a3668623185d49efae1e44cb9d9bc2efc"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/ApiRuleTests.cs",
+    "lines": 62,
+    "sha256": "c1a461aa82be1c8f8381ef9e34555527fec3c29c34c1cd82d4c353e58477bf09"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/ArchitectureSupport.cs",
+    "lines": 23,
+    "sha256": "3b611178ff8736ef38fb7d0e84f815ce366d013a7b25748dc1d336f02a5865b3"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/AuthorizationRuleTests.cs",
+    "lines": 101,
+    "sha256": "6ee068d01a695ca5719dd8a2d2008c10ed96ad245218ce5aafaeff434357c0d6"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/CqrsRuleTests.cs",
+    "lines": 71,
+    "sha256": "c612794effe935ed95f1c8a44f996b28a0b3e53d25857ee92dc299003e359eb2"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs",
+    "lines": 73,
+    "sha256": "18afe758a80ea2883057ea92c951fec686f2273d84695ccc5ea88bd1ce81e53d"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/IdentityRuleTests.cs",
+    "lines": 41,
+    "sha256": "dc67dee5fd77d6447c8305dc7f01e8f5d06c66c38b42efcd36454f451ae862ec"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/ModuleBoundaryRuleTests.cs",
+    "lines": 193,
+    "sha256": "2ea575e420d96de14c2314b8b7367f14cfd8da4c17f362cfd1a324570a6d872c"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs",
+    "lines": 37,
+    "sha256": "e01c0d21983724656e0282f32045010d92ff715bb9870799fb850d83a058c84d"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs",
+    "lines": 28,
+    "sha256": "b69f351fca19eb19972b987d26b25eef43a848ea760cd2dc120826988a540bc2"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/QueryFilterBypassTests.cs",
+    "lines": 76,
+    "sha256": "60eebee6a564f5535d0b027edaccf780d13d40372486789765871c41c2632fc2"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/RepositoryRuleTests.cs",
+    "lines": 40,
+    "sha256": "127a52a3b67788a8d10ddc29da51474cd41f7b21aa886788023ad43ceee65c3e"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/SourceAssemblies.cs",
+    "lines": 16,
+    "sha256": "41a44eb6c0902b1fac4aba60985e9afb84a8317bc8a1ab764ff3f6bd42f98bc1"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/SourceFiles.cs",
+    "lines": 32,
+    "sha256": "91f9775c056c1941740bfa32cf271fb9b353bab285b3e21e093dc21502afb7a5"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/TenantModelTests.cs",
+    "lines": 157,
+    "sha256": "3fb63ec6dc0658a5f92f336abd952466c78c2c910405d326d22d84598429b35a"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/TenantScopeRuleTests.cs",
+    "lines": 71,
+    "sha256": "d964707569ee79301ea83c38f7917cff42b583f1d9b326a61881636aaee2cca7"
+  },
+  {
+    "path": "tests/TutoringCentre.Architecture.Tests/TutoringCentre.Architecture.Tests.csproj",
+    "lines": 32,
+    "sha256": "0a4bffaf322b719ad5d8db611aaa73ec6483d8adbc43adb73ff645bc560650d9"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/EnrollmentTests.cs",
+    "lines": 104,
+    "sha256": "3eade76c905800a4eca42c0e1c74f153fa41957f5463f7661dd46db296fbbc6b"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/GroupTests.cs",
+    "lines": 359,
+    "sha256": "8594e5e1a9de86504cff94677b5f7446608f26a9a70699dc818e91f0a08930f4"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/ParentTests.cs",
+    "lines": 105,
+    "sha256": "e00ae39a8e0c92c60b0276c5d207de38b51e771954bc8656a38f714172611aa2"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/Scheduling/ClassSessionTests.cs",
+    "lines": 103,
+    "sha256": "0775aac77e058283f7c0cd567e3503e72fc007f46f93c753806663ee31682216"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/Scheduling/ScheduleRuleTests.cs",
+    "lines": 177,
+    "sha256": "73e2f57c659385c96e3c82ccdf5aeffa4b6eaea4e80b9a3ef08a1169fa4674b2"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/Scheduling/SessionGeneratorTests.cs",
+    "lines": 204,
+    "sha256": "6f1f2ba1b327588d8e57ee8b236ef406881867677f164c31c374515b1b7d2689"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/StudentTests.cs",
+    "lines": 375,
+    "sha256": "9493695170a0b88d0011cc9dbeaee8188f5ad78cf7aef68941fd339b68527632"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/SubjectTests.cs",
+    "lines": 163,
+    "sha256": "8990dec81fb1bdd699149edcadf45b30586260bb098422a13def3116b799b6a4"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Academics/TeacherTests.cs",
+    "lines": 255,
+    "sha256": "30d2c46ff17be67099fb7b8abde402dd30a0003dc21f818da8467fcde0952295"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Centres/CentreTests.cs",
+    "lines": 139,
+    "sha256": "60df54636ae2a283d18dd1db258c0124dafd3e042a326b8da513e6b6363522b5"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Common/EntityTests.cs",
+    "lines": 26,
+    "sha256": "9bf79489aed97f13386d06d342f554a0f916338e5a5141757d8da70bc3560b9d"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Common/ErrorTests.cs",
+    "lines": 31,
+    "sha256": "c55c6d23d0c058d73ade620d9c6da449d4f58cc46d905bf08e53623c399b3d90"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Common/PhoneNumberTests.cs",
+    "lines": 95,
+    "sha256": "cf2e520c7895baa73ea3c1e9f6de9c0dd0587c2b974a2709e5107fafa1cded52"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Common/ResultTests.cs",
+    "lines": 46,
+    "sha256": "5915a71963c4c48ff71078454d2b6b205fbf55c53db66c10041f3c8a06db1477"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Common/SearchTextTests.cs",
+    "lines": 54,
+    "sha256": "59c8f74de2c9743ccd01a042499e1d4469521a10b5cd17d26f8ed7c61990de2d"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Identity/MembershipTests.cs",
+    "lines": 134,
+    "sha256": "ea9cb349b61c3e4794af2e5006831ee02aa48e603b94edb4b83018bb7f6b136a"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Identity/PermissionsTests.cs",
+    "lines": 21,
+    "sha256": "9c180332ebb2c1f9e140180a97aa4995d657d84da0b154e0babbb99f728dfbad"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Identity/RolePermissionsTests.cs",
+    "lines": 85,
+    "sha256": "87b7449245a2b493b1cd42008d6dbf1ed5cfefdcd03c96b19d3c4872f3d26a8e"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/Identity/RoleScopesTests.cs",
+    "lines": 15,
+    "sha256": "8255735756974100caaa2ddbfd037c176af54f88b680e14d4f22fd6bba9a50a7"
+  },
+  {
+    "path": "tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj",
+    "lines": 28,
+    "sha256": "8e8d0f8bab4a25b0e49ac2e0e14ddcd2644ebc1b01d265b23fd45b3ad07ddfaf"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/AuditTrailTests.cs",
+    "lines": 258,
+    "sha256": "98cb48d4771e59f87173d914f988796d2deae6d7051a3e2d7403b6ba4ea78217"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentIntegrityTests.cs",
+    "lines": 132,
+    "sha256": "d553ce635e03c46ebd17e820d699bfb1a643ca65d3e882c2aed8d563e0d5509d"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentRowLevelSecurityTests.cs",
+    "lines": 134,
+    "sha256": "77728fa53d0875e52e92636e3ca312e67e1918348cbfbe652c56f4662281094c"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTeacherScopeTests.cs",
+    "lines": 61,
+    "sha256": "3b13ef17c686113cac31d7fd60b1f68c97a14558fe9e1f57097301f31ef11fd8"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTenantIsolationTests.cs",
+    "lines": 131,
+    "sha256": "66613a499e728bacb665d95f9074a260c4bd5bfaf352dcd9472e3249c6c9805e"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTestBase.cs",
+    "lines": 118,
+    "sha256": "09b97510b05046ff943cb8f24bb9eb2825fdad3be76a6ce705b1b1a808873620"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentTransferTests.cs",
+    "lines": 133,
+    "sha256": "48a58da2133d1b574c30ae117c4d67e145cb840e425ba767e409982419aa3d8f"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/EnrollmentUseCaseTests.cs",
+    "lines": 222,
+    "sha256": "66f8490ad1690c6894fafc5f086f37f432a7eae9ea06ecda069d92255018e1d4"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/GroupIntegrityTests.cs",
+    "lines": 73,
+    "sha256": "a9a721ddd3d50a37becd178c7547a8b11691b93fe09570dae2db932a5aac5a4c"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/GroupRowLevelSecurityTests.cs",
+    "lines": 133,
+    "sha256": "9da0870c4263df9c16da928cea270a6b68025de1c72e43873351fd1ff4ac2407"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTeacherScopeTests.cs",
+    "lines": 145,
+    "sha256": "f4898a86b25713af3f0215c78fec5cd7f91c0109eb5bda5eb0ce5129cfd2c1d3"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTenantIsolationTests.cs",
+    "lines": 142,
+    "sha256": "ef8692221ce214342e40a133e30f448839c0c1801ac35194232d72d6742b45e2"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTestBase.cs",
+    "lines": 73,
+    "sha256": "313eda2c9506224f7e3a0404e72dd182ef73bfd8ae2120816d6c48b6f8f22ab3"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/GroupUseCaseTests.cs",
+    "lines": 220,
+    "sha256": "d5490cc19258c82f734501f0f650358538f2d1dad63eea97a3a4f177d457f665"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/LastSeatConcurrencyTests.cs",
+    "lines": 144,
+    "sha256": "6d169c2677b49f11171dcea6f58bb474ea9c899aa6642dc53f1501727342ece9"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ParentAuditTrailTests.cs",
+    "lines": 71,
+    "sha256": "85ae339db1546ec278497261551b38925cae2a510a431c2a936e752351f1fe1a"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ParentPersistenceTests.cs",
+    "lines": 129,
+    "sha256": "9ee9a0e46c1cb0c40d5edce2e882a0558d74dc29e386de2f5166fb8037f51117"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ParentRaceTests.cs",
+    "lines": 56,
+    "sha256": "05e6e73caff951c98c60da5d597b5b4d29365a8127f91dcf8a746316287eb187"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/RowLevelSecurityCoverageTests.cs",
+    "lines": 135,
+    "sha256": "afcfb5ba6103d259c037c77d70c6be74da22fbf64e88a138399d4d1408e15753"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleDstPersistenceTests.cs",
+    "lines": 59,
+    "sha256": "0ba33927b8cd45cee5388df07789d52d0ba146c8b1023b39121bb42ae7274bec"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleRowLevelSecurityTests.cs",
+    "lines": 154,
+    "sha256": "8f731c6c00648d506e8fd295e3cb74562e88d2438b4f408041070f1c23faac06"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTeacherScopeTests.cs",
+    "lines": 52,
+    "sha256": "eaec938a45caee060920912620923397fb7a1a45b20f8d21a21556c1e7ca2095"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTenantIsolationTests.cs",
+    "lines": 113,
+    "sha256": "43cf54509d9cc2809920541e23862c67d7db56cd306ad0edba35a9b65d575432"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleTestBase.cs",
+    "lines": 170,
+    "sha256": "36d234ba2d3d26b9fa6a5d5d1c009af0302d532178fb09e543a115febdc22233"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/ScheduleUseCaseTests.cs",
+    "lines": 258,
+    "sha256": "968448a3f9d99ace3c77684b8d81fb010dd4843fdece762b9ab2f591cc48d0b5"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SessionExclusionConstraintTests.cs",
+    "lines": 140,
+    "sha256": "e35cd364921f21a829fb331852aa59c4ae3da41e1f3c32dcf7d8b8678518caeb"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/StudentAggregatePersistenceTests.cs",
+    "lines": 193,
+    "sha256": "3c4fc1fc4e8c2bd783dc75b9d25a99844f96155b0a54d76c2221f20ebc5ee529"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentAuditTrailTests.cs",
+    "lines": 48,
+    "sha256": "f5625771987af5d8da52e8731e780015ad0aa84a2a6676b3ea5cae02ac35c382"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentIntegrityTests.cs",
+    "lines": 116,
+    "sha256": "2d28096c206697ed87d2fb6119c508e091d9ff681d0c55e3efda662f5966e897"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentRowLevelSecurityTests.cs",
+    "lines": 266,
+    "sha256": "80e9727193e5f2c9f108b93ebee7bd46d0ad9f5a1e73e83e8806826b00b0ea94"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/StudentParentTestRequests.cs",
+    "lines": 159,
+    "sha256": "b5f143fd09c42b2928a6f7c8209bf54cc513f37d9e9d7900529203077f5ea22c"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/StudentReadServicePhoneSmokeTest.cs",
+    "lines": 66,
+    "sha256": "e8bd9ec971184e46c266bf6e3d9fd6137e4ad52e97709f11f1348c31f9ed3ef4"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/StudentUseCaseIntegrationTests.cs",
+    "lines": 211,
+    "sha256": "2980d6b5985f44b123674a36a3b3020a4d02f862b87d455a5d641b4a95f9f350"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectCrossTenantTests.cs",
+    "lines": 138,
+    "sha256": "8604d32645020c9a98422fc32ee5a54b9e00b080f36ec9203985de116f05e6d8"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectPersistenceTests.cs",
+    "lines": 154,
+    "sha256": "3d11616730174ed0dd5f8a8de098dee82c6d128ad387653ea1e6ee23d4046a2f"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectRaceTests.cs",
+    "lines": 40,
+    "sha256": "a5e548254d135bd381e98fd861554b98d94911398d46a1edc0ff507f034b10e0"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectRawSqlRowLevelSecurityTests.cs",
+    "lines": 189,
+    "sha256": "5c49110abb911682b14d52ac0bcfb67abab7d793c10d4a55feeb635d7c77ae04"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectStaleVersionTests.cs",
+    "lines": 104,
+    "sha256": "11a95c1bf1693b2690e9293235a9def529da1ed8dab36750273b401281f41654"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectTestRequests.cs",
+    "lines": 72,
+    "sha256": "a86b5284503c63550035a5220ee2f0e5ad7e3207186a8dddd531363994c002b3"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/SubjectUseCaseTests.cs",
+    "lines": 157,
+    "sha256": "219c662bf3a2a0f550f9fa82494ac3675211c0f9fc3f7c8d0b80d4bb2b8aa7e6"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherAccountLinkTests.cs",
+    "lines": 188,
+    "sha256": "b3c0fe1c7c3f9c59da95a0512e9ee46eec17ba6fbd47d744445743a22a257a1b"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherRowLevelSecurityTests.cs",
+    "lines": 212,
+    "sha256": "b0941b8b9b8c62b1c13e9e89ff2c4eca9dd5318a75f67a156184144e6b7d269a"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/TeacherUseCaseTests.cs",
+    "lines": 120,
+    "sha256": "356d32a5eb860cdc1538cf7cfc292d7115e7da019dfd15bfe497355a0ebbbaa2"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Academics/UnlinkParentReconciliationSmokeTest.cs",
+    "lines": 59,
+    "sha256": "e5b27f7ae416f6ff91e8e8a8df832046004554f1e154d00dc626cbb2e581f6c5"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Audit/AuditDiffBuilderMaskingTests.cs",
+    "lines": 55,
+    "sha256": "c928d18c05982daec9a89c7e4d46f741a61cbea51444b405f8535a06b97d8f98"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Audit/AuditDiffBuilderTests.cs",
+    "lines": 170,
+    "sha256": "c5c2825afe2033e2be0e156df70f5ff39ca8a6d058581d2f6afd838634acdc50"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Audit/AuditImmutabilityTests.cs",
+    "lines": 183,
+    "sha256": "28ad8740178a50558a642dccca2c4d2e623ce2f976063e1556f032aa3b6d58c5"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Audit/AuditPolicyTests.cs",
+    "lines": 236,
+    "sha256": "32b9926083e50545bfaaa2a5a2bc01a704708d6672b5e6f7d976b15320f517f2"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Audit/AuditReadServiceTests.cs",
+    "lines": 188,
+    "sha256": "df291c9a892a01e56b7cd0ae1a023244e64aa70e30f80055228960aac72f464f"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSettingsTests.cs",
+    "lines": 86,
+    "sha256": "1f63255dcc855996b1ce52acceecfad259f2527c44d9d04cb8a76bede59557ce"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Centres/CentreSlugRaceTests.cs",
+    "lines": 38,
+    "sha256": "6e9d99f35fb10aafe3c6701b8d8ae283f35d772115a38f29568b6ed2b2b5e3cb"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Centres/CentreTimeZoneProviderTests.cs",
+    "lines": 71,
+    "sha256": "6e84117dafce5f85c8e354ae7b6823bfa0e56819281c7bd7c20f34ae9bceb578"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Centres/CreateCentreTests.cs",
+    "lines": 61,
+    "sha256": "ac2920781f60221ebfa2199da9a3c3f3af756ec195e5d5930ba9a3bc7c3ae57f"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs",
+    "lines": 55,
+    "sha256": "de24e3141fccb969095d7105a22d99d6c966c0d48283a05f70856193f9de4433"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs",
+    "lines": 14,
+    "sha256": "4ca11a0148897a8fa8d6fb3d4fa6513f06d7881b4761a5b2173887412894f066"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs",
+    "lines": 478,
+    "sha256": "afff31097e0ff1d8b4e4c4f126a232b8977a4c9baa0e83148597ed478adfcaf4"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs",
+    "lines": 12,
+    "sha256": "5770f2aa99c2600867acc8a7e9d047696f142c5bb93d487859901760905b94b8"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Fixtures/ProbeScopeExtensions.cs",
+    "lines": 70,
+    "sha256": "13c8a2b03e0f917cf41061304cf65b713a99bc11f57cecf5f80e78c7529b5d8a"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Fixtures/RoleBootstrap.cs",
+    "lines": 47,
+    "sha256": "072812a386a95ce0824f4f46321a1971edd9a644b41af31943ab3350c04f9a2f"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs",
+    "lines": 215,
+    "sha256": "4d07abb329ab1a48b640f9b424e3010cf9b37a4abc685781cc78095df39c904d"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipConstraintTests.cs",
+    "lines": 109,
+    "sha256": "b5b4a8fcf19fdd237b9841b8ed70ee3141fac0b520739372bc6e033484f35390"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/MembershipReadServiceTests.cs",
+    "lines": 139,
+    "sha256": "d00128f49fbab5fa843f6ea64765efcffa8023f54860e934b465048730b4c417"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/StaffAccountServiceTests.cs",
+    "lines": 79,
+    "sha256": "9e2c0c1d37f0c80d7232c281549eb9595b2c78c5b47fd19093798156443e8514"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/StaffAccountTestRequests.cs",
+    "lines": 26,
+    "sha256": "6c624fdcd5bbe02232ddcf2ed7a880dbcc5e6e0dfc158e2a407add1cf8bc7c32"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/StaffCrossTenantTests.cs",
+    "lines": 105,
+    "sha256": "c75c8290e51ad98a6af316ea47b5feea394a95dde32f4382bc34b4b098a246dd"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/StaffDirectoryTests.cs",
+    "lines": 80,
+    "sha256": "72cceff9d027947ea858d03c4474331cfd68eccaf6ffe7e0762599299ecfe089"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/StaffProbeTestBase.cs",
+    "lines": 38,
+    "sha256": "59d03594399723c14e8f3adc8db3cc654481da93a5737968191993bd9241c6a5"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/StaffRaceTests.cs",
+    "lines": 107,
+    "sha256": "7b0af7b7dd6a0aba11ec2fe0cbff6256c28069682c853655b36ac0c2f847f5b0"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/StaffUseCaseTests.cs",
+    "lines": 134,
+    "sha256": "557d44b95ad9a88dd5d2b7b8fe481b42bbd3264c89bbdb56affbea0513ab3498"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Identity/TeacherScopeProviderTests.cs",
+    "lines": 134,
+    "sha256": "91a258948886275f70ea2e5b41e8dc1418cd61fe89fd222817709bb2af3e4349"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Persistence/DatabaseOptionsValidationTests.cs",
+    "lines": 64,
+    "sha256": "4cb068faa5b4d9da4b9d6e887f34768fb4acc79fe568ea9dfbbe16ca0bd29316"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Persistence/MigrationTests.cs",
+    "lines": 42,
+    "sha256": "bde001def27938f642c59f71e346b0b390ab0c7e7dc839a44da79f665dda1ea8"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Persistence/PersistenceErrorTranslatorTests.cs",
+    "lines": 202,
+    "sha256": "113755574ea3a7c3a6f7a17984863f4e9b9cd5422ebc6cf975efa42af225155a"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Persistence/ReadOnlyQueryTests.cs",
+    "lines": 58,
+    "sha256": "72fa61a76e7386180343637760baef0b1c42cea94f5e21640186d0515b53b18d"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Persistence/RuntimeRolePrivilegeTests.cs",
+    "lines": 144,
+    "sha256": "462c18548dbbd56fad89fc7b8a5d983b01b5440b7381d9c4a6882c6c03c5d3d7"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Persistence/TenantRowLevelSecurityTests.cs",
+    "lines": 55,
+    "sha256": "b8ff54c4af851ac8d86a08255355dd08721bb5dd348e74b19a3b758149798298"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs",
+    "lines": 89,
+    "sha256": "e575a5f3b62ecca38528265f3d84bdf1ff71b6c12ba7322aad2a0e2b52be5e98"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Platform/SystemInfoQueryTests.cs",
+    "lines": 21,
+    "sha256": "cf9052c44f51ab74d334fe77a613dcdb2cbd60a7c23d209462307239e6c93f04"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRawSqlRowLevelSecurityTests.cs",
+    "lines": 237,
+    "sha256": "e6343239d4ee804620ae1054ee371e0f90e9cb33c101c5ce9b40eccedbda936f"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/ProbeRowLevelSecurityCatalogueTests.cs",
+    "lines": 53,
+    "sha256": "29730653c65ee441271eaed5dc8580e9746fcddf139d2722d93fdceeb491e359"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantContextLifetimeTests.cs",
+    "lines": 135,
+    "sha256": "5f3935627e5503ce87bfb3c7b7696ec2ee3e9d33ae3788a9ea74a1735d26e442"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantIndependenceProbeRequests.cs",
+    "lines": 50,
+    "sha256": "94ec211ad23ce916f7d0319db0224b43541dab4013a8e93a31c8fe758e9a8ed6"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantIsolationIndependenceTests.cs",
+    "lines": 60,
+    "sha256": "f2b14a2e2e0ff9ce809963d75fcb40bc2502b8e928238a72aa9268f81465735b"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbe.cs",
+    "lines": 16,
+    "sha256": "3e9c4bb0969ca66953d3995d4cc83708a2c1ef451c8be3c472348451c0cb6175"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeChild.cs",
+    "lines": 18,
+    "sha256": "dac0b45b31b65b34d1e479849f90545c055b696dcfe8be5f9c61a1da7e3e35d0"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeChildConfiguration.cs",
+    "lines": 36,
+    "sha256": "a384f7ac213b626bd41d56203acce7734cba6a474e9116f12f76055bbb153331"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeCompositeForeignKeyTests.cs",
+    "lines": 31,
+    "sha256": "628d9c6f52240a5b921d957ed518b41fe8e8d0665dc0c1e8fee1c3bbd0b0934e"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeConfiguration.cs",
+    "lines": 27,
+    "sha256": "3e7b14e4badb25a765bac219a4bc304bc00ac421c4d0d10fda4f90d2d6d366f4"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeDbContext.cs",
+    "lines": 26,
+    "sha256": "f54fab5112fea9773de3dab667b8135fa26955819c44c0b8484916f84ce0c843"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeSmokeTests.cs",
+    "lines": 41,
+    "sha256": "9829bd82422d234288798ad4e0cc2de21458c71882016cf4da9fe2a9afd22a2c"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantProbeTestBase.cs",
+    "lines": 35,
+    "sha256": "1bb623101e9cd6a2af72643684ce23df56cdc583d21c07eda1d4f70c7a0a5bbd"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantQueryFilterTests.cs",
+    "lines": 111,
+    "sha256": "7890b282a6d66af434b5f4219261c36c1c50a5183c85fd566dec42a30f22f67e"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantSettingProbeRequests.cs",
+    "lines": 45,
+    "sha256": "c956859098c8131375114bdbe3b41d5b5d6175f97c2cb7cb74f99eda2092c77c"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Tenancy/TenantWriteGuardTests.cs",
+    "lines": 97,
+    "sha256": "9137e9de87bc6b6575905875dcf6390515ebe10379eb3aa317cc16cf8fee0505"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/Time/SystemClockTests.cs",
+    "lines": 50,
+    "sha256": "a88181f56d579384000ee7cd1456a115c7190197af974ca4285640a602515444"
+  },
+  {
+    "path": "tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj",
+    "lines": 34,
+    "sha256": "9033dda0e76efde37acde916a36da0c8baa89ecdc29a54667de13885eea41fcb"
+  }
+]

@@ -1,52 +1,79 @@
-# tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs
+# `tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs`
 
 ## Purpose
 
-Helper that reads the `ProjectReference` items of a `src` project from its `.csproj` XML.
+Source summary (intent, not independent execution proof): Reads the declared ProjectReference items of the src projects.
 
-## Where It Fits
+## Where it fits
 
-Architecture.Tests, `internal static`. Used by `ProjectReferenceTests`.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 37 lines and 1,529 bytes. Source hash: `e01c0d21983724656e0282f32045010d92ff715bb9870799fb850d83a058c84d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ReadProjectReferences(projectName)`: `FindRepositoryRoot()` walks up from `AppContext.BaseDirectory` until a directory contains `TutoringCentre.slnx` (throws if none); loads `src/<name>/<name>.csproj` with `XDocument`; selects `Descendants("ProjectReference")`' `Include` attributes (`OfType<string>()` drops nulls); normalises `\` to the platform separator (Windows-authored paths on Linux CI); `Path.GetFileNameWithoutExtension`; sorts with `StringComparer.Ordinal`. Ordinal sorting means expected arrays in the tests must be written in ordinal order.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Architecture tests (fitness functions)
+- Line 1: `using System.Xml.Linq;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
+- [Line 6](../../../../tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs#L6): `internal static class ProjectFiles`
+- [Line 11](../../../../tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs#L11): `public static string[] ReadProjectReferences(string projectName)`
+- [Line 26](../../../../tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs#L26): `private static string FindRepositoryRoot()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Declared-reference reader.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs:15](../../../../tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs#L15)
 
-Whole class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Cross-platform, location-independent.
+```csharp
+using System.Xml.Linq;
 
-## Data and Control Flow
+namespace TutoringCentre.Architecture.Tests;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>Reads the declared ProjectReference items of the src projects.</summary>
+internal static class ProjectFiles
+{
+    private const string SolutionFileName = "TutoringCentre.slnx";
 
-## Configuration and Environment
+    /// <summary>Returns the referenced project names (without extension), sorted ordinally.</summary>
+    public static string[] ReadProjectReferences(string projectName)
+    {
+        var projectPath = Path.Combine(FindRepositoryRoot(), "src", projectName, projectName + ".csproj");
+        var project = XDocument.Load(projectPath);
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+        return project
+            .Descendants("ProjectReference")
+            .Select(element => (string?)element.Attribute("Include"))
+            .OfType<string>()
+            // `dotnet add reference` on Windows writes backslashes; Linux CI treats them as ordinary characters.
+            .Select(include => Path.GetFileNameWithoutExtension(include.Replace('\\', Path.DirectorySeparatorChar)))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
 
-## Gotchas and Issues
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, SolutionFileName)))
+        {
+            directory = directory.Parent;
+        }
 
-No bugs or surprises found while reading this file.
+        return directory?.FullName
+            ?? throw new InvalidOperationException($"Could not find {SolutionFileName} above {AppContext.BaseDirectory}.");
+    }
+}
+```
 
-## Related Files
+## Before modifying this file
 
-- [`tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs`](ProjectReferenceTests.cs.md)
-- [`TutoringCentre.slnx`](../../TutoringCentre.slnx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

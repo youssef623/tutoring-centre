@@ -1,74 +1,79 @@
-# frontend/src/api/errors.ts
+# `frontend/src/api/errors.ts`
 
 ## Purpose
 
-TypeScript types for the single error shape the UI uses: `ErrorKind` and `ApiError`.
+Source comment (intent): Mirrors the backend's ErrorKind (src/TutoringCentre.Domain/Common/ErrorKind.cs), plus "unexpected" for failures with no business meaning (500s, network errors, unparseable responses).
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api. Produced by `apiFetch.ts` (`toApiError`, `ApiRequestError`) and consumed by `errorMessages.ts`, `showApiError.ts`, `queryClient.ts` and routes. Mirrors `src/TutoringCentre.Domain/Common/ErrorKind.cs`.
+Category: **source**. [Open current file](../../../../../frontend/src/api/errors.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 27 lines and 962 bytes. Source hash: `9e3bd85dca200025b513469312ea30c89a5de6b4a10e074ddf50fa9989161afd`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ErrorKind = "validation" | "notFound" | "conflict" | "rule" | "forbidden" | "unauthenticated" | "unexpected"` (5-12): the first six are the backend enum in camelCase (the backend gained `Unauthenticated` for 401); `unexpected` is for 500s, network errors and unparseable bodies. `interface ApiError { kind; code; message; status; fieldErrors?; correlationId? }` (15-27): `code` is the stable key the UI translates; `message` is developer-facing and never shown verbatim; `fieldErrors` are validation messages per field name; `correlationId` is for support. The comment says the fetch wrapper is produced 'from Day 12'; it is `apiFetch.ts`.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Strict TypeScript and type-aware linting
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+- [Line 5](../../../../../frontend/src/api/errors.ts#L5): `export type ErrorKind =`
+- [Line 15](../../../../../frontend/src/api/errors.ts#L15): `export interface ApiError {`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+## Used by: verified name references
 
-#### Where it appears in this file
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-String-literal union types.
+- [frontend/src/api/apiFetch.test.ts:31](../../../../../frontend/src/api/apiFetch.test.ts#L31)
+- [frontend/src/api/apiFetch.ts:2](../../../../../frontend/src/api/apiFetch.ts#L2)
+- [frontend/src/api/errorMessages.test.ts:4](../../../../../frontend/src/api/errorMessages.test.ts#L4)
+- [frontend/src/api/errorMessages.ts:2](../../../../../frontend/src/api/errorMessages.ts#L2)
+- [frontend/src/api/fieldErrors.ts:3](../../../../../frontend/src/api/fieldErrors.ts#L3)
+- [frontend/src/api/showApiError.test.ts:2](../../../../../frontend/src/api/showApiError.test.ts#L2)
+- [frontend/src/api/showApiError.ts:3](../../../../../frontend/src/api/showApiError.ts#L3)
+- [frontend/src/features/enrollments/enrollmentMessages.ts:3](../../../../../frontend/src/features/enrollments/enrollmentMessages.ts#L3)
+- [frontend/src/features/enrollments/useEnrollmentMutations.ts:3](../../../../../frontend/src/features/enrollments/useEnrollmentMutations.ts#L3)
+- [frontend/src/features/groups/GroupEditDialogs.tsx:9](../../../../../frontend/src/features/groups/GroupEditDialogs.tsx#L9)
+- [frontend/src/features/groups/showGroupError.ts:4](../../../../../frontend/src/features/groups/showGroupError.ts#L4)
+- [frontend/src/features/schedule/scheduleMessages.ts:3](../../../../../frontend/src/features/schedule/scheduleMessages.ts#L3)
+- [frontend/src/features/schedule/useScheduleMutations.ts:3](../../../../../frontend/src/features/schedule/useScheduleMutations.ts#L3)
+- [frontend/src/features/session/refetchMeOnPermissionDenied.ts:3](../../../../../frontend/src/features/session/refetchMeOnPermissionDenied.ts#L3)
 
-#### How it works here
+## Current source excerpt
 
-Lines 5-12.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```typescript
+/**
+ * Mirrors the backend's ErrorKind (src/TutoringCentre.Domain/Common/ErrorKind.cs), plus "unexpected"
+ * for failures with no business meaning (500s, network errors, unparseable responses).
+ */
+export type ErrorKind =
+  | "validation"
+  | "notFound"
+  | "conflict"
+  | "rule"
+  | "forbidden"
+  | "unauthenticated"
+  | "unexpected";
 
-A `switch` over `kind` is checked for exhaustiveness by the compiler.
+/** The single error shape every failed API call is turned into (produced by the fetch wrapper from Day 12). */
+export interface ApiError {
+  kind: ErrorKind;
+  /** Stable machine-readable code, e.g. "centre.slug_invalid"; the UI translates it. */
+  code: string;
+  /** Developer-facing message; never shown to users verbatim. */
+  message: string;
+  /** HTTP status code of the response. */
+  status: number;
+  /** Validation messages per field name, when kind is "validation". */
+  fieldErrors?: Record<string, string[]>;
+  /** Correlation ID to quote when reporting a problem (from Day 11). */
+  correlationId?: string;
+}
+```
 
-### Problem Details (RFC 9457) and centralised error handling
+## Before modifying this file
 
-#### What it means
-
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
-
-#### Where it appears in this file
-
-Shape of the client-side error.
-
-#### How it works here
-
-Lines 15-27.
-
-#### Why it matters here
-
-Fields mirror Problem Details (`code`, `errors`, `correlationId`) so `toApiError` is a direct mapping.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Hand-maintained mirror of the C# enum (the generated client does not include `ErrorKind`, it only describes endpoints), so a new backend kind needs a manual change here and in `kindFromStatus`.
-
-## Related Files
-
-- [`frontend/src/api/apiFetch.ts`](apiFetch.ts.md)
-- [`frontend/src/api/errorMessages.ts`](errorMessages.ts.md)
-- [`frontend/src/api/problemDetails.ts`](problemDetails.ts.md)
-- [`src/TutoringCentre.Domain/Common/ErrorKind.cs`](../../../src/TutoringCentre.Domain/Common/ErrorKind.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

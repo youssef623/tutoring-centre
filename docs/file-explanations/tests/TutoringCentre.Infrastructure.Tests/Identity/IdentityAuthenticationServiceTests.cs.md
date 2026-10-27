@@ -1,121 +1,159 @@
-# tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs`
 
 ## Purpose
 
-Proves the credential adapter against real PostgreSQL: correct and wrong passwords, unknown email, lockout after five failures, counter reset, and that the email is never logged.
+Source summary (intent, not independent execution proof): Proves the authentication adapter's lockout and no-enumeration behaviour against real PostgreSQL.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Identity; uses `PostgresFixture`/`PostgresTestBase`. Resolves `IAuthenticationService` (implemented by `IdentityAuthenticationService`) and `UserManager<ApplicationUser>` from a real container-backed service provider.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 215 lines and 9,500 bytes. Source hash: `4d07abb329ab1a48b640f9b424e3010cf9b37a4abc685781cc78095df39c904d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Constants `Email = staff@nile.test`, `Password = a-strong-enough-password` (lines 13-14; throwaway test values). Each test makes a scope with an in-memory logger (`CreateScope` (95-96): `Fixture.CreateServiceProvider(services => services.AddLogging(builder => builder.AddProvider(log)))`).
-- `VerifyCredentialsAsync_CorrectPassword_SucceedsWithUserIdAndStamp` (16-29): success; `UserId` equals the created user's id; `SecurityStamp` not blank.
-- `..._WrongPassword_FailsAndRecordsOneFailedAttempt` (31-44): failure `auth.invalid_credentials`; `access_failed_count` in `identity.users` is 1 (read with `Fixture.ScalarAsync`).
-- `..._UnknownEmail_FailsWithTheIdenticalError` (46-57): same code.
-- `..._FiveWrongAttemptsThenCorrectPassword_StillFails` (59-77): lockout in effect.
-- `..._SuccessAfterAFailure_ResetsTheCounter` (79-93): counter back to 0.
-Every test ends with `AssertNoEmailLogged` (120-121): no captured log line contains `@nile.test`.
-Helpers: `CreateUserAsync` (101-115) uses `UserManager.CreateAsync(user, password)` (real hashing, `EmailConfirmed = true`); private `CapturingLoggerProvider` (1) and its nested logger append formatted lines to a list.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Rate limiting, lockout and enumeration resistance
+- Line 1: `using Microsoft.AspNetCore.Identity;`
+- Line 2: `using Microsoft.Extensions.DependencyInjection;`
+- Line 3: `using Microsoft.Extensions.Logging;`
+- Line 4: `using TutoringCentre.Application.Common.Security;`
+- Line 5: `using TutoringCentre.Infrastructure.Identity;`
+- Line 6: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-*Rate limiting* caps how many requests one source may make in a time window (stops password spraying from one place). *Lockout* temporarily blocks one account after repeated failures (stops many guesses against one account). *Enumeration resistance* means failure responses (and their timing) reveal nothing about whether an account exists.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance](../../../../PROJECT_OVERVIEW2.md#626-rate-limiting-lockout-and-enumeration-resistance).)
+- [Line 11](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L11): `public sealed class IdentityAuthenticationServiceTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 17](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L17): `public async Task VerifyCredentialsAsync_CorrectPassword_SucceedsWithUserIdAndStamp()`
+- [Line 32](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L32): `public async Task VerifyCredentialsAsync_WrongPassword_FailsAndRecordsOneFailedAttempt()`
+- [Line 47](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L47): `public async Task VerifyCredentialsAsync_UnknownEmail_FailsWithTheIdenticalError()`
+- [Line 60](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L60): `public async Task VerifyCredentialsAsync_FiveWrongAttemptsThenCorrectPassword_StillFails()`
+- [Line 80](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L80): `public async Task VerifyCredentialsAsync_SuccessAfterAFailure_ResetsTheCounter()`
+- [Line 96](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L96): `public async Task ChangePasswordAsync_CorrectCurrentAndValidNew_RotatesStampClearsFlagAndAppliesPolicy()`
+- [Line 116](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L116): `public async Task ChangePasswordAsync_WrongCurrentPassword_FailsWithoutRotatingTheStampOrClearingTheFlag()`
+- [Line 131](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L131): `public async Task ChangePasswordAsync_NewPasswordFailsThePolicy_FailsWithFieldError()`
+- [Line 145](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L145): `public async Task ChangePasswordAsync_NewPasswordSameAsCurrent_FailsAsTooWeak()`
+- [Line 156](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L156): `private IServiceScope CreateScope(CapturingLoggerProvider log) =>`
+- [Line 159](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L159): `private static IAuthenticationService AuthServiceFor(IServiceScope scope) =>`
+- [Line 162](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L162): `private static Task<Guid> CreateUserAsync(IServiceScope scope, string email, string password) =>`
+- [Line 165](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L165): `private static async Task<Guid> CreateUserAsync(IServiceScope scope, string email, string password, bool mustChangePassword)`
+- [Line 182](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L182): `private Task<int> FailedAttemptCountAsync(Guid userId) =>`
+- [Line 185](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L185): `private Task<string> StampAsync(Guid userId) =>`
+- [Line 188](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L188): `private Task<bool> MustChangePasswordAsync(Guid userId) =>`
+- [Line 191](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L191): `private static void AssertNoEmailLogged(CapturingLoggerProvider log) =>`
+- [Line 195](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L195): `private sealed class CapturingLoggerProvider : ILoggerProvider`
+- [Line 199](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L199): `public ILogger CreateLogger(string categoryName) => new CapturingLogger(Lines);`
+- [Line 201](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L201): `public void Dispose()`
+- [Line 205](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L205): `private sealed class CapturingLogger(List<string> lines) : ILogger`
+- [Line 207](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L207): `public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;`
+- [Line 209](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L209): `public bool IsEnabled(LogLevel logLevel) => true;`
+- [Line 211](../../../../../tests/TutoringCentre.Infrastructure.Tests/Identity/IdentityAuthenticationServiceTests.cs#L211): `public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Lockout and no-enumeration.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Tests at 31-93.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-Failure is always the same `auth.invalid_credentials`, and five failures lock the account while still looking like a wrong password.
+namespace TutoringCentre.Infrastructure.Tests.Identity;
 
-### Identity and membership modelling
+/// <summary>Proves the authentication adapter's lockout and no-enumeration behaviour against real PostgreSQL.</summary>
+public sealed class IdentityAuthenticationServiceTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    private const string Email = "staff@nile.test";
+    private const string Password = "a-strong-enough-password";
 
-#### What it means
+    [Fact]
+    public async Task VerifyCredentialsAsync_CorrectPassword_SucceedsWithUserIdAndStamp()
+    {
+        var log = new CapturingLoggerProvider();
+        using var scope = CreateScope(log);
+        var userId = await CreateUserAsync(scope, Email, Password);
 
-*Identity* is the part of a system that stores users, credentials and lockout state. *Membership* models which user may act in which centre in which role. Keeping role on the membership (not on the user) lets one person be an owner in one centre and a teacher in another.
+        var result = await AuthServiceFor(scope).VerifyCredentialsAsync(Email, Password, CancellationToken.None);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling](../../../../PROJECT_OVERVIEW2.md#628-identity-and-membership-modelling).)
+        Assert.True(result.IsSuccess);
+        Assert.Equal(userId, result.Value.UserId);
+        Assert.False(string.IsNullOrWhiteSpace(result.Value.SecurityStamp));
+        AssertNoEmailLogged(log);
+    }
 
-#### Where it appears in this file
+    [Fact]
+    public async Task VerifyCredentialsAsync_WrongPassword_FailsAndRecordsOneFailedAttempt()
+    {
+        var log = new CapturingLoggerProvider();
+        using var scope = CreateScope(log);
+        var userId = await CreateUserAsync(scope, Email, Password);
 
-Real `UserManager` and Identity tables.
+        var result = await AuthServiceFor(scope).VerifyCredentialsAsync(Email, "totally-wrong", CancellationToken.None);
 
-#### How it works here
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.invalid_credentials", result.Error!.Code);
+        Assert.Equal(1, await FailedAttemptCountAsync(userId));
+        AssertNoEmailLogged(log);
+    }
 
-`CreateUserAsync` and `FailedAttemptCountAsync`.
+    [Fact]
+    public async Task VerifyCredentialsAsync_UnknownEmail_FailsWithTheIdenticalError()
+    {
+        var log = new CapturingLoggerProvider();
+        using var scope = CreateScope(log);
 
-#### Why it matters here
+        var result = await AuthServiceFor(scope).VerifyCredentialsAsync("nobody@nile.test", Password, CancellationToken.None);
 
-Identity is configured exactly as in production, against the `identity` schema.
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.invalid_credentials", result.Error!.Code);
+        AssertNoEmailLogged(log);
+    }
 
-### Testcontainers and Respawn
+    [Fact]
+    public async Task VerifyCredentialsAsync_FiveWrongAttemptsThenCorrectPassword_StillFails()
+    {
+        var log = new CapturingLoggerProvider();
+        using var scope = CreateScope(log);
+        await CreateUserAsync(scope, Email, Password);
+        var authService = AuthServiceFor(scope);
 
-#### What it means
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            await authService.VerifyCredentialsAsync(Email, "totally-wrong", CancellationToken.None);
+        }
 
-Testcontainers starts a disposable Docker container (here PostgreSQL 17) for the test run. Respawn deletes rows between tests, which is much faster than recreating the database.
+        var result = await authService.VerifyCredentialsAsync(Email, Password, CancellationToken.None);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+        Assert.True(result.IsFailure);
+        Assert.Equal("auth.invalid_credentials", result.Error!.Code);
+        AssertNoEmailLogged(log);
+    }
 
-#### Where it appears in this file
+    [Fact]
+    public async Task VerifyCredentialsAsync_SuccessAfterAFailure_ResetsTheCounter()
+    {
+        var log = new CapturingLoggerProvider();
+        using var scope = CreateScope(log);
+        var userId = await CreateUserAsync(scope, Email, Password);
+        var authService = AuthServiceFor(scope);
 
-Real PostgreSQL.
+        await authService.VerifyCredentialsAsync(Email, "totally-wrong", CancellationToken.None);
+        var result = await authService.VerifyCredentialsAsync(Email, Password, CancellationToken.None);
 
-#### How it works here
+        Assert.True(result.IsSuccess);
+```
 
-`PostgresTestBase` base class.
+The excerpt stops at line 90; use the original file for the remaining 125 lines.
 
-#### Why it matters here
+## Before modifying this file
 
-Lockout counters live in the database, so an in-memory fake would prove nothing.
-
-### Structured logging, Serilog and correlation IDs
-
-#### What it means
-
-Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
-
-#### Where it appears in this file
-
-Capturing logger.
-
-#### How it works here
-
-`CapturingLoggerProvider` and its nested `CapturingLogger`.
-
-#### Why it matters here
-
-Proves personal data (email) never reaches logs, by inspecting what was actually logged.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-Needs Docker (PostgreSQL container via `PostgresFixture`). Test password and email are throwaway constants.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs`](../../../src/TutoringCentre.Infrastructure/Identity/IdentityAuthenticationService.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs`](../../../src/TutoringCentre.Application/Common/Security/IAuthenticationService.cs.md)
-- [`src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs`](../../../src/TutoringCentre.Infrastructure/Identity/ApplicationUser.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](../Fixtures/PostgresFixture.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,53 +1,131 @@
-# docs/PROJECT_OVERVIEW2.md
+# `docs/PROJECT_OVERVIEW2.md`
 
 ## Purpose
 
-The current teaching overview of the repository: the original 15 sections and appendices, corrected in place and extended for the merged authentication, session, CSRF, rate-limiting, membership, OpenAPI-client, internationalisation and end-to-end-testing work.
+Documentation covering Tutoring Centre Manager — Project Overview; 1. Project Overview; 1.1 What the application is (and is not yet); 1.2 Implementation state, feature by feature; 1.3 What I ran and what I could not run. Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Documentation (docs). Starts as an exact copy of `docs/PROJECT_OVERVIEW.md` and keeps all of its content; wrong statements are corrected where they stood and new material is added at the end of the relevant sections. Linked from `docs/file-explanations/INDEX.md` and the area guides, and referenced by the concept links in every per-file explanation.
+Category: **documentation**. [Open current file](../../PROJECT_OVERVIEW2.md). [Complete file index](../INDEX.md). [Current teaching overview](../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 4018 lines and 434,319 bytes. Source hash: `6942b93d940fd301e6d9b9f361b886e8f4015a34b127d9e477dbdd6c45b52b12`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Structure (4018 lines): the same 15 sections and two appendices as the original, in the same order. Added or extended: **1.4** (a current-state table classifying every sign-in, session, tenant and frontend item as complete, partial, stub, unused, TODO, broken or unverified, plus the login, centre-selection and app-shell flows); **2** (new NuGet and npm packages, Playwright, the `e2e` CI job); **3** (the three Mermaid diagrams extended with cookie authentication, antiforgery, rate limiting and the session revalidation callback); **4** and **5** (file map and startup steps); **6.24-6.35** (new concept sections: cookie authentication and server-side sessions, CSRF double-submit, rate limiting and lockout, session revalidation, identity and membership modelling, authorization by default and the tenant gate, architecture rules beyond dependencies, contract-first client generation, frontend sessions and route guards, React Hook Form and Zod, internationalisation and RTL, Playwright), each in the full format; **7.4-7.14** (the authentication system in detail, including 'what does not exist'); **8** (the real middleware order, a 'what breaks if the order changes' table and traces 8.5-8.6); **9.6** (the `identity` schema and memberships); **10.6-10.10** (sign-in walkthrough and related traces); **11-15** and the appendices (CI jobs, environment variables, test counts, quality findings 1-32, glossary, learning path). Statements that the merge made false were corrected where they stood; nothing from the copy was removed.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Architecture Decision Records and documentation as code
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-An ADR records a decision, its context, alternatives and consequences, so the *why* survives the people who made it. Docs kept in the repo are versioned with the code.
+- [Line 388](../../PROJECT_OVERVIEW2.md#L388): `| frontend/src/api/apiFetch.ts | source | The one function that talks to the API: CSRF header, error mapping | csrf.ts | generated client |`
+- [Line 409](../../PROJECT_OVERVIEW2.md#L409): `13. public partial class Program; at the bottom exposes the compiler-generated Program class so WebApplicationFactory<Program> can reference it.`
+- [Line 491](../../PROJECT_OVERVIEW2.md#L491): `internal sealed class CreateCentreHandler(ICurrentActor currentActor, ICentreRepository centres)`
+- [Line 549](../../PROJECT_OVERVIEW2.md#L549): `- "Interface" does not mean "abstraction for its own sake" here: every interface in Application exists because an outer layer must implement it.`
+- [Line 550](../../PROJECT_OVERVIEW2.md#L550): `- Putting an interface in the *wrong project* silently defeats the idea (an ICentreRepository inside Infrastructure would make Application depend on Infrastructure to use it).`
+- [Line 557](../../PROJECT_OVERVIEW2.md#L557): `**Dependency Injection (DI)** is the practice of a class *receiving* its collaborators (usually through its constructor) instead of creating them. A **DI container** (IServiceCollection → IServiceProvider in .NET) holds **registrations** (a map "when someone asks for type X, build type Y") and performs **resolution** (building the object graph by recursively satisfying constructor parameters). **Lifetime** says how long a built instance lives: **singleton** (one for the whole app), **scoped** (one per scope — in ASP.NET one per HTTP request), **transient** (new each time). **Inversion of control**: the class no longer controls what it depends on; the container does.`
+- [Line 585](../../PROJECT_OVERVIEW2.md#L585): `**Two registrations for one object (ICurrentActor).** AddScoped<ICurrentActor>(provider => provider.GetRequiredService<CurrentActorContext>()) is a *factory registration*: when something asks for ICurrentActor, the container *resolves the concrete CurrentActorContext* and returns that same scoped instance. Result: edge code (seed, tests) asks for CurrentActorContext and calls Set(...); handlers ask for ICurrentActor and can only read. One object, two views, enforced by interface segregation. The edge code that calls Set is now ActorMiddleware (every authenticated HTTP request), the CLI and tests; login uses Reauthenticate (§6.29).`
+- [Line 587](../../PROJECT_OVERVIEW2.md#L587): `**Assembly scanning (HandlerRegistration.AddCqrsHandlers).** It calls assembly.GetTypes(), keeps concrete non-generic classes, and for each implemented interface that is a closed ICommandHandler<,> or IQueryHandler<,> registers AddScoped(handlerInterface, implementation). So CreateCentreHandler (an internal class) becomes the answer to ICommandHandler<CreateCentreCommand, CreateCentreResult>. Adding a new handler class requires **no registration code** — the scan finds it (verified: no explicit registration of CreateCentreHandler exists anywhere).`
+- [Line 602](../../PROJECT_OVERVIEW2.md#L602): `- A handler must be a concrete class implementing a closed generic handler interface, or the scan will not register it.`
+- [Line 608](../../PROJECT_OVERVIEW2.md#L608): `Think of a restaurant kitchen. A chef (your class) needs ingredients (dependencies). Either the chef drives to the market every time (class creates its own dependencies with new), or a **supplier delivers exactly what the recipe lists** (the container injects them). The chef never needs to know which farm the tomatoes came from.`
+- [Line 610](../../PROJECT_OVERVIEW2.md#L610): `- **Dependency**: another object your class needs (ICentreRepository for CreateCentreHandler).`
+- [Line 611](../../PROJECT_OVERVIEW2.md#L611): `- **Injection**: the dependency is *handed to* the class from outside - here through the constructor.`
+- [Line 612](../../PROJECT_OVERVIEW2.md#L612): `- **Inversion of control (IoC)**: normally the class controls its collaborators; with DI, control is inverted - something else (the container) decides.`
+- [Line 621](../../PROJECT_OVERVIEW2.md#L621): `internal sealed class CreateCentreHandler(ICurrentActor currentActor, ICentreRepository centres)`
+- [Line 669](../../PROJECT_OVERVIEW2.md#L669): `Constructor parameters make dependencies **mandatory and visible**: an object cannot exist half-configured, and a quick glance at the constructor shows what the class needs. Property injection hides requirements; method injection suits per-call data.`
+- [Line 768](../../PROJECT_OVERVIEW2.md#L768): `SendAsync<TCommand, TResponse>(command) is a *generic method*. For CreateCentreCommand the compiler fills in TCommand = CreateCentreCommand, TResponse = CreateCentreResult. The dispatcher then asks the container for the **closed generic type** ICommandHandler<CreateCentreCommand, CreateCentreResult>. The container returns the class registered for exactly that type (CreateCentreHandler, registered by the scan). The dispatcher has never heard of centres; it only knows the *shape* "a command has a handler for its type". That is why adding a use case requires **zero** dispatcher changes.`
+- [Line 933](../../PROJECT_OVERVIEW2.md#L933): `- **Shape validation** (cheap, no business knowledge, no I/O): required, max length, enum defined. Done by **FluentValidation** in CreateCentreValidator, run by the dispatcher *before* any transaction.`
+- [Line 959](../../PROJECT_OVERVIEW2.md#L959): `| **Shape** | name not empty, at most 120 chars; locale value is a defined enum member | no | CreateCentreValidator (FluentValidation) |`
+- [Line 1196](../../PROJECT_OVERVIEW2.md#L1196): `- Each new query needs a new interface method and implementation.`
+- [Line 1225](../../PROJECT_OVERVIEW2.md#L1225): `| DefaultLocale HasConversion(ValueConverter<SupportedLocale,string>) | enum stored as 'ar'/'en' (varchar(2)); converter throws on unknown values |`
+- [Line 1284](../../PROJECT_OVERVIEW2.md#L1284): `2. dotnet ef migrations add Name compares the **current model** with the **model snapshot** (AppDbContextModelSnapshot.cs) and writes a new migration class with Up (apply) and Down (undo) plus an updated snapshot.`
+- [Line 1373](../../PROJECT_OVERVIEW2.md#L1373): `- Quirk to know: SystemActor declares public override Guid? CentreId { get; } = CentreId; — the positional record parameter and the overriding property share a name; this is how the record satisfies the abstract property. SystemActor(null) means "platform-wide".`
+- [Line 1501](../../PROJECT_OVERVIEW2.md#L1501): `Because one class sets content type, status, traceId and correlationId, a test (ProblemDetailsTests) can assert the shape once and trust it everywhere.`
+- [Line 1507](../../PROJECT_OVERVIEW2.md#L1507): `An exception message can contain connection strings, SQL, file paths, or internal names (a classic *information leakage*). GlobalExceptionHandler logs the full exception **server-side only** and answers with a generic message. ProblemDetailsTests.UnhandledException_Returns500WithoutLeakingInternals plants Password=hunter2 in an exception message and asserts it never appears in the response.`
+- [Line 1519](../../PROJECT_OVERVIEW2.md#L1519): `Different failure paths (validation, exceptions, unknown routes, malformed JSON) would answer in different shapes, X-Correlation-Id would be missing on some, and the frontend's single messageFor(error) function could not exist.`
+- [Line 1587](../../PROJECT_OVERVIEW2.md#L1587): `Support would have no way to connect a client's error with server logs; the 500 handler would have nowhere to record the real exception.`
+- [Line 1594](../../PROJECT_OVERVIEW2.md#L1594): `The **options pattern** binds configuration to a typed class and can validate it. **ValidateOnStart** runs validation when the host starts rather than at first use (fail fast). **Health checks** are endpoints used by orchestrators: **liveness** ("is the process alive?") vs **readiness** ("can it serve traffic, i.e., are dependencies up?").`
+- [Line 1654](../../PROJECT_OVERVIEW2.md#L1654): `3. **Assembly handles:** each project has internal sealed class AssemblyMarker; and an InternalsVisibleTo for TutoringCentre.Architecture.Tests, so tests can write typeof(TutoringCentre.Domain.AssemblyMarker).Assembly — compile-time-checked, unlike Assembly.Load("string").`
+- [Line 1763](../../PROJECT_OVERVIEW2.md#L1763): `- A **new instance of the test class is created per test method**, so tests do not share fields. Anything expensive is therefore placed in a **fixture** shared via ICollectionFixture<T> + [Collection("postgres")]. Tests in one collection run **sequentially**, which is required because they share one database.`
+- [Line 1793](../../PROJECT_OVERVIEW2.md#L1793): `A **component** is a function returning UI. **Props** are its inputs. **State** is data React remembers between renders; changing it makes React call the component function again (**re-render**) and update the DOM with the difference. A **hook** (useQuery) is a function that plugs a component into React features. **Server state** (data owned by the API) differs from UI state: it needs caching, refetching, loading/error states — **TanStack Query** manages that.`
+- [Line 1797](../../PROJECT_OVERVIEW2.md#L1797): `2. main.tsx creates the router (createRouter({ routeTree, context: { queryClient } })), registers its type via module augmentation (declare module "@tanstack/react-router" { interface Register … } so links are type-checked), throws if #root is missing, and renders <StrictMode><QueryClientProvider client={queryClient}><RouterProvider router={router}/></QueryClientProvider></StrictMode>. StrictMode intentionally double-invokes some functions in development to expose impurities.`
+- [Line 1798](../../PROJECT_OVERVIEW2.md#L1798): `3. **File-based routing:** the TanStack Router Vite plugin (vite.config.ts, placed *before* the React plugin) scans src/routes/ and generates src/routeTree.gen.ts (do not edit; ignored by ESLint and Prettier). __root.tsx renders the layout (<Outlet/> + <Toaster/>); routes/status.tsx defines /status → StatusPage → <h1>System status</h1><StatusCard/><SystemInfoCard/>, while / now belongs to the protected dashboard (routes/_authenticated/index.tsx, §6.32).`
+- [Line 1804](../../PROJECT_OVERVIEW2.md#L1804): `9. **What causes a re-render:** the observer created by useQuery subscribes the component to the query cache entry. When the 15-second timer fires refetch, or Retry's onClick calls readiness.refetch(), the query's state changes (fetching → success/error); the observer notifies React, which schedules a render of StatusCard; the function runs again, reads the new readiness value, and the returned JSX differs (e.g., a new checkedAt Date) so the DOM text updates.`
+- [Line 1820](../../PROJECT_OVERVIEW2.md#L1820): `- **JSX** is syntax that looks like HTML inside TypeScript; it compiles to function calls that create a description of the UI (a tree of "elements"). Nothing touches the browser DOM yet.`
+- [Line 1821](../../PROJECT_OVERVIEW2.md#L1821): `- A **component** is a function that takes **props** (inputs) and returns that description. React calls it ("**render**") whenever it needs to know what the UI should look like.`
+- [Line 1822](../../PROJECT_OVERVIEW2.md#L1822): `- **State** is data React remembers for a component between renders (useState). **Calling a state setter does not change the variable immediately**; it tells React "something changed, schedule another render". On that render React calls your function again, this time returning the new state value.`
+- [Line 1825](../../PROJECT_OVERVIEW2.md#L1825): `- **StrictMode** (in main.tsx) deliberately renders components twice in development to expose code that is not a pure function of its inputs. It does nothing in production.`
+- [Line 1827](../../PROJECT_OVERVIEW2.md#L1827): `The repo has no useEffect. Server data comes from useQuery, and StatusCard is a pure function of the query result - the preferred style for server data; only AppShell (mobile-menu open state) and LoginPage (error banner) use useState, for purely local UI state.`
+- [Line 1854](../../PROJECT_OVERVIEW2.md#L1854): `- **Type predicate** value is ProblemDetails (isProblemDetails): a function that proves a type to the compiler after a runtime check - the safe way to read untrusted JSON.`
+- [Line 1856](../../PROJECT_OVERVIEW2.md#L1856): `- **Module augmentation** (declare module "@tanstack/react-router" { interface Register ... }): tells the router library about *your* route tree so links are type-checked.`
+- [Line 1863](../../PROJECT_OVERVIEW2.md#L1863): `**Utility-first CSS (Tailwind)**: instead of writing .card {...} you compose small classes (w-full max-w-md). **shadcn/ui** copies component source into src/components/ui, so you own it. **cva** maps a prop like variant="outline" to a class string. **Logical properties** (ms-, me-) mean "margin at the start/end of the line", which flips automatically for right-to-left Arabic, unlike ml-/mr-.`
+- [Line 1886](../../PROJECT_OVERVIEW2.md#L1886): `- **Implementation**: a class that fulfils a contract (CentreRepository, FakeCentreRepository).`
+- [Line 1892](../../PROJECT_OVERVIEW2.md#L1892): `Polymorphism through interfaces is the mechanism behind almost everything: DI (the container returns *an implementation* of the interface you ask for), testing (swap fakes), and architecture (inner layers own interfaces; outer layers implement them).`
+- [Line 1901](../../PROJECT_OVERVIEW2.md#L1901): `| sealed | almost every class is sealed (cannot be inherited): the design says "extend by composition, not by subclassing", and sealing lets the runtime optimise calls |`
+- [Line 1906](../../PROJECT_OVERVIEW2.md#L1906): `Advantages: swap behaviour without changing callers; enforce dependency direction; make tests easy. Disadvantages: indirection (you must find the implementation); an interface with exactly one production implementation can feel like ceremony - here justified because a second implementation always exists in tests and because of the layering rule.`
+- [Line 1909](../../PROJECT_OVERVIEW2.md#L1909): `Concrete classes everywhere (simple, but untestable and tightly coupled); delegates/function parameters instead of one-method interfaces; inheritance-based template methods (more rigid).`
+- [Line 1912](../../PROJECT_OVERVIEW2.md#L1912): `Add new capabilities by defining an interface in the layer that needs it, and implement it in the outer layer. Prefer composition; the only inheritance hierarchies are small and intentional.`
+- [Line 1928](../../PROJECT_OVERVIEW2.md#L1928): `public async Task<Result<CreateCentreResult>> HandleAsync(CreateCentreCommand command, CancellationToken cancellationToken)`
+- [Line 1962](../../PROJECT_OVERVIEW2.md#L1962): `A **record** (public sealed record Error(...)) is a class with auto-generated value equality, ToString, deconstruction and with-copy. **Immutable** means "cannot change after creation": records' positional properties are init-only. Immutability makes messages (commands, results, errors) safe to pass around and compare, and it is why Assert.Equal(TestErrors.HandlerFailure, result.Error) works. readonly record struct Unit is the value-type form.`
+- [Line 1979](../../PROJECT_OVERVIEW2.md#L1979): `Primary constructors (class CentreRepository(AppDbContext db)), collection expressions ([], ["ready"]), file-scoped namespaces (namespace X;), top-level statements (Program.cs), partial classes (needed by [GeneratedRegex] and [LoggerMessage]), extension methods (AddApplication(this IServiceCollection ...)) that let layers add themselves to the container fluently.`
+- [Line 2384](../../PROJECT_OVERVIEW2.md#L2384): `**Identity** is the part of a system that stores *who a user is and how they prove it*: the user record, the password hash, lockout counters, the security stamp. **Authorization data** answers a different question: *what may this user do, and where*. This project keeps them apart. The user (identity) lives in tables managed by **ASP.NET Core Identity**; the user's **role in a particular centre** lives in a separate **Membership** record that this project designed itself.`
+- [Line 2398](../../PROJECT_OVERVIEW2.md#L2398): `**Entity** — Domain/Identity/Membership.cs: private constructors, UserId, CentreId, Role (StaffRole: Owner, Teacher, Secretary; the doc comment on StaffRole notes Secretary is the product's "Assistant"), Status (MembershipStatus: Active, Inactive). Create (line 33) rejects an empty user or centre id (membership.user_required, membership.centre_required, kind Validation); Deactivate/Activate (lines 48-68) return Error.Rule when the status is already the target (membership.already_inactive/already_active). The class comment explains it is **deliberately not ITenantOwned**: memberships are read at login *before* a tenant is selected, so they cannot be filtered by the current tenant.`
+- [Line 2438](../../PROJECT_OVERVIEW2.md#L2438): `- Adding a new role means: add the enum member, extend MembershipConfiguration's converters **and** the ck_memberships_role CHECK, create a migration, extend the frontend auth.json role labels (roles.<role>) and the generated client (the OpenAPI document lists role values).`
+- [Line 2540](../../PROJECT_OVERVIEW2.md#L2540): `- **Reflection** over Assembly.GetTypes() can answer structural questions that NetArchTest's fluent API makes awkward: *how many handlers implement ICommandHandler<X,…> for each command X?* (read each handler's generic interface arguments).`
+- [Line 2545](../../PROJECT_OVERVIEW2.md#L2545): `Shared helpers: SourceAssemblies (Domain, Application, Infrastructure, Api, All; the Api handle is typeof(Program).Assembly) and ArchitectureSupport (IsRepositoryInterface: an interface named I*Repository; IsRepositoryClass: a class named *Repository; Describe formats failing type names).`
+- [Line 2614](../../PROJECT_OVERVIEW2.md#L2614): `4. Generated functions call a **mutator** — a function you supply — instead of fetch directly, so you control headers and error handling in one place.`
+- [Line 2623](../../PROJECT_OVERVIEW2.md#L2623): `- Endpoint metadata that shapes the contract is in AuthEndpoints.cs:26-58 and PlatformEndpoints.cs: operation names GetSystemInfo, GetAntiforgeryToken, Login, Logout, GetMe, SelectCentre become the generated function and hook names.`
+- [Line 2651](../../PROJECT_OVERVIEW2.md#L2651): `- **Two ProblemDetails definitions exist**: the generated interface and the hand-written src/api/problemDetails.ts (isProblemDetails, used by apiFetch.toApiError for runtime checks). The generated type describes the contract; the hand-written guard validates untrusted runtime data.`
+- [Line 2658](../../PROJECT_OVERVIEW2.md#L2658): `- A new endpoint needs .WithName(...) and .Produces... metadata, otherwise the generated function name and types are poor or missing.`
+- [Line 2685](../../PROJECT_OVERVIEW2.md#L2685): `- **TanStack Router beforeLoad**: a function on a route that runs before the route's component. It may throw redirect({ to: ... }); the router catches that thrown value and navigates *(library behaviour)*. A **pathless layout route** (a file whose name starts with _) wraps its children without adding a URL segment, so one guard covers a whole group of pages.`
+- [Line 3125](../../PROJECT_OVERVIEW2.md#L3125): `| 2 | UseSerilogRequestLogging | After #1 so its single completion line carries CorrelationId (CorrelationId_AppearsInRequestLogLine). **Before** the exception handler so it wraps it and records the *final* status (a handled exception turns into a 500, and the level function logs Error for >= 500). Health paths log at Verbose. |`
+- [Line 3165](../../PROJECT_OVERVIEW2.md#L3165): `Every HTTP request must pass through common chores: assign an id, log, catch exceptions, check identity. Instead of writing these in each endpoint, ASP.NET Core arranges them as a **chain of small components**. Each component is a function of the form "receive the request context and a handle to *the rest of the chain* (next); do something; optionally call next; do something after next returns". The framework type for that handle is RequestDelegate.`
+- [Line 3169](../../PROJECT_OVERVIEW2.md#L3169): `public async Task InvokeAsync(HttpContext context)`
+- [Line 3221](../../PROJECT_OVERVIEW2.md#L3221): `GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct): neither parameter appears in the route or body. The framework recognises Dispatcher as a registered service (resolved from the request-scope container) and CancellationToken as the request-aborted token. Had the signature included a record type with no registration, it would have been read from the JSON body.`
+- [Line 3396](../../PROJECT_OVERVIEW2.md#L3396): `Ten real actions are traced end to end (the sign-in ones in §10.6–10.10). Each names the exact file and function at every stage and shows what the data looks like as it moves. File explanations are linked as [file]; line numbers refer to the files as committed.`
+- [Line 3412](../../PROJECT_OVERVIEW2.md#L3412): `| 9 | Validate | Dispatcher.ValidateAsync (Dispatcher.cs:109) | CreateCentreValidator runs: not empty, max lengths, enum defined. No errors -> continue. |`
+- [Line 3495](../../PROJECT_OVERVIEW2.md#L3495): `| 11 | Re-render | React | StatusCard function runs again; isPending false; branch chosen; DOM updated (skeleton replaced by the Card or an Alert). |`
+- [Line 3792](../../PROJECT_OVERVIEW2.md#L3792): `| Result/Error | ResultTests, ErrorTests | constructor 'success with error' guard, record equality |`
+- [Line 3793](../../PROJECT_OVERVIEW2.md#L3793): `| Validation | validator unit tests; dispatcher grouping (C9); HTTP 400 (EmptyName_FailsValidation_Returns400) | time-zone length, enum validity, name over 120 at validator level |`
+- [Line 3884](../../PROJECT_OVERVIEW2.md#L3884): `| Command / Query / Handler | Intent to change / read; class that executes one | CreateCentreCommand, GetSystemInfoQuery, *Handler |`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-A long-form teaching document.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Whole file.
+```text
+# Tutoring Centre Manager — Project Overview
 
-#### Why it matters here
+> **How to read this document.** Every statement about the repository was checked against a file I opened (commit `371be5c` plus this documentation; the parts about sign-in, sessions, CSRF, rate limiting, the identity schema, the generated API client, internationalisation and end-to-end tests were checked against the merged tree at commit `70e7f3f`). Where the repository does not say *why* something was done, I say so and label my interpretation. Things I could **not** verify are listed explicitly (for example, I could not run the .NET test suite — see [§1.3](#13-what-i-ran-and-what-i-could-not-run)).
+>
+> Companion documents: [`file-explanations/INDEX.md`](file-explanations/INDEX.md) (every file, grouped by directory) and the per-file explanation files it links to; area summaries `file-explanations/01…07-*.md` also exist.
+>
+> **Scope.** This document follows the section list you specified (1-15). Appendix A summarises the frontend and Appendix B is a practical 'working on this repo' guide. Every source file also has its own explanation under [`file-explanations/`](file-explanations/INDEX.md) (one `.md` per file, mirroring the repository paths).
 
-Complements the per-file explanations.
+---
 
-## Data and Control Flow
+<!-- deeper-dive-pass -->
+# 1. Project Overview
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## 1.1 What the application is (and is not yet)
 
-## Configuration and Environment
+The README states the **intended** product: *"A multi-tenant management platform for Egyptian tutoring centres: students and parents, groups and schedules, attendance (manual and QR), fees and payments, and a WhatsApp assistant that answers parents' questions in Egyptian Arabic and English through the same authorized use cases as the staff web app."* (`README.md`). ADR 0001 adds that the same use cases must serve three "front doors": a staff web app, a WhatsApp assistant, and background jobs.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+**What actually exists in code today is a foundation, not those features.** I searched `src/` and `frontend/src/`: there are no students, parents, groups, schedules, attendance, fees, payments, WhatsApp or QR code. The business concepts are a **Centre** (the tenant) and, for staff access, a **Membership** (a user's role in one centre); the only business operation that creates tenant data is **create a centre**, reachable **only from a CLI command**, not over HTTP. Over HTTP the system offers sign-in, centre selection, the signed-in user's profile and system information (§1.4, §7).
 
-## Gotchas and Issues
+Intended users (from README/ADRs): tutoring-centre staff (web app), parents (WhatsApp assistant), and the platform operator (the "system" actor). The repository's ADRs state it is also a **portfolio project aimed at .NET job roles**, so the architecture itself is part of what is being demonstrated (ADR 0001, Context). That explains why there is far more architectural machinery than product.
 
-No bugs or surprises found while reading this file.
+## 1.2 Implementation state, feature by feature
 
-## Related Files
+| Area | State | Evidence |
+```
 
-- [`docs/PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md.md)
-- [`README.md`](../README.md.md)
-- [`docs/architecture/authentication.md`](architecture/authentication.md.md)
+The excerpt stops at line 24; use the original file for the remaining 3994 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

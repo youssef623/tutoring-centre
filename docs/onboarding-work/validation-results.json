@@ -1,0 +1,408 @@
+{
+  "files_checked": 1127,
+  "links_checked": 17503,
+  "errors": [],
+  "v2": {
+    "lines": 4018,
+    "words": 57697
+  },
+  "v3": {
+    "lines": 6833,
+    "words": 154873,
+    "concepts": 62,
+    "numbered_top_level_sections": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17"
+    ]
+  },
+  "historical_overviews_unchanged": true,
+  "concepts": [
+    {
+      "number": "6.1",
+      "title": "Clean Architecture, dependency inversion, and the composition root",
+      "words_without_fences": 1516,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.2",
+      "title": "Dependency injection, lifetimes, and shared scope ownership",
+      "words_without_fences": 1841,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.3",
+      "title": "CQRS and the current dispatcher pipeline",
+      "words_without_fences": 1375,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.4",
+      "title": "Results, expected failures, and exception boundaries",
+      "words_without_fences": 1162,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.5",
+      "title": "Validation, invariants, and multiple lines of defense",
+      "words_without_fences": 877,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.6",
+      "title": "Entities, value objects, aggregates, and historical state",
+      "words_without_fences": 885,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.7",
+      "title": "Unit of work, transaction-local tenancy, and cleanup",
+      "words_without_fences": 1090,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.8",
+      "title": "Repositories, DTO projections, and EF Core's execution model",
+      "words_without_fences": 1794,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.9",
+      "title": "Optimistic concurrency, uniqueness, row locks, and advisory locks",
+      "words_without_fences": 1122,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.10",
+      "title": "Multi-tenancy through actor scope, EF filters, write guards, and PostgreSQL RLS",
+      "words_without_fences": 1062,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.11",
+      "title": "Cookie authentication, antiforgery, revalidation, and password change",
+      "words_without_fences": 1049,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.12",
+      "title": "Permissions, role freshness, and teacher ownership scope",
+      "words_without_fences": 977,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.13",
+      "title": "Transactional auditing, allowlists, masking, and append-only history",
+      "words_without_fences": 1028,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.14",
+      "title": "Academic records, aggregate relationships, and archive workflows",
+      "words_without_fences": 1154,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.15",
+      "title": "Local recurrence, UTC sessions, DST, and exclusion constraints",
+      "words_without_fences": 1157,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.16",
+      "title": "C# foundations behind the architecture: contracts, generics, async, records, reflection, and cleanup",
+      "words_without_fences": 1158,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.17",
+      "title": "HTTP binding, strict JSON, Problem Details, and generated contracts",
+      "words_without_fences": 956,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.18",
+      "title": "Interfaces, abstraction, polymorphism, inheritance and composition",
+      "words_without_fences": 757,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.19",
+      "title": "Asynchronous work, tasks, cancellation and disposal",
+      "words_without_fences": 746,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.20",
+      "title": "Generics, records, nullability and pattern matching",
+      "words_without_fences": 733,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.21",
+      "title": "Exceptions, result values and guaranteed cleanup",
+      "words_without_fences": 710,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.22",
+      "title": "Attributes, reflection, scanning and generated code",
+      "words_without_fences": 665,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.23",
+      "title": "JSON, parameter binding and the wire contract",
+      "words_without_fences": 700,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.24",
+      "title": "React, component ownership, server state and the browser entry point",
+      "words_without_fences": 1086,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.25",
+      "title": "OpenAPI, Orval and the contract-derived API client",
+      "words_without_fences": 1090,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.26",
+      "title": "The fetch boundary, typed failures and CSRF recovery",
+      "words_without_fences": 956,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.27",
+      "title": "Sessions, route guards, first-login gates and permission-aware rendering",
+      "words_without_fences": 1049,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.28",
+      "title": "React Hook Form, Zod and field-level server errors",
+      "words_without_fences": 909,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.29",
+      "title": "Internationalisation, RTL, bidirectional text and self-hosted assets",
+      "words_without_fences": 978,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.30",
+      "title": "URL state, debounced search and cursor pagination",
+      "words_without_fences": 943,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.31",
+      "title": "Parent lookup, conditional registration and stale-response protection",
+      "words_without_fences": 943,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.32",
+      "title": "Versioned edits, archive workflows and the teacher/account boundary",
+      "words_without_fences": 964,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.33",
+      "title": "Enrollment actions, atomic transfer and cache convergence",
+      "words_without_fences": 931,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.34",
+      "title": "Calendar dates, local times, instants and the centre's time zone",
+      "words_without_fences": 1065,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.35",
+      "title": "Weekly-rule forms, materialized sessions and schedule conflict recovery",
+      "words_without_fences": 1001,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.36",
+      "title": "Shared UI primitives, responsive tables and accessible state",
+      "words_without_fences": 911,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.37",
+      "title": "Status, demo visibility, audit presentation and derived dashboard data",
+      "words_without_fences": 923,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.38",
+      "title": "Frontend testing: network-level doubles, route integration and real browsers",
+      "words_without_fences": 1119,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.39",
+      "title": "A complete frontend workflow: establishing a centre and teaching a class",
+      "words_without_fences": 1221,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.40",
+      "title": "Cookie tickets, browser policy and the persistent key ring",
+      "words_without_fences": 1630,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.41",
+      "title": "Antiforgery token pairs, unsafe methods and one bounded retry",
+      "words_without_fences": 1306,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.42",
+      "title": "Rate limits, account lockout and enumeration resistance",
+      "words_without_fences": 1319,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.43",
+      "title": "Session revalidation, role freshness and the positive cache",
+      "words_without_fences": 1176,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.44",
+      "title": "Identity users, centre memberships and account lifecycle",
+      "words_without_fences": 1232,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.45",
+      "title": "Fail-closed authorization, actor translation and the tenant gate",
+      "words_without_fences": 1403,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.46",
+      "title": "Testing as a hierarchy of different proofs",
+      "words_without_fences": 779,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.47",
+      "title": "Test doubles, call records and controllable time",
+      "words_without_fences": 689,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.48",
+      "title": "Real PostgreSQL fixtures, isolated databases and least privilege",
+      "words_without_fences": 722,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.49",
+      "title": "In-process HTTP tests and explicit endpoint inventories",
+      "words_without_fences": 676,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.50",
+      "title": "Architecture tests as executable design constraints",
+      "words_without_fences": 1686,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.51",
+      "title": "Defense-in-depth tests and removing one layer at a time",
+      "words_without_fences": 648,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.52",
+      "title": "Concurrency tests, synchronized starts and invariant assertions",
+      "words_without_fences": 686,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.53",
+      "title": "Typed configuration, startup validation and health probes",
+      "words_without_fences": 726,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.54",
+      "title": "Docker images, multi-stage builds and static frontend packaging",
+      "words_without_fences": 720,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.55",
+      "title": "Compose topology, role bootstrap and migrate-before-serve ordering",
+      "words_without_fences": 733,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.56",
+      "title": "Reverse proxies, forwarded scheme, security headers and SPA fallbacks",
+      "words_without_fences": 736,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.57",
+      "title": "Continuous integration, reproducible inputs and drift gates",
+      "words_without_fences": 744,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.58",
+      "title": "Browser journeys and deployed smoke tests",
+      "words_without_fences": 751,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.59",
+      "title": "OpenTelemetry signals, opt-in exporters and correlation",
+      "words_without_fences": 693,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.60",
+      "title": "Deployment design, revision identity, rollback and honest operational status",
+      "words_without_fences": 727,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.61",
+      "title": "Cross-tenant attack probes and proving absence of side effects",
+      "words_without_fences": 759,
+      "missing_teaching_headings": []
+    },
+    {
+      "number": "6.62",
+      "title": "Structured logging, correlation references and redaction in the current request path",
+      "words_without_fences": 1212,
+      "missing_teaching_headings": []
+    }
+  ]
+}

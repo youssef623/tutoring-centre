@@ -1,52 +1,64 @@
-# src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs
+# `src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs`
 
 ## Purpose
 
-Typed settings object holding the database connection string, validated at startup.
+Source summary (intent, not independent execution proof): Database settings. Validated at startup: running without a database is a misconfiguration, not a degraded state.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence. Configured and validated in `DependencyInjection.cs`; read by the `AddDbContext` factory.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 22 lines and 1,170 bytes. Source hash: `e16a7ea7a84b6839fc2b76569711fb3045aecbbbf6bc25ca0704a167fa149000`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`public sealed class DatabaseOptions { [Required(AllowEmptyStrings = false)] public string ConnectionString { get; set; } = string.Empty; }`. Doc: 'running without a database is a misconfiguration, not a degraded state'. The XML comment says it is 'Bound from configuration key ConnectionStrings:Postgres', but the code actually assigns the captured string in `Configure(...)` rather than binding a section.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Options pattern and ValidateOnStart
+- Line 1: `using System.ComponentModel.DataAnnotations;`
 
-#### What it means
+## Walkthrough and declaration map
 
-The options pattern binds configuration into a typed class and can validate it. `ValidateOnStart` runs that validation when the host starts, so a bad configuration stops the app immediately instead of failing on first use.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks](../../../../PROJECT_OVERVIEW2.md#614-options-validation-and-health-checks).)
+- [Line 6](../../../../../src/TutoringCentre.Infrastructure/Persistence/DatabaseOptions.cs#L6): `public sealed class DatabaseOptions`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The class.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Infrastructure/DependencyInjection.cs:91](../../../../../src/TutoringCentre.Infrastructure/DependencyInjection.cs#L91)
+- [src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs:23](../../../../../src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs#L23)
+- [tests/TutoringCentre.Infrastructure.Tests/Persistence/DatabaseOptionsValidationTests.cs:21](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/DatabaseOptionsValidationTests.cs#L21)
 
-`[Required]` attribute.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Empty string -> `OptionsValidationException` at host start.
+```csharp
+using System.ComponentModel.DataAnnotations;
 
-## Data and Control Flow
+namespace TutoringCentre.Infrastructure.Persistence;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>Database settings. Validated at startup: running without a database is a misconfiguration, not a degraded state.</summary>
+public sealed class DatabaseOptions
+{
+    /// <summary>
+    /// Bound from configuration key ConnectionStrings:Postgres (user-secrets in development). The tutoring_app
+    /// runtime login: required for every process, since the running app always needs to read and write data.
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string ConnectionString { get; set; } = string.Empty;
 
-## Configuration and Environment
+    /// <summary>
+    /// Bound from configuration key ConnectionStrings:PostgresMigrations (user-secrets in development). The
+    /// tutoring_owner login, used only to apply migrations. Not required here: a compromised running web process
+    /// must never hold schema-owning credentials. <see cref="MigrationRunner"/> requires it instead, at the point
+    /// it is actually asked to migrate (Development startup, the seed CLI, test fixtures).
+    /// </summary>
+    public string? MigrationsConnectionString { get; set; }
+}
+```
 
-Holds the value of `ConnectionStrings:Postgres` (secret).
+## Before modifying this file
 
-## Gotchas and Issues
-
-Comment vs code wording difference only.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/DependencyInjection.cs`](../DependencyInjection.cs.md)
-- [`src/TutoringCentre.Api/appsettings.json`](../../TutoringCentre.Api/appsettings.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

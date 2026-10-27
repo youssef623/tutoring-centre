@@ -1,101 +1,93 @@
-# src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs
+# `src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs`
 
 ## Purpose
 
-The single place unexpected exceptions are logged and converted into Problem Details responses without leaking internals.
+Source summary (intent, not independent execution proof): The one place unexpected exceptions are logged and translated. Responses never contain exception text, types or stack traces (information leakage); the full exception goes to the log only.
 
-## Where It Fits
+## Where it fits
 
-Api/Http, `internal sealed partial`. Registered in `ProblemDetailsSetup`; invoked by `UseExceptionHandler()` in `Program.cs:96`. Writes through `ProblemResult`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 49 lines and 2,403 bytes. Source hash: `f93372990a8ee777c2c8ff61a38d72e3aee73b7d39a60dee98831d2ab1c5d7ea`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`TryHandleAsync(HttpContext, Exception, CancellationToken)` (14-35): if `exception is BadHttpRequestException` (21) -> `LogMalformedRequest` (Warning, no exception object) and 400 `request.malformed` ('The request could not be read.'); else -> `LogUnexpectedException` (Error, with the exception) and 500 `server.unexpected` ('An unexpected error occurred.'). Builds a `ProblemDetails` with extension `code` (`Create`, 37-41) and executes `new ProblemResult(problem).ExecuteAsync(httpContext)`; returns `true` (handled). The two logging methods are source-generated `[LoggerMessage]` partial methods (44, 47), so the class is `partial`. The response never includes exception text (test plants `hunter2` and `InvalidOperationException` and asserts absence).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Problem Details (RFC 9457) and centralised error handling
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using Microsoft.AspNetCore.Diagnostics;`
+- Line 3: `using Microsoft.AspNetCore.Mvc;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+- [Line 12](../../../../../src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs#L12): `internal sealed partial class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler`
+- [Line 14](../../../../../src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs#L14): `public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)`
+- [Line 37](../../../../../src/TutoringCentre.Api/Http/GlobalExceptionHandler.cs#L37): `private static ProblemDetails Create(int status, string title, string code)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Central exception translation.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [src/TutoringCentre.Api/Http/ProblemDetailsSetup.cs:13](../../../../../src/TutoringCentre.Api/Http/ProblemDetailsSetup.cs#L13)
 
-Whole class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Uniform errors and no information leakage.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 
-### Structured logging, Serilog and correlation IDs
+namespace TutoringCentre.Api.Http;
 
-#### What it means
+/// <summary>
+/// The one place unexpected exceptions are logged and translated. Responses never contain exception text, types or stack
+/// traces (information leakage); the full exception goes to the log only.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the exception-handling middleware via DI.")]
+internal sealed partial class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext);
+        ArgumentNullException.ThrowIfNull(exception);
 
-Structured logging records a message *template* plus named properties, so logs are queryable by field. A *correlation ID* is attached to every log line and response of one request so they can be matched. *Destructuring* lets Serilog log an object's properties; a policy can mask sensitive ones.
+        ProblemDetails problem;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction](../../../../PROJECT_OVERVIEW2.md#613-structured-logging-correlation-ids-and-redaction).)
+        if (exception is BadHttpRequestException)
+        {
+            // Malformed JSON, unknown JSON field (strict JSON), bad route value: the client's fault.
+            LogMalformedRequest(logger, httpContext.Request.Method, httpContext.Request.Path);
+            problem = Create(StatusCodes.Status400BadRequest, "The request could not be read.", "request.malformed");
+        }
+        else
+        {
+            LogUnexpectedException(logger, exception, httpContext.Request.Method, httpContext.Request.Path);
+            problem = Create(StatusCodes.Status500InternalServerError, "An unexpected error occurred.", "server.unexpected");
+        }
 
-#### Where it appears in this file
+        await new ProblemResult(problem).ExecuteAsync(httpContext);
+        return true;
+    }
 
-`[LoggerMessage]`.
+    private static ProblemDetails Create(int status, string title, string code)
+    {
+        var problem = new ProblemDetails { Status = status, Title = title };
+        problem.Extensions["code"] = code;
+        return problem;
+    }
 
-#### How it works here
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Malformed request {RequestMethod} {RequestPath}")]
+    private static partial void LogMalformedRequest(ILogger logger, string requestMethod, PathString requestPath);
 
-Lines 44-48.
-
-#### Why it matters here
-
-Compile-time log delegates.
-
-### Middleware and the request pipeline
-
-#### What it means
-
-Middleware components form a chain; each receives the request, may act before calling `next`, and may act again after it returns. Order is behaviour: a component only sees what earlier components set up and only wraps what comes after it.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#8-routing-and-middleware](../../../../PROJECT_OVERVIEW2.md#8-routing-and-middleware).)
-
-#### Where it appears in this file
-
-`IExceptionHandler` via `UseExceptionHandler`.
-
-#### How it works here
-
-Registered in `ProblemDetailsSetup`.
-
-#### Why it matters here
-
-Framework calls handlers in registration order.
-
-## Data and Control Flow
-
-```mermaid
-flowchart LR
-    X["exception in endpoint"] --> M["UseExceptionHandler"] --> G["GlobalExceptionHandler"]
-    G -->|BadHttpRequestException| B["400 request.malformed (Warning log)"]
-    G -->|other| S["500 server.unexpected (Error log + exception)"]
-    B --> PR["ProblemResult"]
-    S --> PR
+    [LoggerMessage(Level = LogLevel.Error, Message = "Unhandled exception while processing {RequestMethod} {RequestPath}")]
+    private static partial void LogUnexpectedException(ILogger logger, Exception exception, string requestMethod, PathString requestPath);
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Only `BadHttpRequestException` is classified; other client errors (e.g. `JsonException` outside binding) become 500. A unique-violation `DbUpdateException` also becomes 500 today.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](ProblemResult.cs.md)
-- [`src/TutoringCentre.Api/Http/ProblemDetailsSetup.cs`](ProblemDetailsSetup.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs`](../../../tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs.md)
-- [`src/TutoringCentre.Api/Program.cs`](../Program.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

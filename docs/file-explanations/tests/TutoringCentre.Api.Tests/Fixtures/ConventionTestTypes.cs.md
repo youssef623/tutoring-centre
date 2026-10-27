@@ -1,72 +1,146 @@
-# tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs
+# `tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs`
 
 ## Purpose
 
-Test-only commands, handlers and validator that produce every error kind on demand.
+Source summary (intent, not independent execution proof): Proves the actor set by ActorMiddleware actually reaches the Application layer (Day 16, Task 16.7).
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Fixtures. Used by `ConventionEndpoints` and registered by `ConventionsFactory`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 80 lines and 3,926 bytes. Source hash: `002bf110e7d49fcf3cf11586039c34558087ba523d397368f28eec41a9324931`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Records `ConventionCommand(Kind)`, `TestNameCommand(Name)`, `TestNameBody(Name)`, `SensitiveProbe(Email, Password, PhoneNumber)`. `ConventionCommandHandler`: switch on `Kind`: `ok` -> success; `validation` -> `Error.Validation(code,msg,fields{name:[...]})`; `notfound`/`conflict`/`rule`/`forbidden` -> matching errors; `throws` -> throws `InvalidOperationException("Secret internal detail: Host=db;Password=hunter2")` (a planted secret to prove it never reaches the response); anything else -> `ArgumentOutOfRangeException`. `TestNameHandler` returns `"Hello {Name}"`; `TestNameValidator` requires non-empty name. New: query `CurrentActorQuery`, DTO `CurrentActorDto(string Kind, Guid? UserId, Guid? CentreId, StaffRole? Role)` and `CurrentActorQueryHandler(ICurrentActor)`, which switches on the actor (`StaffActor` -> `Staff`, `SystemActor` -> `System`, otherwise `Anonymous`) and returns the fields; it carries `[SuppressMessage CA1812]` because only DI instantiates it.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### The Result pattern (failures as values)
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using FluentValidation;`
+- Line 3: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 4: `using TutoringCentre.Application.Common.Security;`
+- Line 5: `using TutoringCentre.Domain.Common;`
+- Line 6: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+- [Line 10](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L10): `internal sealed record ConventionCommand(string Kind) : ICommand<string>;`
+- [Line 13](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L13): `internal sealed record CurrentActorQuery : IQuery<CurrentActorDto>;`
+- [Line 15](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L15): `internal sealed record CurrentActorDto(string Kind, Guid? UserId, Guid? CentreId, StaffRole? Role);`
+- [Line 17](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L17): `internal sealed record TestNameCommand(string Name) : ICommand<string>;`
+- [Line 19](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L19): `internal sealed record TestNameBody(string Name);`
+- [Line 21](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L21): `internal sealed record SensitiveProbe(string Email, string Password, string PhoneNumber);`
+- [Line 25](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L25): `internal sealed class ConventionCommandHandler : ICommandHandler<ConventionCommand, string>`
+- [Line 27](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L27): `public Task<Result<string>> HandleAsync(ConventionCommand command, CancellationToken cancellationToken)`
+- [Line 51](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L51): `internal sealed class TestNameHandler : ICommandHandler<TestNameCommand, string>`
+- [Line 53](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L53): `public Task<Result<string>> HandleAsync(TestNameCommand command, CancellationToken cancellationToken)`
+- [Line 61](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L61): `internal sealed class TestNameValidator : AbstractValidator<TestNameCommand>`
+- [Line 63](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L63): `public TestNameValidator() => RuleFor(command => command.Name).NotEmpty();`
+- [Line 67](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L67): `internal sealed class CurrentActorQueryHandler(ICurrentActor currentActor) : IQueryHandler<CurrentActorQuery, CurrentActorDto>`
+- [Line 69](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs#L69): `public Task<Result<CurrentActorDto>> HandleAsync(CurrentActorQuery query, CancellationToken cancellationToken)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-One handler, all error kinds.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs:18](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L18)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs:20](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L20)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs:21](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L21)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs:26](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L26)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs:38](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L38)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs:21](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs#L21)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs:22](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs#L22)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs:23](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs#L23)
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs:24](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionsFactory.cs#L24)
 
-Switch expression.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Parametrises the HTTP mapping tests.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using FluentValidation;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
-### Two-tier validation
+namespace TutoringCentre.Api.Tests.Fixtures;
 
-#### What it means
+internal sealed record ConventionCommand(string Kind) : ICommand<string>;
 
-Validation asks whether input is acceptable. Cheap *shape* checks (required, length) can run first without touching business rules or the database; *business invariants* (slug format, time zone must exist) belong to the domain; *database constraints* are a last safety net against rows written by anything else.
+/// <summary>Proves the actor set by ActorMiddleware actually reaches the Application layer (Day 16, Task 16.7).</summary>
+internal sealed record CurrentActorQuery : IQuery<CurrentActorDto>;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#65-validation-two-tiers](../../../../PROJECT_OVERVIEW2.md#65-validation-two-tiers).)
+internal sealed record CurrentActorDto(string Kind, Guid? UserId, Guid? CentreId, StaffRole? Role);
 
-#### Where it appears in this file
+internal sealed record TestNameCommand(string Name) : ICommand<string>;
 
-FluentValidation in the test host.
+internal sealed record TestNameBody(string Name);
 
-#### How it works here
+internal sealed record SensitiveProbe(string Email, string Password, string PhoneNumber);
 
-`TestNameValidator`.
+/// <summary>Returns the outcome named by the request: one handler, every error kind, plus a throwing case.</summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class ConventionCommandHandler : ICommandHandler<ConventionCommand, string>
+{
+    public Task<Result<string>> HandleAsync(ConventionCommand command, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(command);
 
-#### Why it matters here
+        var result = command.Kind switch
+        {
+            "ok" => Result<string>.Success("ok"),
+            "validation" => Result<string>.Failure(Error.Validation(
+                "test.invalid",
+                "Invalid.",
+                new Dictionary<string, string[]> { ["name"] = ["Name is required."] })),
+            "notfound" => Result<string>.Failure(Error.NotFound("test.not_found", "Missing.")),
+            "conflict" => Result<string>.Failure(Error.Conflict("test.conflict", "Conflict.")),
+            "rule" => Result<string>.Failure(Error.Rule("test.rule", "Rule broken.")),
+            "forbidden" => Result<string>.Failure(Error.Forbidden("test.forbidden", "Not allowed.")),
+            "throws" => throw new InvalidOperationException("Secret internal detail: Host=db;Password=hunter2"),
+            _ => throw new ArgumentOutOfRangeException(nameof(command), command.Kind, "Unknown convention kind."),
+        };
 
-Shows validation failures reach HTTP 400.
+        return Task.FromResult(result);
+    }
+}
 
-## Data and Control Flow
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class TestNameHandler : ICommandHandler<TestNameCommand, string>
+{
+    public Task<Result<string>> HandleAsync(TestNameCommand command, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        return Task.FromResult(Result<string>.Success($"Hello {command.Name}"));
+    }
+}
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class TestNameValidator : AbstractValidator<TestNameCommand>
+{
+    public TestNameValidator() => RuleFor(command => command.Name).NotEmpty();
+}
 
-## Configuration and Environment
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class CurrentActorQueryHandler(ICurrentActor currentActor) : IQueryHandler<CurrentActorQuery, CurrentActorDto>
+{
+    public Task<Result<CurrentActorDto>> HandleAsync(CurrentActorQuery query, CancellationToken cancellationToken)
+    {
+        var dto = currentActor.Actor switch
+        {
+            StaffActor staff => new CurrentActorDto("Staff", staff.UserId, staff.CentreId, staff.Role),
+            SystemActor system => new CurrentActorDto("System", null, system.CentreId, null),
+            _ => new CurrentActorDto("Anonymous", null, null, null),
+        };
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+        return Task.FromResult(Result<CurrentActorDto>.Success(dto));
+    }
+}
+```
 
-## Gotchas and Issues
+## Before modifying this file
 
-The planted password string is a fake test value.
-
-## Related Files
-
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs`](ConventionEndpoints.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs`](../Http/ProblemDetailsTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

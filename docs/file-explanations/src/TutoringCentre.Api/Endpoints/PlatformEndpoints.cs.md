@@ -1,122 +1,72 @@
-# src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs
+# `src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs`
 
 ## Purpose
 
-Maps `GET /api/system/info`, the only non-authentication product endpoint, as bind -> dispatch -> map with no logic.
+Source summary (intent, not independent execution proof): Platform-level endpoints. Each endpoint: bind → dispatch → map. No logic, no database access, no outcome `if`s.
 
-## Where It Fits
+## Where it fits
 
-Api/Endpoints. Called by `Program.cs:121` on the `/api` route group (which carries the CSRF endpoint filter). Depends on `Dispatcher`, `GetSystemInfoQuery`, `SystemInfoDto`, `ResultHttpExtensions`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 29 lines and 1,101 bytes. Source hash: `fb5f2b1fd74cd8fe08201c9fa478fcaf9041a8e5a72a279f7c6a0318202710f9`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`MapPlatformEndpoints(this RouteGroupBuilder api)` (15-19): `api.MapGet("/system/info", GetSystemInfoAsync).WithName("GetSystemInfo").Produces<SystemInfoDto>().ProducesProblem(500).AllowAnonymous()`. Handler `GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct)` (24): `await dispatcher.QueryAsync<GetSystemInfoQuery,SystemInfoDto>(new GetSystemInfoQuery(), ct)` then `result.ToHttpResult(dto => Results.Ok(dto))`. The framework injects `dispatcher` from the request scope and binds `ct` to `HttpContext.RequestAborted`. `.Produces` metadata feeds API descriptions; `.AllowAnonymous()` is effective: it exempts the endpoint from the fail-closed authorization fallback policy (`AuthenticationSetup`), so the status page works signed out.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Minimal APIs, routing and route groups
+- Line 1: `using TutoringCentre.Api.Http;`
+- Line 2: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 3: `using TutoringCentre.Application.Platform;`
+- Line 4: `using TutoringCentre.Application.Platform.Queries.GetSystemInfo;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Minimal APIs map a URL pattern and HTTP verb straight to a delegate (`MapGet("/x", handler)`). The framework binds delegate parameters from DI (services), the route, query, body or `CancellationToken`. A *route group* shares a prefix and metadata across endpoints.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+- [Line 9](../../../../../src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs#L9): `public static class PlatformEndpoints`
+- [Line 11](../../../../../src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs#L11): `public static RouteGroupBuilder MapPlatformEndpoints(this RouteGroupBuilder api)`
+- [Line 24](../../../../../src/TutoringCentre.Api/Endpoints/PlatformEndpoints.cs#L24): `private static async Task<IResult> GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-`MapGet` + route group.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Lines 15-19.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Api.Http;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Platform;
+using TutoringCentre.Application.Platform.Queries.GetSystemInfo;
 
-Endpoint shape.
+namespace TutoringCentre.Api.Endpoints;
 
-### CQRS and the dispatcher pipeline
+/// <summary>Platform-level endpoints. Each endpoint: bind → dispatch → map. No logic, no database access, no outcome `if`s.</summary>
+public static class PlatformEndpoints
+{
+    public static RouteGroupBuilder MapPlatformEndpoints(this RouteGroupBuilder api)
+    {
+        ArgumentNullException.ThrowIfNull(api);
 
-#### What it means
+        api.MapGet("/system/info", GetSystemInfoAsync)
+            .WithName("GetSystemInfo")
+            .Produces<SystemInfoDto>()
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .AllowAnonymous();
 
-CQRS separates *commands* (intent to change state) from *queries* (read-only questions). A *handler* executes exactly one command or query. A *dispatcher* is the single entry point that finds the handler and wraps shared steps (validation, transaction, logging) around it, so every use case behaves the same way regardless of who calls it (web endpoint, CLI, future bot).
+        return api;
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-Dispatch.
-
-#### How it works here
-
-Line 24-26.
-
-#### Why it matters here
-
-Thin edge.
-
-### Problem Details (RFC 9457) and centralised error handling
-
-#### What it means
-
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
-
-#### Where it appears in this file
-
-`ToHttpResult`.
-
-#### How it works here
-
-Return statement.
-
-#### Why it matters here
-
-Uniform success/failure mapping.
-
-### async/await and cancellation
-
-#### What it means
-
-`async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-`CancellationToken ct`.
-
-#### How it works here
-
-Handler parameter.
-
-#### Why it matters here
-
-Cancelling the HTTP request cancels database work.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant B as Browser/Client
-    participant E as GetSystemInfoAsync
-    participant D as Dispatcher
-    B->>E: GET /api/system/info
-    E->>D: QueryAsync(GetSystemInfoQuery, ct)
-    D-->>E: Result of SystemInfoDto
-    E-->>B: 200 JSON or Problem Details
+    private static async Task<IResult> GetSystemInfoAsync(Dispatcher dispatcher, CancellationToken ct)
+    {
+        var result = await dispatcher.QueryAsync<GetSystemInfoQuery, SystemInfoDto>(new GetSystemInfoQuery(), ct);
+        return result.ToHttpResult(dto => Results.Ok(dto));
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The frontend calls it through the generated client (`useGetSystemInfo` in `SystemInfoCard`). Being a GET it is not subject to the CSRF filter's token check.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Program.cs`](../Program.cs.md)
-- [`src/TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs`](../../TutoringCentre.Application/Platform/Queries/GetSystemInfo/GetSystemInfoHandler.cs.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../Http/ResultHttpExtensions.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

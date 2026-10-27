@@ -1,35 +1,49 @@
-# TutoringCentre.slnx
+# `TutoringCentre.slnx`
 
 ## Purpose
 
-Solution file listing the nine .NET projects so `dotnet build/test TutoringCentre.slnx` operates on the whole repo.
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Root file used by CI (`dotnet restore/build/test TutoringCentre.slnx`) and by IDEs. `tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs` also finds the repository root by walking up until it finds a file with this exact name.
+Category: **configuration**. [Open current file](../../TutoringCentre.slnx). [Complete file index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 15 lines and 936 bytes. Source hash: `3088377cf26cc12f20c780c0c6d855dc8f2947d3a01c24a576b56ddeec9abd9f`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`.slnx` is the XML solution format. Two `Folder` nodes: `/src/` (Api, Application, Domain, Infrastructure) and `/tests/` (Api.Tests, Application.Tests, Architecture.Tests, Domain.Tests, Infrastructure.Tests). Each `Project Path` is a relative path to a `.csproj`. A project missing here would not be built or tested by CI even if it exists on disk.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-This file introduces no concept that needs a tutorial beyond what its walkthrough already explains.
+## Walkthrough and declaration map
 
-## Data and Control Flow
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Used by: verified name references
 
-## Configuration and Environment
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-None.
+## Current source excerpt
 
-## Gotchas and Issues
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Renaming this file would break `ProjectFiles.SolutionFileName` (tests would throw 'Could not find TutoringCentre.slnx').
+```text
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TutoringCentre.Api/TutoringCentre.Api.csproj" />
+    <Project Path="src/TutoringCentre.Application/TutoringCentre.Application.csproj" />
+    <Project Path="src/TutoringCentre.Domain/TutoringCentre.Domain.csproj" />
+    <Project Path="src/TutoringCentre.Infrastructure/TutoringCentre.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TutoringCentre.Api.Tests/TutoringCentre.Api.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Application.Tests/TutoringCentre.Application.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Architecture.Tests/TutoringCentre.Architecture.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj" />
+    <Project Path="tests/TutoringCentre.Infrastructure.Tests/TutoringCentre.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
+```
 
-## Related Files
+## Before modifying this file
 
-- [`tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs`](tests/TutoringCentre.Architecture.Tests/ProjectFiles.cs.md)
-- [`.github/workflows/ci.yml`](.github/workflows/ci.yml.md)
-- [`global.json`](global.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

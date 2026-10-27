@@ -1,52 +1,56 @@
-# src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs
+# `src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs`
 
 ## Purpose
 
-Renames Identity's default `logins` table into `identity.user_logins`.
+Source summary (intent, not independent execution proof): Renames Identity's default logins table into identity.user_logins.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure/Persistence/Configurations/Identity, `internal`. Applied by `AppDbContext.OnModelCreating`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 15 lines and 607 bytes. Source hash: `84bbdeeb074b0ebd8161fd1d8f0483ee19a59ec98cd9977c2ec761564fa24143`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`IEntityTypeConfiguration<IdentityUserLogin<Guid>>` with a single call `builder.ToTable("user_logins", Schemas.Identity)`. Without it Identity's default would use `AspNetUserLogins` in the default schema; the snake_case naming convention and the project's schema-per-module rule need an explicit name.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### ORM and EF Core
+- Line 1: `using Microsoft.AspNetCore.Identity;`
+- Line 2: `using Microsoft.EntityFrameworkCore;`
+- Line 3: `using Microsoft.EntityFrameworkCore.Metadata.Builders;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An ORM maps database rows to objects. EF Core keeps a *change tracker* that records the state of each entity (`Added`, `Unchanged`, `Modified`, `Deleted`); `SaveChanges` turns those states into `INSERT/UPDATE/DELETE`. LINQ expressions are translated to SQL by the provider and executed when awaited or enumerated (deferred execution). Mapping is declared in *model configuration*.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../../../../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+- [Line 8](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs#L8): `internal sealed class IdentityUserLoginConfiguration : IEntityTypeConfiguration<IdentityUserLogin<Guid>>`
+- [Line 10](../../../../../../../src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/IdentityUserLoginConfiguration.cs#L10): `public void Configure(EntityTypeBuilder<IdentityUserLogin<Guid>> builder)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Table renaming.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`ToTable`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-Consistent naming with the rest of the schema.
+namespace TutoringCentre.Infrastructure.Persistence.Configurations.Identity;
 
-## Data and Control Flow
+/// <summary>Renames Identity's default logins table into identity.user_logins.</summary>
+internal sealed class IdentityUserLoginConfiguration : IEntityTypeConfiguration<IdentityUserLogin<Guid>>
+{
+    public void Configure(EntityTypeBuilder<IdentityUserLogin<Guid>> builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        builder.ToTable("user_logins", Schemas.Identity);
+    }
+}
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The `user_logins` table exists because Identity's model includes it; nothing in the repo uses external logins, claims or tokens yet.
-
-## Related Files
-
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Identity/ApplicationUserConfiguration.cs`](ApplicationUserConfiguration.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Schemas.cs`](../../Schemas.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

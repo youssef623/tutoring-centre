@@ -1,57 +1,47 @@
-# .config/dotnet-tools.json
+# `.config/dotnet-tools.json`
 
 ## Purpose
 
-Local .NET tool manifest that pins the `dotnet-ef` command-line tool to the same version as the EF Core packages.
+JSON data with top-level keys `version`, `isRoot`, `tools`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-Read by `dotnet tool restore` (CI step 'Tool restore' in `.github/workflows/ci.yml`) and by developers before running `dotnet ef migrations ...`. Used against `src/TutoringCentre.Infrastructure` (migrations) with `src/TutoringCentre.Api` as the startup project.
+Category: **configuration**. [Open current file](../../../.config/dotnet-tools.json). [Complete file index](../INDEX.md). [Current teaching overview](../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 13 lines and 183 bytes. Source hash: `e48342794ccf9dd33332c04e3c946488ab797c138f07d13b1a26c95b5664b3b9`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `isRoot: true` - this manifest is the top of the lookup chain.
-- `dotnet-ef` `version 10.0.12` - same as `Microsoft.EntityFrameworkCore` in `Directory.Packages.props`.
-- `commands: ["dotnet-ef"]` - the command that becomes available.
-- `rollForward: false` - never run a different tool version than pinned.
-If the tool and the EF packages drift apart, `migrations add` can generate a snapshot with a different `ProductVersion` annotation (the snapshot currently says `10.0.12`).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Database migrations
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-A migration is versioned code describing one schema change with an `Up` (apply) and `Down` (revert). EF records applied migrations in a history table and keeps a *model snapshot* of the last known model; the next `migrations add` diffs the current model against it.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here](../../PROJECT_OVERVIEW2.md#69-ef-core-how-the-orm-actually-works-here).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-The `dotnet-ef` tool entry.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-ef": {
+      "version": "10.0.12",
+      "commands": [
+        "dotnet-ef"
+      ],
+      "rollForward": false
+    }
+  }
+}
+```
 
-`dotnet tool restore` installs the pinned tool into a local cache; CI then runs `dotnet ef migrations has-pending-model-changes`, which builds the model and compares it with `AppDbContextModelSnapshot`.
+## Before modifying this file
 
-#### Why it matters here
-
-It is how the 'forgot to add a migration' failure is detected automatically.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None in the file. (CI sets `ConnectionStrings__Postgres` when invoking the tool.)
-
-## Gotchas and Issues
-
-None.
-
-## Related Files
-
-- [`Directory.Packages.props`](../Directory.Packages.props.md)
-- [`.github/workflows/ci.yml`](../.github/workflows/ci.yml.md)
-- `src/TutoringCentre.Infrastructure/Persistence/Migrations/AppDbContextModelSnapshot.cs` (generated / lockfile / media: no separate explanation, see INDEX)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,60 +1,45 @@
-# Directory.Build.props
+# `Directory.Build.props`
 
 ## Purpose
 
-Applies the same compiler settings to every .NET project in the repository without repeating them in each `.csproj`.
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Imported automatically by MSBuild into all nine `.csproj` files under the repo (4 in `src/`, 5 in `tests/`). It is the reason the `.csproj` files do not contain `TargetFramework`.
+Category: **configuration**. [Open current file](../../Directory.Build.props). [Complete file index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 11 lines and 293 bytes. Source hash: `40dfba2071837c2a4a789a134a1a3850222dd83498c7719fb5a6870bac8d0cf4`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Single `PropertyGroup`, lines 3-8:
-- `TargetFramework=net10.0` - all projects compile for .NET 10.
-- `Nullable=enable` - nullable reference types: `string` cannot be null, `string?` can, and the compiler warns on misuse (visible in the code as `Error? Error`, `string?` fields, `null!` in tests).
-- `ImplicitUsings=enable` - the SDK adds common `using` directives (`System`, `System.Linq`, `System.Threading.Tasks`...), which is why files rarely import them. For `Sdk.Web` projects it also adds `Microsoft.AspNetCore.*` namespaces.
-- `TreatWarningsAsErrors=true` - any compiler or analyzer warning fails the build.
-- `AnalysisLevel=latest-recommended` - turns on the latest recommended .NET code analyzers (CA rules). This is why the source contains many `[SuppressMessage(... Justification = "...")]` attributes (e.g. CA1812, CA1848, CA1873, CA1716).
-If changed incorrectly: removing `TreatWarningsAsErrors` silently lets analyzer violations accumulate; changing `Nullable` would produce hundreds of warnings.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### MSBuild, Central Package Management and analyzers
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-The whole file.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+<Project>
 
-MSBuild walks up from each project directory, finds this file and imports it before the project's own properties.
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+  </PropertyGroup>
 
-#### Why it matters here
+</Project>
+```
 
-One edit changes all projects; the `src/.semantic.md` note confirms projects intentionally omit these properties so they cannot drift.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-No environment variables. Build settings only.
-
-## Gotchas and Issues
-
-Because warnings are errors, adding a new package that triggers an analyzer warning in existing code fails CI; the repo deals with this by justified suppressions rather than by lowering `AnalysisLevel`.
-
-## Related Files
-
-- [`Directory.Packages.props`](Directory.Packages.props.md)
-- [`global.json`](global.json.md)
-- [`src/TutoringCentre.Api/TutoringCentre.Api.csproj`](src/TutoringCentre.Api/TutoringCentre.Api.csproj.md)
-- [`src/TutoringCentre.Domain/TutoringCentre.Domain.csproj`](src/TutoringCentre.Domain/TutoringCentre.Domain.csproj.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

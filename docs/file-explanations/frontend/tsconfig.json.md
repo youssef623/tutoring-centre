@@ -1,52 +1,43 @@
-# frontend/tsconfig.json
+# `frontend/tsconfig.json`
 
 ## Purpose
 
-Solution-style TypeScript config that references the app and node configs.
+JSON data with top-level keys `files`, `references`, `compilerOptions`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-Frontend root. `tsc -b` follows its references; ESLint's project service uses it to locate configs.
+Category: **configuration**. [Open current file](../../../frontend/tsconfig.json). [Complete file index](../INDEX.md). [Current teaching overview](../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 9 lines and 181 bytes. Source hash: `fbe0631e0f524ce62e1d197f9f251ac0d8998a6b684ef66c8da174d66cbb31ca`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`files: []` (compiles nothing itself), `references` to `tsconfig.app.json` and `tsconfig.node.json`, `compilerOptions.paths` `@/*` -> `./src/*` (repeated so tools reading only the root config, such as the shadcn CLI, resolve the alias).
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Strict TypeScript and type-aware linting
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Project references.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
 
-`references`.
+## Before modifying this file
 
-#### Why it matters here
-
-Separate settings for browser code and Node tooling.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/tsconfig.app.json`](tsconfig.app.json.md)
-- [`frontend/tsconfig.node.json`](tsconfig.node.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

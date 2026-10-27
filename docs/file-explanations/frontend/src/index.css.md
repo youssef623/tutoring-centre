@@ -1,74 +1,126 @@
-# frontend/src/index.css
+# `frontend/src/index.css`
 
 ## Purpose
 
-Global styles: Tailwind v4 imports, the Hessa brand theme tokens (light and dark), fonts and base layer rules.
+Current source file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-frontend/src. Imported by `main.tsx`; configured by `components.json`. Defines the CSS variables that shadcn components and the brand pages use.
+Category: **source**. [Open current file](../../../../frontend/src/index.css). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 220 lines and 7,923 bytes. Source hash: `5d4d818019040c241c6c20b46e5406205e7065b45f86aac4b0b0655e5725d60d`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`@import` of `tailwindcss`, `tw-animate-css`, `shadcn/tailwind.css`, `@fontsource-variable/geist` and (new) `@fontsource/ibm-plex-sans-arabic`. `@custom-variant dark (&:is(.dark *))`. `@theme inline { ... }`: `--font-sans: 'Geist Variable', 'IBM Plex Sans Arabic', sans-serif` (comment: Geist has no Arabic glyphs, so the browser falls through per character to IBM Plex Sans Arabic and one stack serves both languages); new colour tokens `--color-brand*`, `--color-success*`, `--color-warning*` mapping to variables; existing sidebar/chart/radius tokens. `:root` (light): comment 'Hessa - an education teal is the one brand colour, used sparingly (primary actions, active nav, focus); amber is a secondary highlight reserved for brand surfaces'. Values are `oklch(...)`: `--primary: oklch(0.6 0.104 184.7)` (teal), `--ring` the same teal, `--brand`, `--brand-accent: oklch(0.666 0.157 58.3)` (amber), `--success`, `--warning`, `--radius: 0.75rem`, sidebar tokens tinted teal, foreground `oklch(0.21 0.02 210)`. `.dark`: a lighter teal `oklch(0.785 0.133 181.9)` as primary, dark teal-grey backgrounds. `@layer base` (unchanged structure): `border-border outline-ring/50` on everything, `body` background/foreground, `html` `font-sans`.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Tailwind, shadcn/ui and variants
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-Tailwind composes styles from small utility classes. shadcn/ui copies component source into your repo; `cva` (class-variance-authority) maps variant props like `variant="outline"` to class strings.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Design tokens as CSS variables.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource/ibm-plex-sans-arabic";
 
-`:root` and `.dark` blocks.
+@custom-variant dark (&:is(.dark *));
 
-#### Why it matters here
+@theme inline {
+    --font-heading: var(--font-sans);
+    /* Geist has no Arabic glyphs; the browser falls through per-character to IBM Plex Sans Arabic, so one stack serves both languages. */
+    --font-sans: 'Geist Variable', 'IBM Plex Sans Arabic', sans-serif;
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+    --color-brand-accent: var(--brand-accent);
+    --color-brand-accent-foreground: var(--brand-accent-foreground);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --color-success-foreground: var(--success-foreground);
+    --color-success: var(--success);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning: var(--warning);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
 
-Components use semantic classes (`bg-primary`, `text-muted-foreground`); re-theming means changing variables, not components.
+:root {
+    /* Hessa (حصة) — an education teal is the one brand colour, used sparingly (primary actions, active nav, focus).
+       Amber is a secondary highlight reserved for brand surfaces (the login panel), never for app chrome. */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.21 0.02 210);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.21 0.02 210);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.21 0.02 210);
+    --primary: oklch(0.6 0.104 184.7);
+    --primary-foreground: oklch(0.985 0.005 180);
+    --secondary: oklch(0.97 0.01 200);
+    --secondary-foreground: oklch(0.3 0.04 195);
+    --muted: oklch(0.968 0.008 210);
+    --muted-foreground: oklch(0.5 0.03 215);
+    --accent: oklch(0.955 0.03 185);
+    --accent-foreground: oklch(0.3 0.06 190);
+    --destructive: oklch(0.577 0.245 27.325);
+    --success: oklch(0.6 0.14 152);
+    --success-foreground: oklch(0.985 0 0);
+    --warning: oklch(0.78 0.15 80);
+    --warning-foreground: oklch(0.32 0.05 80);
+    --border: oklch(0.91 0.012 205);
+    --input: oklch(0.91 0.012 205);
+    --ring: oklch(0.6 0.104 184.7);
+    --brand: oklch(0.6 0.104 184.7);
+    --brand-foreground: oklch(0.985 0.005 180);
+    --brand-accent: oklch(0.666 0.157 58.3);
+    --brand-accent-foreground: oklch(0.21 0.02 60);
+    --chart-1: oklch(0.6 0.104 184.7);
+```
 
-### Internationalisation (i18next) and RTL layout
+The excerpt stops at line 90; use the original file for the remaining 130 lines.
 
-#### What it means
+## Before modifying this file
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
-
-#### Where it appears in this file
-
-One font stack for two scripts.
-
-#### How it works here
-
-`--font-sans` line.
-
-#### Why it matters here
-
-Per-character font fallback means Arabic text renders in IBM Plex Sans Arabic without language-specific CSS.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Dark theme tokens exist but nothing toggles the `.dark` class yet; `next-themes` has no provider in the app. Brand-panel gradients on the login page are hard-coded hex values, not these tokens.
-
-## Related Files
-
-- [`frontend/components.json`](../components.json.md)
-- [`frontend/src/main.tsx`](main.tsx.md)
-- [`frontend/src/components/ui/card.tsx`](components/ui/card.tsx.md)
-- [`frontend/src/components/brand/HessaLogo.tsx`](components/brand/HessaLogo.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

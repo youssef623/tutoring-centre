@@ -1,59 +1,40 @@
-# global.json
+# `global.json`
 
 ## Purpose
 
-Pins which .NET SDK builds the solution so every laptop and CI runner uses the same compiler and tooling line.
+JSON data with top-level keys `sdk`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-Repository root configuration. Read by the `dotnet` CLI (SDK resolver) for every command run below this directory and explicitly by `.github/workflows/ci.yml` and `codeql.yml` (`actions/setup-dotnet` with `global-json-file: global.json`). Nothing in the repo imports it.
+Category: **configuration**. [Open current file](../../global.json). [Complete file index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 6 lines and 81 bytes. Source hash: `884c3d68b436980197e5c5871b6be07dc75b894b2a9e210f70a73468e9f9bd8e`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`{ "sdk": { "version": "10.0.401", "rollForward": "latestFeature" } }` (whole file, 6 lines).
+## Dependencies visible in the file
 
-- `version: 10.0.401` - the SDK the repo was built against.
-- `rollForward: latestFeature` - if 10.0.401 is not installed, the resolver may pick a newer *feature band* of the same major.minor (10.0.4xx, 10.0.5xx...) but never a different major/minor. Without this key a missing exact version would make every `dotnet` command fail.
-- Edge case: a machine with only .NET 9 gets an error from `dotnet`, not a silent downgrade.
-- If changed incorrectly: bumping to a version CI cannot install (setup-dotnet downloads it, so usually fine) or to a different major without updating `Directory.Build.props` (`net10.0`) and package versions would break the build.
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-## Concepts Used
+## Walkthrough and declaration map
 
-### MSBuild, Central Package Management and analyzers
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-#### What it means
+## Used by: verified name references
 
-MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
+## Current source excerpt
 
-#### Where it appears in this file
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`global.json` is the SDK half of build reproducibility; `Directory.Build.props` and `Directory.Packages.props` are the other halves.
+```json
+{
+  "sdk": {
+    "version": "10.0.401",
+    "rollForward": "latestFeature"
+  }
+}
+```
 
-#### How it works here
+## Before modifying this file
 
-The SDK resolver reads this file before running any command and selects the SDK; the TFM and package versions then come from the props files.
-
-#### Why it matters here
-
-Guarantees that analyzers (`AnalysisLevel=latest-recommended`) behave identically on every machine, which matters because warnings are errors.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-No environment variables. SDK version `10.0.401` is the only configuration value.
-
-## Gotchas and Issues
-
-None found. Note that the `Microsoft.EntityFrameworkCore` packages are `10.0.12`, so SDK and EF are expected to be bumped together (the file does not enforce this).
-
-## Related Files
-
-- [`Directory.Build.props`](Directory.Build.props.md)
-- [`Directory.Packages.props`](Directory.Packages.props.md)
-- [`.github/workflows/ci.yml`](.github/workflows/ci.yml.md)
-- [`.config/dotnet-tools.json`](.config/dotnet-tools.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

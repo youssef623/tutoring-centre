@@ -1,34 +1,42 @@
-# src/TutoringCentre.Api/appsettings.Development.json
+# `src/TutoringCentre.Api/appsettings.Development.json`
 
 ## Purpose
 
-Development-only overrides of configuration.
+JSON data with top-level keys `Logging`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-Loaded after `appsettings.json` when `ASPNETCORE_ENVIRONMENT=Development`.
+Category: **configuration**. [Open current file](../../../../src/TutoringCentre.Api/appsettings.Development.json). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 8 lines and 119 bytes. Source hash: `817db0bf2ecca78364c41dbaf7949bf2504cf47a1c3d0d54f3be8178fefc030b`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Only a `Logging.LogLevel` block (Default Information, `Microsoft.AspNetCore` Warning) identical to the base file and not read by Serilog, so it currently changes nothing.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-This file introduces no concept that needs a tutorial beyond what its walkthrough already explains.
+## Walkthrough and declaration map
 
-## Data and Control Flow
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Used by: verified name references
 
-## Configuration and Environment
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-None.
+## Current source excerpt
 
-## Gotchas and Issues
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Effectively redundant.
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}
+```
 
-## Related Files
+## Before modifying this file
 
-- [`src/TutoringCentre.Api/appsettings.json`](appsettings.json.md)
-- [`src/TutoringCentre.Api/Properties/launchSettings.json`](Properties/launchSettings.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

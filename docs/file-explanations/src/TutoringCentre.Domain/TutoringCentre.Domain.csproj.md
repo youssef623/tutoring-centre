@@ -1,73 +1,41 @@
-# src/TutoringCentre.Domain/TutoringCentre.Domain.csproj
+# `src/TutoringCentre.Domain/TutoringCentre.Domain.csproj`
 
 ## Purpose
 
-Project file for the innermost layer. Its defining feature is what it does *not* contain: no project references and no packages.
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Part of `TutoringCentre.slnx`; referenced by Application, Infrastructure and `Domain.Tests`/`Architecture.Tests`. `ProjectReferenceTests.Domain_ReferencesNoProjects` asserts it has zero `ProjectReference` items.
+Category: **configuration**. [Open current file](../../../../src/TutoringCentre.Domain/TutoringCentre.Domain.csproj). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 7 lines and 150 bytes. Source hash: `3301b419232c1cbcd3cc51687269ab7d36c0802472304bdd46b2e0db417ba5d3`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Only one item: `<InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />`, which lets the architecture tests see the `internal` `AssemblyMarker`. `TargetFramework`, nullable and implicit usings come from `Directory.Build.props`. No `PackageReference` means Domain cannot use EF, ASP.NET or FluentValidation; `DependencyRuleTests.Domain_DoesNotDependOnOtherLayersOrFrameworks` checks the compiled types too.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Dependency inversion, ports and adapters
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-A *dependency* is something a piece of code needs in order to work. Normally high-level business code ends up depending on low-level details (database, HTTP). **Dependency inversion** reverses that: the business layer declares an interface (a *port*) describing what it needs, and the low-level layer supplies a class implementing it (an *adapter*). The compiler-level arrow then points from detail to policy, so business code can be tested and reused without the detail.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../../../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-The empty reference list.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+<Project Sdk="Microsoft.NET.Sdk">
 
-Domain is the policy centre; everything else points at it.
+  <ItemGroup>
+    <InternalsVisibleTo Include="TutoringCentre.Architecture.Tests" />
+  </ItemGroup>
 
-#### Why it matters here
+</Project>
+```
 
-Business rules can be tested with no infrastructure.
+## Before modifying this file
 
-### Architecture tests (fitness functions)
-
-#### What it means
-
-An executable test that fails when a structural rule (who may reference whom) is broken, turning a diagram into an enforced rule. Two angles are used: declared project references and compiled-type usage.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions](../../../PROJECT_OVERVIEW2.md#615-architecture-tests-fitness-functions).)
-
-#### Where it appears in this file
-
-`InternalsVisibleTo`.
-
-#### How it works here
-
-Grants compile-time access for `typeof(TutoringCentre.Domain.AssemblyMarker)`.
-
-#### Why it matters here
-
-Avoids string-based assembly loading.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-No settings; inherits from `Directory.Build.props`.
-
-## Gotchas and Issues
-
-Adding any `PackageReference` here would pass the build but should be treated as an architecture violation.
-
-## Related Files
-
-- [`Directory.Build.props`](../../Directory.Build.props.md)
-- [`tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs`](../../tests/TutoringCentre.Architecture.Tests/ProjectReferenceTests.cs.md)
-- [`src/TutoringCentre.Domain/AssemblyMarker.cs`](AssemblyMarker.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

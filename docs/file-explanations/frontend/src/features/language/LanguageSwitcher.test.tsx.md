@@ -1,52 +1,79 @@
-# frontend/src/features/language/LanguageSwitcher.test.tsx
+# `frontend/src/features/language/LanguageSwitcher.test.tsx`
 
 ## Purpose
 
-Tests that switching language sets the document direction, `lang` attribute and the stored preference.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/features/language. Uses the real i18next instance (`@/i18n`), no mocks.
+Category: **test**. [Open current file](../../../../../../frontend/src/features/language/LanguageSwitcher.test.tsx). [Complete file index](../../../../INDEX.md). [Current teaching overview](../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 40 lines and 1,333 bytes. Source hash: `a4fee68319bee2b8a716a2728e7bd29a5995d01141e440031b4997fbceaa41ae`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`afterEach` resets to English so other tests are unaffected. Test 1: click the only button, wait for a button named `English`, expect `document.documentElement.dir === "rtl"`, `lang === "ar"` and `localStorage.getItem("tcm.lang") === "ar"`. Test 2: click twice (waiting for `English` then `العربية`) and expect `dir === "ltr"`, `lang === "en"`. 2 tests.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Internationalisation (i18next) and RTL layout
+- Line 1: `import { fireEvent, render, screen } from "@testing-library/react";`
+- Line 2: `import { afterEach, describe, expect, it } from "vitest";`
+- Line 3: `import i18n from "@/i18n";`
+- Line 4: `import { LanguageSwitcher } from "./LanguageSwitcher";`
 
-#### What it means
+## Walkthrough and declaration map
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-RTL as a document property.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Lines 21-23, 37-38.
+```tsx
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import i18n from "@/i18n";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
-#### Why it matters here
+describe("LanguageSwitcher", () => {
+  afterEach(async () => {
+    // Leave the document and i18next in English so other test files are unaffected.
+    await i18n.changeLanguage("en");
+  });
 
-Direction is set on `<html>`, so every logical CSS property flips together.
+  it("switching to Arabic sets dir=rtl on the document and persists the choice", async () => {
+    // Arrange
+    render(<LanguageSwitcher />);
 
-## Data and Control Flow
+    // Act
+    fireEvent.click(screen.getByRole("button"));
+    await screen.findByRole("button", { name: "English" });
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+    // Assert
+    expect(document.documentElement.dir).toBe("rtl");
+    expect(document.documentElement.lang).toBe("ar");
+    expect(localStorage.getItem("tcm.lang")).toBe("ar");
+  });
 
-## Configuration and Environment
+  it("switching back to English sets dir=ltr", async () => {
+    // Arrange
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByRole("button"));
+    await screen.findByRole("button", { name: "English" });
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    // Act
+    fireEvent.click(screen.getByRole("button"));
+    await screen.findByRole("button", { name: "العربية" });
 
-## Gotchas and Issues
+    // Assert
+    expect(document.documentElement.dir).toBe("ltr");
+    expect(document.documentElement.lang).toBe("en");
+  });
+});
+```
 
-No bugs or surprises found while reading this file.
+## Before modifying this file
 
-## Related Files
-
-- [`frontend/src/features/language/LanguageSwitcher.tsx`](LanguageSwitcher.tsx.md)
-- [`frontend/src/i18n/index.ts`](../../i18n/index.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

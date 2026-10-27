@@ -1,106 +1,90 @@
-# frontend/src/routes/_authenticated.tsx
+# `frontend/src/routes/_authenticated.tsx`
 
 ## Purpose
 
-The pathless protected layout route: the session guard (`beforeLoad`) and the `AppShell` frame for every page below it.
+Source comment (intent): Pathless layout: groups every protected page under one guard without adding a URL segment. This guard only decides what the UI shows; it is not a security boundary — the API is. A user who bypasses it still gets 401/403 from every endpoint, same as Day 16's fallback authorization policy.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/routes. TanStack Router file convention: a leading underscore makes the route pathless (no URL segment). Its children live in `routes/_authenticated/`. Reads `context.queryClient` from `RouterContext` (`__root.tsx`). Tested by `_authenticated.test.tsx`.
+Category: **source**. [Open current file](../../../../../frontend/src/routes/_authenticated.tsx). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 48 lines and 1,779 bytes. Source hash: `20eb0202a27c0bd87a95d2669e062c1f539a2e9210b4913b43f07ec1c4f06919`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-File header: an ESLint disable for `only-throw-error`, because `throw redirect(...)` is TanStack Router's documented idiom (the router catches the thrown `Response`).
+## Dependencies visible in the file
 
-`Route = createFileRoute("/_authenticated")({ beforeLoad, component: AuthenticatedLayout })` (14-27). `beforeLoad({ context, location })` (15-25): `me = await context.queryClient.query({ ...meQueryOptions, staleTime: "static" })` - the session is read through the shared cache and treated as always fresh for this check; if `me === null` -> `throw redirect({ to: "/login", search: { redirect: location.href } })`; if `me.activeCentreId === null` -> `throw redirect({ to: "/select-centre" })`. `AuthenticatedLayout` (29-42): `useSession()`; returns `null` when `me` is null (cannot happen after the guard); else `<AppShell me={me}><Outlet /></AppShell>`.
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-The doc comment states the key point: the guard decides what the UI shows; it is not a security boundary - the API is (every endpoint answers 401/403 regardless).
+- Line 3: `import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";`
+- Line 4: `import { AppShell } from "@/features/shell/AppShell";`
+- Line 5: `import { meQueryOptions } from "@/features/session/meQueryOptions";`
+- Line 6: `import { useSession } from "@/features/session/useSession";`
 
-## Concepts Used
+## Walkthrough and declaration map
 
-### Frontend route guards, session state and global 401 handling
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-#### What it means
+- [Line 14](../../../../../frontend/src/routes/_authenticated.tsx#L14): `export const Route = createFileRoute("/_authenticated")({`
+- [Line 35](../../../../../frontend/src/routes/_authenticated.tsx#L35): `function AuthenticatedLayout() {`
 
-A *route guard* decides, before a page renders, whether the user may see it (here by reading the session query and redirecting). It only shapes the UI; the API remains the security boundary. A *global 401 handler* reacts to any request that finds the session gone.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling](../../../../PROJECT_OVERVIEW2.md#632-frontend-sessions-route-guards-and-global-401-handling).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Guard and redirect with return URL.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```tsx
+/* eslint-disable @typescript-eslint/only-throw-error -- TanStack Router's documented redirect idiom:
+ * `redirect()` returns a Response, which the router's own data loader catches, not an Error. */
+import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { AppShell } from "@/features/shell/AppShell";
+import { meQueryOptions } from "@/features/session/meQueryOptions";
+import { useSession } from "@/features/session/useSession";
 
-`beforeLoad` (15-25).
+/**
+ * Pathless layout: groups every protected page under one guard without adding a URL segment.
+ *
+ * This guard only decides what the UI shows; it is not a security boundary — the API is. A user who
+ * bypasses it still gets 401/403 from every endpoint, same as Day 16's fallback authorization policy.
+ */
+export const Route = createFileRoute("/_authenticated")({
+  beforeLoad: async ({ context, location }) => {
+    const me = await context.queryClient.query({ ...meQueryOptions, staleTime: "static" });
 
-#### Why it matters here
+    if (me === null) {
+      throw redirect({ to: "/login", search: { redirect: location.href } });
+    }
 
-The user is sent to `/login?redirect=<where they wanted to go>` and, after login, back there (the login page validates that redirect).
+    // The server-side gate (Day 30) is the real control; this only sends the user to the pleasant form for it
+    // instead of letting every other request 403 with auth.password_change_required.
+    if (me.mustChangePassword) {
+      throw redirect({ to: "/change-password" });
+    }
 
-### File-based routing with TanStack Router
+    if (me.activeCentreId === null) {
+      throw redirect({ to: "/select-centre" });
+    }
+  },
+  component: AuthenticatedLayout,
+});
 
-#### What it means
+function AuthenticatedLayout() {
+  const { me } = useSession();
 
-A router maps URLs to components. In file-based routing a Vite plugin scans `src/routes/` and generates a route tree file, so adding a file adds a route with type-safe links.
+  // The guard above already resolved a signed-in user with an active centre before this renders.
+  if (me === null) {
+    return null;
+  }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
-
-#### Where it appears in this file
-
-Pathless layout route and thrown redirects.
-
-#### How it works here
-
-File name and `createFileRoute("/_authenticated")`.
-
-#### Why it matters here
-
-One guard protects every page placed under `_authenticated/` without repeating it.
-
-### Authorization by default, the actor pipeline and the tenant gate
-
-#### What it means
-
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
-
-#### Where it appears in this file
-
-UI guard versus API enforcement.
-
-#### How it works here
-
-Doc comment 8-13.
-
-#### Why it matters here
-
-Even if the guard is bypassed in the browser, each API call is checked by the server's fallback policy and tenant gate.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    N["navigate to a page under _authenticated"] --> B["beforeLoad: read me"]
-    B -->|"me is null"| L["redirect /login?redirect=..."]
-    B -->|"activeCentreId is null"| S["redirect /select-centre"]
-    B -->|"ok"| R["render AppShell with Outlet"]
+  return (
+    <AppShell me={me}>
+      <Outlet />
+    </AppShell>
+  );
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-The guard reads the cached session with `staleTime: "static"`, so within one browser session it does not re-check the server on each navigation; a revoked session is discovered on the next API call (global 401 handling in `queryClient.ts`).
-
-## Related Files
-
-- [`frontend/src/routes/_authenticated/index.tsx`](_authenticated/index.tsx.md)
-- [`frontend/src/routes/_authenticated.test.tsx`](_authenticated.test.tsx.md)
-- [`frontend/src/features/shell/AppShell.tsx`](../features/shell/AppShell.tsx.md)
-- [`frontend/src/features/session/meQueryOptions.ts`](../features/session/meQueryOptions.ts.md)
-- [`frontend/src/routes/__root.tsx`](__root.tsx.md)
-- [`frontend/src/app/queryClient.ts`](../app/queryClient.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

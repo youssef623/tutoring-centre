@@ -1,0 +1,55 @@
+# `docs/onboarding-work/diagrams.json`
+
+## Purpose
+
+Declares `calls`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
+
+## Where it fits
+
+Category: **configuration**. [Open current file](../../../onboarding-work/diagrams.json). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
+
+The reviewed file has 19 lines and 7,325 bytes. Source hash: `ebd713190e1d84226c03befaed5a0cd95f9965f13e4c9995aa6f0a96c928fa01`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
+
+## Dependencies visible in the file
+
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
+
+## Walkthrough and declaration map
+
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
+
+- [Line 13](../../../onboarding-work/diagrams.json#L13): `"frontend-react": "flowchart LR\n    Component[\"Component subscribes\"] --> Observer[\"Query observer\"]\n    Observer --> Cache[\"Cache entry by query key\"]\n    Cache --> Fetch[\"Query function calls client\"]\n    Fetch --> Result[\"HTTP data or error\"]\n    Result --> Cache\n    Cache --> Notify[\"Observer notification\"]\n    Notify --> Render[\"React render and DOM commit\"]",`
+
+## Used by: verified name references
+
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
+
+## Current source excerpt
+
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
+
+```json
+{
+  "backend-di": "flowchart TD\n    Dispatcher[\"Dispatcher: scoped\"] --> Uow[\"IUnitOfWork: scoped\"]\n    Handler[\"Handler: scoped\"] --> Repo[\"Repository: scoped\"]\n    Uow --> Context[\"Shared AppDbContext in this scope\"]\n    Repo --> Context\n    Context --> Audit[\"Audit interceptor: scoped\"]\n    Context --> Guard[\"Tenant guard: singleton\"]\n    Context --> Timestamp[\"Timestamp interceptor: singleton\"]\n    Timestamp --> Clock[\"Clock: singleton\"]",
+  "backend-dispatcher": "flowchart TD\n    Input[\"Command\"] --> Validate[\"Validate shape\"]\n    Validate --> Tenant[\"Check tenant marker\"]\n    Tenant --> Permission[\"Check required permission\"]\n    Permission --> Begin[\"Begin transaction and set tenant\"]\n    Begin --> Handle[\"Handler\"]\n    Handle --> Result{\"Success?\"}\n    Result -->|no| Rollback[\"Rollback\"]\n    Result -->|yes| Save[\"Save business and audit changes\"]\n    Save --> Saved{\"Save success?\"}\n    Saved -->|no| Rollback\n    Saved -->|yes| Commit[\"Commit\"]",
+  "backend-results": "flowchart LR\n    Business[\"Expected business refusal\"] --> Error[\"Error and failed Result\"]\n    Error --> Map[\"Result HTTP mapping\"]\n    Map --> Problem[\"Problem Details\"]\n    Fault[\"Unexpected exception\"] --> Cleanup[\"Rollback and rethrow\"]\n    Cleanup --> Handler[\"Global exception handler\"]\n    Handler --> Problem",
+  "backend-transactions": "sequenceDiagram\n    participant D as Dispatcher\n    participant U as UnitOfWork\n    participant P as PostgreSQL\n    D->>U: Begin query\n    U->>P: BEGIN\n    U->>P: SET TRANSACTION READ ONLY\n    U->>P: set_config local centre\n    D->>P: Handler reads through adapter\n    D->>U: Commit\n    U->>P: COMMIT\n    Note over D,P: Query pipeline never calls SaveChanges",
+  "backend-concurrency": "sequenceDiagram\n    participant A as Enrollment A\n    participant P as Group row\n    participant B as Enrollment B\n    A->>P: FOR UPDATE granted\n    B->>P: FOR UPDATE waits\n    A->>P: Count active and insert last seat\n    A->>P: Commit releases lock\n    P-->>B: Lock granted\n    B->>P: Count includes committed enrollment\n    B->>B: Domain returns group.full\n    B->>P: Rollback",
+  "backend-tenancy": "flowchart TD\n    Cookie[\"Validated membership selection\"] --> Actor[\"Actor centre\"]\n    Actor --> Gate[\"Request tenant gate\"]\n    Gate --> Filter[\"EF global read filter\"]\n    Gate --> Guard[\"Tracked write guard\"]\n    Actor --> Setting[\"Transaction-local app.current_centre\"]\n    Setting --> RLS[\"PostgreSQL forced RLS\"]\n    Keys[\"Composite tenant keys\"] --> Relationships[\"Same-centre references\"]",
+  "backend-authentication": "sequenceDiagram\n    participant B as Browser\n    participant A as API\n    participant I as Identity adapter\n    participant D as Dispatcher\n    B->>A: Antiforgery token request\n    A-->>B: Request token and cookie token\n    B->>A: Login JSON and request token header\n    A->>I: Verify credentials\n    I-->>A: User ID and stamp\n    A->>D: Read profile and active memberships\n    D-->>A: Me DTO\n    A-->>B: Me DTO and protected session cookie",
+  "backend-permissions": "flowchart TD\n    Request[\"Application request\"] --> Marker{\"Requires permission?\"}\n    Marker -->|no| Continue[\"Continue pipeline\"]\n    Marker -->|yes| Actor{\"Actor type\"}\n    Actor -->|system| Continue\n    Actor -->|staff with role| Map[\"RolePermissions.Holds\"]\n    Actor -->|other| Deny[\"auth.permission_denied\"]\n    Map -->|yes| Continue\n    Map -->|no| Deny\n    Continue --> Scope[\"Read services also apply teacher scope where relevant\"]",
+  "backend-audit": "flowchart LR\n    Changes[\"Tracked business changes\"] --> Timestamp[\"Timestamp interceptor\"]\n    Timestamp --> Audit[\"Audit policy and masked diff\"]\n    Audit --> Added[\"Add audit rows to same context\"]\n    Added --> Guard[\"Tenant and append-only guard\"]\n    Guard --> Save[\"One save in open transaction\"]\n    Save --> Commit[\"Business and audit commit together\"]",
+  "backend-academics": "erDiagram\n    STUDENT ||--o{ STUDENT_PARENT_LINK : has\n    PARENT ||--o{ STUDENT_PARENT_LINK : linked\n    SUBJECT ||--o{ GROUP : classifies\n    TEACHER ||--o{ GROUP : teaches\n    STUDENT ||--o{ ENROLLMENT : joins\n    GROUP ||--o{ ENROLLMENT : contains\n    GROUP ||--o{ SCHEDULE_RULE : repeats\n    SCHEDULE_RULE ||--o{ CLASS_SESSION : generates",
+  "backend-scheduling": "flowchart LR\n    Rule[\"Weekday and local wall time\"] --> Dates[\"Visit inclusive calendar dates\"]\n    Dates --> Occurs{\"Rule occurs?\"}\n    Occurs -->|yes| Local[\"Date plus local time\"]\n    Local --> Zone[\"Explicit centre zone and DST policy\"]\n    Zone --> Start[\"UTC start instant\"]\n    Start --> End[\"Add elapsed duration\"]\n    End --> Session[\"Dated session\"]\n    Session --> Database[\"Persist with overlap constraints\"]",
+  "frontend-react": "flowchart LR\n    Component[\"Component subscribes\"] --> Observer[\"Query observer\"]\n    Observer --> Cache[\"Cache entry by query key\"]\n    Cache --> Fetch[\"Query function calls client\"]\n    Fetch --> Result[\"HTTP data or error\"]\n    Result --> Cache\n    Cache --> Notify[\"Observer notification\"]\n    Notify --> Render[\"React render and DOM commit\"]",
+  "frontend-sessions": "flowchart TD\n    Visit[\"Protected route visit\"] --> Me[\"Current session query\"]\n    Me --> Signed{\"Session exists?\"}\n    Signed -->|no| Login[\"Login route\"]\n    Signed -->|yes| Password{\"Password change required?\"}\n    Password -->|yes| Change[\"Change-password route\"]\n    Password -->|no| Centre{\"Centre selected?\"}\n    Centre -->|no| Select[\"Centre picker\"]\n    Centre -->|yes| Shell[\"App shell and page permission guard\"]",
+  "infra-test-strategy": "flowchart TD\n    Browser[\"Browser journeys: real system seams\"] --> HTTP[\"API tests: real pipeline\"]\n    HTTP --> Store[\"Infrastructure tests: real PostgreSQL\"]\n    Store --> Application[\"Application tests: orchestration and fakes\"]\n    Application --> Domain[\"Domain tests: deterministic invariants\"]\n    Architecture[\"Architecture tests: compiled structure\"] --> Application",
+  "infra-compose-roles": "flowchart LR\n    PG[\"PostgreSQL healthy\"] --> Migrate[\"Owner migration job\"]\n    Migrate --> Seed[\"Demo seed job\"]\n    Seed --> App[\"Runtime app: restricted DB connection\"]\n    Caddy[\"Caddy TLS proxy\"] --> App\n    App --> PG\n    Browser[\"Browser on localhost:8443\"] --> Caddy",
+  "infra-ci": "flowchart TD\n    Event[\"PR or main push\"] --> Backend[\"Backend build, drift and tests\"]\n    Event --> Frontend[\"Frontend generation, lint, types, tests, build\"]\n    Backend --> E2E[\"Real API browser journeys\"]\n    Frontend --> E2E\n    Event --> Container[\"Production image and migration verification\"]\n    Container --> Smoke[\"Local production-style smoke\"]",
+  "infra-telemetry": "flowchart TD\n    Endpoint{\"Otel endpoint configured?\"} -->|no| Off[\"Return without exporters\"]\n    Endpoint -->|yes| Resource[\"Service name and version\"]\n    Resource --> Traces[\"HTTP and Npgsql traces\"]\n    Resource --> Metrics[\"HTTP metrics\"]\n    Resource --> Logs[\"Telemetry logging provider\"]\n    Traces --> OTLP[\"Configured OTLP collector\"]\n    Metrics --> OTLP\n    Logs --> OTLP"
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

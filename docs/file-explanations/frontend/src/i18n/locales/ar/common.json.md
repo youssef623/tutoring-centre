@@ -1,52 +1,56 @@
-# frontend/src/i18n/locales/ar/common.json
+# `frontend/src/i18n/locales/ar/common.json`
 
 ## Purpose
 
-Arabic strings shared across screens (namespace `common`, the default).
+JSON data with top-level keys `retry`, `close`, `loadMore`, `comingSoon`, `search`, `status`, `language`, `demoBanner`. Its consumers determine whether this is build configuration, a contract or a language resource.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/i18n/locales/ar. Bundled by `i18n/index.ts` as namespace `common`; the `en` twin must have the same keys (checked by `scripts/check-i18n-keys.mjs`).
+Category: **configuration**. [Open current file](../../../../../../../frontend/src/i18n/locales/ar/common.json). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 22 lines and 588 bytes. Source hash: `a74bf1b26087a2d2707794a2cc9831f99821577fbe88b999222ed503541094d6`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Keys: `retry` (`إعادة المحاولة`) and `language.arabic` (`العربية`) / `language.english` (`English`) - identical to the English file for the language names by design.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Internationalisation (i18next) and RTL layout
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-i18n moves all user-visible text into per-language resource files looked up by key. Arabic is right-to-left, so direction is set on the document and layout uses logical CSS properties (`start`/`end`) that flip automatically.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout](../../../../../../PROJECT_OVERVIEW2.md#634-internationalisation-and-right-to-left-layout).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Translation resource.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "retry": "إعادة المحاولة",
+  "close": "إغلاق",
+  "loadMore": "عرض المزيد",
+  "comingSoon": "هذه الصفحة قادمة قريبًا.",
+  "search": {
+    "label": "بحث",
+    "placeholder": "بحث",
+    "clear": "مسح البحث"
+  },
+  "status": {
+    "active": "نشط",
+    "archived": "مؤرشف"
+  },
+  "language": {
+    "arabic": "العربية",
+    "english": "English"
+  },
+  "demoBanner": {
+    "message": "بيئة تجريبية — قد تُعاد ضبط البيانات. لا تُدخل بيانات شخصية حقيقية."
+  }
+}
+```
 
-Nested keys looked up by `t("key.path")`.
+## Before modifying this file
 
-#### Why it matters here
-
-Keeping text in JSON lets the same component render in either language.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/src/i18n/index.ts`](../../index.ts.md)
-- [`frontend/src/i18n/locales/en/common.json`](../en/common.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

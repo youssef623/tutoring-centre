@@ -1,0 +1,48 @@
+# `src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupResult.cs`
+
+## Purpose
+
+Declares `CreateGroupResult`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
+
+## Where it fits
+
+Category: **source**. [Open current file](../../../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupResult.cs). [Complete file index](../../../../../../INDEX.md). [Current teaching overview](../../../../../../../PROJECT_OVERVIEW3.md).
+
+The reviewed file has 3 lines and 131 bytes. Source hash: `f0c49bf359901db8f0b857269b807b8abaa3f1e1dc9ab12e7fc855142ec7fe04`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
+
+## Dependencies visible in the file
+
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
+
+## Walkthrough and declaration map
+
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
+
+- [Line 3](../../../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupResult.cs#L3): `public sealed record CreateGroupResult(Guid GroupId);`
+
+## Used by: verified name references
+
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
+
+- [src/TutoringCentre.Api/Cli/SeedCommand.cs:523](../../../../../../../../src/TutoringCentre.Api/Cli/SeedCommand.cs#L523)
+- [src/TutoringCentre.Api/Endpoints/GroupEndpoints.cs:109](../../../../../../../../src/TutoringCentre.Api/Endpoints/GroupEndpoints.cs#L109)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupCommand.cs:8](../../../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupCommand.cs#L8)
+- [src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs:22](../../../../../../../../src/TutoringCentre.Application/Academics/Groups/Commands/CreateGroup/CreateGroupHandler.cs#L22)
+- [tests/TutoringCentre.Application.Tests/Academics/GroupDispatcherPermissionTests.cs:120](../../../../../../../../tests/TutoringCentre.Application.Tests/Academics/GroupDispatcherPermissionTests.cs#L120)
+- [tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTenantIsolationTests.cs:63](../../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTenantIsolationTests.cs#L63)
+- [tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTestBase.cs:47](../../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Academics/GroupTestBase.cs#L47)
+- [tests/TutoringCentre.Infrastructure.Tests/Academics/GroupUseCaseTests.cs:148](../../../../../../../../tests/TutoringCentre.Infrastructure.Tests/Academics/GroupUseCaseTests.cs#L148)
+
+## Current source excerpt
+
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
+
+```csharp
+namespace TutoringCentre.Application.Academics.Groups.Commands.CreateGroup;
+
+public sealed record CreateGroupResult(Guid GroupId);
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

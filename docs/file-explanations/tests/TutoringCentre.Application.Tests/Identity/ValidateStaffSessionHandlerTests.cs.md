@@ -1,79 +1,139 @@
-# tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs
+# `tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs`
 
 ## Purpose
 
-Tests the session-revalidation rule: unknown user, wrong security stamp, inactive membership, and the two valid cases.
+Declares `ValidateStaffSessionHandlerTests`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Application.Tests/Identity. Tests `ValidateStaffSessionHandler`, the Application half of what `SessionRevalidationHandler` calls on each (uncached) request.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 103 lines and 3,860 bytes. Source hash: `4534778cc075500bb6961b8d428334b30ea72b61a6f9b3a57cb56990183c7f69`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Static `UserId` and `CentreId` (lines 9-10). Five `[Fact]`s, each building `new ValidateStaffSessionHandler(readService)` and a `ValidateStaffSessionQuery(UserId, stamp, centreId?)`:
-- `HandleAsync_UnknownUser_ReturnsFalse` (12-26): `SessionState = null` -> success with value `false` (a *successful* query whose answer is 'not valid').
-- `HandleAsync_WrongSecurityStamp_ReturnsFalse` (28-41): stored stamp `stamp-current`, cookie stamp `stamp-stale`.
-- `HandleAsync_CentreSetAndMembershipInactive_ReturnsFalse` (43-56): stamp matches but `SessionStateDto("stamp-1", false)` and a centre is set.
-- `HandleAsync_MatchingStampAndNoCentre_ReturnsTrue` (58-71): membership flag is irrelevant when no centre is selected.
-- `HandleAsync_MatchingStampAndActiveCentreMembership_ReturnsTrue` (73-86).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Session revalidation and revocation
+- Line 1: `using TutoringCentre.Application.Identity;`
+- Line 2: `using TutoringCentre.Application.Identity.Queries.ValidateStaffSession;`
+- Line 3: `using TutoringCentre.Application.Tests.Fakes;`
+- Line 4: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A self-contained cookie cannot be cancelled by itself. Revalidation re-checks the cookie's claims against the database on requests (here via a *security stamp* and the active membership), so a changed password or revoked access ends the session; a short cache bounds the database cost.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation](../../../../PROJECT_OVERVIEW2.md#627-session-revalidation-and-revocation).)
+- [Line 8](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L8): `public sealed class ValidateStaffSessionHandlerTests`
+- [Line 14](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L14): `public async Task HandleAsync_UnknownUser_ReturnsFalse()`
+- [Line 30](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L30): `public async Task HandleAsync_WrongSecurityStamp_ReturnsFalse()`
+- [Line 45](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L45): `public async Task HandleAsync_CentreSetAndMembershipInactive_ReturnsFalse()`
+- [Line 60](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L60): `public async Task HandleAsync_RoleNoLongerMatchesTheMembership_ReturnsFalse()`
+- [Line 75](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L75): `public async Task HandleAsync_MatchingStampAndNoCentre_ReturnsTrue()`
+- [Line 90](../../../../../tests/TutoringCentre.Application.Tests/Identity/ValidateStaffSessionHandlerTests.cs#L90): `public async Task HandleAsync_MatchingStampActiveCentreMembershipAndRole_ReturnsTrue()`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The handler rule.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Each test varies stamp / centre / membership flag.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Application.Identity;
+using TutoringCentre.Application.Identity.Queries.ValidateStaffSession;
+using TutoringCentre.Application.Tests.Fakes;
+using TutoringCentre.Domain.Identity;
 
-Documents exactly when a session survives: stamp equal, and (if a centre is active) membership still active.
+namespace TutoringCentre.Application.Tests.Identity;
 
-### Test doubles: fakes vs real dependencies
+public sealed class ValidateStaffSessionHandlerTests
+{
+    private static readonly Guid UserId = Guid.CreateVersion7();
+    private static readonly Guid CentreId = Guid.CreateVersion7();
 
-#### What it means
+    [Fact]
+    public async Task HandleAsync_UnknownUser_ReturnsFalse()
+    {
+        // Arrange
+        var readService = new FakeMembershipReadService { SessionState = null };
+        var handler = new ValidateStaffSessionHandler(readService);
+        var query = new ValidateStaffSessionQuery(UserId, "stamp-1", null, null);
 
-A *fake* is a small working substitute (in-memory repository). Real-dependency (integration) tests run actual components such as PostgreSQL. Fakes are fast and focused; integration tests prove behaviour only the real system provides.
+        // Act
+        var result = await handler.HandleAsync(query, CancellationToken.None);
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.False(result.Value);
+    }
 
-#### Where it appears in this file
+    [Fact]
+    public async Task HandleAsync_WrongSecurityStamp_ReturnsFalse()
+    {
+        // Arrange
+        var readService = new FakeMembershipReadService { SessionState = new SessionStateDto("stamp-current", true, null) };
+        var handler = new ValidateStaffSessionHandler(readService);
+        var query = new ValidateStaffSessionQuery(UserId, "stamp-stale", null, null);
 
-`SessionStateDto` canned values.
+        // Act
+        var result = await handler.HandleAsync(query, CancellationToken.None);
 
-#### How it works here
+        // Assert
+        Assert.False(result.Value);
+    }
 
-`SessionState = new SessionStateDto(...)` in each test.
+    [Fact]
+    public async Task HandleAsync_CentreSetAndMembershipInactive_ReturnsFalse()
+    {
+        // Arrange
+        var readService = new FakeMembershipReadService { SessionState = new SessionStateDto("stamp-1", false, StaffRole.Teacher) };
+        var handler = new ValidateStaffSessionHandler(readService);
+        var query = new ValidateStaffSessionQuery(UserId, "stamp-1", CentreId, StaffRole.Teacher);
 
-#### Why it matters here
+        // Act
+        var result = await handler.HandleAsync(query, CancellationToken.None);
 
-No database is needed to test the rule; the SQL lives in `MembershipReadService`.
+        // Assert
+        Assert.False(result.Value);
+    }
 
-## Data and Control Flow
+    [Fact]
+    public async Task HandleAsync_RoleNoLongerMatchesTheMembership_ReturnsFalse()
+    {
+        // Arrange: the cookie still claims Teacher, but the membership was promoted to Secretary since issue.
+        var readService = new FakeMembershipReadService { SessionState = new SessionStateDto("stamp-1", true, StaffRole.Secretary) };
+        var handler = new ValidateStaffSessionHandler(readService);
+        var query = new ValidateStaffSessionQuery(UserId, "stamp-1", CentreId, StaffRole.Teacher);
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+        // Act
+        var result = await handler.HandleAsync(query, CancellationToken.None);
 
-## Configuration and Environment
+        // Assert
+        Assert.False(result.Value);
+    }
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+    [Fact]
+    public async Task HandleAsync_MatchingStampAndNoCentre_ReturnsTrue()
+    {
+        // Arrange
+        var readService = new FakeMembershipReadService { SessionState = new SessionStateDto("stamp-1", true, null) };
+        var handler = new ValidateStaffSessionHandler(readService);
+        var query = new ValidateStaffSessionQuery(UserId, "stamp-1", null, null);
 
-## Gotchas and Issues
+        // Act
+        var result = await handler.HandleAsync(query, CancellationToken.None);
 
-No bugs or surprises found while reading this file.
+        // Assert
+        Assert.True(result.Value);
+    }
 
-## Related Files
+    [Fact]
+    public async Task HandleAsync_MatchingStampActiveCentreMembershipAndRole_ReturnsTrue()
+```
 
-- [`src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs`](../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionHandler.cs.md)
-- [`src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs`](../../../src/TutoringCentre.Application/Identity/Queries/ValidateStaffSession/ValidateStaffSessionQuery.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Fakes/FakeMembershipReadService.cs`](../Fakes/FakeMembershipReadService.cs.md)
-- [`src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs`](../../../src/TutoringCentre.Api/Auth/SessionRevalidationHandler.cs.md)
+The excerpt stops at line 90; use the original file for the remaining 13 lines.
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

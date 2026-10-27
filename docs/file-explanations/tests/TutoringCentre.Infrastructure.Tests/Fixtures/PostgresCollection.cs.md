@@ -1,52 +1,54 @@
-# tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs`
 
 ## Purpose
 
-xUnit collection definition that makes all database tests share one `PostgresFixture`.
+Source summary (intent, not independent execution proof): All real-database tests share one container (started once per run); tests in a collection run sequentially.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Fixtures. Name `"postgres"` is used by `[Collection]` on `PostgresTestBase`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 14 lines and 602 bytes. Source hash: `4ca11a0148897a8fa8d6fb3d4fa6513f06d7881b4761a5b2173887412894f066`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`[CollectionDefinition(Name)] public sealed class PostgresCollection : ICollectionFixture<PostgresFixture>` with `public const string Name = "postgres"`. Classes in one collection run sequentially (no parallelism), which is required because they share a database and reset it per test. CA1711 (type name ends in 'Collection') is suppressed with a justification.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### xUnit mechanics (facts, theories, collections, fixtures)
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
 
-#### What it means
+## Walkthrough and declaration map
 
-`[Fact]` is a test; `[Theory]` + `[InlineData]` runs one test with several inputs. A *collection fixture* (`ICollectionFixture<T>` + `[Collection]`) shares one expensive object (a database container) across test classes and serialises them; `IAsyncLifetime` runs async setup/teardown.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+- [Line 11](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresCollection.cs#L11): `public sealed class PostgresCollection : ICollectionFixture<PostgresFixture>`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Collection fixture.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs:4](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs#L4)
 
-Class.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-One container per run.
+```csharp
+using System.Diagnostics.CodeAnalysis;
 
-## Data and Control Flow
+namespace TutoringCentre.Infrastructure.Tests.Fixtures;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>All real-database tests share one container (started once per run); tests in a collection run sequentially.</summary>
+[SuppressMessage(
+    "Naming",
+    "CA1711:Identifiers should not have incorrect suffix",
+    Justification = "xUnit collection-definition convention; 'Collection' here names an xUnit concept, not .NET's ICollection.")]
+[CollectionDefinition(Name)]
+public sealed class PostgresCollection : ICollectionFixture<PostgresFixture>
+{
+    public const string Name = "postgres";
+}
+```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](PostgresFixture.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresTestBase.cs`](PostgresTestBase.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

@@ -1,73 +1,97 @@
-# src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs
+# `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs`
 
 ## Purpose
 
-Builds the signed-in user's `MeDto` from a freshly read profile, dropping the actor's selected centre if it is no longer an active membership.
+Source summary (intent, not independent execution proof): Returns the actor's own profile. Takes no user ID from the caller — "my" queries take identity from the actor, so there is no ID to tamper with.
 
-## Where It Fits
+## Where it fits
 
-Application/Identity/Queries/GetMyMemberships, `internal`. Depends on `ICurrentActor`, `IMembershipReadService`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 52 lines and 2,208 bytes. Source hash: `e0626e327d3eec0b6a82da7ad3e563c0598fb7aaa0d480d0b1b23221b168e8e1`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`HandleAsync` (16-44): not a `StaffActor` -> `Unauthenticated(auth.not_authenticated)`; `GetProfileAsync(staffActor.UserId)` null -> same failure; `activeMembership = staffActor.CentreId is {} centreId ? profile.Memberships.FirstOrDefault(m => m.CentreId == centreId) : null` (30-32); returns `MeDto` with `ActiveCentreId/ActiveRole` from that membership (null if stale). Doc: takes no user id from the caller.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Authorization by default, the actor pipeline and the tenant gate
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 3: `using TutoringCentre.Application.Common.Security;`
+- Line 4: `using TutoringCentre.Domain.Common;`
+- Line 5: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *fallback authorization policy* makes every endpoint require a signed-in user unless it explicitly opts out (fail closed). A single middleware translates the HTTP identity into the application's own `StaffActor`; the *tenant gate* is the one check that decides which centre a session may act in.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate](../../../../../../PROJECT_OVERVIEW2.md#629-authorization-by-default-the-actor-pipeline-and-the-tenant-gate).)
+- [Line 14](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs#L14): `internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembershipReadService readService)`
+- [Line 17](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs#L17): `public async Task<Result<MeDto>> HandleAsync(GetMyMembershipsQuery query, CancellationToken cancellationToken)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Fresh check of the selected centre.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs:17](../../../../../../../tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs#L17)
 
-Lines 29-32.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-A stale cookie claim cannot report an active centre that the database no longer supports.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
-### Actor and tenancy groundwork
+namespace TutoringCentre.Application.Identity.Queries.GetMyMemberships;
 
-#### What it means
+/// <summary>
+/// Returns the actor's own profile. Takes no user ID from the caller — "my" queries take identity from the actor,
+/// so there is no ID to tamper with.
+/// </summary>
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembershipReadService readService)
+    : IQueryHandler<GetMyMembershipsQuery, MeDto>
+{
+    public async Task<Result<MeDto>> HandleAsync(GetMyMembershipsQuery query, CancellationToken cancellationToken)
+    {
+        if (currentActor.Actor is not StaffActor staffActor)
+        {
+            return Result<MeDto>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
+        }
 
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
+        var profile = await readService.GetProfileAsync(staffActor.UserId, cancellationToken);
+        if (profile is null)
+        {
+            return Result<MeDto>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
+        }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
+        // The actor's selected centre only counts if it is still an active membership in the freshly read profile.
+        var activeMembership = staffActor.CentreId is { } centreId
+            ? profile.Memberships.FirstOrDefault(membership => membership.CentreId == centreId)
+            : null;
 
-#### Where it appears in this file
+        var permissions = activeMembership is null
+            ? Array.Empty<string>()
+            : RolePermissions.For(activeMembership.Role).Order(StringComparer.Ordinal).ToArray();
 
-Identity from the actor.
+        var dto = new MeDto(
+            profile.UserId,
+            profile.DisplayName,
+            profile.Email,
+            profile.PreferredLocale,
+            profile.MustChangePassword,
+            activeMembership?.CentreId,
+            activeMembership?.Role,
+            profile.Memberships,
+            permissions);
 
-#### How it works here
+        return Result<MeDto>.Success(dto);
+    }
+}
+```
 
-Line 18.
+## Before modifying this file
 
-#### Why it matters here
-
-No tampering surface.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/IMembershipReadService.cs`](../../IMembershipReadService.cs.md)
-- [`src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs`](MeDto.cs.md)
-- [`tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs`](../../../../../tests/TutoringCentre.Application.Tests/Identity/GetMyMembershipsHandlerTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

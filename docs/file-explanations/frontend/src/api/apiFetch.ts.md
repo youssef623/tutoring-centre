@@ -1,163 +1,163 @@
-# frontend/src/api/apiFetch.ts
+# `frontend/src/api/apiFetch.ts`
 
 ## Purpose
 
-The only function that talks to the API: wraps `fetch`, attaches the CSRF header to unsafe methods, retries once on a stale token, and turns every failure into a typed `ApiError`.
+Source comment (intent): What apiFetch throws. It extends Error (so lint's only-throw-error is satisfied) and implements ApiError, so components and messageFor treat it as the plain ApiError interface.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/api. It is the Orval `mutator` (see `orval.config.ts`), so every generated client call goes through it. Depends on `csrf.ts` (token cache), `errors.ts` (types) and `problemDetails.ts` (type guard). Consumed by generated hooks, `asApiError` callers in features and routes, and `queryClient.ts`.
+Category: **source**. [Open current file](../../../../../frontend/src/api/apiFetch.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 179 lines and 5,489 bytes. Source hash: `cba03bf420ed415871f9e997f05151d9dec7622b17f62d44884e8d0b376e27a5`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- `CsrfHeaderName = "X-XSRF-TOKEN"` (5); `SessionChangingPaths = {"/api/auth/login","/api/auth/logout","/api/session/centre"}` (8) - the token is bound to the signed-in user, so these three requests invalidate it.
-- `class ApiRequestError extends Error implements ApiError` (14-34): copies `kind`, `code`, `status` and (only when defined) `fieldErrors`, `correlationId`; extends `Error` so the lint rule `only-throw-error` is satisfied.
-- `kindFromStatus(status)` (37-54): 400 validation, 401 unauthenticated, 403 forbidden, 404 notFound, 409 conflict, 422 rule, default unexpected - the backend table in `ResultHttpExtensions` mirrored in one place.
-- `toApiError(body, status)` (57-75): a Problem Details body gives `{ kind, code: body.code ?? "http.<status>", message: body.detail ?? body.title, status, fieldErrors?, correlationId? }`; anything else is `unexpected` with the fixed message `The server returned an unexpected response.`
-- `asApiError(error)` (78-89): returns the error if it is an `ApiRequestError`, else a generic `client.unexpected` error with status 0.
-- `readBody` (91-102): reads text; empty -> `undefined`; JSON parse failure -> `undefined`.
-- `isCsrfError` (104-106): `ApiRequestError` with status 403 and code `auth.csrf_invalid`.
-- `buildHeaders(init, attachCsrfToken)` (108-121): copies headers; sets `Accept: application/json` if absent; sets `Content-Type: application/json` when there is a body and none was given; when asked, sets `X-XSRF-TOKEN` from `getCsrfToken()`.
-- `sendOnce` (123-148): `fetch(url, { credentials: "same-origin", ...init, headers })`; a thrown fetch error becomes `network.unreachable` (status 0); 204 returns `undefined`; a JSON body on success is cast to `T`; otherwise throws `ApiRequestError(toApiError(body, status))`.
-- `apiFetch<T>(url, init)` (158-179): `isUnsafe = method is not GET/HEAD`; sends once; if it throws, the request was unsafe and the error is a CSRF error, it calls `refreshCsrfToken()` and sends exactly one more time (a second failure is thrown as is); after success of an unsafe request to one of the `SessionChangingPaths` it calls `void refreshCsrfToken()` (fire-and-forget).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### CSRF protection with antiforgery tokens
+- Line 1: `import { getCsrfToken, refreshCsrfToken } from "./csrf";`
+- Line 2: `import type { ApiError, ErrorKind } from "./errors";`
+- Line 3: `import { isProblemDetails } from "./problemDetails";`
 
-#### What it means
+## Walkthrough and declaration map
 
-Because browsers attach cookies automatically, a malicious *other* site can make the victim's browser send a state-changing request. CSRF protection adds a second, explicit proof that the request came from the application's own script: a token that must be sent in a header, which a foreign site cannot read or set.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens](../../../../PROJECT_OVERVIEW2.md#625-csrf-protection-double-submit-antiforgery-tokens).)
+- [Line 14](../../../../../frontend/src/api/apiFetch.ts#L14): `export class ApiRequestError extends Error implements ApiError {`
+- [Line 37](../../../../../frontend/src/api/apiFetch.ts#L37): `function kindFromStatus(status: number): ErrorKind {`
+- [Line 57](../../../../../frontend/src/api/apiFetch.ts#L57): `export function toApiError(body: unknown, status: number): ApiError {`
+- [Line 78](../../../../../frontend/src/api/apiFetch.ts#L78): `export function asApiError(error: unknown): ApiError {`
+- [Line 91](../../../../../frontend/src/api/apiFetch.ts#L91): `async function readBody(response: Response): Promise<unknown> {`
+- [Line 104](../../../../../frontend/src/api/apiFetch.ts#L104): `function isCsrfError(error: unknown): boolean {`
+- [Line 108](../../../../../frontend/src/api/apiFetch.ts#L108): `async function buildHeaders(init: RequestInit | undefined, attachCsrfToken: boolean): Promise<Headers> {`
+- [Line 123](../../../../../frontend/src/api/apiFetch.ts#L123): `async function sendOnce<T>(url: string, init: RequestInit | undefined, headers: Headers): Promise<T> {`
+- [Line 151](../../../../../frontend/src/api/apiFetch.ts#L151): `* The only function that talks to the API. Network failure → ApiError(network.unreachable, status 0);`
+- [Line 158](../../../../../frontend/src/api/apiFetch.ts#L158): `export async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Attaching and healing the token.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/assemble.py:28](../../../../onboarding-work/assemble.py#L28)
+- [docs/onboarding-work/enrich_frontend.py:8](../../../../onboarding-work/enrich_frontend.py#L8)
+- [docs/onboarding-work/extend_backend_purposes.py:8](../../../../onboarding-work/extend_backend_purposes.py#L8)
+- [docs/onboarding-work/file_guides.py:57](../../../../onboarding-work/file_guides.py#L57)
+- [docs/onboarding-work/read_frontend.py:9](../../../../onboarding-work/read_frontend.py#L9)
+- [docs/onboarding-work/reconcile_backend_ledger.py:17](../../../../onboarding-work/reconcile_backend_ledger.py#L17)
+- [frontend/e2e/schedule.spec.ts:126](../../../../../frontend/e2e/schedule.spec.ts#L126)
+- [frontend/orval.config.ts:14](../../../../../frontend/orval.config.ts#L14)
+- [frontend/src/api/apiFetch.test.ts:6](../../../../../frontend/src/api/apiFetch.test.ts#L6)
+- [frontend/src/api/generated/tutoring-centre.ts:26](../../../../../frontend/src/api/generated/tutoring-centre.ts#L26)
+- [frontend/src/api/showApiError.ts:5](../../../../../frontend/src/api/showApiError.ts#L5)
+- [frontend/src/app/queryClient.ts:2](../../../../../frontend/src/app/queryClient.ts#L2)
+- [frontend/src/components/shared/FilterBar.tsx:3](../../../../../frontend/src/components/shared/FilterBar.tsx#L3)
+- [frontend/src/components/shared/useParentLookup.ts:2](../../../../../frontend/src/components/shared/useParentLookup.ts#L2)
+- [frontend/src/features/audit/AuditLog.tsx:5](../../../../../frontend/src/features/audit/AuditLog.tsx#L5)
+- [frontend/src/features/dashboard/DashboardOverview.tsx:4](../../../../../frontend/src/features/dashboard/DashboardOverview.tsx#L4)
+- [frontend/src/features/enrollments/EnrollInGroupDialog.tsx:5](../../../../../frontend/src/features/enrollments/EnrollInGroupDialog.tsx#L5)
+- [frontend/src/features/enrollments/GroupRosterTab.tsx:4](../../../../../frontend/src/features/enrollments/GroupRosterTab.tsx#L4)
+- [frontend/src/features/enrollments/StudentEnrollmentsCard.tsx:5](../../../../../frontend/src/features/enrollments/StudentEnrollmentsCard.tsx#L5)
+- [frontend/src/features/enrollments/StudentPicker.tsx:5](../../../../../frontend/src/features/enrollments/StudentPicker.tsx#L5)
+- 46 further name-reference locations are omitted from this compact list.
 
-Lines 116-118, 154-156 (comment), 164-176.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Every state-changing request carries the header the server's endpoint filter demands; a token that went stale after login/logout is replaced and the request is repeated once, invisibly to the caller.
+```typescript
+import { getCsrfToken, refreshCsrfToken } from "./csrf";
+import type { ApiError, ErrorKind } from "./errors";
+import { isProblemDetails } from "./problemDetails";
 
-### Problem Details (RFC 9457) and centralised error handling
+const CsrfHeaderName = "X-XSRF-TOKEN";
 
-#### What it means
+// The token is bound to the signed-in user, so these three requests invalidate it when they succeed.
+const SessionChangingPaths = new Set(["/api/auth/login", "/api/auth/logout", "/api/session/centre"]);
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+/**
+ * What apiFetch throws. It extends Error (so lint's only-throw-error is satisfied) and implements ApiError,
+ * so components and messageFor treat it as the plain ApiError interface.
+ */
+export class ApiRequestError extends Error implements ApiError {
+  readonly kind: ErrorKind;
+  readonly code: string;
+  readonly status: number;
+  readonly fieldErrors?: Record<string, string[]>;
+  readonly correlationId?: string;
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+  constructor(error: ApiError) {
+    super(error.message);
+    this.name = "ApiRequestError";
+    this.kind = error.kind;
+    this.code = error.code;
+    this.status = error.status;
+    if (error.fieldErrors !== undefined) {
+      this.fieldErrors = error.fieldErrors;
+    }
+    if (error.correlationId !== undefined) {
+      this.correlationId = error.correlationId;
+    }
+  }
+}
 
-#### Where it appears in this file
+/** The backend's status table (ResultHttpExtensions) mirrored in exactly one place. */
+function kindFromStatus(status: number): ErrorKind {
+  switch (status) {
+    case 400:
+      return "validation";
+    case 401:
+      return "unauthenticated";
+    case 403:
+      return "forbidden";
+    case 404:
+      return "notFound";
+    case 409:
+      return "conflict";
+    case 422:
+      return "rule";
+    default:
+      return "unexpected";
+  }
+}
 
-Parsing Problem Details.
+/** Converts a response body and status into an ApiError. Problem Details are understood; anything else is "unexpected". */
+export function toApiError(body: unknown, status: number): ApiError {
+  if (isProblemDetails(body)) {
+    return {
+      kind: kindFromStatus(status),
+      code: body.code ?? `http.${String(status)}`,
+      message: body.detail ?? body.title,
+      status,
+      ...(body.errors === undefined ? {} : { fieldErrors: body.errors }),
+      ...(body.correlationId === undefined ? {} : { correlationId: body.correlationId }),
+    };
+  }
 
-#### How it works here
+  return {
+    kind: "unexpected",
+    code: `http.${String(status)}`,
+    message: "The server returned an unexpected response.",
+    status,
+  };
+}
 
-`toApiError` (57-75) and `kindFromStatus` (37-54).
+/** Components catch unknown values; this returns the ApiError inside them, or a generic one. */
+export function asApiError(error: unknown): ApiError {
+  if (error instanceof ApiRequestError) {
+    return error;
+  }
 
-#### Why it matters here
+  return {
+    kind: "unexpected",
+    code: "client.unexpected",
+    message: "Something went wrong.",
+    status: 0,
+  };
+}
 
-The backend always answers failures as Problem Details with a stable `code`; the UI branches on `code`/`kind`, never on message text.
-
-### The Result pattern (failures as values)
-
-#### What it means
-
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
-
-#### Where it appears in this file
-
-Failure as a typed value on the client.
-
-#### How it works here
-
-`ApiRequestError implements ApiError`.
-
-#### Why it matters here
-
-Components `catch` an unknown value and call `asApiError` to get the structured error - the client-side mirror of the backend `Result`/`Error`.
-
-### Contract-first generated API client
-
-#### What it means
-
-The API publishes a machine-readable contract (OpenAPI). A generator turns it into typed client code, so a changed endpoint shape becomes a compile error in the frontend instead of a runtime bug; CI fails if the committed contract or generated code is stale.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#631-contract-first-api-client-generation](../../../../PROJECT_OVERVIEW2.md#631-contract-first-api-client-generation).)
-
-#### Where it appears in this file
-
-Mutator for generated code.
-
-#### How it works here
-
-Signature `apiFetch<T>(url, init)` matches what Orval calls.
-
-#### Why it matters here
-
-One choke point for headers, errors and CSRF for every generated hook.
-
-### async/await and cancellation
-
-#### What it means
-
-`async`/`await` lets a method wait for I/O (database, network) without blocking a thread: the method returns a `Task`, and execution resumes after the awaited operation completes. A `CancellationToken` is a cooperative signal (for example, the HTTP request was aborted) passed down so work can stop early.
-
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
-
-#### Where it appears in this file
-
-`async` functions and promise handling.
-
-#### How it works here
-
-`void refreshCsrfToken()` at line 175; `await` elsewhere.
-
-#### Why it matters here
-
-`void` marks an intentionally unawaited promise (lint rule) - the refresh happens in the background and `getCsrfToken` will await the pending promise.
-
-## Data and Control Flow
-
-```mermaid
-sequenceDiagram
-    participant C as caller (generated hook)
-    participant F as apiFetch
-    participant T as csrf.ts cache
-    participant S as API
-    C->>F: apiFetch("/api/things", POST)
-    F->>T: getCsrfToken()
-    T->>S: GET /api/auth/antiforgery (first time only)
-    S-->>T: token
-    F->>S: POST with X-XSRF-TOKEN
-    S-->>F: 403 auth.csrf_invalid (stale)
-    F->>T: refreshCsrfToken()
-    T->>S: GET /api/auth/antiforgery
-    F->>S: POST again (once)
-    S-->>F: 200
-    F-->>C: parsed body
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 89 lines.
 
-`credentials: "same-origin"` so cookies travel only to the same origin (the Vite origin in development, proxied to the API).
+## Before modifying this file
 
-## Gotchas and Issues
-
-A `GET` is never retried. A retry only happens for a CSRF error on an unsafe request, so a login that fails with 401 is not retried. Success bodies are *trusted* to match the contract (`body as T`); a contract violation would not be caught here.
-
-## Related Files
-
-- [`frontend/src/api/csrf.ts`](csrf.ts.md)
-- [`frontend/src/api/errors.ts`](errors.ts.md)
-- [`frontend/src/api/problemDetails.ts`](problemDetails.ts.md)
-- [`frontend/src/api/apiFetch.test.ts`](apiFetch.test.ts.md)
-- `frontend/src/api/generated/tutoring-centre.ts` (generated / lockfile / media: no separate explanation, see INDEX)
-- [`frontend/orval.config.ts`](../../orval.config.ts.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

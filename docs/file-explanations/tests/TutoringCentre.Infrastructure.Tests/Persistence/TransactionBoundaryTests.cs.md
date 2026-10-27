@@ -1,73 +1,143 @@
-# tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs`
 
 ## Purpose
 
-Proves rollback on exception and on failure results, with a success control.
+Declares `TransactionBoundaryTests`, `WriteThenFailMode`, `WriteThenFailCommand`, `WriteThenFailHandler`. The declaration map below identifies the current source locations; the overview explains the surrounding execution path.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Persistence. Contains `WriteThenFailCommand`, `WriteThenFailMode`, `WriteThenFailHandler`.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 89 lines and 3,542 bytes. Source hash: `e575a5f3b62ecca38528265f3d84bdf1ff71b6c12ba7322aad2a0e2b52be5e98`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-The handler creates `doomed-centre`, `centres.Add`, then calls `db.SaveChangesAsync` itself (inside the dispatcher's open transaction, so the INSERT truly happens) and then, by mode, throws `InvalidOperationException`, returns `Error.Rule("test.rule_broken")`, or succeeds. Tests: Throw -> exception propagates and 0 rows; ReturnFailure -> failure with that code and 0 rows; Succeed -> 1 row (**control**: proves the other two could have observed a surviving row). Each builds a provider with `Register` adding the handler.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Unit of Work and transactions
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using Microsoft.Extensions.DependencyInjection;`
+- Line 3: `using TutoringCentre.Application.Centres;`
+- Line 4: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 5: `using TutoringCentre.Application.Common.Security;`
+- Line 6: `using TutoringCentre.Domain.Centres;`
+- Line 7: `using TutoringCentre.Domain.Common;`
+- Line 8: `using TutoringCentre.Infrastructure.Persistence;`
+- Line 9: `using TutoringCentre.Infrastructure.Tests.Fixtures;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A *transaction* makes several database operations all-or-nothing and isolated from concurrent work. A *unit of work* groups the changes of one business operation and commits them together. EF Core's `DbContext` already tracks changes and is a unit of work; the repository adds a small port so the dispatcher can control the transaction without referencing EF.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions](../../../../PROJECT_OVERVIEW2.md#67-unit-of-work-and-transactions).)
+- [Line 13](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L13): `public sealed class TransactionBoundaryTests(PostgresFixture fixture) : PostgresTestBase(fixture)`
+- [Line 16](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L16): `public async Task SendAsync_HandlerThrowsAfterRowWasWritten_LeavesNoRowAndRethrows()`
+- [Line 27](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L27): `public async Task SendAsync_HandlerReturnsFailureAfterRowWasWritten_LeavesNoRow()`
+- [Line 40](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L40): `public async Task SendAsync_HandlerSucceedsAfterRowWasWritten_PersistsTheRow()`
+- [Line 52](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L52): `private static void Register(IServiceCollection services) =>`
+- [Line 56](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L56): `internal enum WriteThenFailMode`
+- [Line 63](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L63): `internal sealed record WriteThenFailCommand(WriteThenFailMode Mode) : ICommand<string>;`
+- [Line 66](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L66): `internal sealed class WriteThenFailHandler(ICentreRepository centres, AppDbContext db)`
+- [Line 69](../../../../../tests/TutoringCentre.Infrastructure.Tests/Persistence/TransactionBoundaryTests.cs#L69): `public async Task<Result<string>> HandleAsync(WriteThenFailCommand command, CancellationToken cancellationToken)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Transaction boundary.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-All three tests.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Application.Centres;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Tests.Fixtures;
 
-Atomicity of handler work.
+namespace TutoringCentre.Infrastructure.Tests.Persistence;
 
-### Test doubles: fakes vs real dependencies
+public sealed class TransactionBoundaryTests(PostgresFixture fixture) : PostgresTestBase(fixture)
+{
+    [Fact]
+    public async Task SendAsync_HandlerThrowsAfterRowWasWritten_LeavesNoRowAndRethrows()
+    {
+        await using var provider = Fixture.CreateServiceProvider(Register);
 
-#### What it means
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            provider.SendAsAsync<WriteThenFailCommand, string>(new SystemActor(null), new WriteThenFailCommand(WriteThenFailMode.Throw)));
 
-A *fake* is a small working substitute (in-memory repository). Real-dependency (integration) tests run actual components such as PostgreSQL. Fakes are fast and focused; integration tests prove behaviour only the real system provides.
+        Assert.Equal(0, await Fixture.CountCentresAsync());
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+    [Fact]
+    public async Task SendAsync_HandlerReturnsFailureAfterRowWasWritten_LeavesNoRow()
+    {
+        await using var provider = Fixture.CreateServiceProvider(Register);
 
-#### Where it appears in this file
+        var result = await provider.SendAsAsync<WriteThenFailCommand, string>(
+            new SystemActor(null), new WriteThenFailCommand(WriteThenFailMode.ReturnFailure));
 
-Test-only handler registered via `configure`.
+        Assert.True(result.IsFailure);
+        Assert.Equal("test.rule_broken", result.Error!.Code);
+        Assert.Equal(0, await Fixture.CountCentresAsync());
+    }
 
-#### How it works here
+    [Fact]
+    public async Task SendAsync_HandlerSucceedsAfterRowWasWritten_PersistsTheRow()
+    {
+        // Control: proves the two tests above would have seen the row had it survived.
+        await using var provider = Fixture.CreateServiceProvider(Register);
 
-`Register`.
+        var result = await provider.SendAsAsync<WriteThenFailCommand, string>(
+            new SystemActor(null), new WriteThenFailCommand(WriteThenFailMode.Succeed));
 
-#### Why it matters here
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, await Fixture.CountCentresAsync());
+    }
 
-Production registrations untouched.
+    private static void Register(IServiceCollection services) =>
+        services.AddScoped<ICommandHandler<WriteThenFailCommand, string>, WriteThenFailHandler>();
+}
 
-## Data and Control Flow
+internal enum WriteThenFailMode
+{
+    Throw,
+    ReturnFailure,
+    Succeed,
+}
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+internal sealed record WriteThenFailCommand(WriteThenFailMode Mode) : ICommand<string>;
 
-## Configuration and Environment
+[SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
+internal sealed class WriteThenFailHandler(ICentreRepository centres, AppDbContext db)
+    : ICommandHandler<WriteThenFailCommand, string>
+{
+    public async Task<Result<string>> HandleAsync(WriteThenFailCommand command, CancellationToken cancellationToken)
+    {
+        var created = Centre.Create("Doomed Centre", "doomed-centre", "Africa/Cairo", SupportedLocale.En);
+        centres.Add(created.Value);
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+        // Flush inside the dispatcher's transaction so the row physically exists before the failure.
+        await db.SaveChangesAsync(cancellationToken);
 
-## Gotchas and Issues
+        if (command.Mode == WriteThenFailMode.Throw)
+        {
+            throw new InvalidOperationException("Simulated unexpected fault after a write.");
+        }
 
-No bugs or surprises found while reading this file.
+        if (command.Mode == WriteThenFailMode.ReturnFailure)
+        {
+            return Result<string>.Failure(Error.Rule("test.rule_broken", "Simulated business-rule failure after a write."));
+        }
 
-## Related Files
+        return Result<string>.Success("ok");
+    }
+}
+```
 
-- [`src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs`](../../../src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md)
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](../Fixtures/PostgresFixture.cs.md)
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

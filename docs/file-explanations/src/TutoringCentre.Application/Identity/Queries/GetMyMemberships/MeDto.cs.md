@@ -1,52 +1,58 @@
-# src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs
+# `src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs`
 
 ## Purpose
 
-The response shape of `GET /api/me` and login: profile, active centre/role and active memberships.
+Source summary (intent, not independent execution proof): The signed-in staff member's own profile. `ActiveCentreId` and `ActiveRole` are null unless the actor's selected centre is still among the user's active memberships. `Permissions` is computed fresh from `ActiveRole` on every call through the role map — advice for the UI, never stored in the cookie and never the decision itself (the dispatcher's permission step is).
 
-## Where It Fits
+## Where it fits
 
-Application/Identity/Queries/GetMyMemberships. Produced by `GetMyMembershipsHandler`; published in OpenAPI and generated as the TypeScript `MeDto`.
+Category: **source**. [Open current file](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs). [Complete file index](../../../../../INDEX.md). [Current teaching overview](../../../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 20 lines and 858 bytes. Source hash: `2ff62a7a62f4d049a31308cf8ee9dbbb5020ea4ec4bb6f3b9309d0bf4d8ef7ad`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`MeDto(UserId, DisplayName, Email, PreferredLocale, Guid? ActiveCentreId, StaffRole? ActiveRole, IReadOnlyList<MembershipDto> Memberships)`. `ActiveCentreId`/`ActiveRole` are null unless the actor's selected centre is still among the user's active memberships (doc comment).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Records, immutability and primary constructors
+- Line 1: `using TutoringCentre.Domain.Identity;`
 
-#### What it means
+## Walkthrough and declaration map
 
-A C# `record` is a type with value-based equality and (by default) immutable properties - suited to messages like commands, DTOs and errors. A *primary constructor* (`class X(IDep dep)`) declares constructor parameters on the type header; they are captured for use in members.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher](../../../../../../PROJECT_OVERVIEW2.md#63-cqrs-and-the-hand-written-dispatcher).)
+- [Line 11](../../../../../../../src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/MeDto.cs#L11): `public sealed record MeDto(`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-DTO record.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-Declaration.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using TutoringCentre.Domain.Identity;
 
-Stable contract for the frontend session.
+namespace TutoringCentre.Application.Identity.Queries.GetMyMemberships;
 
-## Data and Control Flow
+/// <summary>
+/// The signed-in staff member's own profile. <see cref="ActiveCentreId"/> and <see cref="ActiveRole"/> are null
+/// unless the actor's selected centre is still among the user's active memberships. <see cref="Permissions"/> is
+/// computed fresh from <see cref="ActiveRole"/> on every call through the role map — advice for the UI, never
+/// stored in the cookie and never the decision itself (the dispatcher's permission step is).
+/// </summary>
+public sealed record MeDto(
+    Guid UserId,
+    string DisplayName,
+    string Email,
+    string PreferredLocale,
+    bool MustChangePassword,
+    Guid? ActiveCentreId,
+    StaffRole? ActiveRole,
+    IReadOnlyList<MembershipDto> Memberships,
+    IReadOnlyList<string> Permissions);
+```
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Before modifying this file
 
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Enum `StaffRole` serialises as a camelCase string (`owner`, `teacher`, `secretary`) via the JSON converter in `Program.cs`.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/Identity/Queries/GetMyMemberships/GetMyMembershipsHandler.cs`](GetMyMembershipsHandler.cs.md)
-- [`frontend/src/features/session/meQueryOptions.ts`](../../../../../frontend/src/features/session/meQueryOptions.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

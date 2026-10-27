@@ -1,53 +1,65 @@
-# frontend/tsconfig.app.json
+# `frontend/tsconfig.app.json`
 
 ## Purpose
 
-TypeScript settings for the application source under `src/`.
+Current configuration file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-Frontend config used by `tsc -b` (`typecheck`, `build`) and the editor.
+Category: **configuration**. [Open current file](../../../frontend/tsconfig.app.json). [Complete file index](../INDEX.md). [Current teaching overview](../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 31 lines and 760 bytes. Source hash: `9f97ee9a6e62bf3e4189ee5f80b8f0147d2fd0ec77067c2c9b67bd5c0a29cd80`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`target es2023`, `lib [ES2023, DOM]`, `module esnext`, `moduleResolution bundler`, `types ["vite/client"]`, `allowImportingTsExtensions`, `verbatimModuleSyntax` (type-only imports must use `import type`), `moduleDetection force`, `noEmit` (Vite does the bundling), `jsx react-jsx`, `paths @/*`. Strictness: `strict`, `noUncheckedIndexedAccess` (indexing yields `T | undefined`; for example `messages.at(0)` and array indexing in `showApiError.ts` must handle `undefined`), `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly` (no enums/namespaces/parameter properties - code must be strippable), `noFallthroughCasesInSwitch`. `tsBuildInfoFile` under `node_modules/.tmp`. `include: ["src"]`.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Strict TypeScript and type-aware linting
+## Walkthrough and declaration map
 
-#### What it means
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-TypeScript checks types at build time; `strict` and extra flags such as `noUncheckedIndexedAccess` make unsafe patterns compile errors. Type-aware ESLint rules use the compiler's type information to catch more bugs.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing](../../PROJECT_OVERVIEW2.md#617-frontend-concepts-react-server-state-and-routing).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-Compiler flags.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```json
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
 
-Linting block.
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
 
-#### Why it matters here
+    /* Linting */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+```
 
-Compile-time safety net.
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`frontend/tsconfig.json`](tsconfig.json.md)
-- [`frontend/tsconfig.node.json`](tsconfig.node.json.md)
-- [`frontend/package.json`](package.json.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

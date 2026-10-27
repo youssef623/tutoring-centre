@@ -1,53 +1,40 @@
-# src/TutoringCentre.Application/AssemblyMarker.cs
+# `src/TutoringCentre.Application/AssemblyMarker.cs`
 
 ## Purpose
 
-Assembly handle used by handler scanning and by architecture tests.
+Source summary (intent, not independent execution proof): Lets tests locate this assembly via typeof(AssemblyMarker).Assembly. Contains no logic.
 
-## Where It Fits
+## Where it fits
 
-Application layer. `AddApplication` passes `typeof(AssemblyMarker).Assembly` to `AddCqrsHandlers`.
+Category: **source**. [Open current file](../../../../src/TutoringCentre.Application/AssemblyMarker.cs). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 4 lines and 188 bytes. Source hash: `fa538f12d586a741bcc4be3bded3a7c29a0b89778d40b08ad8468948d4584ed4`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`internal sealed class AssemblyMarker;`. Its second job (besides tests) is to tell the scanner *which* assembly to scan without a string name - see `DependencyInjection.cs` line 18.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Assembly scanning and reflection
+## Walkthrough and declaration map
 
-#### What it means
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-*Reflection* lets code inspect types at runtime (`assembly.GetTypes()`, `type.GetInterfaces()`). *Assembly scanning* uses it to find classes implementing a given interface and register them automatically, so adding a new handler needs no registration line.
+- [Line 4](../../../../src/TutoringCentre.Application/AssemblyMarker.cs#L4): `internal sealed class AssemblyMarker;`
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-The marker.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);`
+```csharp
+namespace TutoringCentre.Application;
 
-#### Why it matters here
+/// <summary>Lets tests locate this assembly via typeof(AssemblyMarker).Assembly. Contains no logic.</summary>
+internal sealed class AssemblyMarker;
+```
 
-If the type moved to another assembly the scan would silently find no handlers (the Dispatcher would then throw 'No service for type ...' at first use).
+## Before modifying this file
 
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Don't move or delete it without updating the scan call.
-
-## Related Files
-
-- [`src/TutoringCentre.Application/DependencyInjection.cs`](DependencyInjection.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/HandlerRegistration.cs`](Common/Cqrs/HandlerRegistration.cs.md)
-- [`tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs`](../../tests/TutoringCentre.Architecture.Tests/DependencyRuleTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

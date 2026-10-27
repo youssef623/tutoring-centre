@@ -1,86 +1,125 @@
-# src/TutoringCentre.Api/Http/ResultHttpExtensions.cs
+# `src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`
 
 ## Purpose
 
-The only place domain `Result`/`Error` values become HTTP responses.
+The shared transport mapper converts result kinds to status and Problem Details while preserving field dictionaries for any kind, including conflicts. Creation helpers support both Location-bearing and body-only 201 contracts. Feature endpoints choose the success shape; they do not duplicate failure switches.
 
-## Where It Fits
+## Where it fits
 
-Api/Http, `public static`. Used by `PlatformEndpoints`, `AuthEndpoints`, `Program.cs` fallbacks, and test endpoints. Depends on `ProblemResult`, `Error`, `ErrorKind`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 79 lines and 3,838 bytes. Source hash: `16fe3323b98a0770e9fbd81edb7f5c3f141781afd96137315392aacf79157173`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`ToHttpResult<T>(this Result<T>, Func<T,IResult> onSuccess)` (13): success -> `onSuccess(result.Value)`; failure -> `result.Error!.ToProblemResult()`. `ToHttpResult(this Result)` (20): success -> `Results.NoContent()` (204). `ToProblemResult(this Error)` (23-44): switch on `ErrorKind` (29-34): Validation 400, NotFound 404, Conflict 409, Rule 422, Forbidden 403, Unauthenticated 401 (title 'Authentication is required.'), default throws `ArgumentOutOfRangeException`; when `Kind == Validation && Fields != null` builds `ValidationProblemDetails` (adds the `errors` object), else `ProblemDetails`; `Detail = error.Message`; `Extensions["code"] = error.Code`; returns `new ProblemResult(problem)`. The doc comment explains each status's meaning, including `401 = we don't know who you are; 403 = we know, and you may not`.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### The Result pattern (failures as values)
+- Line 1: `using Microsoft.AspNetCore.Mvc;`
+- Line 2: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+- [Line 11](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L11): `public static class ResultHttpExtensions`
+- [Line 13](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L13): `public static IResult ToHttpResult<T>(this Result<T> result, Func<T, IResult> onSuccess)`
+- [Line 25](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L25): `public static IResult ToCreatedHttpResult<T>(this Result<T> result, Func<T, (string Location, object Body)> onSuccess)`
+- [Line 42](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L42): `public static IResult ToCreatedHttpResult<T>(this Result<T> result, Func<T, object> onSuccess)`
+- [Line 51](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L51): `public static IResult ToHttpResult(this Result result) =>`
+- [Line 54](../../../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs#L54): `public static IResult ToProblemResult(this Error error)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Mapping `Result` to HTTP.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [frontend/src/api/apiFetch.ts:36](../../../../../frontend/src/api/apiFetch.ts#L36)
 
-Lines 13-43.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Endpoints never branch on outcome.
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using TutoringCentre.Domain.Common;
 
-### Problem Details (RFC 9457) and centralised error handling
+namespace TutoringCentre.Api.Http;
 
-#### What it means
+/// <summary>
+/// The only place domain outcomes become HTTP responses. Endpoints never write their own switch.
+/// 400 = your input is malformed; 401 = we don't know who you are; 403 = we know, and you may not;
+/// 404 = doesn't exist (for you); 409 = conflicts with current state; 422 = well-formed but breaks a business rule.
+/// </summary>
+public static class ResultHttpExtensions
+{
+    public static IResult ToHttpResult<T>(this Result<T> result, Func<T, IResult> onSuccess)
+    {
+        ArgumentNullException.ThrowIfNull(onSuccess);
 
-Problem Details is a standard JSON error shape (`title`, `status`, `detail`, extensions) served as `application/problem+json`. Centralising error writing in one place keeps every error response uniform and prevents leaking internals.
+        return result.IsSuccess ? onSuccess(result.Value) : result.Error!.ToProblemResult();
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+    /// <summary>
+    /// A successful creation maps to 201 with a Location header, built only from server-generated values (the
+    /// result's own value) — never from caller-supplied input. Failures share the exact same mapping as
+    /// <see cref="ToHttpResult{T}"/>, not a second switch.
+    /// </summary>
+    public static IResult ToCreatedHttpResult<T>(this Result<T> result, Func<T, (string Location, object Body)> onSuccess)
+    {
+        ArgumentNullException.ThrowIfNull(onSuccess);
 
-#### Where it appears in this file
+        if (result.IsFailure)
+        {
+            return result.Error!.ToProblemResult();
+        }
 
-Problem Details construction.
+        var (location, body) = onSuccess(result.Value);
+        return Results.Created(location, body);
+    }
 
-#### How it works here
+    /// <summary>
+    /// A 201 variant for a created resource with no single-resource read endpoint to point a Location header
+    /// at (Day 30: staff creation). Same failure mapping as <see cref="ToHttpResult{T}"/>.
+    /// </summary>
+    public static IResult ToCreatedHttpResult<T>(this Result<T> result, Func<T, object> onSuccess)
+    {
+        ArgumentNullException.ThrowIfNull(onSuccess);
 
-Lines 38-43.
+        return result.IsSuccess
+            ? Results.Json(onSuccess(result.Value), statusCode: StatusCodes.Status201Created)
+            : result.Error!.ToProblemResult();
+    }
 
-#### Why it matters here
+    public static IResult ToHttpResult(this Result result) =>
+        result.IsSuccess ? Results.NoContent() : result.Error!.ToProblemResult();
 
-Stable `code` and field errors for the frontend.
+    public static IResult ToProblemResult(this Error error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
 
-## Data and Control Flow
+        var (status, title) = error.Kind switch
+        {
+            ErrorKind.Validation => (StatusCodes.Status400BadRequest, "One or more validation errors occurred."),
+            ErrorKind.NotFound => (StatusCodes.Status404NotFound, "The requested resource was not found."),
+            ErrorKind.Conflict => (StatusCodes.Status409Conflict, "The request conflicts with the current state."),
+            ErrorKind.Rule => (StatusCodes.Status422UnprocessableEntity, "The request breaks a business rule."),
+            ErrorKind.Forbidden => (StatusCodes.Status403Forbidden, "You are not allowed to perform this action."),
+            ErrorKind.Unauthenticated => (StatusCodes.Status401Unauthorized, "Authentication is required."),
+            _ => throw new ArgumentOutOfRangeException(nameof(error), error.Kind, "Unmapped error kind."),
+        };
 
-```mermaid
-flowchart LR
-    R["Result"] -->|success| OK["Results.Ok / 204"]
-    R -->|failure| K{"Error.Kind"}
-    K --> S400["400"]
-    K --> S404["404"]
-    K --> S409["409"]
-    K --> S422["422"]
-    K --> S403["403"]
-    K --> S401["401"]
-    S401 --> PR
-    S400 --> PR["ProblemResult (problem+json)"]
+        // Messages on Error are authored, safe strings — never exception text. Any error carrying field-level
+        // detail gets the "errors" object, not just Validation: a 409 duplicate-name conflict (Day 26) names its
+        // field exactly like a 400 shape failure does.
+        ProblemDetails problem = error.Fields is not null
+            ? new ValidationProblemDetails(new Dictionary<string, string[]>(error.Fields)) { Status = status, Title = title, Detail = error.Message }
+            : new ProblemDetails { Status = status, Title = title, Detail = error.Message };
+
+        problem.Extensions["code"] = error.Code;
+        return new ProblemResult(problem);
+    }
+}
 ```
 
-## Configuration and Environment
+## Before modifying this file
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-Adding an `ErrorKind` without a switch arm throws at runtime for that kind.
-
-## Related Files
-
-- [`src/TutoringCentre.Api/Http/ProblemResult.cs`](ProblemResult.cs.md)
-- [`src/TutoringCentre.Domain/Common/Error.cs`](../../TutoringCentre.Domain/Common/Error.cs.md)
-- [`src/TutoringCentre.Domain/Common/ErrorKind.cs`](../../TutoringCentre.Domain/Common/ErrorKind.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Http/ResultHttpExtensionsTests.cs`](../../../tests/TutoringCentre.Api.Tests/Http/ResultHttpExtensionsTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

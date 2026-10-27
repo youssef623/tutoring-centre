@@ -1,53 +1,85 @@
-# tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs
+# `tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs`
 
 ## Purpose
 
-Defines the test-only `/api/test/*` endpoints used to trigger each error kind, strict-JSON failures and sensitive-data logging.
+Source summary (intent, not independent execution proof): Test-only endpoints. They exist only in the test host — never in the product or its OpenAPI document.
 
-## Where It Fits
+## Where it fits
 
-Api.Tests/Fixtures. Never part of the product or its OpenAPI document.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 41 lines and 2,292 bytes. Source hash: `d24342b03180e19981434a31631ef74ae9d5b1308e49dd8d529d0df3258798af`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`Map(IEndpointRouteBuilder)`: group `/api/test` created with `.AllowAnonymous()` (comment: these endpoints test HTTP/Problem Details conventions unrelated to authentication); `GET /{kind}` dispatches `ConventionCommand(kind)` and returns `.ToHttpResult(Results.Ok)`; `POST /name` binds `TestNameBody` and dispatches `TestNameCommand`; `GET /log-sensitive` logs `"Login attempt {@Request}"` with a `SensitiveProbe("sara@example.test","hunter2","+201001234567")` to prove masking (the endpoint exists; the tests that call it are not present in the suite I read - no test hits `/api/test/log-sensitive`). Two additions: `GET /api/test/actor` dispatches `CurrentActorQuery` and returns the `CurrentActorDto` (kind, user id, centre id, role) so `SecurityTests` can prove the actor reaches Application; and `GET /api/test-default-protection`, mapped on `endpoints` *outside* the anonymous group with no authorization metadata at all, to prove the fallback policy protects a forgotten endpoint (expects 401). Uses the same `ToHttpResult` path as real endpoints, so conventions are tested for real.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Minimal APIs, routing and route groups
+- Line 1: `using System.Diagnostics.CodeAnalysis;`
+- Line 2: `using TutoringCentre.Api.Http;`
+- Line 3: `using TutoringCentre.Application.Common.Cqrs;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Minimal APIs map a URL pattern and HTTP verb straight to a delegate (`MapGet("/x", handler)`). The framework binds delegate parameters from DI (services), the route, query, body or `CancellationToken`. A *route group* shares a prefix and metadata across endpoints.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling](../../../../PROJECT_OVERVIEW2.md#612-http-problem-details-and-error-handling).)
+- [Line 8](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L8): `internal static class ConventionEndpoints`
+- [Line 10](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L10): `public static void Map(IEndpointRouteBuilder endpoints)`
+- [Line 35](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpoints.cs#L35): `private static IResult LogSensitive(ILoggerFactory loggerFactory)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Test routes.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs:15](../../../../../tests/TutoringCentre.Api.Tests/Fixtures/ConventionEndpointsStartupFilter.cs#L15)
 
-`MapGroup`, `MapGet`, `MapPost`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Same mechanics as product endpoints.
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using TutoringCentre.Api.Http;
+using TutoringCentre.Application.Common.Cqrs;
 
-## Data and Control Flow
+namespace TutoringCentre.Api.Tests.Fixtures;
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+/// <summary>Test-only endpoints. They exist only in the test host — never in the product or its OpenAPI document.</summary>
+internal static class ConventionEndpoints
+{
+    public static void Map(IEndpointRouteBuilder endpoints)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
 
-## Configuration and Environment
+        // These endpoints test HTTP/Problem Details conventions unrelated to authentication.
+        var group = endpoints.MapGroup("/api/test").AllowAnonymous();
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+        group.MapGet("/{kind}", async (string kind, Dispatcher dispatcher, CancellationToken ct) =>
+            (await dispatcher.SendAsync<ConventionCommand, string>(new ConventionCommand(kind), ct)).ToHttpResult(value => Results.Ok(value)));
 
-## Gotchas and Issues
+        group.MapPost("/name", async (TestNameBody body, Dispatcher dispatcher, CancellationToken ct) =>
+            (await dispatcher.SendAsync<TestNameCommand, string>(new TestNameCommand(body.Name), ct)).ToHttpResult(value => Results.Ok(value)));
 
-`/api/test/log-sensitive` appears unused by any test (searched for the path string).
+        group.MapGet("/log-sensitive", LogSensitive);
 
-## Related Files
+        group.MapGet("/actor", async (Dispatcher dispatcher, CancellationToken ct) =>
+            (await dispatcher.QueryAsync<CurrentActorQuery, CurrentActorDto>(new CurrentActorQuery(), ct)).ToHttpResult(dto => Results.Ok(dto)));
 
-- [`tests/TutoringCentre.Api.Tests/Fixtures/ConventionTestTypes.cs`](ConventionTestTypes.cs.md)
-- [`src/TutoringCentre.Api/Http/ResultHttpExtensions.cs`](../../../src/TutoringCentre.Api/Http/ResultHttpExtensions.cs.md)
-- [`tests/TutoringCentre.Api.Tests/Http/ProblemDetailsTests.cs`](../Http/ProblemDetailsTests.cs.md)
+        // Deliberately mapped outside the anonymous /api/test group, with no authorization attribute at all —
+        // proves the authorization fallback policy (Day 16, Task 16.5) protects a forgotten endpoint by default.
+        endpoints.MapGet("/api/test-default-protection", () => Results.Ok());
+    }
+
+    [SuppressMessage("Performance", "CA1848:Use the LoggerMessage delegates", Justification = "Test-only probe.")]
+    [SuppressMessage("Performance", "CA1873:Avoid potentially expensive logging", Justification = "Test-only probe with a fixed, cheap payload.")]
+    private static IResult LogSensitive(ILoggerFactory loggerFactory)
+    {
+        var logger = loggerFactory.CreateLogger("Conventions.LogProbe");
+        logger.LogInformation("Login attempt {@Request}", new SensitiveProbe("sara@example.test", "hunter2", "+201001234567"));
+        return Results.Ok();
+    }
+}
+```
+
+## Before modifying this file
+
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

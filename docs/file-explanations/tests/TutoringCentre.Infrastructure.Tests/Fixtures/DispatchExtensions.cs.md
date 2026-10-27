@@ -1,73 +1,100 @@
-# tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs
+# `tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs`
 
 ## Purpose
 
-Test helpers that dispatch a command or query in a fresh scope as a chosen actor.
+Source summary (intent, not independent execution proof): Dispatches a use case in a new scope as the given actor — a scope per call, like a request or job.
 
-## Where It Fits
+## Where it fits
 
-Infrastructure.Tests/Fixtures. Used by most Infrastructure tests.
+Category: **test**. [Open current file](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 55 lines and 2,672 bytes. Source hash: `de24e3141fccb969095d7105a22d99d6c966c0d48283a05f70856193f9de4433`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`SendAsAsync<TCommand,TResponse>(fixture|provider, actor, command)` and `QueryAsAsync<...>`: `await using var scope = provider.CreateAsyncScope()`; `scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(actor)`; resolve `Dispatcher`; call `SendAsync/QueryAsync` with `CancellationToken.None`. One scope per call mirrors one HTTP request or job. Overloads on `PostgresFixture` forward to the `IServiceProvider` overloads (so tests with custom providers can reuse them).
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Service lifetimes (singleton, scoped, transient)
+- Line 1: `using Microsoft.Extensions.DependencyInjection;`
+- Line 2: `using TutoringCentre.Application.Common.Cqrs;`
+- Line 3: `using TutoringCentre.Application.Common.Security;`
+- Line 4: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-Lifetime says how long a container-built instance lives. *Singleton*: one for the whole application. *Scoped*: one per scope; in ASP.NET one scope = one HTTP request, and code can create its own scope (as the seed command does). *Transient*: a new instance on every resolution. A longer-lived service must not hold a shorter-lived one (a "captive dependency"), which `ValidateScopes` detects.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning](../../../../PROJECT_OVERVIEW2.md#62-dependency-injection-lifetimes-and-scanning).)
+- [Line 9](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs#L9): `public static class DispatchExtensions`
+- [Line 11](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs#L11): `public static Task<Result<TResponse>> SendAsAsync<TCommand, TResponse>(`
+- [Line 19](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs#L19): `public static async Task<Result<TResponse>> SendAsAsync<TCommand, TResponse>(`
+- [Line 37](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs#L37): `public static Task<Result<TResponse>> QueryAsAsync<TQuery, TResponse>(`
+- [Line 45](../../../../../tests/TutoringCentre.Infrastructure.Tests/Fixtures/DispatchExtensions.cs#L45): `public static async Task<Result<TResponse>> QueryAsAsync<TQuery, TResponse>(`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-Scope per call.
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### How it works here
+## Current source excerpt
 
-`CreateAsyncScope`.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### Why it matters here
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Common;
 
-Actor, DbContext and transaction are per dispatch.
+namespace TutoringCentre.Infrastructure.Tests.Fixtures;
 
-### Actor and tenancy groundwork
+/// <summary>Dispatches a use case in a new scope as the given actor — a scope per call, like a request or job.</summary>
+public static class DispatchExtensions
+{
+    public static Task<Result<TResponse>> SendAsAsync<TCommand, TResponse>(
+        this PostgresFixture fixture, Actor actor, TCommand command, string? correlationId = null)
+        where TCommand : ICommand<TResponse>
+    {
+        ArgumentNullException.ThrowIfNull(fixture);
+        return fixture.Services.SendAsAsync<TCommand, TResponse>(actor, command, correlationId);
+    }
 
-#### What it means
+    public static async Task<Result<TResponse>> SendAsAsync<TCommand, TResponse>(
+        this IServiceProvider provider, Actor actor, TCommand command, string? correlationId = null)
+        where TCommand : ICommand<TResponse>
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        await using var scope = provider.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(actor);
+        if (correlationId is not null)
+        {
+            // Not an HTTP request: no CorrelationIdMiddleware to set this, so a test that needs one (Task 31.7's
+            // correlation_id assertion) sets it directly on the same scope the dispatcher runs in.
+            scope.ServiceProvider.GetRequiredService<CorrelationContext>().Set(correlationId);
+        }
 
-An *actor* is who executes a use case; a *tenant* is one customer's isolated data slice (here a Centre). The actor is supplied by trusted edge code, never by request data.
+        var dispatcher = scope.ServiceProvider.GetRequiredService<Dispatcher>();
+        return await dispatcher.SendAsync<TCommand, TResponse>(command, CancellationToken.None);
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork](../../../../PROJECT_OVERVIEW2.md#611-the-actor-model-and-the-tenancy-groundwork).)
+    public static Task<Result<TResponse>> QueryAsAsync<TQuery, TResponse>(
+        this PostgresFixture fixture, Actor actor, TQuery query)
+        where TQuery : IQuery<TResponse>
+    {
+        ArgumentNullException.ThrowIfNull(fixture);
+        return fixture.Services.QueryAsAsync<TQuery, TResponse>(actor, query);
+    }
 
-#### Where it appears in this file
+    public static async Task<Result<TResponse>> QueryAsAsync<TQuery, TResponse>(
+        this IServiceProvider provider, Actor actor, TQuery query)
+        where TQuery : IQuery<TResponse>
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        await using var scope = provider.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(actor);
+        var dispatcher = scope.ServiceProvider.GetRequiredService<Dispatcher>();
+        return await dispatcher.QueryAsync<TQuery, TResponse>(query, CancellationToken.None);
+    }
+}
+```
 
-Setting the actor.
+## Before modifying this file
 
-#### How it works here
-
-`Set(actor)`.
-
-#### Why it matters here
-
-How tests simulate SystemActor/Anonymous.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`tests/TutoringCentre.Infrastructure.Tests/Fixtures/PostgresFixture.cs`](PostgresFixture.cs.md)
-- [`src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs`](../../../src/TutoringCentre.Application/Common/Cqrs/Dispatcher.cs.md)
-- [`src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs`](../../../src/TutoringCentre.Application/Common/Security/CurrentActorContext.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

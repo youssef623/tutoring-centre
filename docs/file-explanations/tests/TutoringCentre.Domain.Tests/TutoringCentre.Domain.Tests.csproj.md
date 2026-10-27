@@ -1,73 +1,68 @@
-# tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj
+# `tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj`
 
 ## Purpose
 
-Project file for the Domain unit tests; references only the Domain project.
+Test/support source. Read its assertions and fixture setup together; test source is not evidence that the tests were executed.
 
-## Where It Fits
+## Where it fits
 
-tests/. Run by `dotnet test TutoringCentre.slnx` in CI. Depends on `src/TutoringCentre.Domain`.
+Category: **test**. [Open current file](../../../../tests/TutoringCentre.Domain.Tests/TutoringCentre.Domain.Tests.csproj). [Complete file index](../../INDEX.md). [Current teaching overview](../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 28 lines and 893 bytes. Source hash: `8e8d0f8bab4a25b0e49ac2e0e14ddcd2644ebc1b01d265b23fd45b3ad07ddfaf`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Every test project sets `IsPackable=false` (never published as a NuGet package), adds `<Using Include="Xunit" />` (a global using so test files need no `using Xunit;`), and references `coverlet.collector`, `Microsoft.NET.Test.Sdk`, `xunit` and `xunit.runner.visualstudio` (with `IncludeAssets`/`PrivateAssets` so the runner is not flowed). Versions come from `Directory.Packages.props`. No code coverage step runs in CI even though `coverlet.collector` is referenced. It references only `TutoringCentre.Domain`, so these tests cannot accidentally depend on Application or Infrastructure.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### xUnit mechanics (facts, theories, collections, fixtures)
+- Line 12: `<PackageReference Include="coverlet.collector">`
+- Line 16: `<PackageReference Include="Microsoft.NET.Test.Sdk" />`
+- Line 17: `<PackageReference Include="xunit" />`
+- Line 18: `<PackageReference Include="xunit.runner.visualstudio">`
+- Line 25: `<ProjectReference Include="..\..\src\TutoringCentre.Domain\TutoringCentre.Domain.csproj" />`
 
-#### What it means
+## Walkthrough and declaration map
 
-`[Fact]` is a test; `[Theory]` + `[InlineData]` runs one test with several inputs. A *collection fixture* (`ICollectionFixture<T>` + `[Collection]`) shares one expensive object (a database container) across test classes and serialises them; `IAsyncLifetime` runs async setup/teardown.
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests](../../../PROJECT_OVERVIEW2.md#616-test-doubles-vs-real-database-tests).)
+## Used by: verified name references
 
-#### Where it appears in this file
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-Test SDK + xUnit packages.
+## Current source excerpt
 
-#### How it works here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-`PackageReference` items.
+```text
+<Project Sdk="Microsoft.NET.Sdk">
 
-#### Why it matters here
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
-Makes `dotnet test` discover `[Fact]`/`[Theory]`.
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 
-### MSBuild, Central Package Management and analyzers
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
-#### What it means
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TutoringCentre.Domain\TutoringCentre.Domain.csproj" />
+  </ItemGroup>
 
-MSBuild builds .NET projects from XML project files. `Directory.Build.props` is imported into every project below it. Central Package Management keeps all NuGet versions in one file. Analyzers are compile-time rules; `TreatWarningsAsErrors` makes violations fail the build.
+</Project>
+```
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#5-startup--bootstrapping](../../../PROJECT_OVERVIEW2.md#5-startup--bootstrapping).)
+## Before modifying this file
 
-#### Where it appears in this file
-
-Versionless references.
-
-#### How it works here
-
-All package references.
-
-#### Why it matters here
-
-Versions central.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
-
-## Gotchas and Issues
-
-No bugs or surprises found while reading this file.
-
-## Related Files
-
-- [`Directory.Packages.props`](../../Directory.Packages.props.md)
-- [`src/TutoringCentre.Domain/TutoringCentre.Domain.csproj`](../../src/TutoringCentre.Domain/TutoringCentre.Domain.csproj.md)
-- [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

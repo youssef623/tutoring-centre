@@ -1,118 +1,159 @@
-# src/TutoringCentre.Domain/Centres/Centre.cs
+# `src/TutoringCentre.Domain/Centres/Centre.cs`
 
 ## Purpose
 
-The only entity in the system: a tutoring centre (the tenant). It guarantees that a `Centre` object can only exist if it passed the business rules.
+Source summary (intent, not independent execution proof): A tutoring centre — the tenant. The only way to obtain one is `Create`, which enforces its invariants.
 
-## Where It Fits
+## Where it fits
 
-Domain/Centres. Built by `CreateCentreHandler`; read by `CentreRepository` (EF) and mapped by `CentreConfiguration`. Depends on `Entity`, `Result`, `Error`, `SupportedLocale`.
+Category: **source**. [Open current file](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 120 lines and 4,527 bytes. Source hash: `05ff0af5aab9aff7a0aa2c42e9c03b18ee51064d2f86a0d7b797c8a18a4908ac`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-- Constants (9-11): `NameMaxLength = 120`, `SlugMinLength = 3`, `SlugMaxLength = 60` - reused by `CreateCentreValidator` and `CentreConfiguration` so limits cannot diverge.
-- Private value constructor (13-20) and private parameterless constructor (22-27) 'for EF Core materialisation': strings set to `string.Empty` to satisfy nullable analysis; EF then overwrites every property.
-- Properties `Name`, `Slug`, `TimeZoneId`, `DefaultLocale` all `{ get; private set; }`.
-- `Create(...)` (38-69), returns `Result<Centre>`:
-  1. blank name -> `centre.name_required` (42);
-  2. trimmed name longer than 120 -> `centre.name_too_long`;
-  3. slug null, <3, >60 or failing `SlugPattern()` -> `centre.slug_invalid`;
-  4. blank time zone or `TimeZoneInfo.TryFindSystemTimeZoneById` false -> `centre.time_zone_invalid`;
-  5. success with the **trimmed name**; the slug is *not* trimmed or lower-cased.
-- `SlugPattern()` (72): `[GeneratedRegex(@"^[a-z0-9]+(?:-[a-z0-9]+)*\z")]` - lowercase letters/digits with single hyphens between words; `\z` rather than `$` so a trailing newline is rejected.
-Edge cases: `-abc`, `abc--def`, `Bad Slug`, `ab` rejected (tests). The time-zone check depends on the host OS time-zone database. No method changes a centre after creation, so `UpdatedAt` is never stamped.
+## Dependencies visible in the file
 
-## Concepts Used
+These are literal imports and project/package references. An import can be unused; this list is not a runtime call graph.
 
-### Entities, encapsulation and factory methods
+- Line 1: `using System.Text.RegularExpressions;`
+- Line 2: `using TutoringCentre.Domain.Common;`
 
-#### What it means
+## Walkthrough and declaration map
 
-An *entity* has an identity that stays the same while its data changes. *Encapsulation* keeps its state behind rules (private setters, private constructors). A *factory method* is the only public way to build one, so an invalid instance cannot exist.
+Open each declaration at the cited line and follow the calls inside its body. Constructor parameters identify collaborators; return types distinguish data, results and asynchronous work.
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
+- [Line 7](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs#L7): `public sealed partial class Centre : Entity`
+- [Line 13](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs#L13): `private Centre(string name, string slug, string timeZoneId, SupportedLocale defaultLocale)`
+- [Line 22](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs#L22): `private Centre()`
+- [Line 38](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs#L38): `public static Result<Centre> Create(string name, string slug, string timeZoneId, SupportedLocale defaultLocale)`
+- [Line 78](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs#L78): `public Result UpdateSettings(string name, SupportedLocale defaultLocale)`
+- [Line 97](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs#L97): `private enum NameValidationOutcome`
+- [Line 104](../../../../../src/TutoringCentre.Domain/Centres/Centre.cs#L104): `private static (NameValidationOutcome Outcome, string Trimmed) ValidateNameRule(string? name)`
 
-#### Where it appears in this file
+## Used by: verified name references
 
-The class.
+These locations reference a declaration name unique to this file. This lexical evidence includes type usage and imports; it is not proof of a particular runtime call.
 
-#### How it works here
+- [docs/onboarding-work/extend_backend_purposes.py:8](../../../../onboarding-work/extend_backend_purposes.py#L8)
+- [frontend/e2e/auth.spec.ts:22](../../../../../frontend/e2e/auth.spec.ts#L22)
+- [frontend/e2e/enrollment.spec.ts:124](../../../../../frontend/e2e/enrollment.spec.ts#L124)
+- [frontend/e2e/first-login.spec.ts:68](../../../../../frontend/e2e/first-login.spec.ts#L68)
+- [frontend/e2e/schedule.spec.ts:152](../../../../../frontend/e2e/schedule.spec.ts#L152)
+- [frontend/e2e/students.spec.ts:110](../../../../../frontend/e2e/students.spec.ts#L110)
+- [frontend/e2e/subjects.spec.ts:87](../../../../../frontend/e2e/subjects.spec.ts#L87)
+- [frontend/e2e/teachers-groups.spec.ts:90](../../../../../frontend/e2e/teachers-groups.spec.ts#L90)
+- [frontend/src/features/enrollments/enrollmentTestData.ts:12](../../../../../frontend/src/features/enrollments/enrollmentTestData.ts#L12)
+- [frontend/src/features/schedule/scheduleTestData.ts:16](../../../../../frontend/src/features/schedule/scheduleTestData.ts#L16)
+- [frontend/src/features/session/useSession.test.ts:37](../../../../../frontend/src/features/session/useSession.test.ts#L37)
+- [frontend/src/features/settings/settingsSchema.ts:4](../../../../../frontend/src/features/settings/settingsSchema.ts#L4)
+- [frontend/src/routes/_authenticated.test.tsx:12](../../../../../frontend/src/routes/_authenticated.test.tsx#L12)
+- [frontend/src/routes/_authenticated/audit.test.tsx:20](../../../../../frontend/src/routes/_authenticated/audit.test.tsx#L20)
+- [frontend/src/routes/_authenticated/groups.$groupId.test.tsx:15](../../../../../frontend/src/routes/_authenticated/groups.$groupId.test.tsx#L15)
+- [frontend/src/routes/_authenticated/groups.index.test.tsx:17](../../../../../frontend/src/routes/_authenticated/groups.index.test.tsx#L17)
+- [frontend/src/routes/_authenticated/parents.$parentId.test.tsx:19](../../../../../frontend/src/routes/_authenticated/parents.$parentId.test.tsx#L19)
+- [frontend/src/routes/_authenticated/settings.test.tsx:20](../../../../../frontend/src/routes/_authenticated/settings.test.tsx#L20)
+- [frontend/src/routes/_authenticated/staff.test.tsx:20](../../../../../frontend/src/routes/_authenticated/staff.test.tsx#L20)
+- [frontend/src/routes/_authenticated/students.$studentId.test.tsx:19](../../../../../frontend/src/routes/_authenticated/students.$studentId.test.tsx#L19)
+- 60 further name-reference locations are omitted from this compact list.
 
-Private constructors + `public static Result<Centre> Create`.
+## Current source excerpt
 
-#### Why it matters here
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-An invalid centre cannot be constructed anywhere (handler, tests, seed).
+```csharp
+using System.Text.RegularExpressions;
+using TutoringCentre.Domain.Common;
 
-### Source-generated regular expressions
+namespace TutoringCentre.Domain.Centres;
 
-#### What it means
+/// <summary>A tutoring centre — the tenant. The only way to obtain one is <see cref="Create"/>, which enforces its invariants.</summary>
+public sealed partial class Centre : Entity
+{
+    public const int NameMaxLength = 120;
+    public const int SlugMinLength = 3;
+    public const int SlugMaxLength = 60;
 
-`[GeneratedRegex]` makes the compiler emit the matching code at build time (needs a `partial` method), avoiding runtime regex construction. `\z` anchors at the true end of input, unlike `$` which also matches before a trailing newline.
+    private Centre(string name, string slug, string timeZoneId, SupportedLocale defaultLocale)
+    {
+        Name = name;
+        Slug = slug;
+        TimeZoneId = timeZoneId;
+        DefaultLocale = defaultLocale;
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods](../../../../PROJECT_OVERVIEW2.md#66-entities-encapsulation-and-factory-methods).)
+    // For EF Core materialisation (Days 8–9) only; EF then sets every property from the row.
+    private Centre()
+    {
+        Name = string.Empty;
+        Slug = string.Empty;
+        TimeZoneId = string.Empty;
+    }
 
-#### Where it appears in this file
+    public string Name { get; private set; }
 
-`SlugPattern`.
+    public string Slug { get; private set; }
 
-#### How it works here
+    /// <summary>IANA time zone identifier, e.g. "Africa/Cairo".</summary>
+    public string TimeZoneId { get; private set; }
 
-Lines 71-72 and the `partial` modifier on the class.
+    public SupportedLocale DefaultLocale { get; private set; }
 
-#### Why it matters here
+    public static Result<Centre> Create(string name, string slug, string timeZoneId, SupportedLocale defaultLocale)
+    {
+        var (nameOutcome, trimmedName) = ValidateNameRule(name);
+        if (nameOutcome == NameValidationOutcome.Empty)
+        {
+            return Result<Centre>.Failure(Error.Validation("centre.name_required", "Centre name is required."));
+        }
 
-Compiled at build time; `partial` is required by the generator.
+        if (nameOutcome == NameValidationOutcome.TooLong)
+        {
+            return Result<Centre>.Failure(
+                Error.Validation("centre.name_too_long", "Centre name must be at most 120 characters."));
+        }
 
-### The Result pattern (failures as values)
+        if (slug is null
+            || slug.Length < SlugMinLength
+            || slug.Length > SlugMaxLength
+            || !SlugPattern().IsMatch(slug))
+        {
+            return Result<Centre>.Failure(Error.Validation(
+                "centre.slug_invalid",
+                "Slug must be 3–60 characters of lowercase letters and digits, with single hyphens between words."));
+        }
 
-#### What it means
+        if (string.IsNullOrWhiteSpace(timeZoneId) || !TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out _))
+        {
+            return Result<Centre>.Failure(
+                Error.Validation("centre.time_zone_invalid", "Time zone is not a recognised time zone identifier."));
+        }
 
-Expected business failures (invalid input, duplicate, not allowed) are returned as ordinary values - a `Result` holding either a value or an `Error` - instead of thrown. Exceptions are reserved for bugs and infrastructure faults. The caller's code must look at the result, so the failure path cannot be forgotten, and no exception-handling cost or hidden control flow is involved.
+        return Result<Centre>.Success(new Centre(trimmedName, slug, timeZoneId, defaultLocale));
+    }
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values](../../../../PROJECT_OVERVIEW2.md#64-the-result-pattern-failures-as-values).)
+    /// <summary>
+    /// Changes the editable settings: name and default locale. Slug and time zone have no mutator. Reuses
+    /// <see cref="Create"/>'s name rule rather than duplicating it; a violation is always reported as
+    /// <c>centre.name_invalid</c> here, regardless of which way the shared rule failed. When both values
+    /// already equal the current ones, nothing changes (and no property is touched, so Infrastructure's audit
+    /// interceptor sees no modification to record).
+    /// </summary>
+    public Result UpdateSettings(string name, SupportedLocale defaultLocale)
+    {
+        var (nameOutcome, trimmedName) = ValidateNameRule(name);
+        if (nameOutcome != NameValidationOutcome.Valid)
+        {
+            var fields = new Dictionary<string, string[]> { ["name"] = ["Centre name must be 1-120 characters."] };
+            return Result.Failure(Error.Validation("centre.name_invalid", "Centre name must be 1-120 characters.", fields));
+        }
 
-#### Where it appears in this file
-
-Return type of `Create`.
-
-#### How it works here
-
-Every failure path returns `Result<Centre>.Failure(Error.Validation(...))`.
-
-#### Why it matters here
-
-Handler can pass the error up without exceptions.
-
-## Data and Control Flow
-
-```mermaid
-flowchart TD
-    I["Create(name, slug, tz, locale)"] --> N{"name blank?"}
-    N -->|yes| E1["centre.name_required"]
-    N -->|no| L{"trimmed > 120?"}
-    L -->|yes| E2["centre.name_too_long"]
-    L -->|no| S{"slug 3-60 and matches regex?"}
-    S -->|no| E3["centre.slug_invalid"]
-    S -->|yes| Z{"time zone known?"}
-    Z -->|no| E4["centre.time_zone_invalid"]
-    Z -->|yes| OK["Success(new Centre)"]
+        if (Name == trimmedName && DefaultLocale == defaultLocale)
+        {
+            return Result.Success();
+        }
 ```
 
-## Configuration and Environment
+The excerpt stops at line 90; use the original file for the remaining 30 lines.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Before modifying this file
 
-## Gotchas and Issues
-
-The failure message for the name limit hard-codes '120' instead of using the constant. Time-zone validity depends on the machine (ICU/tzdata). `CentreTests` has no test for the 60/61-character slug boundary (the validator test covers 61).
-
-## Related Files
-
-- [`src/TutoringCentre.Domain/Common/Entity.cs`](../Common/Entity.cs.md)
-- [`src/TutoringCentre.Domain/Common/Result.cs`](../Common/Result.cs.md)
-- [`src/TutoringCentre.Domain/Centres/SupportedLocale.cs`](SupportedLocale.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs`](../../TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreHandler.cs.md)
-- [`src/TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs`](../../TutoringCentre.Application/Centres/Commands/CreateCentre/CreateCentreValidator.cs.md)
-- [`src/TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs`](../../TutoringCentre.Infrastructure/Persistence/Configurations/Centres/CentreConfiguration.cs.md)
-- [`tests/TutoringCentre.Domain.Tests/Centres/CentreTests.cs`](../../../tests/TutoringCentre.Domain.Tests/Centres/CentreTests.cs.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

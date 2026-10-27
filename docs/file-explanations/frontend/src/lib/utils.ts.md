@@ -1,34 +1,35 @@
-# frontend/src/lib/utils.ts
+# `frontend/src/lib/utils.ts`
 
 ## Purpose
 
-Re-exports the `cn` class-name helper under the conventional shadcn path.
+Current source file. The source excerpt and structural map below expose its content without inferring behaviour from its filename.
 
-## Where It Fits
+## Where it fits
 
-frontend/src/lib. **Unused**: every `components/ui/*` file imports `cn` directly from `"cn"` instead of `@/lib/utils`.
+Category: **source**. [Open current file](../../../../../frontend/src/lib/utils.ts). [Complete file index](../../../INDEX.md). [Current teaching overview](../../../../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 1 lines and 24 bytes. Source hash: `14300d758170c270c75b057f38fedb3793a5920ea872f0477e29fb131185e8a7`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-`export { cn } from "cn"`. `components.json` declares `@/lib/utils` as the utils alias, which is why the file exists.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-This file introduces no concept that needs a tutorial beyond what its walkthrough already explains.
+## Walkthrough and declaration map
 
-## Data and Control Flow
+Read the data or directives in order; there are no recognized code declarations in this file.
 
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
+## Used by: verified name references
 
-## Configuration and Environment
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-None. The file reads no environment variables and declares no configuration keys, URLs, ports or credentials.
+## Current source excerpt
 
-## Gotchas and Issues
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-Still a dead module after the merge (searched `src` for `lib/utils`: no importer).
+```typescript
+export { cn } from "cn"
+```
 
-## Related Files
+## Before modifying this file
 
-- [`frontend/components.json`](../../components.json.md)
-- [`frontend/src/components/ui/button.tsx`](../components/ui/button.tsx.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.

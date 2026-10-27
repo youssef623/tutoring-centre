@@ -1,79 +1,65 @@
-# README.md
+# `README.md`
 
 ## Purpose
 
-Human entry point: what the product is meant to be, how to run it locally (database, HTTPS API, seeding, frontend, tests, E2E), the architecture diagram, decisions and the quality gates.
+Documentation covering Tutoring Centre Manager; Quick start; Prerequisites; Run locally; Architecture. Treat historical claims according to the revision described in the file.
 
-## Where It Fits
+## Where it fits
 
-Root documentation. Links to `docs/adr/0001`, `0002`, `0005`, `docs/architecture/authentication.md` and `frontend/README.md`. Describes the commands that match `launchSettings.json` (the `https` profile, `https://localhost:7197`), `vite.config.ts` (proxy to that URL), `SeedCommand` and `playwright.config.ts`.
+Category: **documentation**. [Open current file](../../README.md). [Complete file index](INDEX.md). [Current teaching overview](../PROJECT_OVERVIEW3.md).
 
-## Walkthrough
+The reviewed file has 235 lines and 14,973 bytes. Source hash: `77ef5ceac37170312603e300c78fcafbbcf7356fff6ccd6ba124d925f752a50b`. This structural guide was generated from current bytes; it does not claim that every branch has been executed.
 
-Sections: title + CI badge; one-paragraph product description (multi-tenant platform for Egyptian tutoring centres: students/parents, groups/schedules, attendance, fees, WhatsApp assistant) - the **intended** scope, not what exists; **Quick start** with seven numbered steps: (1) clone, (2) `.env` and `docker compose up -d`, (3) user-secrets connection string, (4) **run the API on https://localhost:7197** - `dotnet dev-certs https --trust` once, then `--launch-profile https`, with the reason (the session and antiforgery cookies are `Secure` and `__Host-`, which a browser only stores from an HTTPS origin) and health URLs on https; (5) **seed the development database** - set `Seed:Password` with user-secrets (never written in the repo), run `-- seed`; a table of the five seeded accounts (`owner@nile.test` Owner of Nile; `owner@maadi.test` Owner of Maadi; `teacher@both.test` Teacher in both; `secretary@nile.test` Secretary; `inactive@nile.test` Secretary with an inactive membership); (6) run the frontend (`npm ci`, `npm run dev`, open http://localhost:5173; signed out it redirects to `/login`); (7) run the tests, then **end-to-end journeys** with `SEED_PASSWORD` set (PowerShell and bash variants) - Playwright reuses already-running servers locally. `docker compose down -v` resets the database. **Architecture** (Mermaid flowchart of the four projects) and a decisions list (ADR 0001, 0002, 0005, the authentication document, the frontend README). **Quality gates**: backend build and all tests, frontend lint, type-check, tests, i18n key-parity check and production build, three Playwright end-to-end journeys, CodeQL, gitleaks, Dependabot, protected `main`.
-Verified against code: ports, project names, seeded accounts, command names, health URLs. Not verifiable from the repo: branch protection.
+## Dependencies visible in the file
 
-## Concepts Used
+No import or project-reference declaration was recognized by the structural extractor. This does not prove the file has no consumers or dependencies.
 
-### Architecture Decision Records and documentation as code
+## Walkthrough and declaration map
 
-#### What it means
+- Line 1: Tutoring Centre Manager
+- Line 14: Quick start
+- Line 16: Prerequisites
+- Line 23: Run locally
+- Line 195: Architecture
+- Line 233: Quality gates
 
-An ADR records a decision, its context, alternatives and consequences, so the *why* survives the people who made it. Docs kept in the repo are versioned with the code.
+## Used by: verified name references
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root](../PROJECT_OVERVIEW2.md#61-clean-architecture-dependency-inversion-and-the-composition-root).)
+No unique declared-name consumer was established by this extractor. Configuration and generated artifacts can be consumed through framework/tool conventions; consult their documented registration rather than inferring that they are unused.
 
-#### Where it appears in this file
+## Current source excerpt
 
-README as the entry point.
+The following excerpt is verbatim current source, not a hypothetical example. Line numbers in the declaration map refer to the original file.
 
-#### How it works here
+```text
+# Tutoring Centre Manager
 
-All sections.
+[![CI](https://github.com/youssef623/tutoring-centre/actions/workflows/ci.yml/badge.svg)](https://github.com/youssef623/tutoring-centre/actions/workflows/ci.yml)
 
-#### Why it matters here
+A multi-tenant management platform for Egyptian tutoring centres: students and parents, groups and schedules, attendance (manual and QR), fees and payments, and a WhatsApp assistant that answers parents' questions in Egyptian Arabic and English through the same authorized use cases as the staff web app. Built with ASP.NET Core (.NET 10) using Clean Architecture and a hand-written CQRS pipeline, PostgreSQL, and a React + TypeScript frontend.
 
-The first file a new developer reads; it now covers HTTPS, seeding and E2E because sign-in cannot work without them.
+**Live instance:** not yet deployed — no Azure subscription provisioned yet (see
+[Deployment](docs/architecture/deployment.md) for exactly what is built versus still only designed). This
+section will carry the public URL once that work lands. Once it does, the demo accounts are the same emails
+as the local seed (`owner@nile.test`, `owner@maadi.test`, `teacher@both.test`, `secretary@nile.test`) — the
+demo password is never written here; it lives only in the deployment's own secret store
+(`docs/architecture/deployment.md`'s secrets inventory).
 
-### Secrets and configuration layering
+## Quick start
 
-#### What it means
+### Prerequisites
 
-Configuration comes from layered sources (JSON files, user-secrets, environment variables, command line) where later layers override earlier ones. Secrets must stay out of git: this repo keeps the connection string out of `appsettings.json`, reads it from user-secrets or an environment variable, and scans history with gitleaks.
+- .NET 10 SDK (the exact line is pinned in `global.json`)
+- Node.js LTS (22.12 or later)
+- Docker Desktop (running)
+- Git
 
-(Full tutorial with execution traces: [PROJECT_OVERVIEW2.md#11-configuration--environment--deployment](../PROJECT_OVERVIEW2.md#11-configuration--environment--deployment).)
+### Run locally
 
-#### Where it appears in this file
+```
 
-Passwords supplied by the developer.
+The excerpt stops at line 24; use the original file for the remaining 211 lines.
 
-#### How it works here
+## Before modifying this file
 
-Steps 3 and 5 and the E2E commands.
-
-#### Why it matters here
-
-Nothing secret is committed; the seed password goes through user-secrets and an environment variable.
-
-## Data and Control Flow
-
-No runtime data flows through this file; it is consumed by tooling or readers, not executed by the application.
-
-## Configuration and Environment
-
-Documents `POSTGRES_PASSWORD` (.env), the user-secrets keys `ConnectionStrings:Postgres` and `Seed:Password`, the environment variable `SEED_PASSWORD` for E2E, and the ports 7197 (API https), 5173 (Vite), 5432 (Postgres).
-
-## Gotchas and Issues
-
-The product description lists features that do not exist yet (students, attendance, payments, WhatsApp). The README says the E2E run starts its own copies of the API and frontend; Playwright reuses running servers locally only because `reuseExistingServer` is `!process.env.CI`.
-
-## Related Files
-
-- [`docs/adr/0001-clean-architecture.md`](docs/adr/0001-clean-architecture.md.md)
-- [`docs/adr/0002-dotnet-react.md`](docs/adr/0002-dotnet-react.md.md)
-- [`docs/adr/0005-cookie-authentication.md`](docs/adr/0005-cookie-authentication.md.md)
-- [`docs/architecture/authentication.md`](docs/architecture/authentication.md.md)
-- [`frontend/README.md`](frontend/README.md.md)
-- [`compose.yaml`](compose.yaml.md)
-- [`.env.example`](.env.example.md)
-- [`frontend/playwright.config.ts`](frontend/playwright.config.ts.md)
+Check the current callers, contracts and tests before changing a declaration. Imported names show dependencies, but only call sites and registrations establish actual use. Preserve generated-file ownership: change a generator input and regenerate artifacts when that is the documented workflow. Read the corresponding concept and execution trace in the current overview before altering a shared boundary.
