@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Application.Academics;
+using TutoringCentre.Application.Academics.Contracts;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 
@@ -21,6 +23,7 @@ public static class DependencyInjection
 
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
         services.AddScoped<Dispatcher>();
+        services.AddScoped<ITeachingScope, TeachingScopeAdapter>();
 
         return services;
     }
