@@ -15,6 +15,7 @@ using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.Persistence.Migrations;
 using TutoringCentre.Infrastructure.Tests.Academics;
+using TutoringCentre.Infrastructure.Tests.Attendance;
 using TutoringCentre.Infrastructure.Tests.Identity;
 using TutoringCentre.Infrastructure.Tests.Tenancy;
 
@@ -75,7 +76,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity", "academics", "probe", "audit"],
+            SchemasToInclude = ["platform", "identity", "academics", "attendance", "probe", "audit"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
     }
@@ -188,6 +189,10 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<IQueryHandler<ListSubjectNamesQuery, List<string>>, ListSubjectNamesQueryHandler>();
         services.AddScoped<ICommandHandler<RenameSubjectCommand, Unit>, RenameSubjectCommandHandler>();
         services.AddScoped<ICommandHandler<RenameSubjectThenFailCommand, Unit>, RenameSubjectThenFailCommandHandler>();
+
+        services.AddScoped<ICommandHandler<AddAttendanceCommand, Guid>, AddAttendanceCommandHandler>();
+        services.AddScoped<ICommandHandler<CorrectAttendanceCommand, Unit>, CorrectAttendanceCommandHandler>();
+        services.AddScoped<IQueryHandler<GetAttendanceQuery, TutoringCentre.Domain.Attendance.AttendanceRecord?>, GetAttendanceQueryHandler>();
 
         // Task 29.4: a test-only command standing in for CreateStaffCommand (Day 29.5), so the account-service
         // rollback test can dispatch through the real transaction before that command exists.

@@ -5,6 +5,12 @@ namespace TutoringCentre.Domain.Attendance;
 /// <summary>A student's attendance in one session. References belong to the same centre and never change.</summary>
 public sealed class AttendanceRecord : Entity, ITenantOwned
 {
+    private string? correctionReason;
+
+    private AttendanceRecord()
+    {
+    }
+
     private AttendanceRecord(Guid centreId, Guid sessionId, Guid studentId, Guid enrollmentId,
         AttendanceStatus status, AttendanceSource source, Guid? byUserId, DateTimeOffset now)
     {
@@ -27,7 +33,11 @@ public sealed class AttendanceRecord : Entity, ITenantOwned
     public DateTimeOffset MarkedAt { get; private set; }
     public Guid? MarkedByUserId { get; private set; }
     public int CorrectionCount { get; private set; }
-    public string? LastCorrectionReason { get; private set; }
+    public string? LastCorrectionReason
+    {
+        get => correctionReason;
+        private set => correctionReason = value;
+    }
     public DateTimeOffset? LastCorrectedAt { get; private set; }
     public Guid? LastCorrectedByUserId { get; private set; }
 

@@ -21,7 +21,8 @@
     "group": "فصل",
     "enrollment": "تسجيل",
     "schedule_rule": "قاعدة جدول",
-    "class_session": "حصة"
+    "class_session": "حصة",
+    "attendance_record": "سجل الحضور"
   },
   "action": {
     "created": "تم الإنشاء",

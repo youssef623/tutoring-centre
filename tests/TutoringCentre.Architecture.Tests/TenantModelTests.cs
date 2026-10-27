@@ -14,6 +14,24 @@ namespace TutoringCentre.Architecture.Tests;
 public sealed class TenantModelTests
 {
     [Fact]
+    public void Attendance_HasContractIndexesAndRestrictiveReferences()
+    {
+        using var context = BuildContext();
+        var entity = context.Model.FindEntityType(typeof(TutoringCentre.Domain.Attendance.AttendanceRecord))!;
+        Assert.Equal("attendance", entity.GetSchema());
+        Assert.Equal("attendance_records", entity.GetTableName());
+        Assert.Equal(["ix_attendance_records_centre_student", "ux_attendance_records_session_student"],
+            entity.GetIndexes().Select(index => index.GetDatabaseName()!).Order().ToArray());
+        Assert.Equal(6, entity.GetForeignKeys().Count());
+        Assert.All(entity.GetForeignKeys(), key => Assert.Equal(DeleteBehavior.Restrict, key.DeleteBehavior));
+        Assert.Empty(entity.GetNavigations());
+        Assert.False(entity.FindProperty("correctionReason")!.IsShadowProperty());
+        Assert.Equal("correctionReason", entity.FindProperty("correctionReason")!.FieldInfo!.Name);
+        Assert.All(entity.GetKeys().Where(key => !key.IsPrimaryKey()), key => Assert.Equal("CentreId", key.Properties[0].Name));
+        Assert.All(entity.GetIndexes().Where(index => index.IsUnique), index => Assert.Equal("CentreId", index.Properties[0].Name));
+    }
+
+    [Fact]
     public void EveryTenantOwnedEntityInTheProductionModel_HasAQueryFilter()
     {
         // Zero production entities implement ITenantOwned today (Subject is first, Day 23) — so on its own this
@@ -25,6 +43,7 @@ public sealed class TenantModelTests
             .Where(entityType => typeof(ITenantOwned).IsAssignableFrom(entityType.ClrType))
             .ToList();
 
+        Assert.Contains(tenantOwnedTypes, entityType => entityType.ClrType == typeof(TutoringCentre.Domain.Attendance.AttendanceRecord));
         Assert.All(tenantOwnedTypes, entityType => Assert.NotEmpty(entityType.GetDeclaredQueryFilters()));
         Assert.All(tenantOwnedTypes, AssertTenantOwnedKeysAndForeignKeys);
 

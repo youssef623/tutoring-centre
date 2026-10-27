@@ -21,7 +21,8 @@
     "group": "Group",
     "enrollment": "Enrollment",
     "schedule_rule": "Schedule rule",
-    "class_session": "Class session"
+    "class_session": "Class session",
+    "attendance_record": "Attendance record"
   },
   "action": {
     "created": "Created",

@@ -183,6 +183,9 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                     b.HasAlternateKey("CentreId", "Id")
                         .HasName("ux_enrollments_centre_id_id");
 
+                    b.HasAlternateKey("CentreId", "Id", "StudentId")
+                        .HasName("ux_enrollments_centre_id_student");
+
                     b.HasIndex("CentreId", "StudentId")
                         .HasDatabaseName("ix_enrollments_centre_student");
 
@@ -763,6 +766,104 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Attendance.AttendanceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<int>("CorrectionCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("correction_count");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("enrollment_id");
+
+                    b.Property<DateTimeOffset?>("LastCorrectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_corrected_at");
+
+                    b.Property<Guid?>("LastCorrectedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_corrected_by_user_id");
+
+                    b.Property<DateTimeOffset>("MarkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("marked_at");
+
+                    b.Property<Guid?>("MarkedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("marked_by_user_id");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("correctionReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("last_correction_reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attendance_records");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_attendance_records_centre_id_id");
+
+                    b.HasIndex("CentreId", "StudentId")
+                        .HasDatabaseName("ix_attendance_records_centre_student");
+
+                    b.HasIndex("CentreId", "SessionId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_attendance_records_session_student");
+
+                    b.ToTable("attendance_records", "attendance", t =>
+                        {
+                            t.HasCheckConstraint("ck_attendance_records_corrections", "correction_count >= 0 AND (correction_count = 0) = (last_corrected_at IS NULL)");
+
+                            t.HasCheckConstraint("ck_attendance_records_source", "source IN ('manual','qr')");
+
+                            t.HasCheckConstraint("ck_attendance_records_status", "status IN ('present','late','absent','excused')");
+                        });
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Centres.Centre", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1254,6 +1355,52 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_teachers_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Attendance.AttendanceRecord", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_records_centres");
+
+                    b.HasOne("TutoringCentre.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("LastCorrectedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_attendance_records_corrected_by");
+
+                    b.HasOne("TutoringCentre.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("MarkedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_attendance_records_marked_by");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Scheduling.ClassSession", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "SessionId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_records_sessions");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Student", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_records_students");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Enrollment", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "EnrollmentId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id", "StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_records_enrollments");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Identity.Membership", b =>
