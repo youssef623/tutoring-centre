@@ -17,6 +17,7 @@ public sealed class TenantScopeRuleTests
     private static readonly string[] TenantModuleNamespaces =
     [
         "TutoringCentre.Application.Academics",
+        "TutoringCentre.Application.Attendance",
         "TutoringCentre.Application.Staff",
         "TutoringCentre.Application.Centres.Queries.GetCentreSettings",
         "TutoringCentre.Application.Centres.Commands.UpdateCentreSettings",
