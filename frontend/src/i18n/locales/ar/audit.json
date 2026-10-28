@@ -52,7 +52,10 @@
     "durationMinutes": "المدة (بالدقائق)",
     "room": "القاعة",
     "effectiveFrom": "سارية من",
-    "effectiveTo": "سارية حتى"
+    "effectiveTo": "سارية حتى",
+    "source": "المصدر",
+    "correctionCount": "عدد التصحيحات",
+    "correctionReason": "سبب التصحيح"
   },
   "value": {
     "status": {
@@ -61,7 +64,11 @@
       "inactive": "غير نشط",
       "ended": "منتهٍ",
       "scheduled": "مجدولة",
-      "cancelled": "ملغاة"
+      "cancelled": "ملغاة",
+      "present": "حاضر",
+      "late": "متأخر",
+      "absent": "غائب",
+      "excused": "غائب بعذر"
     },
     "endReason": {
       "withdrawn": "انسحاب",
@@ -85,6 +92,10 @@
       "wednesday": "الأربعاء",
       "thursday": "الخميس",
       "friday": "الجمعة"
+    },
+    "source": {
+      "manual": "يدويًا",
+      "qr": "رمز QR"
     }
   },
   "system": "النظام",
