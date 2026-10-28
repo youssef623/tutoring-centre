@@ -244,7 +244,11 @@ public sealed class Dispatcher
                 group => group.Select(failure => failure.ErrorMessage).Distinct(StringComparer.Ordinal).ToArray(),
                 StringComparer.Ordinal);
 
-        return Error.Validation("validation.failed", "One or more fields are invalid.", fields);
+        // Dotted codes are explicit application codes; FluentValidation's built-in codes
+        // retain the existing generic response. Validator order decides precedence.
+        var explicitFailure = failures.FirstOrDefault(failure => failure.ErrorCode.Contains('.', StringComparison.Ordinal));
+        return Error.Validation(explicitFailure?.ErrorCode ?? "validation.failed",
+            explicitFailure?.ErrorMessage ?? "One or more fields are invalid.", fields);
     }
 
     /// <summary>"Slug" → "slug"; "Address.Street" → "address.street" (each dotted segment).</summary>
