@@ -14,6 +14,50 @@ namespace TutoringCentre.Infrastructure.Tests.Academics;
 
 public sealed class AttendanceRosterSourceTests(PostgresFixture fixture) : ScheduleTestBase(fixture)
 {
+    [Fact]
+    public async Task CardStudent_ReportsArchivedState()
+    {
+        var (actor, _, _) = await ArrangeSessionAsync("card-archive");
+        var student = await Fixture.SeedStudentAsync(NileCentreId, "Archived Student");
+        await using var connection = new Npgsql.NpgsqlConnection(Fixture.SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new Npgsql.NpgsqlCommand($"update academics.students set status = 'archived' where id = '{student}'", connection);
+        await command.ExecuteNonQueryAsync();
+        Assert.Equal(new CardStudent(student, "Archived Student", true),
+            await ReadAsync(actor, source => source.GetCardStudentAsync(student, CancellationToken.None)));
+    }
+
+    [Fact]
+    public async Task CardGroup_ExcludesEndedAndFutureEnrollments()
+    {
+        var (actor, group, _) = await ArrangeSessionAsync("card-members");
+        var active = await Fixture.SeedStudentAsync(NileCentreId, "Active Student");
+        var ended = await Fixture.SeedStudentAsync(NileCentreId, "Ended Student");
+        await EnrollAtClockAsync(actor, group, active);
+        var enrollment = await EnrollAtClockAsync(actor, group, ended);
+        Time.Advance(TimeSpan.FromMinutes(1));
+        Assert.True((await Clocked.SendAsAsync<WithdrawEnrollmentCommand, Unit>(actor, new(enrollment, await VersionAsync(enrollment)))).IsSuccess);
+        var current = await ReadAsync(actor, source => source.GetCardGroupAsync(group, CancellationToken.None));
+        Assert.Equal(active, Assert.Single(current!.Students).StudentId);
+        await using var connection = new Npgsql.NpgsqlConnection(Fixture.SuperuserConnectionString);
+        await connection.OpenAsync();
+        await using var command = new Npgsql.NpgsqlCommand($"update academics.enrollments set enrolled_at = '2027-03-02T08:00Z' where student_id = '{active}'", connection);
+        await command.ExecuteNonQueryAsync();
+        Assert.Empty((await ReadAsync(actor, source => source.GetCardGroupAsync(group, CancellationToken.None)))!.Students);
+    }
+
+    [Fact]
+    public async Task CardFacts_UnknownOrForeign_ReturnNothing()
+    {
+        var (actor, _, _) = await ArrangeSessionAsync("card-scope");
+        var foreign = await ArrangeWorldAsync(MaadiCentreId, "card-foreign");
+        var student = await Fixture.SeedStudentAsync(MaadiCentreId, "Foreign Student");
+        foreach (var id in new[] { student, Guid.NewGuid() })
+            Assert.Null(await ReadAsync(actor, source => source.GetCardStudentAsync(id, CancellationToken.None)));
+        foreach (var id in new[] { foreign.G1, Guid.NewGuid() })
+            Assert.Null(await ReadAsync(actor, source => source.GetCardGroupAsync(id, CancellationToken.None)));
+    }
+
     [Theory]
     [InlineData(-1, true)]
     [InlineData(0, true)]

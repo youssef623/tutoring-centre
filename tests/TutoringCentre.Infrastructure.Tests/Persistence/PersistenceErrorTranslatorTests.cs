@@ -8,6 +8,17 @@ namespace TutoringCentre.Infrastructure.Tests.Persistence;
 
 public sealed class PersistenceErrorTranslatorTests
 {
+    [Theory]
+    [InlineData("ux_student_cards_active_student")]
+    [InlineData("ux_student_cards_centre_token_hash")]
+    public void CardRace_ReturnsConcurrentIssue(string constraint)
+    {
+        var result = PersistenceErrorTranslator.TryTranslate(UniqueViolation(constraint), NullLogger.Instance);
+        Assert.NotNull(result);
+        Assert.Equal("card.concurrent_issue", result.Error!.Code);
+        Assert.Equal(ErrorKind.Conflict, result.Error.Kind);
+        Assert.DoesNotContain(constraint, result.Error.Message);
+    }
     [Fact]
     public void TryTranslate_UniqueViolationOnRegisteredConstraint_ReturnsMappedConflict()
     {

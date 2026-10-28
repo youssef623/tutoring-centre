@@ -6,6 +6,10 @@ namespace TutoringCentre.Application.Tests.Fakes;
 
 public sealed class FakeAttendanceRosterSource : IAttendanceRosterSource
 {
+    public Dictionary<Guid, CardStudent> CardStudents { get; } = [];
+    public Dictionary<Guid, CardGroup> CardGroups { get; } = [];
+    public Task<CardStudent?> GetCardStudentAsync(Guid studentId, CancellationToken ct) => Task.FromResult(CardStudents.GetValueOrDefault(studentId));
+    public Task<CardGroup?> GetCardGroupAsync(Guid groupId, CancellationToken ct) => Task.FromResult(CardGroups.GetValueOrDefault(groupId));
     public Dictionary<Guid, AttendanceSessionFacts> Sessions { get; } = [];
     public Dictionary<Guid, IReadOnlyList<ExpectedStudent>> Students { get; } = [];
     public List<string> Calls { get; } = [];

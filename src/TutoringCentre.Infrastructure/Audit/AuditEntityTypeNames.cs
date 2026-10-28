@@ -21,6 +21,7 @@ internal static class AuditEntityTypeNames
         AuditEntityType.Enrollment => "enrollment",
         AuditEntityType.ScheduleRule => "schedule_rule",
         AuditEntityType.ClassSession => "class_session",
+        AuditEntityType.StudentCard => "student_card",
         AuditEntityType.AttendanceRecord => "attendance_record",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported audit entity type."),
     };
@@ -38,6 +39,7 @@ internal static class AuditEntityTypeNames
         "enrollment" => AuditEntityType.Enrollment,
         "schedule_rule" => AuditEntityType.ScheduleRule,
         "class_session" => AuditEntityType.ClassSession,
+        "student_card" => AuditEntityType.StudentCard,
         "attendance_record" => AuditEntityType.AttendanceRecord,
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported entity type value in the database."),
     };
@@ -75,6 +77,9 @@ internal static class AuditEntityTypeNames
                 return true;
             case "schedule_rule":
                 result = AuditEntityType.ScheduleRule;
+                return true;
+            case "student_card":
+                result = AuditEntityType.StudentCard;
                 return true;
             case "attendance_record":
                 result = AuditEntityType.AttendanceRecord;

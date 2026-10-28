@@ -1,10 +1,13 @@
 import { expect, test } from "@playwright/test";
 import {
   assignAttendanceTeacher,
-  attendanceUserId,
+  createAttendanceTeacher,
   createAttendanceSession,
   signInAttendance,
 } from "./attendanceHelpers.js";
+
+// The isolated teacher signs in with a one-time password. Never capture it in a trace or video.
+test.use({ trace: "off", video: "off" });
 
 test("attendance: teacher marks, secretary corrects, owner sees the audited reason", async ({
   browser,
@@ -24,8 +27,8 @@ test("attendance: teacher marks, secretary corrects, owner sees the audited reas
     secretary.setDefaultNavigationTimeout(30_000);
     secretary.setDefaultTimeout(15_000);
     await signInAttendance(owner, "owner@nile.test");
-    await signInAttendance(teacher, "teacher@both.test");
-    const fixture = await createAttendanceSession(owner, await attendanceUserId(teacher));
+    const teacherUserId = await createAttendanceTeacher(owner, teacher);
+    const fixture = await createAttendanceSession(owner, teacherUserId);
     await teacher.goto(`/attendance?date=${fixture.date}`);
     const card = teacher.getByRole("link", { name: new RegExp(fixture.groupName) });
     await expect(card.getByText("Open", { exact: true })).toBeVisible();
@@ -41,7 +44,7 @@ test("attendance: teacher marks, secretary corrects, owner sees the audited reas
     await teacher.getByRole("link", { name: "Back to sessions" }).click();
     await expect(teacher.getByRole("heading", { name: "Attendance", exact: true })).toBeVisible();
     console.log("Attendance fixture marked; waiting for session start.");
-    // Free the seeded teacher before the session starts. The later restoration preserves this session's substitute.
+    // Reassign before the session starts. The later restoration preserves this session's substitute.
     await assignAttendanceTeacher(owner, fixture.groupId, fixture.fixtureTeacherId);
     // A real clock boundary: corrections must never be enabled early just to make the journey faster.
     await expect

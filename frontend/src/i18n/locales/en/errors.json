@@ -161,7 +161,8 @@
       "revoked": "This card has been revoked. Please contact the office.",
       "not_found": "This card could not be found.",
       "student_archived": "This student is archived and cannot use a card.",
-      "student_not_in_group": "This student is not enrolled in this group."
+      "student_not_in_group": "This student is not enrolled in this group.",
+      "concurrent_issue": "Card issuance changed concurrently. Refresh and try again."
     }
   },
   "byKind": {
