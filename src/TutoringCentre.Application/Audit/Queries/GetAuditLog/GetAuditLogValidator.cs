@@ -10,7 +10,7 @@ internal sealed class GetAuditLogValidator : AbstractValidator<GetAuditLogQuery>
     private static readonly string[] KnownEntityTypes =
     [
         "subject", "membership", "centre", "parent", "student", "student_parent", "teacher", "group", "enrollment", "schedule_rule",
-        "class_session",
+        "class_session", "attendance_record",
     ];
 
     public GetAuditLogValidator()
