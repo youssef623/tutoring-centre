@@ -112,5 +112,22 @@
       "reasonTooShort": "اكتب سببًا من 3 أحرف على الأقل.",
       "reasonTooLong": "يجب ألا يزيد السبب على 200 حرف."
     }
+  },
+  "history": {
+    "title": "الحضور",
+    "from": "من",
+    "to": "إلى",
+    "lastFourWeeks": "آخر 4 أسابيع",
+    "invalidRange": "اختر فترة صحيحة لا تتجاوز 92 يوماً.",
+    "loading": "جارٍ تحميل سجل الحضور",
+    "empty": "لا يوجد حضور مسجل في هذه الفترة",
+    "student": "الطالب",
+    "counts": "في هذه الفترة: {present} حاضر، {late} متأخر، {absent} غائب، {excused} بعذر",
+    "letters": {
+      "present": "ح",
+      "late": "ت",
+      "absent": "غ",
+      "excused": "ع"
+    }
   }
 }

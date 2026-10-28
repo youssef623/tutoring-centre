@@ -1,4 +1,4 @@
-# Attendance: marking, corrections and queries (Days 55–58)
+# Attendance: marking, corrections and queries (Slice 11)
 
 Attendance is a separate Domain module. It identifies the centre, session, student and enrollment by ID;
 it does not depend on the Academics domain or store session times. The caller supplies session instants
@@ -57,7 +57,9 @@ History uses one `GetAttendanceQuery` for every actor. Its required `AttendanceA
 `OwnSessions(teacherId)` or `None`. Missing ownership never defaults to `All`. `None` returns an empty page
 without a database query. `OwnSessions` filters `academics.class_sessions.teacher_id` in SQL, rather than
 the group's current teacher. Student and group filters only narrow that scope; filters outside scope return
-an empty page. Parent access is deferred to Month 5.
+an empty page. Month 5 adds a parent access kind here: resolve linked student IDs from the authenticated parent,
+then apply those IDs as an additional SQL predicate inside the same read service. It must not treat a
+caller-supplied student filter as authority or fall back to All. None remains the fail-closed default.
 
 History orders by `(local_date DESC, starts_at DESC, record_id DESC)` with an opaque URL-safe cursor and
 fetches one extra row. Date ranges span at most 92 days; page sizes range from 1 to 100, defaulting to 50.
@@ -100,6 +102,20 @@ The helper prints the session ID and its attendance URL.
 
 ## Implementation boundary
 
-Days 55–58 provide Domain rules, persistence, commands, queries, HTTP endpoints, isolation tests and generated
-client hooks. Attendance screens are deferred to Days 59–60; QR scanning is deferred to Days 63–64. See
-[ADR 0013](../adr/0013-attendance-window-and-corrections.md) for the draft policy decision and alternatives.
+Slice 11 provides Domain rules, persistence, commands, queries, endpoints, isolation tests and generated
+hooks, plus session marking/correction screens and history views. QR scanning remains deferred to Days 63–64.
+See [ADR 0013](../adr/0013-attendance-window-and-corrections.md) for the accepted decision and evidence.
+
+## History views
+
+The group detail page's fourth tab is `?tab=attendance&from=YYYY-MM-DD&to=YYYY-MM-DD`, rendered only
+with `attendance.view`. Its default is today and the preceding 27 calendar days in the active centre's
+zone. Invalid or reversed dates and ranges spanning more than 92 days show validation without a history
+request. The grid fetches every page, derives students and sessions only from returned records, and
+leaves missing cells unrecorded. Withdrawn students remain visible; substitute sessions are absent from
+a teacher's view when the server excludes them. No current-roster or contact data is used.
+
+The student card is also gated by `attendance.view`, with no request without that permission. It covers
+today and the preceding 29 centre-local calendar days. Load more fetches older records within that range.
+“In this period” counts describe loaded records only. Mark and correction success invalidate the infinite
+history cache. Teachers still lack `students.view` and cannot reach student detail pages.

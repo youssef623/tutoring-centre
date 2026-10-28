@@ -10,6 +10,7 @@ import { messageFor } from "@/api/errorMessages";
 import { applyTranslatedFieldErrors } from "@/api/fieldErrors";
 import {
   getGetAttendanceQueryKey,
+  getGetAttendanceInfiniteQueryKey,
   getGetSessionAttendanceQueryKey,
   getListAttendanceSessionsQueryKey,
   useCorrectAttendance,
@@ -73,6 +74,7 @@ export function CorrectionDialog({
     Promise.all([
       queryClient.invalidateQueries({ queryKey: getGetSessionAttendanceQueryKey(sessionId) }),
       queryClient.invalidateQueries({ queryKey: getListAttendanceSessionsQueryKey() }),
+      queryClient.invalidateQueries({ queryKey: getGetAttendanceInfiniteQueryKey() }),
       queryClient.invalidateQueries({ queryKey: getGetAttendanceQueryKey() }),
     ]);
 

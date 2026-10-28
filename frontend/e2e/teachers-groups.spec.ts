@@ -92,8 +92,8 @@ test("teacher: one account sees only its own group in Nile, not another teacher'
 
   await page.getByRole("navigation").getByRole("link", { name: "Groups" }).click();
   await expect(page.getByRole("link", { name: "رياضيات - المجموعة أ" })).toBeVisible();
-  // Exactly the one seeded own group: a header row plus one body row.
-  await expect(page.getByRole("row")).toHaveCount(2);
+  // Other journeys create additional groups for this teacher; assert ownership, not seed counts.
+  await expect(page.getByRole("row", { name: /منى السيد/ })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Create group" })).toHaveCount(0);
 
   // Pasting the URL of a group that exists but is taught by someone else reveals nothing.

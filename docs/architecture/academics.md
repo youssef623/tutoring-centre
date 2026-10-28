@@ -488,3 +488,15 @@ success or refusal — invalidates every query that shows a touched resource: fo
 that group, the groups list and that student's enrollments; for a transfer, both rosters, both groups, the list
 and the student's enrollments. A 409 or 422 is an ordinary outcome shown in the dialog in words ("This group is
 full", "Already in this group"), with the dialog left open; a 404 closes it with a toast.
+
+## Published attendance contracts (Slice 11)
+
+`ITeachingScope` publishes All, Own(teacherId) or None for the current actor and centre. Attendance maps
+this to an explicit attendance access value; a missing account link never grants all-centre access.
+
+`IAttendanceRosterSource` publishes session timing, cancellation and the session teacher, plus expected
+students and enrollment IDs at the session start. Historical enrollment intervals decide who was expected:
+a student who withdrew later remains expected, and a later enrollee is excluded. Attendance consumes these
+Application contracts without importing Academics Domain entities or querying Academics through a command.
+History ownership uses the session teacher rather than the group's current teacher. The substitute scope is
+proved by `AttendanceReadServiceTests.History_AccessCountsMarkerAndSubstituteScope`.

@@ -1,7 +1,7 @@
 # ADR 0013: Attendance window and corrections
 
-- **Status:** Draft (Day 55); final review planned for Day 60
-- **Date:** 2026-10-27
+- **Status:** Accepted (Day 60)
+- **Date:** 2026-10-28
 
 ## Context
 
@@ -43,15 +43,34 @@ immutable references to its session, student and enrollment. Keep Attendance ind
 - `AttendanceWindow.OpensBefore` is 30 minutes and `ClosesAfter` is 2 hours. These are policy constants
   in code, not per-centre settings. A policy change needs a reviewed code and boundary-test change.
 - Same-status marking is a successful no-op. Retries do not rewrite the mark time or source.
-- Teacher can view and mark; Owner and Secretary can also correct. Ownership checks for the session's
-  teacher are planned for Day 57.
-- Correction metadata on the record is not the complete history. Before/after audit entries are planned
-  for Day 56; optimistic concurrency is planned for Day 57.
-- The draft remains open until persistence, endpoints and screens supply evidence for the Day 60 review.
+- Teacher can view and mark only sessions taught by that teacher. Owner and Secretary can also correct.
+  After the marking window closes, office staff correct an existing record with a reason; teachers ask
+  office staff to do so. No background task invents an absent record for an unmarked student.
+- Corrections and their before/after audit entry commit in one transaction. A client version and the
+  database version predicate reject stale corrections. Concurrent first marks use the unique constraint.
+- History uses one query with explicit All, OwnSessions or None access. SQL filters by the session's
+  teacher, preserving substitute and historical ownership rather than inferring it from today's group.
+- The UI shows only returned history. Group grids fetch every page in a range; student counts describe
+  the loaded records in the displayed period, never lifetime totals.
 
-## Evidence (Day 55)
+## Evidence
 
-Literal UTC boundary tests cover 15:29:59, 15:30, 19:30 and 19:30:01 for a session from 16:00 to 17:30.
-Changing the closing allowance to 1 hour makes the 19:30 test fail. Record tests cover check precedence,
-unchanged fields on rejection, same-status marking, repeated corrections and preservation of mark metadata.
-Giving Teacher the correction permission makes exactly one of the 57 literal permission cells fail.
+- `AttendanceWindowTests.StateAt_LiteralBoundary_ReturnsExpected` proves inclusive opening and closing
+  edges; changing the closing allowance to one hour fails the 19:30 UTC boundary case.
+- `AttendanceRecordTests.Mark_SameStatus_LeavesEveryFieldUnchanged` proves idempotent ordinary marking.
+- `AttendanceRecordTests.Correct_InsideWindowAndNextDay_UpdatesCorrectionFieldsOnly` proves late
+  corrections retain ordinary mark metadata.
+- `AttendanceRecordTests.Mark_CorrectedRecord_ChecksWindowBeforeLockAndStatus` proves a corrected record
+  cannot be changed through ordinary marking.
+- `AttendanceQueryTests.History_MapsScope` proves the access mapping for one history query.
+- `AttendanceReadServiceTests.History_AccessCountsMarkerAndSubstituteScope` and
+  `History_LogsSessionTeacherPredicate_AndNoneExecutesNoQuery` prove ownership in SQL and fail-closed None.
+- `AttendanceRecordPersistenceTests.TwoContextsUpdatingOneRecord_SecondGetsStaleConflict` proves the
+  database concurrency predicate; `DuplicateFirstMark_TranslatesToConcurrentMark_AndKeepsOneRow` proves
+  unique first-mark arbitration.
+- `GetAuditLogValidatorTests.Validate_WithKnownEntityType_Succeeds` includes `attendance_record`, so
+  the published attendance audit filter is accepted by the server.
+- `AttendanceHistory.test.tsx` proves multi-page assembly, URL range validation, empty cells,
+  permission gating, scoped counts and Arabic direction.
+- `e2e/attendance.spec.ts` proves teacher marking, secretary correction, owner audit visibility and
+  refusal of a pasted URL for another teacher's session through the browser.

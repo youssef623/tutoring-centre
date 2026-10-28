@@ -69,7 +69,8 @@
     "label": "Group sections",
     "overview": "Overview",
     "roster": "Roster",
-    "schedule": "Schedule"
+    "schedule": "Schedule",
+    "attendance": "Attendance"
   },
   "archivedBanner": {
     "title": "This group is archived",

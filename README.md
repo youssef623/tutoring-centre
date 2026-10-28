@@ -233,3 +233,21 @@ flowchart TD
 ## Quality gates
 
 Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, nineteen Playwright end-to-end journeys against a real API and PostgreSQL (one of them sets up a whole centre from an empty one, in Arabic, through the UI alone), a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
+
+### Create today's attendance demo session
+
+In Development, after migrating and seeding, run:
+
+```powershell
+dotnet run --project src/TutoringCentre.Api -- demo-session --centre nile-centre --group "<existing group name>" --in-minutes 10
+```
+
+Choose a group taught by the demo account. The command creates a 60-minute session through schedule
+commands, rounds the start up to five minutes, and prints its ID and attendance API URL. Open
+`/attendance` as `teacher@both.test`, or `/attendance/sessions/<printed session ID>`. Mark while Open.
+Once the session starts, `secretary@nile.test` can correct a record with a reason; `owner@nile.test`
+can inspect its audit entry. The group Attendance tab shows the resulting history.
+
+`--in-minutes` defaults to 10. The helper refuses outside Development and between 23:00 and midnight
+in the centre's zone. It retries teacher conflicts at later half-hour slots. The weekly rule is ended
+after today, so later generated sessions remain cancelled history rather than future demo classes.

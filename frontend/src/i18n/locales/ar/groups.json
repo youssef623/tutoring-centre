@@ -69,7 +69,8 @@
     "label": "أقسام المجموعة",
     "overview": "نظرة عامة",
     "roster": "قائمة الطلاب",
-    "schedule": "الجدول"
+    "schedule": "الجدول",
+    "attendance": "الحضور"
   },
   "archivedBanner": {
     "title": "هذه المجموعة مؤرشفة",
