@@ -1,4 +1,4 @@
-# Attendance: marking, corrections and queries (Slice 11)
+# Attendance: marking, corrections, queries and card scans (Slices 11–12)
 
 Attendance is a separate Domain module. It identifies the centre, session, student and enrollment by ID;
 it does not depend on the Academics domain or store session times. The caller supplies session instants
@@ -12,7 +12,7 @@ security. Commands check historical enrollment expectations through the Academic
 
 The four recorded statuses are Present, Late, Absent and Excused. Present and Late count as arrivals.
 Excused is an affirmative fact, such as a parent notifying the centre. The two sources are Manual and Qr;
-QR scanning is planned for Day 63. Neither enum's numeric value or order is part of the contract.
+Card scans use Qr. Neither enum's numeric value or order is part of the contract.
 
 Each record belongs to one centre. Its centre, session, student and enrollment references never change.
 It keeps the status, source, time and optional user of the latest ordinary mark, plus correction metadata.
@@ -103,7 +103,8 @@ The helper prints the session ID and its attendance URL.
 ## Implementation boundary
 
 Slice 11 provides Domain rules, persistence, commands, queries, endpoints, isolation tests and generated
-hooks, plus session marking/correction screens and history views. QR scanning remains deferred to Days 63–64.
+hooks, plus session marking/correction screens and history views. Slice 12 adds the scan command on Day 63;
+its endpoint, rate limit and HTTP race remain deferred to Day 64.
 See [ADR 0013](../adr/0013-attendance-window-and-corrections.md) for the accepted decision and evidence.
 
 ## History views
@@ -119,3 +120,57 @@ The student card is also gated by `attendance.view`, with no request without tha
 today and the preceding 29 centre-local calendar days. Load more fetches older records within that range.
 “In this period” counts describe loaded records only. Mark and correction success invalidate the infinite
 history cache. Teachers still lack `students.view` and cannot reach student detail pages.
+
+## Card scan validation order (Day 63)
+
+`RecordScanCommand(SessionId, Token)` is tenant-scoped and requires `attendance.mark`. The token is
+body data only. The command accepts no student ID and masks its token in `ToString()`. There is no
+scan endpoint yet. Validation performs no data access, and actor checks precede the transaction.
+Explicit validator error codes survive dispatch; built-in validation failures retain `validation.failed`.
+
+Each check returns before loading the data used by the next check. Test names below are executable
+evidence, not suggested future coverage.
+
+| Step | Check | Failure | Reason for position and proving test |
+| --- | --- | --- | --- |
+| 1 | `CardToken.Parse` accepts token; session ID is non-empty | 400 `card.invalid_format` on `token`; empty ID is field validation | Reject foreign QR payloads without resolving actor or touching data. `DispatcherTests.SendAsync_InvalidScan_PreservesTokenCodeBeforeActorAndTransaction`; `RecordScanValidatorTests.EmptySession_IsRejected`. |
+| 2 | Selected tenant and `attendance.mark` permission | 401 `auth.not_authenticated`; 403 `tenant.not_selected` or `auth.permission_denied` | Authorization must precede transaction and session lookup. `RecordScanOrderTests.ActorCheck_PrecedesSessionAndTransaction`. |
+| 3 | Session exists in selected centre through roster source | 404 `attendance.session_not_found` | Establish the session before ownership or card data. `RecordScanOrderTests.MissingSession_BeatsDeniedScope`; `SingleFailure_ReturnsContractCode("missing", …)`. |
+| 4 | Teaching scope allows session teacher | Same 404 | Prevent teachers testing cards in another teacher's session, including outside its window. `RecordScanOrderTests.TeachingScope_BeatsClosedWindow`; `OtherTeacher_BeatsRevokedCard`; `ScanIsolationTests.OtherTeacherSession_HiddenBeforeCardLookup`. |
+| 5 | Not cancelled; marking window open | 422 `attendance.session_cancelled`, `attendance.session_not_open`, `attendance.window_closed` | Outside class the scanner must reveal nothing about cards. `RecordScanOrderTests.Cancellation_BeatsNotOpenWindowAndUnknownCard`; `ClosedWindow_BeatsUnknownCard`; `SingleFailure_ReturnsContractCode` covers each window failure. |
+| 6 | One tenant-scoped lookup of `CardToken.Hash()` | 404 `card.not_recognised` | Only an authorized open session may test a token. Unknown and other-centre tokens have identical errors. `RecordScanOrderTests.UnknownCard_BeatsUnexpectedStudent`; `ScanIsolationTests.MaadiCardInNile_IdenticalToUnknown_NoRowsInEitherCentre`. |
+| 7 | Card active | 422 `card.revoked` | Only a known card in this centre may disclose replacement status; do not load enrollment first. `RecordScanOrderTests.RevokedCard_BeatsUnexpectedStudent`. |
+| 8 | Student expected at session | 422 `attendance.student_not_in_session` | Resolve student and historical enrollment only after card checks; do not read attendance yet. `RecordScanOrderTests.UnexpectedStudent_PreventsRecordRead`; `ScanIsolationTests.OtherGroupStudent_NotExpected_NoRecord`. |
+| 9 | Existing attendance and domain arrival rules | 422 `attendance.record_corrected`; concurrent insert: 409 `attendance.concurrent_mark` | Decide the effect last, after all access checks. `RecordScanHandlerTests.CorrectedRecord_OfficeDecisionStands`; `ExistingArrival_PreservesFirstStatusTimeAndSource`; `ConcurrentScanTests.FiveParallelScans_TenRaces_OneRecordedOneRow_RetryIsAlreadyRecorded`. |
+
+Steps 5 and 6 were swapped locally: `ClosedWindow_BeatsUnknownCard` failed with
+`card.not_recognised` instead of `attendance.window_closed`. The original order was restored and tests rerun.
+
+### Arrival and late rules
+
+After step 8, use one `IClock` instant for the domain checks and `ScanPolicy.StatusFor`.
+Strictly later than session start plus 15 minutes is Late. Exactly 15 minutes, session start,
+and earlier eligible arrivals are Present. `RecordScanHandlerTests.NewArrival_UsesScanPolicy`
+tests start, +15 minutes and +16 minutes; `ScanPolicyTests` also pins the exact instant boundary.
+
+| Existing record | Scan effect | Evidence |
+| --- | --- | --- |
+| None | Domain `AttendanceRecord.Create`, source Qr; `Recorded` | `RecordScanHandlerTests.NewArrival_UsesScanPolicy` |
+| Uncorrected Present or Late, manual or QR | `AlreadyRecorded`, preserving first status, time, source and user; no mutation | `RecordScanHandlerTests.ExistingArrival_PreservesFirstStatusTimeAndSource`; `RecordScanUseCaseTests.ScanTwice_OneRow_FirstTimeStatusAndVersion_NoAudit` |
+| Uncorrected Absent or Excused | Domain `Mark`, arrival status and Qr; `Recorded` | `RecordScanHandlerTests.NonArrival_ScanWins`; `RecordScanUseCaseTests.ManualNonArrival_ScanRecordsQrArrival` |
+| Corrected, including a corrected arrival | Domain rejects with `attendance.record_corrected` | `RecordScanHandlerTests.CorrectedRecord_OfficeDecisionStands`; `RecordScanUseCaseTests.CorrectedRecord_ScanCannotOverwriteOrAudit` |
+
+Repeats retain the row's PostgreSQL version and create no audit entry. New scans create no ordinary
+mark audit entry. An update from Absent or Excused uses the existing marking audit behavior.
+A SystemActor produces a null marking user (`RecordScanHandlerTests.SystemActor_HasNoMarkingUser`).
+
+The card lookup uses `ux_student_cards_centre_token_hash`. A scan changes at most one attendance
+row. The attendance natural key arbitrates simultaneous first scans. Five separate scopes are forced
+to overlap after reading no attendance, repeated for ten sessions; exactly one records and other
+inserts return `attendance.concurrent_mark`. A subsequent retry returns `AlreadyRecorded`.
+Client retry behavior belongs to Days 64 and 66.
+
+The handler emits one structured Information entry with `Outcome`, `SessionId`, and nullable
+`CardId`. Before a successful card lookup, CardId is null. Never include token, student name or
+command object. `RecordScanHandlerTests.ScanLog_ContainsOnlyOutcomeSessionAndCard` checks success
+and unknown-card log fields. Dispatcher logging remains unchanged and never logs command objects.
