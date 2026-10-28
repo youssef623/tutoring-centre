@@ -246,7 +246,7 @@ public sealed class Dispatcher
 
         // Dotted codes are explicit application codes; FluentValidation's built-in codes
         // retain the existing generic response. Validator order decides precedence.
-        var explicitFailure = failures.FirstOrDefault(failure => failure.ErrorCode.Contains('.', StringComparison.Ordinal));
+        var explicitFailure = failures.FirstOrDefault(failure => failure.ErrorCode?.Contains('.', StringComparison.Ordinal) == true);
         return Error.Validation(explicitFailure?.ErrorCode ?? "validation.failed",
             explicitFailure?.ErrorMessage ?? "One or more fields are invalid.", fields);
     }
