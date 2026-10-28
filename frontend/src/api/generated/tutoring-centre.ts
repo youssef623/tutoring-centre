@@ -5,18 +5,23 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
+  useInfiniteQuery,
   useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
+  DefinedUseInfiniteQueryResult,
   DefinedUseQueryResult,
+  InfiniteData,
   MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseInfiniteQueryOptions,
+  UseInfiniteQueryResult,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -61,6 +66,97 @@ export interface AssignGroupTeacherRequest {
   teacherId: string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   version: number | string;
+}
+
+export interface AttendanceHistoryItemDto {
+  recordId: string;
+  sessionId: string;
+  localDate: string;
+  startsAt: string;
+  groupId: string;
+  groupName: string;
+  subjectName: string;
+  studentId: string;
+  studentName: string;
+  status: string;
+  source: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  correctionCount: number | string;
+}
+
+export type AttendanceStatus = typeof AttendanceStatus[keyof typeof AttendanceStatus];
+
+
+export const AttendanceStatus = {
+  present: 'present',
+  late: 'late',
+  absent: 'absent',
+  excused: 'excused',
+} as const;
+
+export interface AttendanceMarkRequest {
+  studentId: string;
+  status: AttendanceStatus;
+}
+
+export interface AttendancePageDto {
+  items: AttendanceHistoryItemDto[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export interface AttendanceRecordDto {
+  recordId: string;
+  status: string;
+  source: string;
+  markedAt: string;
+  /** @nullable */
+  markedByName: string | null;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  correctionCount: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
+
+export interface AttendanceSessionDto {
+  sessionId: string;
+  groupName: string;
+  subjectName: string;
+  teacherName: string;
+  startsAt: string;
+  endsAt: string;
+  localDate: string;
+  status: string;
+}
+
+export interface AttendanceSessionListItemDto {
+  sessionId: string;
+  groupId: string;
+  groupName: string;
+  subjectName: string;
+  teacherName: string;
+  startsAt: string;
+  endsAt: string;
+  /** @nullable */
+  room: string | null;
+  status: string;
+  window: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  expectedCount: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  recordedCount: number | string;
+}
+
+export interface AttendanceSessionsDto {
+  date: string;
+  timeZoneId: string;
+  items: AttendanceSessionListItemDto[];
+}
+
+export interface AttendanceStudentDto {
+  studentId: string;
+  studentName: string;
+  record: null | AttendanceRecordDto;
 }
 
 export interface AuditChangeDto {
@@ -144,6 +240,13 @@ export const ClassSessionStatus = {
   scheduled: 'scheduled',
   cancelled: 'cancelled',
 } as const;
+
+export interface CorrectAttendanceRequest {
+  status: AttendanceStatus;
+  reason: string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+}
 
 export interface CreateGroupRequest {
   name: string;
@@ -339,6 +442,19 @@ export interface LookupParentRequest {
   phone: string;
 }
 
+export interface MarkAttendanceRequest {
+  marks: AttendanceMarkRequest[];
+}
+
+export interface MarkAttendanceResult {
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  created: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  updated: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  unchanged: number | string;
+}
+
 export interface MembershipDto {
   centreId: string;
   centreName: string;
@@ -478,6 +594,13 @@ export interface ScheduleRuleListResponse {
 
 export interface SelectCentreRequest {
   centreId: string;
+}
+
+export interface SessionAttendanceDto {
+  session: AttendanceSessionDto;
+  timeZoneId: string;
+  window: string;
+  items: AttendanceStudentDto[];
 }
 
 export interface SessionVersionRequest {
@@ -725,6 +848,22 @@ export type GetTimetableParams = {
 weekStart?: string;
 groupId?: string;
 teacherId?: string;
+};
+
+export type ListAttendanceSessionsParams = {
+date?: string;
+};
+
+export type GetAttendanceParams = {
+studentId?: string;
+groupId?: string;
+from?: string;
+to?: string;
+cursor?: string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+pageSize?: number | string;
 };
 
 export type ListStudentsParams = {
@@ -4167,6 +4306,541 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCancelSessionMutationOptions(options), queryClient);
     }
+
+export const getListAttendanceSessionsUrl = (params?: ListAttendanceSessionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/attendance/sessions?${stringifiedParams}` : `/api/attendance/sessions`
+}
+
+export const listAttendanceSessions = async (params?: ListAttendanceSessionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<AttendanceSessionsDto> => {
+
+  return apiFetch<AttendanceSessionsDto>(getListAttendanceSessionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAttendanceSessionsQueryKey = (params?: ListAttendanceSessionsParams,) => {
+    return [
+    `/api/attendance/sessions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAttendanceSessionsQueryOptions = <TData = Awaited<ReturnType<typeof listAttendanceSessions>>, TError = HttpValidationProblemDetails | ProblemDetails>(params?: ListAttendanceSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendanceSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAttendanceSessionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAttendanceSessions>>> = ({ signal }) => listAttendanceSessions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAttendanceSessions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAttendanceSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof listAttendanceSessions>>>
+export type ListAttendanceSessionsQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useListAttendanceSessions<TData = Awaited<ReturnType<typeof listAttendanceSessions>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params: undefined |  ListAttendanceSessionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendanceSessions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAttendanceSessions>>,
+          TError,
+          Awaited<ReturnType<typeof listAttendanceSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAttendanceSessions<TData = Awaited<ReturnType<typeof listAttendanceSessions>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: ListAttendanceSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendanceSessions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAttendanceSessions>>,
+          TError,
+          Awaited<ReturnType<typeof listAttendanceSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAttendanceSessions<TData = Awaited<ReturnType<typeof listAttendanceSessions>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: ListAttendanceSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendanceSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAttendanceSessions<TData = Awaited<ReturnType<typeof listAttendanceSessions>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: ListAttendanceSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendanceSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAttendanceSessionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSessionAttendanceUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/attendance`
+}
+
+export const getSessionAttendance = async (sessionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<SessionAttendanceDto> => {
+
+  return apiFetch<SessionAttendanceDto>(getGetSessionAttendanceUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSessionAttendanceQueryKey = (sessionId: string,) => {
+    return [
+    `/api/sessions/${sessionId}/attendance`
+    ] as const;
+    }
+
+
+export const getGetSessionAttendanceQueryOptions = <TData = Awaited<ReturnType<typeof getSessionAttendance>>, TError = ProblemDetails>(sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionAttendance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionAttendanceQueryKey(sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSessionAttendance>>> = ({ signal }) => getSessionAttendance(sessionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSessionAttendance>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSessionAttendanceQueryResult = NonNullable<Awaited<ReturnType<typeof getSessionAttendance>>>
+export type GetSessionAttendanceQueryError = ProblemDetails
+
+
+export function useGetSessionAttendance<TData = Awaited<ReturnType<typeof getSessionAttendance>>, TError = ProblemDetails>(
+ sessionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionAttendance>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSessionAttendance>>,
+          TError,
+          Awaited<ReturnType<typeof getSessionAttendance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSessionAttendance<TData = Awaited<ReturnType<typeof getSessionAttendance>>, TError = ProblemDetails>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionAttendance>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSessionAttendance>>,
+          TError,
+          Awaited<ReturnType<typeof getSessionAttendance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSessionAttendance<TData = Awaited<ReturnType<typeof getSessionAttendance>>, TError = ProblemDetails>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionAttendance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSessionAttendance<TData = Awaited<ReturnType<typeof getSessionAttendance>>, TError = ProblemDetails>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionAttendance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSessionAttendanceQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkAttendanceUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/attendance`
+}
+
+export const markAttendance = async (sessionId: string,
+    markAttendanceRequest: MarkAttendanceRequest, options?: Parameters<typeof apiFetch>[1]): Promise<MarkAttendanceResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<MarkAttendanceResult>(getMarkAttendanceUrl(sessionId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(markAttendanceRequest)
+  }
+);}
+
+
+
+
+
+export const getMarkAttendanceMutationKey = () => ['markAttendance'] as const;
+
+export const getMarkAttendanceMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAttendance>>, TError,MarkAttendanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markAttendance>>, TError,MarkAttendanceMutationVariables, TContext> => {
+
+const mutationKey = getMarkAttendanceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markAttendance>>, MarkAttendanceMutationVariables> = (props) => {
+          const {sessionId,data} = props ?? {};
+
+          return  markAttendance(sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkAttendanceMutationResult = NonNullable<Awaited<ReturnType<typeof markAttendance>>>
+    export type MarkAttendanceMutationBody = MarkAttendanceRequest
+    export type MarkAttendanceMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type MarkAttendanceMutationVariables = {sessionId: string;data: MarkAttendanceRequest}
+
+    export const useMarkAttendance = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAttendance>>, TError,MarkAttendanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markAttendance>>,
+        TError,
+        MarkAttendanceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkAttendanceMutationOptions(options), queryClient);
+    }
+
+export const getCorrectAttendanceUrl = (recordId: string,) => {
+
+
+
+
+  return `/api/attendance/${recordId}/correct`
+}
+
+export const correctAttendance = async (recordId: string,
+    correctAttendanceRequest: CorrectAttendanceRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getCorrectAttendanceUrl(recordId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(correctAttendanceRequest)
+  }
+);}
+
+
+
+
+
+export const getCorrectAttendanceMutationKey = () => ['correctAttendance'] as const;
+
+export const getCorrectAttendanceMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctAttendance>>, TError,CorrectAttendanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof correctAttendance>>, TError,CorrectAttendanceMutationVariables, TContext> => {
+
+const mutationKey = getCorrectAttendanceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof correctAttendance>>, CorrectAttendanceMutationVariables> = (props) => {
+          const {recordId,data} = props ?? {};
+
+          return  correctAttendance(recordId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CorrectAttendanceMutationResult = NonNullable<Awaited<ReturnType<typeof correctAttendance>>>
+    export type CorrectAttendanceMutationBody = CorrectAttendanceRequest
+    export type CorrectAttendanceMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CorrectAttendanceMutationVariables = {recordId: string;data: CorrectAttendanceRequest}
+
+    export const useCorrectAttendance = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof correctAttendance>>, TError,CorrectAttendanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof correctAttendance>>,
+        TError,
+        CorrectAttendanceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCorrectAttendanceMutationOptions(options), queryClient);
+    }
+
+export const getGetAttendanceUrl = (params?: GetAttendanceParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/attendance?${stringifiedParams}` : `/api/attendance`
+}
+
+export const getAttendance = async (params?: GetAttendanceParams, options?: Parameters<typeof apiFetch>[1]): Promise<AttendancePageDto> => {
+
+  return apiFetch<AttendancePageDto>(getGetAttendanceUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAttendanceInfiniteQueryKey = (params?: GetAttendanceParams,) => {
+    return [
+    'infinite', `/api/attendance`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+export const getGetAttendanceQueryKey = (params?: GetAttendanceParams,) => {
+    return [
+    `/api/attendance`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAttendanceInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof getAttendance>>, GetAttendanceParams['cursor']>, TError = HttpValidationProblemDetails | ProblemDetails>(params?: GetAttendanceParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData, QueryKey, GetAttendanceParams['cursor']>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAttendanceInfiniteQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAttendance>>, QueryKey, GetAttendanceParams['cursor']> = ({ signal, pageParam }) => getAttendance({...params, 'cursor': pageParam ?? params?.['cursor']}, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData, QueryKey, GetAttendanceParams['cursor']> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAttendanceInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof getAttendance>>>
+export type GetAttendanceInfiniteQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetAttendanceInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getAttendance>>, GetAttendanceParams['cursor']>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params: undefined |  GetAttendanceParams, options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData, QueryKey, GetAttendanceParams['cursor']>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAttendance>>,
+          TError,
+          Awaited<ReturnType<typeof getAttendance>>, QueryKey
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAttendanceInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getAttendance>>, GetAttendanceParams['cursor']>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAttendanceParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData, QueryKey, GetAttendanceParams['cursor']>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAttendance>>,
+          TError,
+          Awaited<ReturnType<typeof getAttendance>>, QueryKey
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAttendanceInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getAttendance>>, GetAttendanceParams['cursor']>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAttendanceParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData, QueryKey, GetAttendanceParams['cursor']>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAttendanceInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getAttendance>>, GetAttendanceParams['cursor']>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAttendanceParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData, QueryKey, GetAttendanceParams['cursor']>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAttendanceInfiniteQueryOptions(params,options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getGetAttendanceQueryOptions = <TData = Awaited<ReturnType<typeof getAttendance>>, TError = HttpValidationProblemDetails | ProblemDetails>(params?: GetAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAttendanceQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAttendance>>> = ({ signal }) => getAttendance(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAttendanceQueryResult = NonNullable<Awaited<ReturnType<typeof getAttendance>>>
+export type GetAttendanceQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetAttendance<TData = Awaited<ReturnType<typeof getAttendance>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params: undefined |  GetAttendanceParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAttendance>>,
+          TError,
+          Awaited<ReturnType<typeof getAttendance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAttendance<TData = Awaited<ReturnType<typeof getAttendance>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAttendance>>,
+          TError,
+          Awaited<ReturnType<typeof getAttendance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAttendance<TData = Awaited<ReturnType<typeof getAttendance>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAttendance<TData = Awaited<ReturnType<typeof getAttendance>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: GetAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAttendanceQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getCreateParentUrl = () => {
 

@@ -14,6 +14,11 @@ export default defineConfig({
         mutator: { path: "./src/api/apiFetch.ts", name: "apiFetch" },
         // apiFetch returns the parsed body (not { data, status, headers }), so generated types must describe the body only.
         fetch: { includeHttpResponseReturnType: false },
+        operations: {
+          getAttendance: {
+            query: { useInfinite: true, useInfiniteQueryParam: "cursor" },
+          },
+        },
       },
     },
   },
