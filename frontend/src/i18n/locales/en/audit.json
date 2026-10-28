@@ -52,7 +52,10 @@
     "durationMinutes": "Length (minutes)",
     "room": "Room",
     "effectiveFrom": "In effect from",
-    "effectiveTo": "In effect until"
+    "effectiveTo": "In effect until",
+    "source": "Source",
+    "correctionCount": "Corrections",
+    "correctionReason": "Correction reason"
   },
   "value": {
     "status": {
@@ -61,7 +64,11 @@
       "inactive": "Inactive",
       "ended": "Ended",
       "scheduled": "Scheduled",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent",
+      "excused": "Excused"
     },
     "endReason": {
       "withdrawn": "Withdrawn",
@@ -85,6 +92,10 @@
       "wednesday": "Wednesday",
       "thursday": "Thursday",
       "friday": "Friday"
+    },
+    "source": {
+      "manual": "Manual",
+      "qr": "QR code"
     }
   },
   "system": "System",

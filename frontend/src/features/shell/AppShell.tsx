@@ -5,6 +5,7 @@ import { cn } from "cn";
 import {
   BookOpen,
   CalendarRange,
+  ClipboardCheck,
   GraduationCap,
   History,
   LayoutDashboard,
@@ -153,6 +154,12 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link to="/timetable" className={linkClassName} onClick={onNavigate}>
           <CalendarRange className="size-4" aria-hidden="true" />
           {t("nav.timetable")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.AttendanceView}>
+        <Link to="/attendance" className={linkClassName} onClick={onNavigate}>
+          <ClipboardCheck className="size-4" aria-hidden="true" />
+          {t("nav.attendance")}
         </Link>
       </Can>
       <Can permission={Permissions.StaffView}>

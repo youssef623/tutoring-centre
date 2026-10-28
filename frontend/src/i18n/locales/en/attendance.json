@@ -1,17 +1,116 @@
 {
+  "page": {
+    "title": "Attendance",
+    "subtitle": "Today's sessions, and the register for each one."
+  },
+  "sessions": {
+    "dateNav": {
+      "label": "Day",
+      "previous": "Previous day",
+      "next": "Next day",
+      "today": "Today"
+    },
+    "loading": {
+      "label": "Loading sessions"
+    },
+    "error": {
+      "title": "Could not load the sessions",
+      "reference": "Reference:"
+    },
+    "empty": {
+      "title": "No sessions on this day",
+      "description": "Pick another day to see its sessions."
+    },
+    "cancelled": "Cancelled",
+    "room": "Room {room}",
+    "recorded": "recorded",
+    "recordedLabel": "{recorded} of {expected} recorded"
+  },
+  "window": {
+    "not_open": "Not open yet",
+    "opensAt": "Opens at {time}",
+    "open": "Open",
+    "closed": "Closed"
+  },
   "status": {
-    "Present": "Present",
-    "Late": "Late",
-    "Absent": "Absent",
-    "Excused": "Excused"
+    "present": "Present",
+    "late": "Late",
+    "absent": "Absent",
+    "excused": "Excused"
   },
   "source": {
-    "Manual": "Manual",
-    "Qr": "QR code"
+    "manual": "Manual",
+    "qr": "QR code"
   },
-  "windowState": {
-    "NotOpen": "Not open yet",
-    "Open": "Open",
-    "Closed": "Closed"
+  "roster": {
+    "title": "Session register",
+    "back": "Back to sessions",
+    "loading": {
+      "label": "Loading the register"
+    },
+    "error": {
+      "title": "Could not load the register",
+      "reference": "Reference:"
+    },
+    "notFound": {
+      "title": "Session not found",
+      "description": "This session does not exist, or it is not one of yours.",
+      "back": "Back to sessions"
+    },
+    "empty": {
+      "title": "No students expected",
+      "description": "Nobody is enrolled for this session."
+    },
+    "toggleLabel": "Attendance status for {name}",
+    "notRecorded": "Not recorded",
+    "unsaved": "Unsaved",
+    "corrected": "{count, plural, one {Corrected once} other {Corrected # times}}",
+    "correctedDetail": "Last changed by {name} on {when}",
+    "correctedDetailNoName": "Last changed on {when}",
+    "correct": "Correct",
+    "markAllPresent": "Mark all present",
+    "unsavedCount": "{count, plural, =0 {No unsaved changes} one {# unsaved change} other {# unsaved changes}}",
+    "save": "Save",
+    "saving": "Saving…",
+    "discard": "Discard",
+    "notice": {
+      "notOpen": "Attendance opens at {time}. You can mark students from then.",
+      "closed": "Attendance for this session is closed. A recorded status can now only be changed by a correction.",
+      "cancelled": "This session was cancelled, so attendance cannot be marked.",
+      "viewOnly": "You can see this register but not change it."
+    },
+    "rowErrors": {
+      "title": "Some rows could not be saved",
+      "record_corrected": "The office corrected this record, so it cannot be changed here.",
+      "student_not_in_session": "This student is no longer expected at this session."
+    },
+    "leave": {
+      "title": "Leave without saving?",
+      "description": "{count, plural, one {You have # unsaved change.} other {You have # unsaved changes.}} If you leave, they are lost.",
+      "stay": "Keep editing",
+      "leave": "Discard and leave"
+    },
+    "studentCount": "{count, plural, one {# student} other {# students}}"
+  },
+  "save": {
+    "saved": "Saved: {created, number} new, {updated, number} changed",
+    "savedWithUnchanged": "Saved: {created, number} new, {updated, number} changed, {unchanged, number} unchanged",
+    "nothingLeft": "Nothing left to save: the register already matches your changes."
+  },
+  "correction": {
+    "title": "Correct attendance",
+    "current": "Current: {status} · {source}",
+    "currentMarker": "current",
+    "newStatus": "New status",
+    "reasonLabel": "Reason for the correction",
+    "auditNote": "Reasons are kept in the audit log permanently.",
+    "cancel": "Cancel",
+    "submit": "Save correction",
+    "saved": "Correction saved",
+    "validation": {
+      "statusRequired": "Choose the new status.",
+      "reasonTooShort": "Enter a reason of at least 3 characters.",
+      "reasonTooLong": "The reason can be at most 200 characters."
+    }
   }
 }
