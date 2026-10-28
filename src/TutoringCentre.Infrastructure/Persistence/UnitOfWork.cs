@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Domain.Academics;
+using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Domain.Common;
 
 namespace TutoringCentre.Infrastructure.Persistence;
@@ -69,6 +70,7 @@ internal sealed class UnitOfWork : IUnitOfWork
 
         try
         {
+            await SerializeFirstAttendanceMarksAsync(ct);
             await _db.SaveChangesAsync(ct);
             return Result.Success();
         }
@@ -83,6 +85,24 @@ internal sealed class UnitOfWork : IUnitOfWork
             }
 
             return translated;
+        }
+    }
+
+    private async Task SerializeFirstAttendanceMarksAsync(CancellationToken ct)
+    {
+        // EF orders new rows by their random UUIDv7 IDs. Concurrent multi-student first marks can
+        // therefore acquire unique-index locks in opposite student order and deadlock. Serialize
+        // only the save phase, after both callers have read: the loser still gets the contracted
+        // unique violation rather than silently becoming a re-mark. The dispatcher owns this lock's
+        // transaction, so commit and rollback both release it.
+        var sessions = _db.ChangeTracker.Entries<AttendanceRecord>()
+            .Where(entry => entry.State == EntityState.Added)
+            .Select(entry => $"attendance-first-mark:{entry.Entity.CentreId:N}:{entry.Entity.SessionId:N}")
+            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        foreach (var session in sessions)
+        {
+            await _db.Database.ExecuteSqlRawAsync(
+                "SELECT pg_advisory_xact_lock(hashtextextended({0}, 0))", [session], ct);
         }
     }
 

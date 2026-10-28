@@ -8,17 +8,23 @@ type AttendanceSessionsDto = {
 };
 type TeacherDto = { id: string; userId: string | null };
 type SubjectDto = { id: string };
-type MeDto = { userId: string };
 
-export async function signInAttendance(page: Page, email: string) {
-  const password = process.env.SEED_PASSWORD;
+export async function signInAttendance(page: Page, email: string, temporaryPassword?: string) {
+  const password = temporaryPassword ?? process.env.SEED_PASSWORD;
   if (!password)
     throw new Error("SEED_PASSWORD must be set to run attendance journeys (see README).");
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
-  if (email === "teacher@both.test") {
+  if (temporaryPassword) {
+    await expect(page.getByRole("heading", { name: "Change password" })).toBeVisible();
+    await page.getByLabel("Current password").fill(temporaryPassword);
+    await page.getByLabel("New password", { exact: true }).fill("E2E-Attendance-Pass-1");
+    await page.getByLabel("Confirm new password").fill("E2E-Attendance-Pass-1");
+    await page.getByRole("button", { name: "Change password" }).click();
+  }
+  if (temporaryPassword || email === "teacher@both.test") {
     await expect(page.getByRole("heading", { name: "Choose a centre" })).toBeVisible();
     await page.getByRole("button", { name: /Nile/ }).click();
   }
@@ -76,7 +82,7 @@ export async function createAttendanceSession(owner: Page, teacherUserId: string
       items: TeacherDto[];
     };
     const teacher = teachers.items.find((item) => item.userId === teacherUserId);
-    if (!teacher) throw new Error("Seeded teacher has no linked Nile teacher profile.");
+    if (!teacher) throw new Error("Attendance teacher has no linked Nile teacher profile.");
     teacherId = teacher.id;
   }
   const name = `Attendance ${suffix}`;
@@ -125,7 +131,7 @@ export async function createAttendanceSession(owner: Page, teacherUserId: string
     lastDate: calendar.date,
     version: rule.version,
   });
-  // Generate and end the horizon before assigning the seeded teacher, so later weeks cannot collide.
+  // Generate and end the horizon before assigning the linked teacher, so later weeks cannot collide.
   if (teacherId !== fixtureTeacherId) await assignAttendanceTeacher(owner, group.id, teacherId);
   const sessions = (await (
     await owner.request.get(`/api/attendance/sessions?date=${calendar.date}`)
@@ -145,8 +151,38 @@ export async function createAttendanceSession(owner: Page, teacherUserId: string
   };
 }
 
-export async function attendanceUserId(page: Page) {
-  return ((await (await page.request.get("/api/me")).json()) as MeDto).userId;
+/** Separate account and profile keep this journey independent of seeded recurring sessions. */
+export async function createAttendanceTeacher(owner: Page, teacherPage: Page) {
+  const suffix = `${Date.now().toString()}-${Math.random().toString(36).slice(2, 7)}`;
+  const email = `attendance-${suffix}@example.test`;
+  const account = (await (
+    await attendanceWrite(owner, "/api/staff", {
+      email,
+      displayName: `Attendance staff ${suffix}`,
+      role: "teacher",
+      preferredLocale: "en",
+    })
+  ).json()) as { userId: string; temporaryPassword: string };
+  const profile = (await (
+    await attendanceWrite(owner, "/api/teachers", {
+      fullName: `Attendance profile ${suffix}`,
+      phone: null,
+    })
+  ).json()) as { id: string };
+  const detail = (await (await owner.request.get(`/api/teachers/${profile.id}`)).json()) as {
+    version: number | string;
+  };
+  await attendanceWrite(
+    owner,
+    `/api/teachers/${profile.id}/account`,
+    {
+      userId: account.userId,
+      version: detail.version,
+    },
+    "PUT",
+  );
+  await signInAttendance(teacherPage, email, account.temporaryPassword);
+  return account.userId;
 }
 
 export async function assignAttendanceTeacher(owner: Page, groupId: string, teacherId: string) {

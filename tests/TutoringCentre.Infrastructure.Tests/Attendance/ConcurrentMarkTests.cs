@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using TutoringCentre.Application.Attendance;
 using TutoringCentre.Application.Attendance.Commands.MarkAttendance;
+using TutoringCentre.Application.Academics.Enrollments.Commands.EnrollStudent;
 using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Repositories;
@@ -14,6 +15,9 @@ public sealed class ConcurrentMarkTests(PostgresFixture fixture) : AttendanceCom
     public async Task TwoConcurrentFirstMarks_TenRaces_HaveOneCreatedOneConflictAndOneRowEach()
     {
         var scenario = await ArrangeAttendanceAsync(NileCentreId, "first-mark-races");
+        var other = await Fixture.SeedStudentAsync(NileCentreId, "Second race student");
+        Assert.True((await Clocked.SendAsAsync<EnrollStudentCommand, EnrollStudentResult>(scenario.Owner,
+            new(scenario.GroupId, other))).IsSuccess);
         await AddRuleOkAsync(scenario.Owner, scenario.GroupId, DayOfWeek.Sunday, SixPm);
         await AddRuleOkAsync(scenario.Owner, scenario.GroupId, DayOfWeek.Monday, SixPm);
         var sessionIds = new List<Guid>();
@@ -38,17 +42,19 @@ public sealed class ConcurrentMarkTests(PostgresFixture fixture) : AttendanceCom
             var facts = await SessionFactsAsync(scenario.Owner, sessionId);
             Time.SetUtcNow(facts!.StartsAt);
             gate.Reset();
-            var command = new MarkAttendanceCommand(sessionId, [new(scenario.StudentId, AttendanceStatus.Present)]);
+            var command = new MarkAttendanceCommand(sessionId,
+                [new(scenario.StudentId, AttendanceStatus.Present), new(other, AttendanceStatus.Present)]);
+            var reversed = new MarkAttendanceCommand(sessionId, command.Marks.Reverse().ToArray());
             var results = await Task.WhenAll(
                 provider.SendAsAsync<MarkAttendanceCommand, MarkAttendanceResult>(scenario.Owner, command),
-                provider.SendAsAsync<MarkAttendanceCommand, MarkAttendanceResult>(scenario.Owner, command));
+                provider.SendAsAsync<MarkAttendanceCommand, MarkAttendanceResult>(scenario.Owner, reversed));
             var winner = Assert.Single(results, result => result.IsSuccess);
-            Assert.Equal(new MarkAttendanceResult(1, 0, 0), winner.Value);
+            Assert.Equal(new MarkAttendanceResult(2, 0, 0), winner.Value);
             Assert.Equal("attendance.concurrent_mark", Assert.Single(results, result => result.IsFailure).Error!.Code);
             Assert.Equal(1, await CountAsync($"select count(*) from attendance.attendance_records where session_id = '{sessionId}' and student_id = '{scenario.StudentId}'"));
         }
 
-        Assert.Equal(10, await CountAsync("select count(*) from attendance.attendance_records"));
+        Assert.Equal(20, await CountAsync("select count(*) from attendance.attendance_records"));
     }
 
     [Fact]
