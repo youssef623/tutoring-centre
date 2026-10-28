@@ -1,0 +1,13 @@
+{
+  "title": "Student cards",
+  "status": {
+    "Active": "Active",
+    "Revoked": "Revoked"
+  },
+  "revocationReasons": {
+    "Reissued": "Reissued",
+    "Lost": "Lost",
+    "Damaged": "Damaged",
+    "Withdrawn": "Withdrawn"
+  }
+}

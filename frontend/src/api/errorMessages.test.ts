@@ -14,6 +14,28 @@ describe("messageFor", () => {
     expect(messageFor({ kind, code, status, message: "server prose" })).toBe(expected);
   });
 
+  it.each([
+    ["en","card.invalid_format","The card token format is invalid."],
+    ["en","card.reference_required","A required card reference is missing."],
+    ["en","card.already_revoked","This card has already been revoked."],
+    ["en","card.not_recognised","Card not recognised. Please contact the office."],
+    ["en","card.revoked","This card has been revoked. Please contact the office."],
+    ["en","card.not_found","This card could not be found."],
+    ["en","card.student_archived","This student is archived and cannot use a card."],
+    ["en","card.student_not_in_group","This student is not enrolled in this group."],
+    ["ar","card.invalid_format","صيغة رمز البطاقة غير صالحة."],
+    ["ar","card.reference_required","أحد المراجع المطلوبة للبطاقة مفقود."],
+    ["ar","card.already_revoked","تم إلغاء هذه البطاقة بالفعل."],
+    ["ar","card.not_recognised","البطاقة غير معروفة. يرجى مراجعة الإدارة."],
+    ["ar","card.revoked","تم إلغاء هذه البطاقة. يرجى مراجعة الإدارة."],
+    ["ar","card.not_found","تعذر العثور على هذه البطاقة."],
+    ["ar","card.student_archived","هذا الطالب مؤرشف ولا يمكنه استخدام بطاقة."],
+    ["ar","card.student_not_in_group","هذا الطالب غير مسجل في هذه المجموعة."],
+  ] as const)("translates card code %s %s", async (language, code, expected) => {
+    await i18next.changeLanguage(language);
+    expect(messageFor({ kind: "validation", code, status: 400, message: "server prose" })).toBe(expected);
+  });
+
   afterEach(async () => {
     // Leave i18next in English so other test files are unaffected.
     await i18next.changeLanguage("en");

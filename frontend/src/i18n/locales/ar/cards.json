@@ -1,0 +1,13 @@
+{
+  "title": "بطاقات الطلاب",
+  "status": {
+    "Active": "سارية",
+    "Revoked": "ملغاة"
+  },
+  "revocationReasons": {
+    "Reissued": "إعادة إصدار",
+    "Lost": "مفقودة",
+    "Damaged": "تالفة",
+    "Withdrawn": "انسحاب"
+  }
+}

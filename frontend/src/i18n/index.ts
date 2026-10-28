@@ -1,3 +1,5 @@
+import cardsEn from "./locales/en/cards.json";
+import cardsAr from "./locales/ar/cards.json";
 import i18next from "i18next";
 import ICU from "i18next-icu";
 import { initReactI18next } from "react-i18next";
@@ -96,6 +98,7 @@ void i18next
         enrollments: enrollmentsEn,
         schedule: scheduleEn,
         attendance: attendanceEn,
+        cards: cardsEn,
       },
       ar: {
         common: commonAr,
@@ -114,11 +117,12 @@ void i18next
         enrollments: enrollmentsAr,
         schedule: scheduleAr,
         attendance: attendanceAr,
+        cards: cardsAr,
       },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule", "attendance"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule", "attendance", "cards"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });
