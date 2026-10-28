@@ -9,6 +9,7 @@ import { Can } from "@/features/session/Can";
 import { Permissions } from "@/features/session/permissions";
 import { cn } from "cn";
 import { isAttendanceStatus } from "./attendanceStatus";
+import { isolateLtr } from "./bidi";
 import { StatusToggle } from "./StatusToggle";
 
 /**
@@ -44,8 +45,10 @@ export function RosterRow({
   const markedAt =
     record === null
       ? ""
-      : new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short", timeZone: timeZoneId }).format(
-          new Date(record.markedAt),
+      : isolateLtr(
+          new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short", timeZone: timeZoneId }).format(
+            new Date(record.markedAt),
+          ),
         );
 
   return (

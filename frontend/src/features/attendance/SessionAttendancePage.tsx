@@ -1,9 +1,10 @@
 import { Link, useBlocker } from "@tanstack/react-router";
-import { ArrowLeft, CalendarDays, CheckCheck, Clock, Loader2, Presentation, SearchX, TriangleAlert, UsersRound } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCheck, Clock, Loader2, Presentation, SearchX, TriangleAlert, Users, UsersRound } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
-import { useGetSessionAttendance, type SessionAttendanceDto } from "@/api/generated/tutoring-centre";
+import { useGetSessionAttendance, type AttendanceStudentDto, type SessionAttendanceDto } from "@/api/generated/tutoring-centre";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -25,6 +26,8 @@ import { formatCalendarDate } from "@/features/schedule/week";
 import { Permissions } from "@/features/session/permissions";
 import { useCan } from "@/features/session/useCan";
 import { windowOpensAt } from "./attendanceWindow";
+import { isolateLtr } from "./bidi";
+import { CorrectionDialog } from "./CorrectionDialog";
 import { changedMarks, useAttendanceDraft } from "./useAttendanceDraft";
 import { useSaveAttendance } from "./useSaveAttendance";
 import { RosterRow } from "./RosterRow";
@@ -45,6 +48,8 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
   const canMark = useCan(Permissions.AttendanceMark);
   const { draft, setStatus, markUnrecordedPresent, discard } = useAttendanceDraft();
   const { save, isSaving, rowErrors, windowClosed } = useSaveAttendance(sessionId, discard);
+  // The row as it was when Correct was pressed, so the version sent is the one the user saw.
+  const [correcting, setCorrecting] = useState<AttendanceStudentDto | null>(null);
 
   const unsavedCount = data === undefined ? 0 : changedMarks(data.items, draft).length;
   const hasUnsaved = unsavedCount > 0;
@@ -173,6 +178,9 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
                 onChange={(status) => {
                   setStatus(item.studentId, status);
                 }}
+                onCorrect={() => {
+                  setCorrecting(item);
+                }}
               />
             ))}
           </ul>
@@ -204,6 +212,16 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
           </div>
         </div>
       )}
+
+      <CorrectionDialog
+        student={correcting}
+        sessionId={sessionId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCorrecting(null);
+          }
+        }}
+      />
 
       <AlertDialog
         open={blocker.status === "blocked"}
@@ -278,6 +296,10 @@ function SessionHeader({ data }: { data: SessionAttendanceDto }) {
           {formatCalendarDate(session.localDate, i18n.language, { dateStyle: "medium" })}
         </p>
         <p className="flex items-center gap-1.5">
+          <Users className="size-4 shrink-0" aria-hidden="true" />
+          {t("roster.studentCount", { count: data.items.length })}
+        </p>
+        <p className="flex items-center gap-1.5">
           <Clock className="size-4 shrink-0" aria-hidden="true" />
           <time dateTime={session.startsAt} dir="ltr" className="tabular-nums">
             {timeRange}
@@ -311,7 +333,7 @@ function WindowNotice({
     : window === "closed" || windowClosed
       ? t("roster.notice.closed")
       : window === "not_open"
-        ? t("roster.notice.notOpen", { time: formatTime(windowOpensAt(startsAt), timeZoneId, i18n.language) })
+        ? t("roster.notice.notOpen", { time: isolateLtr(formatTime(windowOpensAt(startsAt), timeZoneId, i18n.language)) })
         : !canMark
           ? t("roster.notice.viewOnly")
           : undefined;

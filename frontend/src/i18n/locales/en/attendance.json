@@ -89,11 +89,28 @@
       "description": "{count, plural, one {You have # unsaved change.} other {You have # unsaved changes.}} If you leave, they are lost.",
       "stay": "Keep editing",
       "leave": "Discard and leave"
-    }
+    },
+    "studentCount": "{count, plural, one {# student} other {# students}}"
   },
   "save": {
     "saved": "Saved: {created, number} new, {updated, number} changed",
     "savedWithUnchanged": "Saved: {created, number} new, {updated, number} changed, {unchanged, number} unchanged",
     "nothingLeft": "Nothing left to save: the register already matches your changes."
+  },
+  "correction": {
+    "title": "Correct attendance",
+    "current": "Current: {status} · {source}",
+    "currentMarker": "current",
+    "newStatus": "New status",
+    "reasonLabel": "Reason for the correction",
+    "auditNote": "Reasons are kept in the audit log permanently.",
+    "cancel": "Cancel",
+    "submit": "Save correction",
+    "saved": "Correction saved",
+    "validation": {
+      "statusRequired": "Choose the new status.",
+      "reasonTooShort": "Enter a reason of at least 3 characters.",
+      "reasonTooLong": "The reason can be at most 200 characters."
+    }
   }
 }

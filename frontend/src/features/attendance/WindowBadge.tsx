@@ -2,6 +2,7 @@ import { Clock, Lock, LockOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { formatTime } from "@/features/schedule/centreTime";
+import { isolateLtr } from "./bidi";
 import { isWindowState, windowOpensAt } from "./attendanceWindow";
 
 /**
@@ -24,7 +25,7 @@ export function WindowBadge({
   }
 
   if (window === "not_open") {
-    const time = formatTime(windowOpensAt(startsAt), timeZoneId, i18n.language);
+    const time = isolateLtr(formatTime(windowOpensAt(startsAt), timeZoneId, i18n.language));
 
     return (
       <Badge variant="secondary">

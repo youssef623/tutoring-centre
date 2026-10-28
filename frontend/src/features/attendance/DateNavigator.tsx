@@ -28,6 +28,7 @@ export function DateNavigator({
           type="button"
           variant="outline"
           size="icon"
+          className="size-10"
           disabled={date === undefined}
           aria-label={t("sessions.dateNav.previous")}
           onClick={() => {
@@ -41,6 +42,7 @@ export function DateNavigator({
         <Button
           type="button"
           variant="outline"
+          className="h-10 px-4"
           disabled={isToday}
           onClick={() => {
             onDateChange(undefined);
@@ -52,6 +54,7 @@ export function DateNavigator({
           type="button"
           variant="outline"
           size="icon"
+          className="size-10"
           disabled={date === undefined}
           aria-label={t("sessions.dateNav.next")}
           onClick={() => {
