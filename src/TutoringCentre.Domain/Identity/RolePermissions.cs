@@ -26,6 +26,7 @@ public static class RolePermissions
             Permissions.AttendanceView,
             Permissions.AttendanceMark,
             Permissions.AttendanceCorrect,
+            Permissions.AttendanceCardsManage,
         },
         [StaffRole.Secretary] = new HashSet<string>
         {
@@ -43,6 +44,7 @@ public static class RolePermissions
             Permissions.AttendanceView,
             Permissions.AttendanceMark,
             Permissions.AttendanceCorrect,
+            Permissions.AttendanceCardsManage,
         },
         [StaffRole.Teacher] = new HashSet<string>
         {
