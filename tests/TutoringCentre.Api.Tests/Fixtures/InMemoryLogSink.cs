@@ -16,6 +16,7 @@ public sealed class InMemoryLogSink : ILogEventSink
     }
 
     public IReadOnlyList<LogEvent> Snapshot() => [.. _events];
+    public void Clear() => _events.Clear();
 
     /// <summary>Polls until an event matches (the request-logging line can be written just after the response is sent).</summary>
     public async Task<LogEvent?> WaitForAsync(Func<LogEvent, bool> predicate, TimeSpan? timeout = null)

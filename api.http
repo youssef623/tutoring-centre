@@ -559,3 +559,41 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 {
   "version": {{sessionVersion}}
 }
+
+### 62. Today's attendance sessions in the centre's time zone. Optional ?date=YYYY-MM-DD.
+GET {{baseUrl}}/api/attendance/sessions
+
+### 63. Expected roster, including record: null for unmarked students. Use a session from step 62.
+GET {{baseUrl}}/api/sessions/{{sessionId}}/attendance
+
+### 64. Mark two expected students. Repeat to receive unchanged: 2.
+@attendanceStudentId = replace-with-an-expected-student-id
+@attendanceStudentId2 = replace-with-another-expected-student-id
+PUT {{baseUrl}}/api/sessions/{{sessionId}}/attendance
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "marks": [
+    { "studentId": "{{attendanceStudentId}}", "status": "present" },
+    { "studentId": "{{attendanceStudentId2}}", "status": "late" }
+  ]
+}
+
+### 65. Correct after the session starts. Copy recordId and version from step 63. Stale version returns 409.
+@attendanceRecordId = replace-with-a-record-id
+@attendanceRecordVersion = replace-with-its-version
+POST {{baseUrl}}/api/attendance/{{attendanceRecordId}}/correct
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{
+  "status": "absent",
+  "reason": "Teacher tapped the wrong row",
+  "version": {{attendanceRecordVersion}}
+}
+
+### 66. History: use centre-local dates. Follow nextCursor with &cursor=<URL-encoded cursor>.
+@attendanceFrom = 2026-10-28
+@attendanceTo = 2026-10-28
+GET {{baseUrl}}/api/attendance?from={{attendanceFrom}}&to={{attendanceTo}}&pageSize=50

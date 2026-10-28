@@ -31,6 +31,11 @@ internal sealed class CorrectAttendanceHandler(IAttendanceRecordRepository recor
             return Result<Unit>.Failure(Error.Forbidden("auth.permission_denied", "A correction requires an accountable staff user."));
         }
 
+        if (!records.IsAtVersion(record, command.Version))
+        {
+            return Result<Unit>.Failure(Error.Conflict("concurrency.stale", "The record has changed. Reload it and try again."));
+        }
+
         var result = record.Correct(command.Status, command.Reason, staff.UserId,
             new AttendanceSessionTiming(session.StartsAt, session.EndsAt, session.IsCancelled), clock.UtcNow);
         return result.IsFailure ? Result<Unit>.Failure(result.Error!) : Result<Unit>.Success(Unit.Value);

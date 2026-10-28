@@ -27,6 +27,9 @@ internal sealed class AttendanceRecordRepository(AppDbContext db) : IAttendanceR
         return record;
     }
 
+    public bool IsAtVersion(AttendanceRecord record, uint expectedVersion) =>
+        db.Entry(record).Property<uint>("Version").CurrentValue == expectedVersion;
+
     public void Add(AttendanceRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);

@@ -128,6 +128,11 @@ if (args is ["migrate"])
 // CLI mode: `dotnet run --project src/TutoringCentre.Api -- seed`. Gated (Task 34.7): Development and Testing
 // always allow it; Production only when Demo:Enabled opts a throwaway instance in. Seeding also still requires
 // Seed:Password (DevelopmentIdentitySeeder's own check, unchanged) even once the gate is passed.
+if (args is ["demo-session", .. var demoArgs])
+{
+    return await DemoSessionCommand.RunAsync(app.Services, app.Environment, demoArgs, Console.Out);
+}
+
 if (args is ["seed"])
 {
     var demoOptions = app.Services.GetRequiredService<IOptions<DemoOptions>>().Value;
@@ -219,6 +224,7 @@ api.MapTeacherEndpoints();
 api.MapGroupEndpoints();
 api.MapEnrollmentEndpoints();
 api.MapScheduleEndpoints();
+api.MapAttendanceEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();

@@ -100,6 +100,7 @@ public sealed class ConcurrentMarkTests(PostgresFixture fixture) : AttendanceCom
         }
 
         public Task<AttendanceRecord?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct) => inner.GetByIdAsync(id, expectedVersion, ct);
+        public bool IsAtVersion(AttendanceRecord record, uint expectedVersion) => inner.IsAtVersion(record, expectedVersion);
         public void Add(AttendanceRecord record) => inner.Add(record);
     }
 }
