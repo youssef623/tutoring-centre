@@ -46,6 +46,9 @@ internal static class ConstraintErrorCatalog
             ErrorKind.Conflict,
             new Dictionary<string, string[]> { ["name"] = ["A group with this name already exists."] }),
 
+        ["ux_student_cards_active_student"] = () => Error.Conflict("card.concurrent_issue", "Card issuance changed concurrently. Refresh and try again."),
+        ["ux_student_cards_centre_token_hash"] = () => Error.Conflict("card.concurrent_issue", "Card issuance changed concurrently. Refresh and try again."),
+
         ["ux_attendance_records_session_student"] = () =>
             Error.Conflict("attendance.concurrent_mark", "Attendance changed while this record was being marked. Refresh and try again."),
 

@@ -7,13 +7,13 @@ public sealed class StudentCard : Entity, ITenantOwned
 {
     private readonly byte[] tokenHash;
 
-    private StudentCard(Guid centreId, Guid studentId, byte[] tokenHash, Guid issuedByUserId, DateTimeOffset at)
+    private StudentCard(Guid centreId, Guid studentId, byte[] tokenHash, Guid issuedByUserId, DateTimeOffset issuedAt)
     {
         CentreId = centreId;
         StudentId = studentId;
         this.tokenHash = (byte[])tokenHash.Clone();
         IssuedByUserId = issuedByUserId;
-        IssuedAt = at;
+        IssuedAt = issuedAt;
         Status = StudentCardStatus.Active;
     }
 

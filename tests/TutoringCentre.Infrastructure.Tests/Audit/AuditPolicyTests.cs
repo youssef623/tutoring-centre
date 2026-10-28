@@ -14,9 +14,10 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlyTwelveAuditedTypes()
+    public void Entries_HasExactlyThirteenAuditedTypes()
     {
-        Assert.Equal(12, AuditPolicy.Entries.Count);
+        Assert.Equal(13, AuditPolicy.Entries.Count);
+        Assert.Contains(typeof(StudentCard), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(AttendanceRecord), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(ScheduleRule), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(ClassSession), AuditPolicy.Entries.Keys);
@@ -29,6 +30,24 @@ public sealed class AuditPolicyTests
         Assert.Contains(typeof(StudentParentLink), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Teacher), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(Group), AuditPolicy.Entries.Keys);
+    }
+
+    [Fact]
+    public void StudentCard_OnlyLifecycleFields_NeverHash()
+    {
+        var entry = AuditPolicy.Entries[typeof(StudentCard)];
+        Assert.Equal(AuditEntityType.StudentCard, entry.EntityType);
+        Assert.Equal(new HashSet<string> { "StudentId", "Status", "RevocationReason" }, entry.AllowedFields);
+        Assert.Equal(new HashSet<AuditAction> { AuditAction.Created, AuditAction.Updated }, entry.Actions);
+        Assert.Equal("student_card", AuditEntityTypeNames.ToDatabase(entry.EntityType));
+        foreach (var action in new[] { AuditAction.Created, AuditAction.Updated })
+        {
+            var diff = AuditDiffBuilder.Build(action, entry.AllowedFields,
+            [new("TokenHash", null, new byte[32], true), new("StudentId", null, Guid.NewGuid(), true)]);
+            Assert.NotNull(diff);
+            Assert.DoesNotContain("hash", diff, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("token", diff, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     [Fact]

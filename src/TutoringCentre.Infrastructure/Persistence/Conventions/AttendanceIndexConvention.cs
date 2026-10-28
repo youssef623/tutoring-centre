@@ -12,7 +12,7 @@ internal sealed class AttendanceIndexConvention(ProviderConventionSetBuilderDepe
 {
     protected override IConventionIndex? CreateIndex(IReadOnlyList<IConventionProperty> properties, bool unique,
         IConventionEntityTypeBuilder entityTypeBuilder) =>
-        entityTypeBuilder.Metadata.ClrType == typeof(AttendanceRecord)
+        entityTypeBuilder.Metadata.ClrType == typeof(AttendanceRecord) || entityTypeBuilder.Metadata.ClrType == typeof(StudentCard)
             ? null
             : base.CreateIndex(properties, unique, entityTypeBuilder);
 }

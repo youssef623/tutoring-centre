@@ -107,6 +107,11 @@ internal static class AuditPolicy
                 nameof(ScheduleRule.EffectiveTo),
             }),
 
+        [typeof(StudentCard)] = new AuditPolicyEntry(
+            AuditEntityType.StudentCard, entity => ((StudentCard)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal) { nameof(StudentCard.StudentId), nameof(StudentCard.Status), nameof(StudentCard.RevocationReason) },
+            Actions: new HashSet<AuditAction> { AuditAction.Created, AuditAction.Updated }),
+
         [typeof(AttendanceRecord)] = new AuditPolicyEntry(
             AuditEntityType.AttendanceRecord,
             entity => ((AttendanceRecord)entity).CentreId,

@@ -864,6 +864,93 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Attendance.StudentCard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issued_at");
+
+                    b.Property<Guid>("IssuedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("issued_by_user_id");
+
+                    b.Property<string>("RevocationReason")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("revocation_reason");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<Guid?>("RevokedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("revoked_by_user_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_student_cards");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_student_cards_centre_id_id");
+
+                    b.HasIndex("CentreId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_student_cards_active_student")
+                        .HasFilter("status = 'active'");
+
+                    b.HasIndex("CentreId", "TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ux_student_cards_centre_token_hash");
+
+                    b.ToTable("student_cards", "attendance", t =>
+                        {
+                            t.HasCheckConstraint("ck_student_cards_hash_length", "octet_length(token_hash) = 32");
+
+                            t.HasCheckConstraint("ck_student_cards_reason", "revocation_reason IN ('reissued','lost','damaged','withdrawn')");
+
+                            t.HasCheckConstraint("ck_student_cards_revocation", "(status = 'revoked') = (revoked_at IS NOT NULL AND revocation_reason IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_student_cards_status", "status IN ('active','revoked')");
+                        });
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Centres.Centre", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1401,6 +1488,37 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_attendance_records_enrollments");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Attendance.StudentCard", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_cards_centres");
+
+                    b.HasOne("TutoringCentre.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("IssuedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_cards_issued_by");
+
+                    b.HasOne("TutoringCentre.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("RevokedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_student_cards_revoked_by");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Student", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_cards_students");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Identity.Membership", b =>

@@ -15,4 +15,5 @@ public enum AuditEntityType
     ScheduleRule,
     ClassSession,
     AttendanceRecord,
+    StudentCard,
 }
