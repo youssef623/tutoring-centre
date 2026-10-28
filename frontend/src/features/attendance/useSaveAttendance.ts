@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { asApiError } from "@/api/apiFetch";
 import type { ApiError } from "@/api/errors";
 import {
+  getGetAttendanceInfiniteQueryKey,
   getGetSessionAttendanceQueryKey,
   getListAttendanceSessionsQueryKey,
   useMarkAttendance,
@@ -44,6 +45,7 @@ export function useSaveAttendance(sessionId: string, onSaved: () => void) {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: rosterKey }),
       queryClient.invalidateQueries({ queryKey: getListAttendanceSessionsQueryKey() }),
+      queryClient.invalidateQueries({ queryKey: getGetAttendanceInfiniteQueryKey() }),
     ]);
 
   /** One request for whatever differs from the roster as it is in the cache right now. */

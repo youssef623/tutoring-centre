@@ -44,6 +44,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssignGroupTeacherDialog, ChangeGroupCapacityDialog, RenameGroupDialog } from "@/features/groups/GroupEditDialogs";
 import { GroupRosterTab } from "@/features/enrollments/GroupRosterTab";
 import { SeatMeter } from "@/features/enrollments/SeatMeter";
+import { GroupAttendanceTab } from "@/features/attendance/GroupAttendanceTab";
 import { GroupScheduleTab } from "@/features/schedule/GroupScheduleTab";
 import { showGroupError } from "@/features/groups/showGroupError";
 import { Can } from "@/features/session/Can";
@@ -52,11 +53,13 @@ import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermi
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { useCan } from "@/features/session/useCan";
 
-const GroupTabs = ["overview", "roster", "schedule"] as const;
+const GroupTabs = ["overview", "roster", "schedule", "attendance"] as const;
 type GroupTab = (typeof GroupTabs)[number];
 
 export interface GroupDetailSearch {
   tab: GroupTab;
+  from?: string;
+  to?: string;
 }
 
 function isGroupTab(value: unknown): value is GroupTab {
@@ -66,6 +69,8 @@ function isGroupTab(value: unknown): value is GroupTab {
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
   validateSearch: (search: Record<string, unknown>): GroupDetailSearch => ({
     tab: isGroupTab(search.tab) ? search.tab : "overview",
+    from: typeof search.from === "string" ? search.from : undefined,
+    to: typeof search.to === "string" ? search.to : undefined,
   }),
   component: GroupDetailPage,
 });
@@ -159,13 +164,14 @@ type EditDialog = "rename" | "capacity" | "assignTeacher" | null;
 
 function GroupDetailContent({ group }: { group: GroupDto }) {
   const { t } = useTranslation("groups");
-  const { tab: requestedTab } = Route.useSearch();
+  const { tab: requestedTab, from, to } = Route.useSearch();
+  const canViewAttendance = useCan(Permissions.AttendanceView);
   const canViewRoster = useCan(Permissions.EnrollmentsView);
   const canViewSchedule = useCan(Permissions.ScheduleView);
   // Without enrollments.view there is no Roster tab, and without schedule.view no Schedule tab, so a pasted
   // "?tab=roster" or "?tab=schedule" falls back to the overview.
   const tab =
-    (requestedTab === "roster" && !canViewRoster) || (requestedTab === "schedule" && !canViewSchedule) ? "overview" : requestedTab;
+    (requestedTab === "roster" && !canViewRoster) || (requestedTab === "schedule" && !canViewSchedule) || (requestedTab === "attendance" && !canViewAttendance) ? "overview" : requestedTab;
   const navigate = useNavigate({ from: Route.fullPath });
   const queryClient = useQueryClient();
   const archiveMutation = useArchiveGroup();
@@ -317,11 +323,11 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
         value={tab}
         onValueChange={(next) => {
           if (isGroupTab(next)) {
-            void navigate({ search: { tab: next }, replace: true });
+            void navigate({ search: (previous) => ({ ...previous, tab: next }), replace: true });
           }
         }}
       >
-        <TabsList aria-label={t("tabs.label")}>
+        <TabsList aria-label={t("tabs.label")} className="max-w-full flex-wrap">
           <TabsTrigger value="overview">
             <LayoutGrid aria-hidden="true" />
             {t("tabs.overview")}
@@ -338,6 +344,7 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
               {t("tabs.schedule")}
             </TabsTrigger>
           )}
+          {canViewAttendance && <TabsTrigger value="attendance">{t("tabs.attendance")}</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview">
@@ -386,6 +393,9 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
             <GroupScheduleTab group={group} />
           </TabsContent>
         )}
+        {canViewAttendance && <TabsContent value="attendance">
+          <GroupAttendanceTab groupId={group.id} from={from} to={to} onRangeChange={(range) => { void navigate({ search: (previous) => ({ ...previous, ...range }), replace: true }); }} />
+        </TabsContent>}
       </Tabs>
 
       <Can permission={Permissions.GroupsManage}>

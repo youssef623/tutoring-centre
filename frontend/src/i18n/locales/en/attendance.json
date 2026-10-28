@@ -112,5 +112,22 @@
       "reasonTooShort": "Enter a reason of at least 3 characters.",
       "reasonTooLong": "The reason can be at most 200 characters."
     }
+  },
+  "history": {
+    "title": "Attendance",
+    "from": "From",
+    "to": "To",
+    "lastFourWeeks": "Last 4 weeks",
+    "invalidRange": "Choose a valid date range of at most 92 days.",
+    "loading": "Loading attendance history",
+    "empty": "No attendance recorded in this period",
+    "student": "Student",
+    "counts": "In this period: {present} present, {late} late, {absent} absent, {excused} excused",
+    "letters": {
+      "present": "P",
+      "late": "L",
+      "absent": "A",
+      "excused": "E"
+    }
   }
 }

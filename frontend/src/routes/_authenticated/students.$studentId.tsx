@@ -34,6 +34,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { enrollmentMessageFor } from "@/features/enrollments/enrollmentMessages";
 import { StudentEnrollmentsCard } from "@/features/enrollments/StudentEnrollmentsCard";
+import { StudentAttendanceCard } from "@/features/attendance/StudentAttendanceCard";
 import { ParentsCard } from "@/features/students/ParentsCard";
 import { StudentEditDialog } from "@/features/students/StudentEditDialog";
 import { Can } from "@/features/session/Can";
@@ -245,6 +246,8 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
       <Can permission={Permissions.EnrollmentsView}>
         <StudentEnrollmentsCard student={student} canEnroll={!isArchived} />
       </Can>
+
+      <Can permission={Permissions.AttendanceView}><StudentAttendanceCard studentId={student.id} /></Can>
 
       {canManage && <StudentEditDialog student={student} open={editOpen} onOpenChange={setEditOpen} />}
 
