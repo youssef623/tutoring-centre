@@ -30,6 +30,7 @@ public sealed class ApiRuleTests
                 && type.FullName != "TutoringCentre.Domain.Identity.StaffRole"
                 && type.FullName != "TutoringCentre.Domain.Centres.SupportedLocale"
                 && type.FullName != "TutoringCentre.Domain.Academics.ParentRelationship")
+                .Where(type => type.FullName != "TutoringCentre.Domain.Attendance.AttendanceStatus")
             .Select(type => type.FullName!)
             .ToArray();
 

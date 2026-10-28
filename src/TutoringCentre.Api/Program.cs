@@ -219,6 +219,7 @@ api.MapTeacherEndpoints();
 api.MapGroupEndpoints();
 api.MapEnrollmentEndpoints();
 api.MapScheduleEndpoints();
+api.MapAttendanceEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();

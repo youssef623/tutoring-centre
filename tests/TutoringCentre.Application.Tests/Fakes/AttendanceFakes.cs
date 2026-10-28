@@ -51,6 +51,7 @@ public sealed class FakeAttendanceRecordRepository : IAttendanceRecordRepository
     public IEnumerable<AttendanceRecord> Records => Existing.Concat(Added);
     public uint? ExpectedVersion { get; private set; }
     public int SessionReads { get; private set; }
+    public bool IsAtVersion(AttendanceRecord record, uint expectedVersion) => true;
 
     public Task<IReadOnlyList<AttendanceRecord>> GetForSessionAsync(Guid sessionId, CancellationToken ct)
     {
