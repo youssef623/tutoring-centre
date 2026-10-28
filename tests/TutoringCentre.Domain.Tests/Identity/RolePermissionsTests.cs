@@ -63,6 +63,9 @@ public sealed class RolePermissionsTests
     [InlineData(StaffRole.Teacher, Permissions.AttendanceView, true)]
     [InlineData(StaffRole.Teacher, Permissions.AttendanceMark, true)]
     [InlineData(StaffRole.Teacher, Permissions.AttendanceCorrect, false)]
+    [InlineData(StaffRole.Owner, Permissions.AttendanceCardsManage, true)]
+    [InlineData(StaffRole.Secretary, Permissions.AttendanceCardsManage, true)]
+    [InlineData(StaffRole.Teacher, Permissions.AttendanceCardsManage, false)]
     public void Holds_MatchesTheMatrixCellLiterally(StaffRole role, string permission, bool expected)
     {
         Assert.Equal(expected, RolePermissions.Holds(role, permission));

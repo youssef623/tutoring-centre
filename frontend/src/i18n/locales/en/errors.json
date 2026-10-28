@@ -152,6 +152,16 @@
       "session_not_found": "The session was not found.",
       "student_not_in_session": "This student is not enrolled for this session.",
       "concurrent_mark": "Attendance changed while you were editing. Refresh and try again."
+    },
+    "card": {
+      "invalid_format": "The card token format is invalid.",
+      "reference_required": "A required card reference is missing.",
+      "already_revoked": "This card has already been revoked.",
+      "not_recognised": "Card not recognised. Please contact the office.",
+      "revoked": "This card has been revoked. Please contact the office.",
+      "not_found": "This card could not be found.",
+      "student_archived": "This student is archived and cannot use a card.",
+      "student_not_in_group": "This student is not enrolled in this group."
     }
   },
   "byKind": {

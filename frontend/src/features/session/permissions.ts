@@ -18,6 +18,7 @@ export const Permissions = {
   ScheduleManage: "schedule.manage",
   AttendanceView: "attendance.view",
   AttendanceMark: "attendance.mark",
+  AttendanceCardsManage: "attendance.cards.manage",
   AttendanceCorrect: "attendance.correct",
 } as const;
 
