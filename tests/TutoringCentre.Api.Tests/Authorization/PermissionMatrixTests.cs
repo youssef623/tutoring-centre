@@ -79,12 +79,70 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "POST /api/schedule/extend",
         "GET /api/timetable",
         "POST /api/sessions/{id:guid}/cancel",
+        "GET /api/attendance/sessions",
+        "GET /api/sessions/{sessionId:guid}/attendance",
+        "PUT /api/sessions/{sessionId:guid}/attendance",
+        "POST /api/attendance/{recordId:guid}/correct",
+        "GET /api/attendance",
     ];
 
     public async Task InitializeAsync()
     {
         await factory.ResetAsync();
         Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", "sessions", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", "sessions", HttpStatusCode.OK)]
+    [InlineData("teacher", "sessions", HttpStatusCode.OK)]
+    [InlineData("owner@nile.test", "roster", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", "roster", HttpStatusCode.OK)]
+    [InlineData("teacher", "roster", HttpStatusCode.OK)]
+    [InlineData("owner@nile.test", "mark", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", "mark", HttpStatusCode.OK)]
+    [InlineData("teacher", "mark", HttpStatusCode.OK)]
+    [InlineData("owner@nile.test", "correct", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", "correct", HttpStatusCode.NoContent)]
+    [InlineData("teacher", "correct", HttpStatusCode.Forbidden)]
+    [InlineData("owner@nile.test", "history", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", "history", HttpStatusCode.OK)]
+    [InlineData("teacher", "history", HttpStatusCode.OK)]
+    public async Task Attendance(string role, string operation, HttpStatusCode expected)
+    {
+        factory.Time.FixAt(AttendanceHttp.BeforeSession);
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var scenario = await AttendanceHttp.Arrange(owner.Client);
+        factory.Time.FixAt(AttendanceHttp.InSession);
+        using var signedIn = await SignInAsync(role);
+        HttpResponseMessage response;
+        if (operation == "mark")
+        {
+            response = await AttendanceHttp.Put(signedIn.Client, $"/api/sessions/{scenario.SessionId}/attendance", AttendanceHttp.Marks(scenario));
+        }
+        else if (operation == "correct")
+        {
+            using var marked = await AttendanceHttp.Put(owner.Client, $"/api/sessions/{scenario.SessionId}/attendance", AttendanceHttp.Marks(scenario));
+            Assert.Equal(HttpStatusCode.OK, marked.StatusCode);
+            var record = await AttendanceHttp.Record(owner.Client, scenario);
+            response = await AttendanceHttp.Post(signedIn.Client, $"/api/attendance/{record.GetProperty("recordId").GetGuid()}/correct",
+                new { status = "absent", reason = "Matrix correction", version = record.GetProperty("version").GetUInt32() });
+        }
+        else
+        {
+            var url = operation == "sessions" ? "/api/attendance/sessions" : operation == "roster"
+                ? $"/api/sessions/{scenario.SessionId}/attendance" : $"/api/attendance?from={AttendanceHttp.Date}&to={AttendanceHttp.Date}";
+            response = await signedIn.Client.GetAsync(new Uri(url, UriKind.Relative));
+        }
+        using (response)
+        {
+            Assert.Equal(expected, response.StatusCode);
+            if (expected == HttpStatusCode.Forbidden)
+            {
+                await AssertPermissionDeniedAsync(response);
+                Assert.Equal(0L, await factory.ScalarAsync<long>("select sum(correction_count) from attendance.attendance_records"));
+            }
+        }
     }
 
     // The schedule cases fix the clock; every other case runs on real time, as before.

@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
 using Respawn.Graph;
+using Serilog.Core;
 using Testcontainers.PostgreSql;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Infrastructure.Persistence;
@@ -30,6 +32,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     /// <summary>"Now" for the application's IClock: real time unless a test fixes it (Day 53 schedule tests).</summary>
     public FixableTimeProvider Time { get; } = new();
+    public InMemoryLogSink AttendanceLogs { get; } = new();
+    public AttendanceMarkRace AttendanceRace { get; } = new();
 
     /// <summary>The container's own default role: a superuser. Used only to bootstrap roles and reset between tests.</summary>
     public string SuperuserConnectionString => _container.GetConnectionString();
@@ -55,7 +59,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity", "academics"],
+            SchemasToInclude = ["platform", "identity", "academics", "attendance"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
     }
@@ -74,6 +78,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await using var connection = new NpgsqlConnection(SuperuserConnectionString);
         await connection.OpenAsync();
         await _respawner!.ResetAsync(connection);
+        AttendanceLogs.Clear();
     }
 
     /// <summary>Runs a scalar SQL statement against the test database as the superuser (assertions on persisted state).</summary>
@@ -111,7 +116,12 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         // Only the application's own clock is replaceable; the framework's TimeProvider (cookie expiry, antiforgery,
         // data protection) stays real, so signing in never depends on a fixed date.
-        builder.ConfigureTestServices(services => services.AddSingleton<IClock>(new SystemClock(Time)));
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddSingleton<IClock>(new SystemClock(Time));
+            services.AddSingleton<ILogEventSink>(AttendanceLogs);
+            services.AddDbContext<AppDbContext>(options => options.AddInterceptors(AttendanceRace));
+        });
 
         // Development turns these on by default; Testing does not. Missing registrations must fail the tests.
         builder.UseDefaultServiceProvider(options =>
