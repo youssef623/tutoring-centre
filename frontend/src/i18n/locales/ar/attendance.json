@@ -1,17 +1,99 @@
 {
+  "page": {
+    "title": "الحضور",
+    "subtitle": "حصص اليوم وسجل الحضور لكل حصة."
+  },
+  "sessions": {
+    "dateNav": {
+      "label": "اليوم",
+      "previous": "اليوم السابق",
+      "next": "اليوم التالي",
+      "today": "اليوم"
+    },
+    "loading": {
+      "label": "جارٍ تحميل الحصص"
+    },
+    "error": {
+      "title": "تعذّر تحميل الحصص",
+      "reference": "المرجع:"
+    },
+    "empty": {
+      "title": "لا توجد حصص في هذا اليوم",
+      "description": "اختر يومًا آخر لعرض حصصه."
+    },
+    "cancelled": "ملغاة",
+    "room": "القاعة {room}",
+    "recorded": "مسجّل",
+    "recordedLabel": "{recorded} من {expected} مسجّل"
+  },
+  "window": {
+    "not_open": "لم يُفتح بعد",
+    "opensAt": "يُفتح الساعة {time}",
+    "open": "مفتوح",
+    "closed": "مغلق"
+  },
   "status": {
-    "Present": "حاضر",
-    "Late": "متأخر",
-    "Absent": "غائب",
-    "Excused": "بعذر"
+    "present": "حاضر",
+    "late": "متأخر",
+    "absent": "غائب",
+    "excused": "غائب بعذر"
   },
   "source": {
-    "Manual": "يدوي",
-    "Qr": "رمز QR"
+    "manual": "يدويًا",
+    "qr": "رمز QR"
   },
-  "windowState": {
-    "NotOpen": "لم تفتح بعد",
-    "Open": "مفتوحة",
-    "Closed": "مغلقة"
+  "roster": {
+    "title": "سجل حضور الحصة",
+    "back": "العودة إلى الحصص",
+    "loading": {
+      "label": "جارٍ تحميل السجل"
+    },
+    "error": {
+      "title": "تعذّر تحميل السجل",
+      "reference": "المرجع:"
+    },
+    "notFound": {
+      "title": "الحصة غير موجودة",
+      "description": "هذه الحصة غير موجودة، أو أنها ليست من حصصك.",
+      "back": "العودة إلى الحصص"
+    },
+    "empty": {
+      "title": "لا يوجد طلاب متوقعون",
+      "description": "لا أحد مسجّل في هذه الحصة."
+    },
+    "toggleLabel": "حالة حضور {name}",
+    "notRecorded": "غير مسجّل",
+    "unsaved": "غير محفوظ",
+    "corrected": "{count, plural, one {صُحّح مرة واحدة} two {صُحّح مرتين} few {صُحّح # مرات} many {صُحّح # مرة} other {صُحّح # مرة}}",
+    "correctedDetail": "آخر تغيير بواسطة {name} في {when}",
+    "correctedDetailNoName": "آخر تغيير في {when}",
+    "correct": "تصحيح",
+    "markAllPresent": "تسجيل الجميع حاضرين",
+    "unsavedCount": "{count, plural, =0 {لا توجد تغييرات غير محفوظة} one {تغيير غير محفوظ واحد} two {تغييران غير محفوظين} few {# تغييرات غير محفوظة} many {# تغييرًا غير محفوظ} other {# تغيير غير محفوظ}}",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ…",
+    "discard": "تجاهل",
+    "notice": {
+      "notOpen": "يُفتح تسجيل الحضور الساعة {time}. يمكنك تسجيل الطلاب من ذلك الوقت.",
+      "closed": "تسجيل الحضور لهذه الحصة مغلق. لا يمكن الآن تغيير حالة مسجّلة إلا بتصحيح.",
+      "cancelled": "أُلغيت هذه الحصة، لذلك لا يمكن تسجيل الحضور.",
+      "viewOnly": "يمكنك عرض هذا السجل دون تعديله."
+    },
+    "rowErrors": {
+      "title": "تعذّر حفظ بعض الصفوف",
+      "record_corrected": "صحّح المكتب هذا السجل، لذلك لا يمكن تغييره من هنا.",
+      "student_not_in_session": "لم يعد هذا الطالب متوقعًا في هذه الحصة."
+    },
+    "leave": {
+      "title": "المغادرة دون حفظ؟",
+      "description": "{count, plural, one {لديك تغيير غير محفوظ واحد.} two {لديك تغييران غير محفوظين.} few {لديك # تغييرات غير محفوظة.} many {لديك # تغييرًا غير محفوظ.} other {لديك # تغيير غير محفوظ.}} إذا غادرت فسيضيع.",
+      "stay": "متابعة التعديل",
+      "leave": "تجاهل ومغادرة"
+    }
+  },
+  "save": {
+    "saved": "تم الحفظ: {created, number} جديد، {updated, number} معدّل",
+    "savedWithUnchanged": "تم الحفظ: {created, number} جديد، {updated, number} معدّل، {unchanged, number} دون تغيير",
+    "nothingLeft": "لا شيء للحفظ: السجل يطابق تغييراتك بالفعل."
   }
 }
