@@ -22,8 +22,14 @@ public sealed class FakeAttendanceRosterSource : IAttendanceRosterSource
         return Task.FromResult(Students.GetValueOrDefault(sessionId) ?? (IReadOnlyList<ExpectedStudent>)[]);
     }
 
-    public Task<IReadOnlyList<SessionOnDate>> ListSessionsOnDateAsync(DateOnly localDate, Guid? teacherId, CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<SessionOnDate>>([]);
+    public Task<IReadOnlyList<SessionOnDate>> ListSessionsOnDateAsync(DateOnly localDate, Guid? teacherId, CancellationToken ct)
+    {
+        Calls.Add("list");
+        return Task.FromResult<IReadOnlyList<SessionOnDate>>(Sessions.Values
+            .Where(session => session.LocalDate == localDate && (teacherId is null || session.TeacherId == teacherId))
+            .Select(session => new SessionOnDate(session.SessionId, session.GroupId, session.GroupName, session.SubjectName,
+                session.TeacherId, session.TeacherName, session.StartsAt, session.EndsAt, session.LocalDate, session.Room, session.IsCancelled)).ToArray());
+    }
 }
 
 public sealed class FakeTeachingScope : ITeachingScope
