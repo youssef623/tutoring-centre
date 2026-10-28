@@ -33,3 +33,23 @@ export const groupFullProblem = () => problemDetails(409, "group.full", "This gr
 /** 409 when the student already holds an active enrollment in the group. */
 export const alreadyEnrolledProblem = () =>
   problemDetails(409, "enrollment.already_enrolled", "This student is already enrolled in this group.");
+
+/** 409 when someone else recorded the same student a moment earlier (the retryable first-mark race). */
+export const concurrentMarkProblem = () =>
+  problemDetails(409, "attendance.concurrent_mark", "Attendance changed while this record was being marked. Refresh and try again.");
+
+/** 422 when the attendance window of the session has closed. */
+export const windowClosedProblem = () =>
+  problemDetails(422, "attendance.window_closed", "The attendance window has closed.");
+
+/** 409 when a record was changed by someone else after the page loaded it. */
+export const staleProblem = () =>
+  problemDetails(409, "concurrency.stale", "This record was changed by someone else.");
+
+/** A refusal that names the failing row by its position in the request (`marks[i].field`). */
+export function rowProblem(status: number, code: string, detail: string, field: string) {
+  return HttpResponse.json(
+    { title: TitleByStatus[status] ?? "Error", status, detail, code, errors: { [field]: [detail] }, correlationId: "test-correlation-id" },
+    { status, headers: { "Content-Type": "application/problem+json" } },
+  );
+}
