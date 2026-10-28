@@ -154,6 +154,8 @@ public static class DependencyInjection
         services.AddScoped<ITeacherScopeProvider, TeacherScopeProvider>();
         services.AddScoped<IAttendanceRosterSource, AttendanceRosterSource>();
         services.AddScoped<IAttendanceRecordRepository, AttendanceRecordRepository>();
+        services.AddScoped<IStudentCardRepository, StudentCardRepository>();
+        services.AddScoped<IStudentCardReadService, StudentCardReadService>();
         services.AddScoped<IAttendanceReadService, AttendanceReadService>();
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();

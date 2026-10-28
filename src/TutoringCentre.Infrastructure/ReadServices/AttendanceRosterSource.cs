@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using TutoringCentre.Application.Academics.Contracts;
+using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Academics.Scheduling;
 using TutoringCentre.Infrastructure.Persistence;
@@ -8,8 +9,29 @@ using TutoringCentre.Infrastructure.Persistence;
 namespace TutoringCentre.Infrastructure.ReadServices;
 
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class AttendanceRosterSource(AppDbContext db) : IAttendanceRosterSource
+internal sealed class AttendanceRosterSource(AppDbContext db, IClock clock) : IAttendanceRosterSource
 {
+    public Task<CardStudent?> GetCardStudentAsync(Guid studentId, CancellationToken ct) =>
+        db.Set<Student>().AsNoTracking().Where(student => student.Id == studentId)
+            .Select(student => new CardStudent(student.Id, student.FullName, student.Status == StudentStatus.Archived))
+            .SingleOrDefaultAsync(ct);
+
+    public async Task<CardGroup?> GetCardGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var group = await db.Set<Group>().AsNoTracking().Where(group => group.Id == groupId)
+            .Select(group => new { group.Id, group.Name }).SingleOrDefaultAsync(ct);
+        if (group is null) { return null; }
+        var now = clock.UtcNow;
+        var students = await (from enrollment in db.Set<Enrollment>().AsNoTracking()
+                              join student in db.Set<Student>().AsNoTracking() on enrollment.StudentId equals student.Id
+                              where enrollment.GroupId == groupId && enrollment.EnrolledAt <= now
+                                  && (enrollment.EndedAt == null || enrollment.EndedAt > now)
+                                  && student.Status == StudentStatus.Active
+                              orderby student.SearchName, student.Id
+                              select new CardGroupStudent(student.Id, student.FullName)).ToListAsync(ct);
+        return new(group.Id, group.Name, students);
+    }
+
     public Task<AttendanceSessionFacts?> GetSessionAsync(Guid sessionId, CancellationToken ct) =>
         SessionFacts(sessionId, null, null).SingleOrDefaultAsync(ct);
 
