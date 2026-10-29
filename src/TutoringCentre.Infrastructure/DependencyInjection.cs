@@ -146,6 +146,7 @@ public static class DependencyInjection
 
         services.AddScoped<IChannelAccountRepository, ChannelAccountRepository>();
         services.AddScoped<IInboundChannelResolver, InboundChannelResolver>();
+        services.AddScoped<IInboundMessageStore, InboundMessageStore>();
         services.AddScoped<ICentreRepository, CentreRepository>();
         services.AddCentreDirectory();
         services.AddScoped<ICentreReadService, CentreReadService>();

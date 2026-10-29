@@ -50,6 +50,8 @@ public sealed class QueryFilterBypassTests
         "src/TutoringCentre.Infrastructure/Messaging/OutboxStore.cs",
         // Before tenant selection: active provider account lookup returns IDs only.
         "src/TutoringCentre.Infrastructure/Conversations/InboundChannelResolver.cs",
+        // Parameterized ON CONFLICT inserts use actor centre and the dispatcher transaction; forced RLS backs both.
+        "src/TutoringCentre.Infrastructure/Conversations/InboundMessageStore.cs",
     ];
 
     private const string MigrationsDirectoryPrefix = "src/TutoringCentre.Infrastructure/Persistence/Migrations/";
