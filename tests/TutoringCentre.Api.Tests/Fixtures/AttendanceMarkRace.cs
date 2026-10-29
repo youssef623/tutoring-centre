@@ -8,16 +8,20 @@ public sealed class AttendanceMarkRace : DbCommandInterceptor
 {
     private TaskCompletionSource? _both;
     private int _arrivals;
-    public void Enable() { _arrivals = 0; _both = new(TaskCreationOptions.RunContinuationsAsynchronously); }
+    private int _participants = 2;
+    private bool _cards;
+    public void Enable(int participants = 2, bool cards = false) { _cards = cards; _participants = participants; _arrivals = 0; _both = new(TaskCreationOptions.RunContinuationsAsynchronously); }
     public void Disable() { _both?.TrySetResult(); _both = null; }
     public override async ValueTask<DbDataReader> ReaderExecutedAsync(DbCommand command, CommandExecutedEventData eventData,
         DbDataReader result, CancellationToken cancellationToken = default)
     {
         var both = _both;
-        if (both is not null && command.CommandText.Contains("attendance.attendance_records", StringComparison.Ordinal)
-            && command.CommandText.Contains("for update", StringComparison.OrdinalIgnoreCase))
+        if (both is not null && (_cards
+            ? command.CommandText.Contains("attendance.student_cards", StringComparison.Ordinal) && command.CommandText.Contains("status", StringComparison.Ordinal)
+            : command.CommandText.Contains("attendance.attendance_records", StringComparison.Ordinal)
+                && command.CommandText.Contains("for update", StringComparison.OrdinalIgnoreCase)))
         {
-            if (Interlocked.Increment(ref _arrivals) == 2) { both.TrySetResult(); }
+            if (Interlocked.Increment(ref _arrivals) == _participants) { both.TrySetResult(); }
             await both.Task.WaitAsync(TimeSpan.FromSeconds(20), cancellationToken);
         }
         return result;

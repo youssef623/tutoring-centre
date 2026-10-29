@@ -131,7 +131,7 @@ public sealed class StudentCardHandlerTests
         Assert.Equal("auth.permission_denied", (await new IssueStudentCardHandler(roster, repository, actor, clock).HandleAsync(new(studentId), CancellationToken.None)).Error!.Code);
         Assert.Equal("auth.permission_denied", (await new IssueGroupCardsHandler(roster, repository, actor, clock).HandleAsync(new(groupId, [studentId]), CancellationToken.None)).Error!.Code);
         Assert.Equal("auth.permission_denied", (await new RevokeStudentCardHandler(repository, actor, clock).HandleAsync(new(Guid.NewGuid(), CardRevocationReason.Lost, 1), CancellationToken.None)).Error!.Code);
-        Assert.Equal("auth.permission_denied", (await new GetStudentCardHandler(new ReadCards(), actor).HandleAsync(new(studentId), CancellationToken.None)).Error!.Code);
+        Assert.Equal("auth.permission_denied", (await new GetStudentCardHandler(new ReadCards(), actor, roster).HandleAsync(new(studentId), CancellationToken.None)).Error!.Code);
     }
 
     [Fact]

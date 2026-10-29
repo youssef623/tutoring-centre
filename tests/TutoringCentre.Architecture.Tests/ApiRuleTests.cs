@@ -31,6 +31,8 @@ public sealed class ApiRuleTests
                 && type.FullName != "TutoringCentre.Domain.Centres.SupportedLocale"
                 && type.FullName != "TutoringCentre.Domain.Academics.ParentRelationship")
                 .Where(type => type.FullName != "TutoringCentre.Domain.Attendance.AttendanceStatus")
+                // Day 64 binds this wire enum directly, like AttendanceStatus; card entities remain forbidden.
+                .Where(type => type.FullName != "TutoringCentre.Domain.Attendance.CardRevocationReason")
             .Select(type => type.FullName!)
             .ToArray();
 
