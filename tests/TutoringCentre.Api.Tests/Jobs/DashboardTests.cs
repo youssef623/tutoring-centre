@@ -71,6 +71,13 @@ public sealed class DashboardTests(ApiFactory factory) : IAsyncLifetime
             service.GetType().Assembly.GetName().Name?.StartsWith("Hangfire", StringComparison.Ordinal) == true);
     }
 
+    [Fact]
+    public void Outbox_TestHost_HasNoRelayHostedService()
+    {
+        Assert.DoesNotContain(factory.Services.GetServices<IHostedService>(), service =>
+            service is TutoringCentre.Infrastructure.Messaging.OutboxRelayService);
+    }
+
     private WebApplicationFactory<Program> WithOperator(string email) => factory.WithWebHostBuilder(builder =>
         builder.UseSetting("Jobs:OperatorEmails:0", email));
 }

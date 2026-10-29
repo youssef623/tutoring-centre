@@ -138,6 +138,9 @@ public static class DependencyInjection
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IOutbox, EfOutbox>();
+        services.AddOptions<OutboxOptions>().Bind(configuration.GetSection("Outbox")).ValidateOnStart();
+        services.AddSingleton<OutboxStore>();
+        services.AddSingleton<OutboxRelayService>();
 
         services.AddScoped<ICentreRepository, CentreRepository>();
         services.AddCentreDirectory();

@@ -27,7 +27,7 @@ export default defineConfig({
   webServer: [
     {
       command: "dotnet run --project ../src/TutoringCentre.Api --launch-profile https",
-      env: { Jobs__RunServer: "false" },
+      env: { Jobs__RunServer: "false", Outbox__RunRelay: "false" },
       url: apiReadinessUrl,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

@@ -108,6 +108,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         builder.UseEnvironment("Testing");
         builder.UseSetting("Jobs:RunServer", "false");
+        builder.UseSetting("Outbox:RunRelay", "false");
         builder.UseSetting("ConnectionStrings:Postgres", AppConnectionString);
         builder.UseSetting("ConnectionStrings:PostgresMigrations", OwnerConnectionString);
         builder.UseSetting("Seed:Password", TestSeedPassword);
