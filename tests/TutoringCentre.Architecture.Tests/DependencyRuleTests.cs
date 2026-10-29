@@ -18,6 +18,7 @@ public sealed class DependencyRuleTests
         "Microsoft.EntityFrameworkCore",
         "Microsoft.AspNetCore",
         "Npgsql",
+        "Hangfire",
     ];
 
     private static readonly string[] ForbiddenForApplication =

@@ -144,7 +144,6 @@ if (args is ["seed"])
         return 1;
     }
 
-    await app.Services.ApplyMigrationsAsync();
     return await SeedCommand.RunAsync(app.Services);
 }
 
@@ -156,12 +155,7 @@ if (args is ["reset-password", var resetEmail, var resetPassword])
     return await ResetPasswordCommand.RunAsync(app.Services, resetEmail, resetPassword);
 }
 
-// Development convenience only. Production migrations run from the deployment pipeline (Month 2), never at app startup:
-// auto-migrating there is risky (several instances racing, no review, long locks).
-if (app.Environment.IsDevelopment() && !isDocumentGeneration)
-{
-    await app.Services.ApplyMigrationsAsync();
-}
+// Schema changes, including Hangfire's installer, belong only to the explicit migrate CLI.
 
 // Absolutely first: every other middleware (security headers' HSTS/Production check, request logging's client
 // address, rate limiting's partition key) must see the real scheme and client address, not the proxy's own.
