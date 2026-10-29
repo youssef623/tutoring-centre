@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { enrollmentMessageFor } from "@/features/enrollments/enrollmentMessages";
 import { StudentEnrollmentsCard } from "@/features/enrollments/StudentEnrollmentsCard";
 import { StudentAttendanceCard } from "@/features/attendance/StudentAttendanceCard";
+import { StudentCardSection } from "@/features/cards/StudentCardSection";
 import { ParentsCard } from "@/features/students/ParentsCard";
 import { StudentEditDialog } from "@/features/students/StudentEditDialog";
 import { Can } from "@/features/session/Can";
@@ -242,6 +243,7 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
       </div>
 
       <ParentsCard student={student} canManage={canManage && !isArchived} />
+      <Can permission={Permissions.AttendanceCardsManage}><StudentCardSection key={student.id} student={student} /></Can>
 
       <Can permission={Permissions.EnrollmentsView}>
         <StudentEnrollmentsCard student={student} canEnroll={!isArchived} />

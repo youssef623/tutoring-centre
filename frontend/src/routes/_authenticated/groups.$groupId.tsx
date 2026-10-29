@@ -250,6 +250,9 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
             </p>
           </div>
 
+          <Can permission={Permissions.AttendanceCardsManage}>
+            <Link to="/groups/$groupId/cards" params={{ groupId: group.id }} className={buttonVariants({ variant: "outline" })}>{t("cards:printCards")}</Link>
+          </Can>
           <Can permission={Permissions.GroupsManage}>
             <div className="flex flex-wrap items-center gap-2">
               {isArchived ? (
