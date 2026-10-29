@@ -311,7 +311,7 @@ catalogue that both constraints are tenant-scoped, half-open and partial on `sta
 
 ## Exemptions
 
-Seven production tables carry no centre-based policy, confirmed against the schema (no migration calls
+Eight application tables carry no centre-based policy, confirmed against the schema (no migration calls
 `EnableTenantRowLevelSecurity`; no configuration calls `ConfigureTenantOwned`) rather than assumed:
 
 | Table | Why it has none |
@@ -321,6 +321,7 @@ Seven production tables carry no centre-based policy, confirmed against the sche
 | `identity.user_claims`, `identity.user_logins`, `identity.user_tokens` | ASP.NET Core Identity's own tables, each keyed by user id — they inherit `identity.users`' reasoning, not centre-scoped. |
 | `identity.memberships` | Deliberately not `ITenantOwned` (see the type itself): a membership is read at login, before `app.current_centre` is ever set, to show the user which centres they belong to and let them pick one. Forcing a centre-based policy on it would make centre selection impossible — reading your own memberships has to work before you have selected a centre. |
 | `platform.data_protection_keys` | The session/antiforgery cookie key ring (Task 34.6): platform-level, read before any centre (or any session) exists, and shared across every centre and every instance — there is no single tenant it could belong to. |
+| `jobs.outbox_messages` | The relay claims work across centres. Payloads contain identifiers/simple values only, enforced by `OutboxRuleTests`; the centre is stamped from the actor. Each explicit registry mapping is delivered through `SystemScopeRunner` as that centre's system actor, with the normal dispatcher transaction and RLS. The persistence row has no EF filter or tenant write guard. `RowLevelSecurityCoverageTests` documents this exemption, and `OutboxRelayTests.Case11_EachDelivery_UsesItsOwnCentreGucCorrelationAndScope` proves the compensating tenant boundary. |
 
 If a future table needs centre scoping and is missing from both layers, that is the bug this list exists to
 catch — every exemption above has a reason checked against the code, not an assumption.

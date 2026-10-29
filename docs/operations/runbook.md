@@ -1,5 +1,7 @@
 # Runbook
 
+For inspecting and requeueing background-work dead letters, see the [outbox runbook](../runbook.md).
+
 Commands that work when followed literally. Each section was either run for real today (2026-10-11, against
 the local production stack — no Azure subscription is provisioned, see `docs/architecture/deployment.md`) or
 is marked **not executed**, with the reason, rather than left to guesswork.
