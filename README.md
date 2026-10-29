@@ -67,6 +67,7 @@ Run commands from the repository root unless a step says otherwise. Each step sh
 
    ```bash
    dotnet dev-certs https --trust   # once per machine
+   dotnet run --project src/TutoringCentre.Api -- migrate  # owner installs EF and Hangfire schemas
    dotnet run --project src/TutoringCentre.Api --launch-profile https
    ```
 
@@ -222,12 +223,14 @@ flowchart TD
 - [ADR 0010 — Student aggregate and value objects](docs/adr/0010-student-aggregate-and-value-objects.md)
 - [ADR 0011 — Pessimistic lock for enrollment capacity](docs/adr/0011-pessimistic-lock-for-enrollment-capacity.md)
 - [ADR 0012 — Sessions as generated instants](docs/adr/0012-sessions-as-generated-instants.md)
+- [ADR 0015 — Durable jobs and outbox (draft)](docs/adr/0015-jobs-and-outbox.md)
 - [Authentication: login, sessions, CSRF, revocation](docs/architecture/authentication.md)
 - [Tenant isolation: the role model, and all four layers](docs/architecture/tenancy.md)
 - [Authorization: the permission matrix, the pipeline step, and what the UI does](docs/architecture/authorization.md)
 - [Academics: students, parents, teachers, groups and enrollments — the Domain model, storage, use cases, endpoints and screens](docs/architecture/academics.md)
 - [Scheduling: weekly rules, generated sessions, double-booking constraints and daylight saving](docs/architecture/scheduling.md)
 - [Audit: how a change becomes an audit row, atomically](docs/architecture/audit.md)
+- [Jobs: owner-installed storage, system scopes and operator access](docs/architecture/jobs.md)
 - [Deployment: topology, pipeline, secrets inventory, and what's not provisioned yet](docs/architecture/deployment.md)
 - [Live verification checklist](docs/operations/live-verification.md) and [runbook](docs/operations/runbook.md)
 - [Frontend decisions and conventions](frontend/README.md)
