@@ -17,6 +17,7 @@ export class ApiRequestError extends Error implements ApiError {
   readonly status: number;
   readonly fieldErrors?: Record<string, string[]>;
   readonly correlationId?: string;
+  readonly retryAfterSeconds?: number;
 
   constructor(error: ApiError) {
     super(error.message);
@@ -30,6 +31,7 @@ export class ApiRequestError extends Error implements ApiError {
     if (error.correlationId !== undefined) {
       this.correlationId = error.correlationId;
     }
+    if (error.retryAfterSeconds !== undefined) this.retryAfterSeconds = error.retryAfterSeconds;
   }
 }
 
@@ -144,7 +146,14 @@ async function sendOnce<T>(url: string, init: RequestInit | undefined, headers: 
     return body as T;
   }
 
-  throw new ApiRequestError(toApiError(body, response.status));
+  const error = toApiError(body, response.status);
+  const retryAfter = response.headers.get("Retry-After");
+  if (response.status === 429 && retryAfter !== null) {
+    const seconds = Number(retryAfter);
+    const delay = Number.isFinite(seconds) ? seconds : (Date.parse(retryAfter) - Date.now()) / 1000;
+    if (Number.isFinite(delay)) error.retryAfterSeconds = Math.max(1, Math.ceil(delay));
+  }
+  throw new ApiRequestError(error);
 }
 
 /**

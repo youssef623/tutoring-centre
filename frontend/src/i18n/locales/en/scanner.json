@@ -1,0 +1,19 @@
+{
+  "title": "Scan cards", "scanCards": "Scan cards", "back": "Back to roster", "loading": "Loading session…", "notFound": "Session not found",
+  "mode": "Scanner input", "camera": "Camera", "manual": "Manual entry", "video": "Rear camera preview",
+  "window": { "open": "Open", "closed": "Closed" }, "closed": "The attendance window is closed. Return to the roster.",
+  "cameraState": { "starting": "Starting camera…", "scanning": "Point the camera at a student card", "denied": "Camera permission denied", "unavailable": "Camera unavailable", "paused": "Camera paused" },
+  "allowCamera": "Allow camera access in your browser's site settings, then switch to Manual entry and back to Camera to retry. You can also stay in manual mode.",
+  "noCamera": "No camera is available. Use manual entry or a USB scanner.", "useManual": "Use manual entry",
+  "tokenLabel": "Card token", "submit": "Record arrival", "invalid": "Enter a valid student card token.",
+  "recorded": "Recorded — {status} at {time}", "already": "Already recorded ({status}, {time})", "last": "Last 10 scans",
+  "status": { "present": "Present", "late": "Late", "absent": "Absent", "excused": "Excused" },
+  "outcome": { "recorded": "Recorded", "alreadyRecorded": "Already recorded" },
+  "errors": {
+    "card.not_recognised": "Card not recognised", "card.revoked": "This card was replaced or revoked. Ask the office for the current card.",
+    "attendance.student_not_in_session": "This student is not expected at this session.", "attendance.record_corrected": "The office corrected this record. The scan cannot change it.",
+    "attendance.window_closed": "The attendance window is closed. Return to the roster.", "attendance.session_cancelled": "This session was cancelled.",
+    "attendance.session_not_open": "The attendance window has not opened yet.", "auth.rate_limited": "Too many scans — wait a moment",
+    "attendance.concurrent_mark": "Another scan is recording this arrival. Try again."
+  }
+}

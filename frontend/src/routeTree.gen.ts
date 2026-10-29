@@ -33,6 +33,7 @@ import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_au
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
 import { Route as AuthenticatedAttendanceSessionsSessionIdRouteImport } from './routes/_authenticated/attendance.sessions.$sessionId'
 import { Route as AuthenticatedGroupsGroupIdCardsRouteImport } from './routes/_authenticated/groups_.$groupId.cards'
+import { Route as AuthenticatedAttendanceSessionsSessionIdScanRouteImport } from './routes/_authenticated/attendance_.sessions.$sessionId.scan'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -162,6 +163,12 @@ const AuthenticatedGroupsGroupIdCardsRoute =
     path: '/groups/$groupId/cards',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAttendanceSessionsSessionIdScanRoute =
+  AuthenticatedAttendanceSessionsSessionIdScanRouteImport.update({
+    id: '/attendance_/sessions/$sessionId/scan',
+    path: '/attendance/sessions/$sessionId/scan',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/students/': typeof AuthenticatedStudentsIndexRoute
   '/attendance/sessions/$sessionId': typeof AuthenticatedAttendanceSessionsSessionIdRoute
   '/groups/$groupId/cards': typeof AuthenticatedGroupsGroupIdCardsRoute
+  '/attendance/sessions/$sessionId/scan': typeof AuthenticatedAttendanceSessionsSessionIdScanRoute
 }
 export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
@@ -209,6 +217,7 @@ export interface FileRoutesByTo {
   '/students': typeof AuthenticatedStudentsIndexRoute
   '/attendance/sessions/$sessionId': typeof AuthenticatedAttendanceSessionsSessionIdRoute
   '/groups/$groupId/cards': typeof AuthenticatedGroupsGroupIdCardsRoute
+  '/attendance/sessions/$sessionId/scan': typeof AuthenticatedAttendanceSessionsSessionIdScanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -236,6 +245,7 @@ export interface FileRoutesById {
   '/_authenticated/students/': typeof AuthenticatedStudentsIndexRoute
   '/_authenticated/attendance/sessions/$sessionId': typeof AuthenticatedAttendanceSessionsSessionIdRoute
   '/_authenticated/groups_/$groupId/cards': typeof AuthenticatedGroupsGroupIdCardsRoute
+  '/_authenticated/attendance_/sessions/$sessionId/scan': typeof AuthenticatedAttendanceSessionsSessionIdScanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/students/'
     | '/attendance/sessions/$sessionId'
     | '/groups/$groupId/cards'
+    | '/attendance/sessions/$sessionId/scan'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/change-password'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/attendance/sessions/$sessionId'
     | '/groups/$groupId/cards'
+    | '/attendance/sessions/$sessionId/scan'
   id:
     | '__root__'
     | '/_authenticated'
@@ -311,6 +323,7 @@ export interface FileRouteTypes {
     | '/_authenticated/students/'
     | '/_authenticated/attendance/sessions/$sessionId'
     | '/_authenticated/groups_/$groupId/cards'
+    | '/_authenticated/attendance_/sessions/$sessionId/scan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -491,6 +504,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGroupsGroupIdCardsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/attendance_/sessions/$sessionId/scan': {
+      id: '/_authenticated/attendance_/sessions/$sessionId/scan'
+      path: '/attendance/sessions/$sessionId/scan'
+      fullPath: '/attendance/sessions/$sessionId/scan'
+      preLoaderRoute: typeof AuthenticatedAttendanceSessionsSessionIdScanRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -554,6 +574,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedParentsParentIdRoute: typeof AuthenticatedParentsParentIdRoute
   AuthenticatedGroupsGroupIdCardsRoute: typeof AuthenticatedGroupsGroupIdCardsRoute
+  AuthenticatedAttendanceSessionsSessionIdScanRoute: typeof AuthenticatedAttendanceSessionsSessionIdScanRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -569,6 +590,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedParentsParentIdRoute: AuthenticatedParentsParentIdRoute,
   AuthenticatedGroupsGroupIdCardsRoute: AuthenticatedGroupsGroupIdCardsRoute,
+  AuthenticatedAttendanceSessionsSessionIdScanRoute:
+    AuthenticatedAttendanceSessionsSessionIdScanRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

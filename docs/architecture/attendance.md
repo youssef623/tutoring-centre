@@ -167,7 +167,7 @@ The card lookup uses `ux_student_cards_centre_token_hash`. A scan changes at mos
 row. The attendance natural key arbitrates simultaneous first scans. Five separate scopes are forced
 to overlap after reading no attendance, repeated for ten sessions; exactly one records and other
 inserts return `attendance.concurrent_mark`. A subsequent retry returns `AlreadyRecorded`.
-The HTTP race proves a single retry on conflict; the scanner UI belongs to Day 66.
+The HTTP race proves a single retry on conflict; the scanner uses that same retry policy.
 
 The handler emits one structured Information entry with `Outcome`, `SessionId`, and nullable
 `CardId`. Before a successful card lookup, CardId is null. Never include token, student name or
@@ -202,3 +202,58 @@ classifies all five routes. `ScanRaceHttpTests` uses five independent clients ov
 first reads to overlap, retries one `attendance.concurrent_mark`, and proves exactly one recorded
 outcome and row in each of five fresh sessions. Dropping the natural unique index in a throwaway
 test database exposes duplicate rows; the mutation is restored before normal verification.
+
+## Card printing and scanner (Days 65–66)
+
+Office staff manage the three card states on the student page. Reissue confirms that the current
+card stops working. Versioned revoke offers Lost, Damaged and Withdrawn; stale versions refetch
+and close, and already-revoked errors refetch status. Archived students cannot be issued cards.
+`/groups/$groupId/cards` selects current roster students, sends one bulk request for at most 60,
+and prints eight ID-1 cards per A4 page with cut marks. Arabic and English share the card face;
+names use automatic direction while the QR and short card number remain left-to-right.
+
+The issue dialog and group sheet hold tokens only in component state and discard them on close
+or navigation. Browser-local SVG generation uses error correction M and a quiet zone. No full
+token text is shown, printed, persisted or sent to a QR service. Returning requires issuing again.
+Card component tests prove storage is untouched, permission guards, confirmation, selection and
+versioned revoke; the status cache contains metadata only.
+
+An open roster links to `/attendance/sessions/$sessionId/scan`, guarded by `attendance.mark`.
+Session facts still come from the protected roster query; another teacher sees Session not found.
+The header shows session/group, teacher, window times and open state. Camera scanning uses the
+rear camera and a dynamically imported decoder at roughly ten frames per second. All stream
+tracks stop on unmount, hidden tabs, manual mode, closed windows or rate-limit pause. Starting,
+scanning, denied, unavailable and paused states are translated; denial offers manual entry.
+
+Both camera and manual/keyboard-wedge entry feed `useScanQueue`. Manual entry has autocomplete
+and spellcheck disabled, clears on submit, and validates token shape with Zod before queuing.
+Foreign prefixes are ignored. Recent SHA-256 fingerprints suppress the same code for three
+seconds without retaining its text. These filters reduce noise; server validation and the natural
+key provide the security and idempotency guarantees.
+
+Exactly one request runs at a time; up to five codes wait in memory. Completed credentials are
+removed from the active ref; mutation variables contain an empty placeholder, not the token.
+Unmount aborts the request and clears pending codes. History retains only the last ten names,
+statuses, outcomes and times. A new arrival produces a green banner, brief vibration where
+supported and roster-query invalidation. A repeat produces amber with the original status/time.
+Banners include icons and text, so colour is not the only signal.
+
+The queue retries `attendance.concurrent_mark` once. Unknown/revoked/unexpected cards produce
+translated red reasons. A closed window stops scanning and links back to the roster. A 429
+flushes waiting codes and pauses decoding for the parsed `Retry-After` duration; the standard API
+error wrapper exposes this metadata without changing other error mapping. No scanner token enters
+storage, URL, query cache, mutation variables or result history.
+
+`ScannerPage.test.tsx` mocks the decoder boundary and uses fixed/fake time for repeat filtering.
+It proves queue bounds and serialization, retry limits, rate-limit pause/resume, closed windows,
+red errors, denied-camera fallback, track cleanup including late permission resolution, manual
+validation and secret absence. Existing roster tests remain unchanged and green. The real-browser
+`e2e/qr-attendance.spec.ts` issues a disposable card, records via manual entry, repeats, reissues,
+rejects the old card and verifies source QR. Physical camera readability and phone latency remain
+manual demo checks.
+
+Local phone camera use follows [the README](../../README.md#scanning-from-a-phone): optional
+ignored certificates enable Vite HTTPS and `dev:lan` LAN binding. The API remains localhost-only
+behind the existing same-origin proxy; Secure cookies, CSRF and production settings are unchanged.
+Without both files the existing HTTP/localhost startup is retained. No agent installs a CA or
+changes trust stores. [ADR 0014](../adr/0014-opaque-hashed-card-tokens.md) records the full decision.

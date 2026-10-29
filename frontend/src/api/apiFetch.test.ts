@@ -6,6 +6,10 @@ import { server } from "@/test/msw/server";
 import { ApiRequestError, apiFetch, toApiError } from "./apiFetch";
 
 describe("apiFetch", () => {
+  it("preserves Retry-After on a 429 rejection", async () => {
+    server.use(http.get("*/api/limited", () => HttpResponse.json({ status: 429, title: "Rate limit", code: "auth.rate_limited" }, { status: 429, headers: { "Retry-After": "7" } })));
+    await expect(apiFetch("/api/limited")).rejects.toMatchObject({ status: 429, retryAfterSeconds: 7 });
+  });
   it("returns the parsed body for a 200 response", async () => {
     // Arrange
     server.use(http.get("*/api/ping", () => HttpResponse.json({ message: "pong" })));

@@ -1,5 +1,7 @@
 import cardsEn from "./locales/en/cards.json";
 import cardsAr from "./locales/ar/cards.json";
+import scannerEn from "./locales/en/scanner.json";
+import scannerAr from "./locales/ar/scanner.json";
 import i18next from "i18next";
 import ICU from "i18next-icu";
 import { initReactI18next } from "react-i18next";
@@ -99,6 +101,7 @@ void i18next
         schedule: scheduleEn,
         attendance: attendanceEn,
         cards: cardsEn,
+        scanner: scannerEn,
       },
       ar: {
         common: commonAr,
@@ -118,11 +121,12 @@ void i18next
         schedule: scheduleAr,
         attendance: attendanceAr,
         cards: cardsAr,
+        scanner: scannerAr,
       },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule", "attendance", "cards"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule", "attendance", "cards", "scanner"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

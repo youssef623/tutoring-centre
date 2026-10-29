@@ -122,6 +122,7 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
   return (
     <section className="space-y-6 pb-24">
       <SessionHeader data={data} />
+      {markingOpen && <Link to="/attendance/sessions/$sessionId/scan" params={{ sessionId }} className={buttonVariants()}>{t("scanner:scanCards")}</Link>}
 
       <WindowNotice
         window={data.window}
