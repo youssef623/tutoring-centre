@@ -5,7 +5,7 @@
 Hangfire runs inside the API process. `Jobs:RunServer` enables the server; `Jobs:WorkerCount`
 defaults to 2. Development enables it, base configuration disables it, and test hosts explicitly
 disable it. CLI commands and build-time OpenAPI generation never start a server. There is one
-deployable, no separate worker service and no concrete or recurring jobs yet (Day 68).
+deployable and no separate worker service. The nightly schedule jobs are described below.
 
 `JobsOptions` is validated at startup. Worker count must be positive, `DashboardPath` must be an
 absolute non-root path without a trailing slash, query or fragment, and `OperatorEmails` must
@@ -96,5 +96,22 @@ refusal, both `/api/me` flag values, and absence of a test-host Hangfire server.
 proxies `/ops` to the existing API origin, preserving cookie authentication. Both languages
 include the label and component tests cover both flag values.
 
-See [ADR 0015](../adr/0015-jobs-and-outbox.md) for the framework and hosting decision. Concrete
-nightly jobs follow on Day 68; outbox delivery semantics are not defined by this foundation.
+See [ADR 0015](../adr/0015-jobs-and-outbox.md) for the framework and hosting decision.
+Outbox delivery semantics follow on Day 69.
+
+## Nightly schedule fan-out
+
+When `Jobs:RunServer` is true, startup upserts `schedules.extend-nightly` with cron
+`17 2 * * *` and time zone `Africa/Cairo`. Tests register no recurring work.
+`ExtendSchedulesFanOutJob` opens a system scope without a centre, lists ordered IDs
+through `ICentreDirectory`, and enqueues one `ExtendCentreScheduleJob` per ID.
+Only Infrastructure jobs may depend on this directory; `TenancyRuleTests` enforces it.
+
+Each child opens its own system scope and computes today using `IClock` and that
+centre's time zone. It dispatches `ExtendScheduleCommand` through today plus
+`ScheduleHorizon.Days` (28). Each command owns its transaction, so one centre's
+failure cannot roll back another. A failure Result logs its code and completes;
+an exception propagates for Hangfire retries. Logs include the centre and created
+session count. Parent retries may enqueue duplicates; existing rule/date sessions
+make repeated extensions no-ops. `ExtendScheduleJobTests` proves isolation,
+repeatability, local dates, collision rollback and independent children.

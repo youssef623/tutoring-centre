@@ -66,6 +66,7 @@ export function TimetablePage({
             <Button
               type="button"
               variant="outline"
+              title={t("actions.extendAutomaticHint")}
               disabled={today === null}
               onClick={() => {
                 setExtendOpen(true);

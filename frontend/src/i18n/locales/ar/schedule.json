@@ -43,6 +43,7 @@
     "end": "إنهاء",
     "endLabel": "إنهاء حصة {day} الساعة {time}",
     "extend": "تمديد الجدول",
+    "extendAutomaticHint": "تُمدد الجداول تلقائيًا كل ليلة أيضًا",
     "openSessionMenu": "إجراءات {group} الساعة {time}",
     "cancelSession": "إلغاء الحصة"
   },
