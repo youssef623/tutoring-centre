@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { existsSync, readFileSync } from "node:fs";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
@@ -11,7 +12,11 @@ import { configDefaults, defineConfig } from "vitest/config";
 // trustworthy origin even without TLS — and passes its URL here so the dev-server proxy matches it.
 const apiTarget = process.env.API_TARGET ?? "https://localhost:7197";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const certificate = fileURLToPath(new URL("../certs/dev-cert.pem", import.meta.url));
+  const key = fileURLToPath(new URL("../certs/dev-key.pem", import.meta.url));
+  const localHttps = existsSync(certificate) && existsSync(key);
+  return {
   plugins: [
     // Must come before the React plugin (TanStack Router docs).
     // Component tests live beside the routes they cover (e.g. routes/login.test.tsx); they are not routes.
@@ -30,6 +35,8 @@ export default defineConfig({
     assetsInlineLimit: 0,
   },
   server: {
+    ...(localHttps ? { https: { cert: readFileSync(certificate), key: readFileSync(key) } } : {}),
+    ...(localHttps && mode === "lan" ? { host: "0.0.0.0" } : {}),
     proxy: {
       // secure: false — Node's TLS stack doesn't read the OS trust store, so it doesn't trust the
       // `dotnet dev-certs` self-signed certificate the way the OS (and browsers) do.
@@ -43,4 +50,5 @@ export default defineConfig({
     // Playwright specs (frontend/e2e/) are not unit tests; Vitest must not try to run them.
     exclude: [...configDefaults.exclude, "e2e/**"],
   },
+  };
 });

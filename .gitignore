@@ -5,6 +5,7 @@
 
 # dotenv files
 .env
+certs/
 
 # User-specific files
 *.rsuser

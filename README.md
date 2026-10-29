@@ -251,3 +251,28 @@ can inspect its audit entry. The group Attendance tab shows the resulting histor
 `--in-minutes` defaults to 10. The helper refuses outside Development and between 23:00 and midnight
 in the centre's zone. It retries teacher conflicts at later half-hour slots. The weekly rule is ended
 after today, so later generated sessions remain cancelled history rather than future demo classes.
+# Scanning from a phone
+
+Use a phone on the same Wi-Fi as the development machine. The frontend is the only LAN-facing
+server; the API remains bound to localhost behind Vite's existing same-origin proxy. Production
+configuration, Secure `__Host-` cookies and CSRF protection are unchanged.
+
+1. Install [mkcert](https://github.com/FiloSottile/mkcert) using its platform instructions.
+2. Run `mkcert -install` yourself. This installs a local development CA; the coding agent must not
+   install any CA or modify a trust store.
+3. Find the machine's LAN IPv4 address with `ipconfig` (Windows) or your network settings.
+4. From the repository root, create `certs/`, then run:
+   `mkcert -cert-file certs/dev-cert.pem -key-file certs/dev-key.pem localhost 127.0.0.1 ::1 <LAN-IP>`.
+5. Install **only** mkcert's public `rootCA.pem` on your own phone and enable trust using the phone's
+   OS instructions. Find it with `mkcert -CAROOT`. Never copy or share `rootCA-key.pem`.
+6. Start PostgreSQL and the API normally: `docker compose up -d postgres`, then
+   `dotnet run --project src/TutoringCentre.Api --launch-profile https`.
+7. In `frontend/`, run `npm run dev:lan`. Open `https://<LAN-IP>:5173` on the phone and sign in.
+   If needed, allow the frontend's development port through the local firewall for your private
+   network yourself. Do not expose API ports 7197, 5245 or 5080 to the LAN.
+
+Both certificate files are required. Without them, `npm run dev` and `npm run dev:lan` retain the
+existing HTTP/localhost behavior. With them, Vite serves HTTPS; only `dev:lan` binds to LAN
+interfaces. `certs/` is ignored by Git. A throwaway self-signed certificate can verify HTTPS
+transport but does not make a phone trust the origin; install your own mkcert CA as described above.
+
