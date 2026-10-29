@@ -3,6 +3,7 @@ using TutoringCentre.Application.Academics;
 using TutoringCentre.Application.Academics.Contracts;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Application.Common.Messaging;
 
 namespace TutoringCentre.Application;
 
@@ -24,6 +25,7 @@ public static class DependencyInjection
 
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
         services.AddScoped<Dispatcher>();
+        services.AddOutbox();
         services.AddScoped<ITeachingScope, TeachingScopeAdapter>();
 
         return services;

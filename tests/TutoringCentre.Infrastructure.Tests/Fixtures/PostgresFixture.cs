@@ -76,7 +76,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["platform", "identity", "academics", "attendance", "probe", "audit"],
+            SchemasToInclude = ["platform", "identity", "academics", "attendance", "probe", "audit", "jobs"],
             TablesToIgnore = [new Table("platform", "__ef_migrations_history")],
         });
     }

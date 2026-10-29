@@ -12,13 +12,16 @@ namespace TutoringCentre.Infrastructure.Tests.Academics;
 public sealed class RowLevelSecurityCoverageTests(PostgresFixture fixture) : PostgresTestBase(fixture)
 {
     // Every exemption must be justified in writing (full rationale: docs/architecture/tenancy.md's Exemptions
-    // table). Today there is exactly one.
+    // table). Cross-centre infrastructure tables require explicit compensating controls.
     private static readonly HashSet<(string Schema, string Table)> Exemptions = new()
     {
         // Read at login, before app.current_centre is ever set, to show the user which centres they belong to
         // and let them pick one (Month 1). Forcing a centre-based policy on it would make centre selection
         // itself impossible.
         ("identity", "memberships"),
+        // Relay reads across centres; payloads contain identifiers only. Delivery opens one tenant scope
+        // per command, where the normal dispatcher transaction and RLS apply.
+        ("jobs", "outbox_messages"),
     };
 
     [Fact]
