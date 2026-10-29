@@ -205,6 +205,14 @@ function UserMenu({ me }: { me: MeDto }) {
       <Menu.Portal>
         <Menu.Positioner align="end" sideOffset={4}>
           <Menu.Popup className="min-w-44 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md">
+            {me.isOperator && (
+              <Menu.Item
+                className="cursor-pointer rounded-md px-3 py-1.5 text-sm outline-none data-[highlighted]:bg-muted"
+                render={<a href="/ops/jobs" target="_blank" rel="noopener noreferrer" />}
+              >
+                {t("userMenu.backgroundJobs")}
+              </Menu.Item>
+            )}
             {canSwitchCentre && (
               <Menu.Item
                 className="cursor-pointer rounded-md px-3 py-1.5 text-sm outline-none data-[highlighted]:bg-muted"

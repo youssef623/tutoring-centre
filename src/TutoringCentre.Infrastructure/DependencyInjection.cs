@@ -173,6 +173,7 @@ public static class DependencyInjection
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
+        services.AddScoped<IOperatorDirectory, OperatorDirectory>();
 
         services.AddScoped<IAuditReadService, AuditReadService>();
 

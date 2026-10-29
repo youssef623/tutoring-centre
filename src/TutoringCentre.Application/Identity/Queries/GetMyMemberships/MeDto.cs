@@ -17,4 +17,5 @@ public sealed record MeDto(
     Guid? ActiveCentreId,
     StaffRole? ActiveRole,
     IReadOnlyList<MembershipDto> Memberships,
-    IReadOnlyList<string> Permissions);
+    IReadOnlyList<string> Permissions,
+    bool IsOperator);

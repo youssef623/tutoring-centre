@@ -18,6 +18,7 @@
     "activeCentre": "المركز النشط"
   },
   "userMenu": {
+    "backgroundJobs": "المهام الخلفية",
     "switchCentre": "تبديل المركز",
     "changePassword": "تغيير كلمة المرور",
     "logout": "تسجيل الخروج"

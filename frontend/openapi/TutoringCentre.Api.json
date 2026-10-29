@@ -6050,7 +6050,8 @@
           "activeCentreId",
           "activeRole",
           "memberships",
-          "permissions"
+          "permissions",
+          "isOperator"
         ],
         "type": "object",
         "properties": {
@@ -6098,6 +6099,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "isOperator": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

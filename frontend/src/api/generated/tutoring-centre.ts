@@ -502,6 +502,7 @@ export interface MeDto {
   activeRole: null | StaffRole;
   memberships: MembershipDto[];
   permissions: string[];
+  isOperator: boolean;
 }
 
 export type MembershipStatus = typeof MembershipStatus[keyof typeof MembershipStatus];

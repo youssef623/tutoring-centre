@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Xml.Linq;
 using NetArchTest.Rules;
 
 namespace TutoringCentre.Architecture.Tests;
@@ -9,6 +10,7 @@ public sealed class DependencyRuleTests
     private static readonly Assembly DomainAssembly = typeof(TutoringCentre.Domain.AssemblyMarker).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(TutoringCentre.Application.AssemblyMarker).Assembly;
     private static readonly Assembly InfrastructureAssembly = typeof(TutoringCentre.Infrastructure.AssemblyMarker).Assembly;
+    private static readonly string[] HangfireAllowedProjects = ["TutoringCentre.Infrastructure", "TutoringCentre.Api"];
 
     private static readonly string[] ForbiddenForDomain =
     [
@@ -46,6 +48,20 @@ public sealed class DependencyRuleTests
     [Fact]
     public void Infrastructure_DoesNotDependOnApi() =>
         AssertNoDependencies(InfrastructureAssembly, ForbiddenForInfrastructure);
+
+    [Fact]
+    public void Hangfire_PackagesAreDeclaredOnlyAtInfrastructureAndApiEdges()
+    {
+        var root = ProjectFiles.FindRepositoryRoot();
+        foreach (var project in Directory.EnumerateFiles(Path.Combine(root, "src"), "*.csproj", SearchOption.AllDirectories))
+        {
+            var packages = XDocument.Load(project).Descendants("PackageReference")
+                .Select(element => (string?)element.Attribute("Include"))
+                .Where(name => name?.StartsWith("Hangfire", StringComparison.Ordinal) == true).ToList();
+            if (packages.Count > 0)
+                Assert.Contains(Path.GetFileNameWithoutExtension(project), HangfireAllowedProjects);
+        }
+    }
 
     [Fact]
     public void Application_DoesNotDependOnSerilogHangfireOrHttpClient()

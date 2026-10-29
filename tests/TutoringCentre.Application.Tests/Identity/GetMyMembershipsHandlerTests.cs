@@ -14,7 +14,7 @@ public sealed class GetMyMembershipsHandlerTests
     {
         // Arrange
         var actorContext = new CurrentActorContext();
-        var handler = new GetMyMembershipsHandler(actorContext, new FakeMembershipReadService());
+        var handler = new GetMyMembershipsHandler(actorContext, new FakeMembershipReadService(), new FakeOperatorDirectory());
 
         // Act
         var result = await handler.HandleAsync(new GetMyMembershipsQuery(), CancellationToken.None);
@@ -33,7 +33,7 @@ public sealed class GetMyMembershipsHandlerTests
         var actorContext = new CurrentActorContext();
         actorContext.Set(new StaffActor(userId, null, null));
         var readService = new FakeMembershipReadService { Profile = null };
-        var handler = new GetMyMembershipsHandler(actorContext, readService);
+        var handler = new GetMyMembershipsHandler(actorContext, readService, new FakeOperatorDirectory());
 
         // Act
         var result = await handler.HandleAsync(new GetMyMembershipsQuery(), CancellationToken.None);
@@ -56,7 +56,7 @@ public sealed class GetMyMembershipsHandlerTests
         {
             Profile = new StaffProfileDto(userId, "Teacher", "teacher@both.test", "en", [membership], MustChangePassword: false),
         };
-        var handler = new GetMyMembershipsHandler(actorContext, readService);
+        var handler = new GetMyMembershipsHandler(actorContext, readService, new FakeOperatorDirectory());
 
         // Act
         var result = await handler.HandleAsync(new GetMyMembershipsQuery(), CancellationToken.None);
@@ -82,7 +82,7 @@ public sealed class GetMyMembershipsHandlerTests
         {
             Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [membership], MustChangePassword: false),
         };
-        var handler = new GetMyMembershipsHandler(actorContext, readService);
+        var handler = new GetMyMembershipsHandler(actorContext, readService, new FakeOperatorDirectory());
 
         // Act
         var result = await handler.HandleAsync(new GetMyMembershipsQuery(), CancellationToken.None);
@@ -107,7 +107,7 @@ public sealed class GetMyMembershipsHandlerTests
             // The actor still claims staleCentreId, but the freshly read profile no longer lists it as active.
             Profile = new StaffProfileDto(userId, "Secretary", "secretary@nile.test", "ar", [], MustChangePassword: false),
         };
-        var handler = new GetMyMembershipsHandler(actorContext, readService);
+        var handler = new GetMyMembershipsHandler(actorContext, readService, new FakeOperatorDirectory());
 
         // Act
         var result = await handler.HandleAsync(new GetMyMembershipsQuery(), CancellationToken.None);

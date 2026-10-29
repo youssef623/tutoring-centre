@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
@@ -18,12 +20,14 @@ using TutoringCentre.Application.Platform;
 using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
+using TutoringCentre.Infrastructure.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Build-time OpenAPI generation (Microsoft.Extensions.ApiDescription.Server) runs this entry point inside GetDocument.Insider.
 // Startup side effects must not run there, but every endpoint must still be registered or the document comes out empty.
 var isDocumentGeneration = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+var isCli = args is ["migrate" or "seed" or "demo-session" or "reset-password", ..];
 if (isDocumentGeneration)
 {
     // Satisfies fail-fast options validation without a real database or proxy; nothing connects or listens
@@ -66,8 +70,24 @@ builder.Services.AddApiTelemetry(builder.Configuration);
 
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
+builder.Services.AddSingleton<JobLoggingFilter>();
+builder.Services.AddHangfire((services, configuration) => configuration
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseStorage(JobsStorage.Create(services.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString, prepareSchema: false))
+    .UseFilter(new AutomaticRetryAttribute { Attempts = 3, DelaysInSeconds = [10, 20, 40], LogEvents = false })
+    .UseFilter(services.GetRequiredService<JobLoggingFilter>()));
+// CLI and document generation construct services but must never start a job server.
+if (!isDocumentGeneration && !isCli && builder.Configuration.GetValue<bool>("Jobs:RunServer"))
+{
+    builder.Services.AddHangfireServer((services, options) =>
+        options.WorkerCount = services.GetRequiredService<IOptions<JobsOptions>>().Value.WorkerCount);
+}
 builder.Services.AddApiProblemDetails();
 builder.Services.AddApiAuthentication();
+builder.Services.AddAuthorization(options => options.AddPolicy("PlatformOperator",
+    policy => policy.RequireAuthenticatedUser().AddRequirements(new OperatorRequirement())));
+builder.Services.AddScoped<IAuthorizationHandler, OperatorAuthorizationHandler>();
 builder.Services.AddApiAntiforgery();
 builder.Services.AddLoginRateLimiting(builder.Configuration);
 builder.Services.AddChangePasswordRateLimiting();
@@ -194,6 +214,7 @@ app.UseAuthentication();
 app.UseMiddleware<ActorMiddleware>();
 app.UseAuthorization();
 app.UseRateLimiter();
+app.MapJobsDashboard(app.Services.GetRequiredService<IOptions<JobsOptions>>().Value.DashboardPath);
 
 if (app.Environment.IsDevelopment())
 {

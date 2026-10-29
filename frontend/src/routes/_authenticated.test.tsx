@@ -12,7 +12,7 @@ const logoutUrl = "/api/auth/logout";
 const nileMembership = { centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "teacher" };
 const maadiMembership = { centreId: "c-maadi", centreName: "Maadi Learning Hub", centreSlug: "maadi-hub", role: "teacher" };
 
-function me(overrides: Partial<{ activeCentreId: string | null; memberships: unknown[] }> = {}) {
+function me(overrides: Partial<{ activeCentreId: string | null; memberships: unknown[]; isOperator: boolean }> = {}) {
   const memberships = overrides.memberships ?? [nileMembership, maadiMembership];
   const activeCentreId = overrides.activeCentreId === undefined ? "c-nile" : overrides.activeCentreId;
   return {
@@ -24,10 +24,23 @@ function me(overrides: Partial<{ activeCentreId: string | null; memberships: unk
     activeRole: activeCentreId === null ? null : "teacher",
     memberships,
     permissions: [],
+    isOperator: overrides.isOperator ?? false,
   };
 }
 
 describe("the protected layout's guard", () => {
+  it.each([true, false])("shows the jobs menu only when isOperator is %s", async (isOperator) => {
+    server.use(http.get(meUrl, () => HttpResponse.json(me({ isOperator }))));
+    renderRouter("/");
+    fireEvent.click(await screen.findByRole("button", { name: "Two-Centre Teacher" }));
+    await screen.findByRole("menuitem", { name: "Change password" });
+    const item = screen.queryByRole("menuitem", { name: "Background jobs" });
+    if (isOperator) {
+      expect(item).toHaveAttribute("href", "/ops/jobs");
+      expect(item).toHaveAttribute("target", "_blank");
+      expect(item).toHaveAttribute("rel", "noopener noreferrer");
+    } else expect(item).not.toBeInTheDocument();
+  });
   it("redirects a signed-out visitor to /login?redirect=%2F", async () => {
     // The default msw handler already returns 401 for /api/me.
     const { router } = renderRouter("/");

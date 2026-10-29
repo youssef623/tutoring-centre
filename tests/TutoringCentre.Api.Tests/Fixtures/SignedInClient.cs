@@ -61,7 +61,7 @@ internal static class SignInHelper
         SignInAsync(factory, "teacher@both.test", centreSlug);
 
     /// <summary>Signs in as any seeded user; optionally selects a centre by slug when the account has more than one membership.</summary>
-    public static async Task<SignedInClient> SignInAsync(ApiFactory factory, string email, string? selectCentreSlug = null)
+    public static async Task<SignedInClient> SignInAsync(WebApplicationFactory<Program> factory, string email, string? selectCentreSlug = null)
     {
         ArgumentNullException.ThrowIfNull(factory);
 
