@@ -137,7 +137,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<ICentreRepository, CentreRepository>();
-        services.AddScoped<ICentreDirectory, CentreDirectory>();
+        services.AddCentreDirectory();
         services.AddScoped<ICentreReadService, CentreReadService>();
         services.AddScoped<ICentreTimeZoneProvider, CentreTimeZoneProvider>();
 
