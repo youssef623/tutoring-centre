@@ -139,6 +139,11 @@ builder.Services.AddOpenApi(options =>
 
 var app = builder.Build();
 
+if (!isDocumentGeneration && !isCli && app.Services.GetRequiredService<IOptions<JobsOptions>>().Value.RunServer)
+{
+    RecurringJobs.Register(app.Services.GetRequiredService<IRecurringJobManager>());
+}
+
 // CLI mode: `dotnet run --project src/TutoringCentre.Api -- migrate`. The deploy pipeline's own step — the
 // running web process never migrates itself in Production (see below).
 if (args is ["migrate"])

@@ -43,6 +43,7 @@
     "end": "End",
     "endLabel": "End {day} at {time}",
     "extend": "Extend schedule",
+    "extendAutomaticHint": "Schedules are also extended automatically every night",
     "openSessionMenu": "Actions for {group} at {time}",
     "cancelSession": "Cancel session"
   },

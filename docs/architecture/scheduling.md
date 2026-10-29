@@ -226,17 +226,16 @@ reassignment; `docs/architecture/audit.md`).
 - `MaxEffectiveFromDaysAhead = 366`: how far ahead a new rule may start.
 - `MaxExtendDaysAhead = 92`: how far `ExtendScheduleCommand` may reach.
 
-"Today" is always `CentreCalendar.Today(clock, zone)`, never the server's date. Nothing extends the schedule on
-its own yet: after four weeks the timetable runs out unless someone presses "Extend schedule" on the Timetable
-page (`later.md`).
+"Today" is always `CentreCalendar.Today(clock, zone)`, never the server's date. The nightly job extends
+automatically; staff may also press "Extend schedule" on the Timetable page.
 
-## What Month 4's job will call
+## What the nightly job calls
 
-The nightly job planned for Month 4 needs no new use case. For each centre it dispatches
+The nightly job uses the existing use case. For each centre it dispatches
 `ExtendScheduleCommand(through: today + 28)` as `SystemActor(centreId)`, the same way the seed CLI dispatches its
 per-centre commands. The command is already one centre per call, idempotent, all-or-nothing per centre, and takes
-the per-teacher locks, so it can run beside staff edits. Iterating every centre is the part that does not exist
-yet (`later.md`, "tenant-less background jobs").
+the per-teacher locks, so it can run beside staff edits. `ExtendSchedulesFanOutJob` lists centre IDs,
+then enqueues one independently scoped `ExtendCentreScheduleJob` per centre.
 
 ## Endpoints (Day 53)
 
@@ -286,3 +285,11 @@ rules, 24 and 8 sessions, every rule starting on the seed day, and that a second
 `schedule.manage`, not a separate key: the same people who manage the timetable cancel its meetings.
 
 See also `docs/adr/0012-sessions-as-generated-instants.md` for the alternatives behind this model.
+
+## Automatic extension
+
+Every night at 02:17 Africa/Cairo, `schedules.extend-nightly` enqueues one job per
+centre. Each child dispatches the existing `ExtendScheduleCommand` through its
+own local today plus 28 days. The manual Extend action remains available with
+unchanged behaviour. Repeats add no duplicate rule/date sessions. A collision
+rolls back the entire centre's extension; other centres execute independently.

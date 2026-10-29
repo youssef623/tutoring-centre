@@ -324,3 +324,13 @@ Seven production tables carry no centre-based policy, confirmed against the sche
 
 If a future table needs centre scoping and is missing from both layers, that is the bug this list exists to
 catch — every exemption above has a reason checked against the code, not an assumption.
+
+## Tenant-less background fan-out
+
+Trusted parent jobs may list centre IDs through `ICentreDirectory`, which returns
+only ordered identifiers from `platform.centres`, independently of the actor.
+Every child opens a fresh `SystemScopeRunner` scope as `SystemActor(centreId)`.
+Real tenant reads and writes then use the dispatcher transaction and RLS normally.
+`TenancyRuleTests.CentreDirectory_OnlyInfrastructureJobsMayDependOnIt` confines
+cross-centre listing to Infrastructure jobs, including their directory adapter
+and registration. No HTTP request or application handler can depend on it.
