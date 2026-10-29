@@ -71,6 +71,7 @@ builder.Services.AddApiAuthentication();
 builder.Services.AddApiAntiforgery();
 builder.Services.AddLoginRateLimiting(builder.Configuration);
 builder.Services.AddChangePasswordRateLimiting();
+builder.Services.AddScanRateLimiting();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -225,6 +226,7 @@ api.MapGroupEndpoints();
 api.MapEnrollmentEndpoints();
 api.MapScheduleEndpoints();
 api.MapAttendanceEndpoints();
+api.MapStudentCardEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();
@@ -256,3 +258,5 @@ app.Run();
 return 0;
 
 public partial class Program;
+
+

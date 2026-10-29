@@ -76,7 +76,7 @@ public sealed class StudentCardUseCaseTests(PostgresFixture fixture) : Attendanc
         var status = await Clocked.QueryAsAsync<GetStudentCardQuery, StudentCardDto?>(nile.Owner, new(nile.StudentId));
         var denied = await Clocked.SendAsAsync<RevokeStudentCardCommand, Unit>(maadi.Owner, new(issued.Value.CardId, CardRevocationReason.Lost, status.Value!.Version));
         Assert.Equal("card.not_found", denied.Error!.Code);
-        Assert.Null((await Clocked.QueryAsAsync<GetStudentCardQuery, StudentCardDto?>(maadi.Owner, new(nile.StudentId))).Value);
+        Assert.Equal("student.not_found", (await Clocked.QueryAsAsync<GetStudentCardQuery, StudentCardDto?>(maadi.Owner, new(nile.StudentId))).Error!.Code);
         Assert.Equal("active", await Fixture.ScalarAsync<string>("select status from attendance.student_cards limit 1"));
         await using var scope = Clocked.CreateAsyncScope();
         scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(maadi.Owner);

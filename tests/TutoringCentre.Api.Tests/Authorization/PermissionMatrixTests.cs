@@ -84,7 +84,56 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "PUT /api/sessions/{sessionId:guid}/attendance",
         "POST /api/attendance/{recordId:guid}/correct",
         "GET /api/attendance",
+        "GET /api/students/{studentId:guid}/card",
+        "POST /api/students/{studentId:guid}/card",
+        "POST /api/groups/{groupId:guid}/cards",
+        "POST /api/student-cards/{cardId:guid}/revoke",
+        "POST /api/sessions/{sessionId:guid}/scans",
     ];
+
+    [Theory]
+    [InlineData("owner@nile.test", "status", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", "status", HttpStatusCode.OK)]
+    [InlineData("teacher", "status", HttpStatusCode.Forbidden)]
+    [InlineData("owner@nile.test", "issue", HttpStatusCode.Created)]
+    [InlineData("secretary@nile.test", "issue", HttpStatusCode.Created)]
+    [InlineData("teacher", "issue", HttpStatusCode.Forbidden)]
+    [InlineData("owner@nile.test", "bulk", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", "bulk", HttpStatusCode.OK)]
+    [InlineData("teacher", "bulk", HttpStatusCode.Forbidden)]
+    [InlineData("owner@nile.test", "revoke", HttpStatusCode.NoContent)]
+    [InlineData("secretary@nile.test", "revoke", HttpStatusCode.NoContent)]
+    [InlineData("teacher", "revoke", HttpStatusCode.Forbidden)]
+    [InlineData("owner@nile.test", "scan", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", "scan", HttpStatusCode.OK)]
+    [InlineData("teacher", "scan", HttpStatusCode.OK)]
+    public async Task CardsAndScans(string role, string operation, HttpStatusCode expected)
+    {
+        factory.Time.FixAt(AttendanceHttp.BeforeSession);
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        var scenario = await AttendanceHttp.Arrange(owner.Client);
+        using var issued = await AntiforgeryTestHelper.PostAsync(owner.Client, new($"/api/students/{scenario.Students[0]}/card", UriKind.Relative), null);
+        Assert.Equal(HttpStatusCode.Created, issued.StatusCode);
+        var card = await AttendanceHttp.Json(issued);
+        var status = (await AttendanceHttp.Get(owner.Client, $"/api/students/{scenario.Students[0]}/card")).GetProperty("card");
+        var before = await factory.ScalarAsync<string>("select string_agg(id::text || status || xmin::text, ',' order by id) from attendance.student_cards");
+        factory.Time.FixAt(AttendanceHttp.InSession);
+        using var actor = await SignInAsync(role);
+        using var response = operation switch
+        {
+            "status" => await actor.Client.GetAsync(new Uri($"/api/students/{scenario.Students[0]}/card", UriKind.Relative)),
+            "issue" => await AntiforgeryTestHelper.PostAsync(actor.Client, new($"/api/students/{scenario.Students[0]}/card", UriKind.Relative), null),
+            "bulk" => await AttendanceHttp.Post(actor.Client, $"/api/groups/{scenario.GroupId}/cards", new { studentIds = scenario.Students }),
+            "revoke" => await AttendanceHttp.Post(actor.Client, $"/api/student-cards/{card.GetProperty("cardId").GetGuid()}/revoke", new { reason = "lost", version = status.GetProperty("version").GetUInt32() }),
+            _ => await AttendanceHttp.Post(actor.Client, $"/api/sessions/{scenario.SessionId}/scans", new { token = card.GetProperty("token").GetString() }),
+        };
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.Forbidden)
+        {
+            await AssertPermissionDeniedAsync(response);
+            Assert.Equal(before, await factory.ScalarAsync<string>("select string_agg(id::text || status || xmin::text, ',' order by id) from attendance.student_cards"));
+        }
+    }
 
     public async Task InitializeAsync()
     {

@@ -597,3 +597,43 @@ X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 @attendanceFrom = 2026-10-28
 @attendanceTo = 2026-10-28
 GET {{baseUrl}}/api/attendance?from={{attendanceFrom}}&to={{attendanceTo}}&pageSize=50
+
+### Day 64: card status never contains a token. Unknown/foreign student returns 404.
+GET {{baseUrl}}/api/students/{{attendanceStudentId}}/card
+
+### Issue/reissue has no body; expect 201, Location and Cache-Control: no-store.
+# @name issuedStudentCard
+POST {{baseUrl}}/api/students/{{attendanceStudentId}}/card
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+@attendanceGroupId = replace-with-a-group-id
+### Bulk issue selected students; expect 200 and Cache-Control: no-store.
+POST {{baseUrl}}/api/groups/{{attendanceGroupId}}/cards
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{ "studentIds": [ "{{attendanceStudentId}}" ] }
+
+### Scan uses only a disposable local issue response; never paste a real token here.
+### Open the session first with demo-session. Expect recorded, then alreadyRecorded (both 200).
+POST {{baseUrl}}/api/sessions/{{attendanceSessionId}}/scans
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{ "token": "{{issuedStudentCard.response.body.$.token}}" }
+
+### Invalid token shape: 400 card.invalid_format. This is not a usable credential.
+POST {{baseUrl}}/api/sessions/{{attendanceSessionId}}/scans
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{ "token": "TCM1.short" }
+
+### Revoke: copy metadata version from status. The UI permits lost, damaged, withdrawn only.
+@studentCardId = replace-with-a-card-id
+@studentCardVersion = replace-with-status-version
+POST {{baseUrl}}/api/student-cards/{{studentCardId}}/revoke
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
+
+{ "reason": "lost", "version": {{studentCardVersion}} }

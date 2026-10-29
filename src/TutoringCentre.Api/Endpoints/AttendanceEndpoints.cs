@@ -2,6 +2,7 @@ using TutoringCentre.Api.Http;
 using TutoringCentre.Application.Attendance;
 using TutoringCentre.Application.Attendance.Commands.CorrectAttendance;
 using TutoringCentre.Application.Attendance.Commands.MarkAttendance;
+using TutoringCentre.Application.Attendance.Commands.RecordScan;
 using TutoringCentre.Application.Attendance.Queries.GetAttendance;
 using TutoringCentre.Application.Attendance.Queries.GetSessionAttendance;
 using TutoringCentre.Application.Attendance.Queries.ListAttendanceSessions;
@@ -15,6 +16,9 @@ public static class AttendanceEndpoints
     public static RouteGroupBuilder MapAttendanceEndpoints(this RouteGroupBuilder api)
     {
         ArgumentNullException.ThrowIfNull(api);
+        api.MapPost("/sessions/{sessionId:guid}/scans", ScanAsync).WithName("recordScan")
+            .RequireRateLimiting("scan").Produces<ScanResult>().ProducesValidationProblem()
+            .ProducesProblem(401).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409).ProducesProblem(422).ProducesProblem(429);
         api.MapGet("/attendance/sessions", ListSessionsAsync).WithName("listAttendanceSessions")
             .Produces<AttendanceSessionsDto>().ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403);
         api.MapGet("/sessions/{sessionId:guid}/attendance", GetSessionAsync).WithName("getSessionAttendance")
@@ -28,6 +32,12 @@ public static class AttendanceEndpoints
         api.MapGet("/attendance", GetHistoryAsync).WithName("getAttendance")
             .Produces<AttendancePageDto>().ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403);
         return api;
+    }
+
+    private static async Task<IResult> ScanAsync(Guid sessionId, RecordScanRequest request, Dispatcher dispatcher, CancellationToken ct)
+    {
+        var result = await dispatcher.SendAsync<RecordScanCommand, ScanResult>(new(sessionId, request.Token), ct);
+        return result.ToHttpResult(Results.Ok);
     }
 
     private static async Task<IResult> ListSessionsAsync(Dispatcher dispatcher, CancellationToken ct, DateOnly? date = null)
@@ -79,4 +89,9 @@ public sealed record CorrectAttendanceRequest
     public required AttendanceStatus Status { get; init; }
     public required string Reason { get; init; }
     public required uint Version { get; init; }
+}
+
+public sealed record RecordScanRequest
+{
+    public required string Token { get; init; }
 }

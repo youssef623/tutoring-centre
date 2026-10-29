@@ -34,7 +34,7 @@ internal static class AttendanceHttp
         Assert.Equal(status, response.StatusCode);
         Assert.Equal(code, (await Json(response)).GetProperty("code").GetString());
     }
-    public static async Task<Scenario> Arrange(HttpClient owner, bool own = true)
+    public static async Task<Scenario> Arrange(HttpClient owner, bool own = true, string startTime = "18:00")
     {
         var staff = (await Get(owner, "/api/staff")).GetProperty("items").EnumerateArray()
             .Single(row => row.GetProperty("email").GetString() == "teacher@both.test").GetProperty("userId").GetGuid();
@@ -50,7 +50,7 @@ internal static class AttendanceHttp
         foreach (var studentId in students) { enrollments.Add(await Create(owner, $"/api/groups/{group}/enrollments", new { studentId })); }
         await Create(owner, $"/api/groups/{group}/schedule-rules", new
         {
-            dayOfWeek = "tuesday", startTime = "18:00", durationMinutes = 60, effectiveFrom = Date,
+            dayOfWeek = "tuesday", startTime, durationMinutes = 60, effectiveFrom = Date,
         });
         var session = Assert.Single((await Get(owner, $"/api/timetable?weekStart={Date}&groupId={group}")).GetProperty("sessions").EnumerateArray());
         return new(group, session.GetProperty("id").GetGuid(), students, enrollments.ToArray());
