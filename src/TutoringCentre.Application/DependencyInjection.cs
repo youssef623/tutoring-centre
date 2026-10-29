@@ -20,6 +20,7 @@ public static class DependencyInjection
         // One correlation context per scope. ICorrelationContext resolves to the SAME instance, read-only.
         services.AddScoped<CorrelationContext>();
         services.AddScoped<ICorrelationContext>(provider => provider.GetRequiredService<CorrelationContext>());
+        services.AddSingleton<ISystemScopeRunner, SystemScopeRunner>();
 
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
         services.AddScoped<Dispatcher>();

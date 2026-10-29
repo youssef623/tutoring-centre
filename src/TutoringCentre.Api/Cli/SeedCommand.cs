@@ -158,13 +158,10 @@ public static class SeedCommand
         foreach (var centre in includeSetupCentre ? [.. Centres, SetupCentre] : Centres)
         {
             // One scope per command: its own actor, unit of work and DbContext.
-            await using var scope = services.CreateAsyncScope();
-            scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(new SystemActor(null));
-            var dispatcher = scope.ServiceProvider.GetRequiredService<Dispatcher>();
-
-            var result = await dispatcher.SendAsync<CreateCentreCommand, CreateCentreResult>(
-                new CreateCentreCommand(centre.Name, centre.Slug, centre.TimeZoneId, centre.DefaultLocale),
-                CancellationToken.None);
+            var result = await InCentreAsync(services, null, (_, dispatcher) =>
+                dispatcher.SendAsync<CreateCentreCommand, CreateCentreResult>(
+                    new CreateCentreCommand(centre.Name, centre.Slug, centre.TimeZoneId, centre.DefaultLocale),
+                    CancellationToken.None));
 
             if (result.IsSuccess)
             {
@@ -181,9 +178,9 @@ public static class SeedCommand
             }
         }
 
-        await using (var scope = services.CreateAsyncScope())
+        await InCentreAsync(services, null, async (scopedServices, _) =>
         {
-            var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentIdentitySeeder>();
+            var seeder = scopedServices.GetRequiredService<DevelopmentIdentitySeeder>();
             var result = await seeder.SeedAsync(includeSetupCentre, CancellationToken.None);
 
             if (result.IsSuccess)
@@ -195,17 +192,17 @@ public static class SeedCommand
                 logger.LogError("Seed: seeding staff failed with {ErrorCode}", result.Error?.Code);
                 exitCode = 1;
             }
-        }
+            return Unit.Value;
+        });
 
         // Read-only lookup, not a write: resolving which centre a slug belongs to needs no tenant enforcement
         // proof the way creating a subject does. TutoringCentre.Api.Cli is one of the two namespaces (alongside
         // Program.cs) allowed to reference Infrastructure directly.
-        Dictionary<string, Guid> centreIdsBySlug;
-        await using (var scope = services.CreateAsyncScope())
+        var centreIdsBySlug = await InCentreAsync(services, null, (scopedServices, _) =>
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            centreIdsBySlug = await db.Set<Centre>().ToDictionaryAsync(centre => centre.Slug, centre => centre.Id, CancellationToken.None);
-        }
+            var db = scopedServices.GetRequiredService<AppDbContext>();
+            return db.Set<Centre>().ToDictionaryAsync(centre => centre.Slug, centre => centre.Id, CancellationToken.None);
+        });
 
         foreach (var centreSubjects in Subjects)
         {
@@ -218,30 +215,30 @@ public static class SeedCommand
 
             // One scope per centre: the actor (and therefore the tenant step, write guard and RLS) is set once,
             // then every subject for that centre dispatches through the same scope's Dispatcher.
-            await using var subjectScope = services.CreateAsyncScope();
-            subjectScope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(new SystemActor(centreId));
-            var dispatcher = subjectScope.ServiceProvider.GetRequiredService<Dispatcher>();
-
-            foreach (var name in centreSubjects.Names)
+            await InCentreAsync(services, centreId, async (_, dispatcher) =>
             {
-                var result = await dispatcher.SendAsync<CreateSubjectCommand, CreateSubjectResult>(
-                    new CreateSubjectCommand(name), CancellationToken.None);
+                foreach (var name in centreSubjects.Names)
+                {
+                    var result = await dispatcher.SendAsync<CreateSubjectCommand, CreateSubjectResult>(
+                        new CreateSubjectCommand(name), CancellationToken.None);
 
-                if (result.IsSuccess)
-                {
-                    logger.LogInformation("Seed: created subject {Name} in {Slug}", name, centreSubjects.CentreSlug);
+                    if (result.IsSuccess)
+                    {
+                        logger.LogInformation("Seed: created subject {Name} in {Slug}", name, centreSubjects.CentreSlug);
+                    }
+                    else if (result.Error?.Code == "subject.name_taken")
+                    {
+                        logger.LogInformation("Seed: subject {Name} in {Slug} already exists", name, centreSubjects.CentreSlug);
+                    }
+                    else
+                    {
+                        logger.LogError(
+                            "Seed: creating subject {Name} in {Slug} failed with {ErrorCode}", name, centreSubjects.CentreSlug, result.Error?.Code);
+                        exitCode = 1;
+                    }
                 }
-                else if (result.Error?.Code == "subject.name_taken")
-                {
-                    logger.LogInformation("Seed: subject {Name} in {Slug} already exists", name, centreSubjects.CentreSlug);
-                }
-                else
-                {
-                    logger.LogError(
-                        "Seed: creating subject {Name} in {Slug} failed with {ErrorCode}", name, centreSubjects.CentreSlug, result.Error?.Code);
-                    exitCode = 1;
-                }
-            }
+                return Unit.Value;
+            });
         }
 
         foreach (var family in Families)
@@ -256,43 +253,43 @@ public static class SeedCommand
             // One scope per centre's worth of work would mix families from different centres into a lookup that
             // never clears between them; one scope per family keeps each lookup and every registration in it
             // scoped to exactly that family's centre, same as the subjects loop above does per centre.
-            await using var familyScope = services.CreateAsyncScope();
-            familyScope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(new SystemActor(centreId));
-            var dispatcher = familyScope.ServiceProvider.GetRequiredService<Dispatcher>();
-
-            var lookup = await dispatcher.QueryAsync<LookupParentByPhoneQuery, ParentLookupDto>(
-                new LookupParentByPhoneQuery(family.ParentPhone), CancellationToken.None);
-            Guid? parentId = lookup.IsSuccess ? lookup.Value.Parent?.Id : null;
-
-            foreach (var studentName in family.StudentNames)
+            await InCentreAsync(services, centreId, async (_, dispatcher) =>
             {
-                var existingSearch = await dispatcher.QueryAsync<ListStudentsQuery, StudentPageDto>(
-                    new ListStudentsQuery(studentName, true, null, 5), CancellationToken.None);
-                if (existingSearch.IsSuccess && existingSearch.Value.Items.Any(item => item.FullName == studentName))
-                {
-                    logger.LogInformation("Seed: student {Name} in {Slug} already exists", studentName, family.CentreSlug);
-                    continue;
-                }
+                var lookup = await dispatcher.QueryAsync<LookupParentByPhoneQuery, ParentLookupDto>(
+                    new LookupParentByPhoneQuery(family.ParentPhone), CancellationToken.None);
+                Guid? parentId = lookup.IsSuccess ? lookup.Value.Parent?.Id : null;
 
-                var parentForm = parentId is { } existingParentId
-                    ? new RegisterStudentParent(existingParentId, null, null)
-                    : new RegisterStudentParent(null, family.ParentFullName, family.ParentPhone);
-
-                var result = await dispatcher.SendAsync<RegisterStudentCommand, RegisterStudentResult>(
-                    new RegisterStudentCommand(studentName, null, null, parentForm, ParentRelationship.Father), CancellationToken.None);
-
-                if (result.IsSuccess)
+                foreach (var studentName in family.StudentNames)
                 {
-                    parentId = result.Value.ParentId;
-                    logger.LogInformation("Seed: created student {Name} in {Slug}", studentName, family.CentreSlug);
+                    var existingSearch = await dispatcher.QueryAsync<ListStudentsQuery, StudentPageDto>(
+                        new ListStudentsQuery(studentName, true, null, 5), CancellationToken.None);
+                    if (existingSearch.IsSuccess && existingSearch.Value.Items.Any(item => item.FullName == studentName))
+                    {
+                        logger.LogInformation("Seed: student {Name} in {Slug} already exists", studentName, family.CentreSlug);
+                        continue;
+                    }
+
+                    var parentForm = parentId is { } existingParentId
+                        ? new RegisterStudentParent(existingParentId, null, null)
+                        : new RegisterStudentParent(null, family.ParentFullName, family.ParentPhone);
+
+                    var result = await dispatcher.SendAsync<RegisterStudentCommand, RegisterStudentResult>(
+                        new RegisterStudentCommand(studentName, null, null, parentForm, ParentRelationship.Father), CancellationToken.None);
+
+                    if (result.IsSuccess)
+                    {
+                        parentId = result.Value.ParentId;
+                        logger.LogInformation("Seed: created student {Name} in {Slug}", studentName, family.CentreSlug);
+                    }
+                    else
+                    {
+                        logger.LogError(
+                            "Seed: creating student {Name} in {Slug} failed with {ErrorCode}", studentName, family.CentreSlug, result.Error?.Code);
+                        exitCode = 1;
+                    }
                 }
-                else
-                {
-                    logger.LogError(
-                        "Seed: creating student {Name} in {Slug} failed with {ErrorCode}", studentName, family.CentreSlug, result.Error?.Code);
-                    exitCode = 1;
-                }
-            }
+                return Unit.Value;
+            });
         }
 
         if (!await SeedTeachersAndGroupsAsync(services, centreIdsBySlug, logger))
@@ -341,13 +338,12 @@ public static class SeedCommand
                 continue;
             }
 
-            Guid? groupId;
-            await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+            var groupId = await InCentreAsync(services, centreId, async (_, dispatcher) =>
             {
                 var groups = await dispatcher.QueryAsync<ListGroupsQuery, IReadOnlyList<GroupDto>>(
                     new ListGroupsQuery(null, null, true), CancellationToken.None);
-                groupId = groups.IsSuccess ? groups.Value.FirstOrDefault(group => group.Name == seedEnrollment.GroupName)?.Id : null;
-            }
+                return groups.IsSuccess ? groups.Value.FirstOrDefault(group => group.Name == seedEnrollment.GroupName)?.Id : null;
+            });
 
             if (groupId is null)
             {
@@ -358,35 +354,38 @@ public static class SeedCommand
 
             foreach (var studentName in seedEnrollment.StudentNames)
             {
-                await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
-                var search = await dispatcher.QueryAsync<ListStudentsQuery, StudentPageDto>(
-                    new ListStudentsQuery(studentName, true, null, 5), CancellationToken.None);
-                var studentId = search.IsSuccess ? search.Value.Items.FirstOrDefault(item => item.FullName == studentName)?.Id : null;
-                if (studentId is null)
+                var enrolled = await InCentreAsync(services, centreId, async (_, dispatcher) =>
                 {
-                    logger.LogError("Seed: student {Name} in {Slug} does not exist; cannot enroll", studentName, seedEnrollment.CentreSlug);
-                    succeeded = false;
-                    continue;
-                }
+                    var search = await dispatcher.QueryAsync<ListStudentsQuery, StudentPageDto>(
+                        new ListStudentsQuery(studentName, true, null, 5), CancellationToken.None);
+                    var studentId = search.IsSuccess ? search.Value.Items.FirstOrDefault(item => item.FullName == studentName)?.Id : null;
+                    if (studentId is null)
+                    {
+                        logger.LogError("Seed: student {Name} in {Slug} does not exist; cannot enroll", studentName, seedEnrollment.CentreSlug);
+                        return false;
+                    }
 
-                var result = await dispatcher.SendAsync<EnrollStudentCommand, EnrollStudentResult>(
-                    new EnrollStudentCommand(groupId.Value, studentId.Value), CancellationToken.None);
+                    var result = await dispatcher.SendAsync<EnrollStudentCommand, EnrollStudentResult>(
+                        new EnrollStudentCommand(groupId.Value, studentId.Value), CancellationToken.None);
 
-                if (result.IsSuccess)
-                {
-                    logger.LogInformation("Seed: enrolled {Student} in {Group} in {Slug}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug);
-                }
-                else if (result.Error?.Code is "enrollment.already_enrolled" or "group.full")
-                {
-                    logger.LogInformation(
-                        "Seed: {Student} in {Group} in {Slug} already seeded ({ErrorCode})", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error.Code);
-                }
-                else
-                {
-                    logger.LogError(
-                        "Seed: enrolling {Student} in {Group} in {Slug} failed with {ErrorCode}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error?.Code);
-                    succeeded = false;
-                }
+                    if (result.IsSuccess)
+                    {
+                        logger.LogInformation("Seed: enrolled {Student} in {Group} in {Slug}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug);
+                    }
+                    else if (result.Error?.Code is "enrollment.already_enrolled" or "group.full")
+                    {
+                        logger.LogInformation(
+                            "Seed: {Student} in {Group} in {Slug} already seeded ({ErrorCode})", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error.Code);
+                    }
+                    else
+                    {
+                        logger.LogError(
+                            "Seed: enrolling {Student} in {Group} in {Slug} failed with {ErrorCode}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error?.Code);
+                        return false;
+                    }
+                    return true;
+                });
+                if (!enrolled) succeeded = false;
             }
         }
 
@@ -414,12 +413,11 @@ public static class SeedCommand
         var succeeded = true;
 
         // The account comes from the identity seeding that already ran, looked up through Identity itself.
-        Guid? twoCentreTeacherUserId;
-        await using (var scope = services.CreateAsyncScope())
+        var twoCentreTeacherUserId = await InCentreAsync(services, null, async (scopedServices, _) =>
         {
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            twoCentreTeacherUserId = (await userManager.FindByEmailAsync(DevelopmentIdentitySeeder.TwoCentreTeacherEmail))?.Id;
-        }
+            var userManager = scopedServices.GetRequiredService<UserManager<ApplicationUser>>();
+            return (await userManager.FindByEmailAsync(DevelopmentIdentitySeeder.TwoCentreTeacherEmail))?.Id;
+        });
 
         if (twoCentreTeacherUserId is null)
         {
@@ -435,22 +433,20 @@ public static class SeedCommand
             }
 
             var teacherIdsByName = new Dictionary<string, Guid>(StringComparer.Ordinal);
-            IReadOnlyList<TeacherDto> existingTeachers;
-            Dictionary<string, Guid> subjectIdsByName;
-            await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+            var (teachers, subjects) = await InCentreAsync(services, centreId, async (_, dispatcher) =>
             {
-                var teachers = await dispatcher.QueryAsync<ListTeachersQuery, IReadOnlyList<TeacherDto>>(new ListTeachersQuery(true), CancellationToken.None);
-                var subjects = await dispatcher.QueryAsync<ListSubjectsQuery, IReadOnlyList<SubjectDto>>(new ListSubjectsQuery(true), CancellationToken.None);
-                if (!teachers.IsSuccess || !subjects.IsSuccess)
-                {
-                    logger.LogError("Seed: listing teachers or subjects in {Slug} failed", slug);
-                    succeeded = false;
-                    continue;
-                }
-
-                existingTeachers = teachers.Value;
-                subjectIdsByName = subjects.Value.ToDictionary(subject => subject.Name, subject => subject.Id, StringComparer.Ordinal);
+                var teachersResult = await dispatcher.QueryAsync<ListTeachersQuery, IReadOnlyList<TeacherDto>>(new ListTeachersQuery(true), CancellationToken.None);
+                var subjectsResult = await dispatcher.QueryAsync<ListSubjectsQuery, IReadOnlyList<SubjectDto>>(new ListSubjectsQuery(true), CancellationToken.None);
+                return (teachersResult, subjectsResult);
+            });
+            if (!teachers.IsSuccess || !subjects.IsSuccess)
+            {
+                logger.LogError("Seed: listing teachers or subjects in {Slug} failed", slug);
+                succeeded = false;
+                continue;
             }
+            var existingTeachers = teachers.Value;
+            var subjectIdsByName = subjects.Value.ToDictionary(subject => subject.Name, subject => subject.Id, StringComparer.Ordinal);
 
             foreach (var seedTeacher in Teachers.Where(teacher => teacher.CentreSlug == slug))
             {
@@ -463,9 +459,9 @@ public static class SeedCommand
                 }
                 else
                 {
-                    await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
-                    var created = await dispatcher.SendAsync<CreateTeacherCommand, CreateTeacherResult>(
-                        new CreateTeacherCommand(seedTeacher.FullName, null), CancellationToken.None);
+                    var created = await InCentreAsync(services, centreId, (_, dispatcher) =>
+                        dispatcher.SendAsync<CreateTeacherCommand, CreateTeacherResult>(
+                            new CreateTeacherCommand(seedTeacher.FullName, null), CancellationToken.None));
                     if (!created.IsSuccess)
                     {
                         logger.LogError("Seed: creating teacher {Name} in {Slug} failed with {ErrorCode}", seedTeacher.FullName, slug, created.Error?.Code);
@@ -484,7 +480,7 @@ public static class SeedCommand
                     continue;
                 }
 
-                await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+                await InCentreAsync(services, centreId, async (_, dispatcher) =>
                 {
                     var current = await dispatcher.QueryAsync<GetTeacherQuery, TeacherDto>(new GetTeacherQuery(teacherId), CancellationToken.None);
                     var linked = current.IsSuccess
@@ -506,7 +502,8 @@ public static class SeedCommand
                             "Seed: linking teacher {Name} in {Slug} failed with {ErrorCode}", seedTeacher.FullName, slug, linked.Error?.Code);
                         succeeded = false;
                     }
-                }
+                    return Unit.Value;
+                });
             }
 
             foreach (var seedGroup in Groups.Where(group => group.CentreSlug == slug))
@@ -519,9 +516,9 @@ public static class SeedCommand
                     continue;
                 }
 
-                await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
-                var result = await dispatcher.SendAsync<CreateGroupCommand, CreateGroupResult>(
-                    new CreateGroupCommand(seedGroup.Name, subjectId, teacherId, seedGroup.Capacity), CancellationToken.None);
+                var result = await InCentreAsync(services, centreId, (_, dispatcher) =>
+                    dispatcher.SendAsync<CreateGroupCommand, CreateGroupResult>(
+                        new CreateGroupCommand(seedGroup.Name, subjectId, teacherId, seedGroup.Capacity), CancellationToken.None));
 
                 if (result.IsSuccess)
                 {
@@ -573,24 +570,21 @@ public static class SeedCommand
                 continue;
             }
 
-            DateOnly today;
-            Dictionary<string, Guid> groupIdsByName;
-            await using (var scope = CreateCentreScope(services, centreId, out var dispatcher))
+            var (today, groups) = await InCentreAsync(services, centreId, async (scopedServices, dispatcher) =>
             {
-                var zone = await scope.ServiceProvider.GetRequiredService<ICentreTimeZoneProvider>().GetForCurrentCentreAsync(CancellationToken.None);
-                today = CentreCalendar.Today(scope.ServiceProvider.GetRequiredService<IClock>(), zone);
-
-                var groups = await dispatcher.QueryAsync<ListGroupsQuery, IReadOnlyList<GroupDto>>(
+                var zone = await scopedServices.GetRequiredService<ICentreTimeZoneProvider>().GetForCurrentCentreAsync(CancellationToken.None);
+                var date = CentreCalendar.Today(scopedServices.GetRequiredService<IClock>(), zone);
+                var groupResult = await dispatcher.QueryAsync<ListGroupsQuery, IReadOnlyList<GroupDto>>(
                     new ListGroupsQuery(null, null, true), CancellationToken.None);
-                if (!groups.IsSuccess)
-                {
-                    logger.LogError("Seed: listing groups in {Slug} failed", slug);
-                    succeeded = false;
-                    continue;
-                }
-
-                groupIdsByName = groups.Value.ToDictionary(group => group.Name, group => group.Id, StringComparer.Ordinal);
+                return (date, groupResult);
+            });
+            if (!groups.IsSuccess)
+            {
+                logger.LogError("Seed: listing groups in {Slug} failed", slug);
+                succeeded = false;
+                continue;
             }
+            var groupIdsByName = groups.Value.ToDictionary(group => group.Name, group => group.Id, StringComparer.Ordinal);
 
             foreach (var seedRule in centreRules)
             {
@@ -601,61 +595,61 @@ public static class SeedCommand
                     continue;
                 }
 
-                await using var scope = CreateCentreScope(services, centreId, out var dispatcher);
-                var existing = await dispatcher.QueryAsync<ListGroupScheduleRulesQuery, IReadOnlyList<ScheduleRuleDto>>(
-                    new ListGroupScheduleRulesQuery(groupId), CancellationToken.None);
-                if (!existing.IsSuccess)
+                var scheduled = await InCentreAsync(services, centreId, async (_, dispatcher) =>
                 {
-                    logger.LogError(
-                        "Seed: listing the rules of {Group} in {Slug} failed with {ErrorCode}", seedRule.GroupName, slug, existing.Error?.Code);
-                    succeeded = false;
-                    continue;
-                }
+                    var existing = await dispatcher.QueryAsync<ListGroupScheduleRulesQuery, IReadOnlyList<ScheduleRuleDto>>(
+                        new ListGroupScheduleRulesQuery(groupId), CancellationToken.None);
+                    if (!existing.IsSuccess)
+                    {
+                        logger.LogError(
+                            "Seed: listing the rules of {Group} in {Slug} failed with {ErrorCode}", seedRule.GroupName, slug, existing.Error?.Code);
+                        return false;
+                    }
 
-                if (existing.Value.Any(rule => rule.DayOfWeek == seedRule.DayOfWeek && rule.StartTime == seedRule.StartTime))
-                {
-                    logger.LogInformation(
-                        "Seed: {Group} in {Slug} already meets on {Day} at {Time}", seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime);
-                    continue;
-                }
+                    if (existing.Value.Any(rule => rule.DayOfWeek == seedRule.DayOfWeek && rule.StartTime == seedRule.StartTime))
+                    {
+                        logger.LogInformation(
+                            "Seed: {Group} in {Slug} already meets on {Day} at {Time}", seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime);
+                        return true;
+                    }
 
-                var result = await dispatcher.SendAsync<AddScheduleRuleCommand, AddScheduleRuleResult>(
-                    new AddScheduleRuleCommand(groupId, seedRule.DayOfWeek, seedRule.StartTime, seedRule.DurationMinutes, seedRule.Room, today),
-                    CancellationToken.None);
+                    var result = await dispatcher.SendAsync<AddScheduleRuleCommand, AddScheduleRuleResult>(
+                        new AddScheduleRuleCommand(groupId, seedRule.DayOfWeek, seedRule.StartTime, seedRule.DurationMinutes, seedRule.Room, today),
+                        CancellationToken.None);
 
-                if (result.IsSuccess)
-                {
-                    logger.LogInformation(
-                        "Seed: {Group} in {Slug} meets on {Day} at {Time} ({Sessions} sessions)",
-                        seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Value.SessionsCreated);
-                }
-                else if (result.Error?.Code is "schedule.teacher_double_booked" or "schedule.group_double_booked")
-                {
-                    logger.LogError(
-                        "Seed: the seed's own schedule collides: {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
-                        seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error.Code);
-                    succeeded = false;
-                }
-                else
-                {
-                    logger.LogError(
-                        "Seed: scheduling {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
-                        seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error?.Code);
-                    succeeded = false;
-                }
+                    if (result.IsSuccess)
+                    {
+                        logger.LogInformation(
+                            "Seed: {Group} in {Slug} meets on {Day} at {Time} ({Sessions} sessions)",
+                            seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Value.SessionsCreated);
+                    }
+                    else if (result.Error?.Code is "schedule.teacher_double_booked" or "schedule.group_double_booked")
+                    {
+                        logger.LogError(
+                            "Seed: the seed's own schedule collides: {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
+                            seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error.Code);
+                        return false;
+                    }
+                    else
+                    {
+                        logger.LogError(
+                            "Seed: scheduling {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
+                            seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error?.Code);
+                        return false;
+                    }
+                    return true;
+                });
+                if (!scheduled) succeeded = false;
             }
         }
 
         return succeeded;
     }
 
-    private static AsyncServiceScope CreateCentreScope(IServiceProvider services, Guid centreId, out Dispatcher dispatcher)
-    {
-        var scope = services.CreateAsyncScope();
-        scope.ServiceProvider.GetRequiredService<CurrentActorContext>().Set(new SystemActor(centreId));
-        dispatcher = scope.ServiceProvider.GetRequiredService<Dispatcher>();
-        return scope;
-    }
+    private static Task<TResult> InCentreAsync<TResult>(IServiceProvider services, Guid? centreId,
+        Func<IServiceProvider, Dispatcher, Task<TResult>> work) =>
+        services.GetRequiredService<ISystemScopeRunner>().RunAsync(centreId, "seed",
+            (scopedServices, _) => work(scopedServices, scopedServices.GetRequiredService<Dispatcher>()));
 
     private sealed record SeedTeacher(string CentreSlug, string FullName, bool LinkTwoCentreTeacher);
 

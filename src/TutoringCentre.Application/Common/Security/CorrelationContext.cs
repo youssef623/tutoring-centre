@@ -2,7 +2,7 @@ namespace TutoringCentre.Application.Common.Security;
 
 /// <summary>
 /// Holds the correlation ID for one scope. Starts null; trusted edge code (Api middleware) calls <see cref="Set"/>
-/// at most once. Non-HTTP callers (seed, jobs, tests) never call it, so <see cref="CorrelationId"/> stays null.
+/// at most once. SystemScopeRunner sets it explicitly for trusted non-HTTP work.
 /// </summary>
 public sealed class CorrelationContext : ICorrelationContext
 {
