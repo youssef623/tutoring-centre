@@ -225,6 +225,7 @@ api.MapGroupEndpoints();
 api.MapEnrollmentEndpoints();
 api.MapScheduleEndpoints();
 api.MapAttendanceEndpoints();
+api.MapStudentCardEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();
@@ -256,3 +257,4 @@ app.Run();
 return 0;
 
 public partial class Program;
+
