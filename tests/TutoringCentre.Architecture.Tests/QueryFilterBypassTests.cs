@@ -18,6 +18,8 @@ public sealed class QueryFilterBypassTests
         "SqlQuery",
         "ExecuteSqlRaw",
         "ExecuteSql",
+        "NpgsqlCommand",
+        "CreateCommand",
     ];
 
     // A call like "x.ExecuteSqlRawAsync(...)" or "x.SqlQuery<T>(...)" still counts: \w* absorbs the Async/Raw/

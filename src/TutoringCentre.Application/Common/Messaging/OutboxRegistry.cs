@@ -45,6 +45,7 @@ public static class OutboxRegistration
         return services;
     }
 
+    /// <summary>Registers one stable message type to one idempotent command. Delivery may repeat after commit.</summary>
     public static IServiceCollection AddOutboxMessage<TMessage, TCommand>(this IServiceCollection services,
         Func<TMessage, TCommand> toCommand) where TMessage : class, IOutboxMessage
     {
