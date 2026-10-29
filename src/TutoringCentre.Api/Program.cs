@@ -71,6 +71,7 @@ builder.Services.AddApiAuthentication();
 builder.Services.AddApiAntiforgery();
 builder.Services.AddLoginRateLimiting(builder.Configuration);
 builder.Services.AddChangePasswordRateLimiting();
+builder.Services.AddScanRateLimiting();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -257,4 +258,5 @@ app.Run();
 return 0;
 
 public partial class Program;
+
 

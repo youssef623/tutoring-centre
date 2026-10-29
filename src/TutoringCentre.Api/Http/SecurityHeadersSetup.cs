@@ -26,7 +26,7 @@ public static class SecurityHeadersSetup
         "form-action 'self'; " +
         "object-src 'none'";
 
-    private const string PermissionsPolicy = "camera=(), microphone=(), geolocation=()";
+    private const string PermissionsPolicy = "camera=(self), microphone=(), geolocation=()";
 
     public static WebApplication UseSecurityHeaders(this WebApplication app)
     {
@@ -59,3 +59,4 @@ public static class SecurityHeadersSetup
         return app;
     }
 }
+
