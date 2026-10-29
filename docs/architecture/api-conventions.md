@@ -155,3 +155,15 @@ business rule to refuse.
 | `schedule.range_invalid` | Rule → 422 on the named date field | Schedules; `effectiveFrom` more than 366 days ahead, or `through` outside today to 92 days ahead (today in the centre's zone) |
 | `schedule.rule_already_ended`, `schedule.rule_end_invalid`, `schedule.session_already_cancelled`, `schedule.session_in_past` | Rule → 422 | Schedules |
 | `group.has_active_schedule` | Rule → 422 | `POST /api/groups/{id}/archive` while a rule is still in effect (Day 52) |
+## Card credentials (Day 64)
+
+Credentials travel only in request or response bodies, never in URLs or query parameters. No GET
+returns a card token. Token-bearing issue and bulk-issue responses carry `Cache-Control: no-store`,
+provided by the existing API security-header middleware. Request and response bodies are excluded
+from request logging. Status responses contain metadata only. A card is issued with POST because
+each call creates a different credential; replacing a card invalidates the previous credential.
+
+Card and scan bodies use the existing strict JSON options: unknown members are `request.malformed`.
+The scan accepts only `token`; its session comes from the route and its student from the card lookup.
+Both `recorded` and `alreadyRecorded` return 200. Only a simultaneous first insert may return
+409 `attendance.concurrent_mark`; a scanner retries that conflict once.

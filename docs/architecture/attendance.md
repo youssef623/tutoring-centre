@@ -104,7 +104,7 @@ The helper prints the session ID and its attendance URL.
 
 Slice 11 provides Domain rules, persistence, commands, queries, endpoints, isolation tests and generated
 hooks, plus session marking/correction screens and history views. Slice 12 adds the scan command on Day 63;
-its endpoint, rate limit and HTTP race remain deferred to Day 64.
+Day 64 exposes the card and scan endpoints, per-user scan limit and HTTP race coverage.
 See [ADR 0013](../adr/0013-attendance-window-and-corrections.md) for the accepted decision and evidence.
 
 ## History views
@@ -124,8 +124,7 @@ history cache. Teachers still lack `students.view` and cannot reach student deta
 ## Card scan validation order (Day 63)
 
 `RecordScanCommand(SessionId, Token)` is tenant-scoped and requires `attendance.mark`. The token is
-body data only. The command accepts no student ID and masks its token in `ToString()`. There is no
-scan endpoint yet. Validation performs no data access, and actor checks precede the transaction.
+body data only. The command accepts no student ID and masks its token in `ToString()`. Validation touches no data. Actor checks precede the transaction; Day 64 exposes this through the scan endpoint.
 Explicit validator error codes survive dispatch; built-in validation failures retain `validation.failed`.
 
 Each check returns before loading the data used by the next check. Test names below are executable
@@ -168,9 +167,38 @@ The card lookup uses `ux_student_cards_centre_token_hash`. A scan changes at mos
 row. The attendance natural key arbitrates simultaneous first scans. Five separate scopes are forced
 to overlap after reading no attendance, repeated for ten sessions; exactly one records and other
 inserts return `attendance.concurrent_mark`. A subsequent retry returns `AlreadyRecorded`.
-Client retry behavior belongs to Days 64 and 66.
+The HTTP race proves a single retry on conflict; the scanner UI belongs to Day 66.
 
 The handler emits one structured Information entry with `Outcome`, `SessionId`, and nullable
 `CardId`. Before a successful card lookup, CardId is null. Never include token, student name or
 command object. `RecordScanHandlerTests.ScanLog_ContainsOnlyOutcomeSessionAndCard` checks success
 and unknown-card log fields. Dispatcher logging remains unchanged and never logs command objects.
+
+## Card and scan HTTP endpoints (Day 64)
+
+| Method and route | Operation | Permission | Success |
+| --- | --- | --- | --- |
+| GET `/api/students/{studentId}/card` | `getStudentCard` | `attendance.cards.manage` | 200 `{card: metadata or null}` |
+| POST `/api/students/{studentId}/card` | `issueStudentCard` | `attendance.cards.manage` | 201, Location points to status, no-store |
+| POST `/api/groups/{groupId}/cards` | `issueGroupCards` | `attendance.cards.manage` | 200, no-store |
+| POST `/api/student-cards/{cardId}/revoke` | `revokeStudentCard` | `attendance.cards.manage` | 204 |
+| POST `/api/sessions/{sessionId}/scans` | `recordScan` | `attendance.mark`, teacher owns session | 200 for both outcomes |
+
+Issue has no body. Bulk issue accepts `studentIds`, 1–60 distinct non-empty IDs. Revoke accepts
+`reason` (lost, damaged or withdrawn) and `version`; reissued is server-only. Scan accepts only
+`token`. All writes retain session and CSRF protection and strict JSON binding. Unknown or foreign
+students, groups, cards and sessions share their respective not-found codes; a known student without
+a card returns `{card:null}`. The status query now explicitly checks tenant-scoped student existence.
+
+The `scan` sliding-window policy allows 60 requests per minute per authenticated user ID, with six
+segments and queue zero. An exhausted user receives 429 `auth.rate_limited` and `Retry-After`;
+another user on the same IP retains their own allowance. The policy has no test-only partition bypass.
+`Permissions-Policy` is exactly `camera=(self), microphone=(), geolocation=()`.
+
+`CardEndpointTests`, `ScanEndpointTests`, `CardCrossTenantTests`, `ScanCrossTenantTests`, and
+`ScanRateLimitTests` prove the contract, no-store headers, secret-free log sink and isolation in both
+directions. `PermissionMatrixTests.CardsAndScans` contains 15 literal role cases; endpoint inventory
+classifies all five routes. `ScanRaceHttpTests` uses five independent clients over two users, forces
+first reads to overlap, retries one `attendance.concurrent_mark`, and proves exactly one recorded
+outcome and row in each of five fresh sessions. Dropping the natural unique index in a throwaway
+test database exposes duplicate rows; the mutation is restored before normal verification.
