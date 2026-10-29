@@ -3,14 +3,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
+using TutoringCentre.Infrastructure.Jobs;
 
 namespace TutoringCentre.Infrastructure.Persistence;
 
 /// <summary>
 /// Applies pending EF Core migrations through a short-lived <see cref="AppDbContext"/> built directly on the
 /// migrations (tutoring_owner) connection, then disposes it. The app's own DI-registered AppDbContext never runs
-/// migrations and stays on the runtime (tutoring_app) connection throughout. Called by the Api in Development and
-/// by the seed command only.
+/// migrations and stays on the runtime (tutoring_app) connection throughout. Called only by the migrate CLI
+/// and explicit test setup. Hangfire is installed by that same owner connection after EF migrations.
 /// </summary>
 public static class MigrationRunner
 {
@@ -34,5 +35,7 @@ public static class MigrationRunner
         // No request or job is running this: the actor stays anonymous, same as the design-time factory.
         await using var migrationContext = new AppDbContext(optionsBuilder.Options, new CurrentActorContext());
         await migrationContext.Database.MigrateAsync(ct);
+        ct.ThrowIfCancellationRequested();
+        _ = JobsStorage.Create(migrationsConnectionString, prepareSchema: true);
     }
 }

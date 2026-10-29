@@ -18,6 +18,7 @@
     "activeCentre": "Active centre"
   },
   "userMenu": {
+    "backgroundJobs": "Background jobs",
     "switchCentre": "Switch centre",
     "changePassword": "Change password",
     "logout": "Log out"

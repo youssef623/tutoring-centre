@@ -25,6 +25,7 @@ using TutoringCentre.Application.Platform;
 using TutoringCentre.Application.Staff;
 using TutoringCentre.Infrastructure.Centres;
 using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Infrastructure.Jobs;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.ReadServices;
@@ -53,6 +54,18 @@ public static class DependencyInjection
         // services that need IConfiguration directly (the development seeder's Seed:Password lookup) also resolve
         // in test harnesses that build a plain ServiceCollection instead of a full host.
         services.AddSingleton(configuration);
+
+        services.AddOptions<JobsOptions>().Bind(configuration.GetSection("Jobs"))
+            .Validate(options => options.WorkerCount > 0, "Jobs:WorkerCount must be greater than zero.")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.DashboardPath)
+                && options.DashboardPath.StartsWith('/') && options.DashboardPath.Length > 1
+                && !options.DashboardPath.EndsWith('/') && !options.DashboardPath.Contains("//", StringComparison.Ordinal)
+                && options.DashboardPath.IndexOfAny(['?', '#', '\\']) < 0,
+                "Jobs:DashboardPath must be an absolute path without a trailing slash, query or fragment.")
+            .Validate(options => options.OperatorEmails is not null && options.OperatorEmails.All(email =>
+                System.Net.Mail.MailAddress.TryCreate(email, out var parsed) && parsed.Address == email),
+                "Jobs:OperatorEmails must contain email addresses only.")
+            .ValidateOnStart();
 
         // Time: stateless and thread-safe, so one instance for the app.
         services.AddSingleton(TimeProvider.System);
@@ -160,6 +173,7 @@ public static class DependencyInjection
 
         services.AddScoped<ISystemInfoReadService, SystemInfoReadService>();
         services.AddScoped<IMembershipReadService, MembershipReadService>();
+        services.AddScoped<IOperatorDirectory, OperatorDirectory>();
 
         services.AddScoped<IAuditReadService, AuditReadService>();
 

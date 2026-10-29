@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => {
       // secure: false — Node's TLS stack doesn't read the OS trust store, so it doesn't trust the
       // `dotnet dev-certs` self-signed certificate the way the OS (and browsers) do.
       "/api": { target: apiTarget, secure: false },
+      "/ops": { target: apiTarget, secure: false },
       "/health": { target: apiTarget, secure: false },
     },
   },

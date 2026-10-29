@@ -7,7 +7,7 @@ namespace TutoringCentre.Api.Tests.Authorization;
 
 /// <summary>
 /// Task 30.8: enumerates the running application's own endpoints and demands that every one of them has been
-/// explicitly classified into one of three lists — anonymous, any authenticated user, or the permission matrix
+/// explicitly classified as anonymous, any authenticated user, operator-only, or in the permission matrix
 /// (<see cref="PermissionMatrixTests"/>). An endpoint nobody classified fails the build, so it cannot ship
 /// unprotected by accident. Expectations are explicit routes, never wildcards or generated from the role map.
 /// </summary>
@@ -34,12 +34,19 @@ public sealed class EndpointInventoryTests(ApiFactory factory)
         "POST /api/auth/change-password",
     };
 
+    /// <summary>operator-only: platform operators; no centre role grants these routes.</summary>
+    private static readonly HashSet<string> OperatorOnlyRoutes = new(StringComparer.Ordinal)
+    {
+        "ANY /ops/jobs/{**path}",
+    };
+
     [Fact]
     public void EveryRunningEndpoint_IsClassifiedExactlyOnce()
     {
         var actualRoutes = GetRouteKeys(factory);
         var expectedRoutes = AnonymousRoutes
             .Concat(AnyAuthenticatedRoutes)
+            .Concat(OperatorOnlyRoutes)
             .Concat(PermissionMatrixTests.MatrixRoutes)
             .ToList();
 

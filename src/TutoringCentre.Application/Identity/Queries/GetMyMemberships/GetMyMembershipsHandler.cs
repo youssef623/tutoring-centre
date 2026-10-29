@@ -11,7 +11,7 @@ namespace TutoringCentre.Application.Identity.Queries.GetMyMemberships;
 /// so there is no ID to tamper with.
 /// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembershipReadService readService)
+internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembershipReadService readService, IOperatorDirectory operators)
     : IQueryHandler<GetMyMembershipsQuery, MeDto>
 {
     public async Task<Result<MeDto>> HandleAsync(GetMyMembershipsQuery query, CancellationToken cancellationToken)
@@ -45,7 +45,8 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
             activeMembership?.CentreId,
             activeMembership?.Role,
             profile.Memberships,
-            permissions);
+            permissions,
+            await operators.IsOperatorAsync(staffActor.UserId, cancellationToken));
 
         return Result<MeDto>.Success(dto);
     }
