@@ -10,6 +10,7 @@ internal static class AuditEntityTypeNames
 {
     public static string ToDatabase(AuditEntityType value) => value switch
     {
+        AuditEntityType.ChannelAccount => "channel_account",
         AuditEntityType.Subject => "subject",
         AuditEntityType.Membership => "membership",
         AuditEntityType.Centre => "centre",
@@ -28,6 +29,7 @@ internal static class AuditEntityTypeNames
 
     public static AuditEntityType FromDatabase(string value) => value switch
     {
+        "channel_account" => AuditEntityType.ChannelAccount,
         "subject" => AuditEntityType.Subject,
         "membership" => AuditEntityType.Membership,
         "centre" => AuditEntityType.Centre,
@@ -48,6 +50,9 @@ internal static class AuditEntityTypeNames
     {
         switch (value)
         {
+            case "channel_account":
+                result = AuditEntityType.ChannelAccount;
+                return true;
             case "subject":
                 result = AuditEntityType.Subject;
                 return true;

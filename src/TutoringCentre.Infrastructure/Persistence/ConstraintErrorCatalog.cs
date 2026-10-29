@@ -18,6 +18,7 @@ internal static class ConstraintErrorCatalog
             "A subject with this name already exists.",
             ErrorKind.Conflict,
             new Dictionary<string, string[]> { ["name"] = ["A subject with this name already exists."] }),
+        ["ux_channel_accounts_provider_external"] = () => Error.Conflict("conversations.channel_taken", "This channel account is already registered."),
         ["ux_centres_slug"] = () => Error.Conflict("centre.slug_taken", "A centre with this slug already exists."),
         ["ux_memberships_centre_user"] = () => new Error(
             "staff.already_member",

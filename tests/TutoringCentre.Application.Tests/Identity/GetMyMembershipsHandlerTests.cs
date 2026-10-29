@@ -90,7 +90,7 @@ public sealed class GetMyMembershipsHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(
-            ["attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"],
+            ["attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "conversations.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"],
             result.Value.Permissions);
     }
 

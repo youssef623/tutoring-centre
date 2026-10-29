@@ -14,9 +14,10 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlyThirteenAuditedTypes()
+    public void Entries_HasExactlyFourteenAuditedTypes()
     {
-        Assert.Equal(13, AuditPolicy.Entries.Count);
+        Assert.Equal(14, AuditPolicy.Entries.Count);
+        Assert.Contains(typeof(TutoringCentre.Domain.Conversations.ChannelAccount), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(StudentCard), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(AttendanceRecord), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(ScheduleRule), AuditPolicy.Entries.Keys);
@@ -271,7 +272,7 @@ public sealed class AuditPolicyTests
     {
         var withoutList = AuditPolicy.Entries.Values.Where(entry => entry.Actions is null).ToList();
 
-        Assert.Equal(10, withoutList.Count);
+        Assert.Equal(11, withoutList.Count);
         Assert.All(withoutList, entry =>
             Assert.All(Enum.GetValues<AuditAction>(), action => Assert.True(entry.Records(action))));
     }

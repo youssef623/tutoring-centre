@@ -19,6 +19,8 @@ public sealed class RowLevelSecurityCoverageTests(PostgresFixture fixture) : Pos
         // and let them pick one (Month 1). Forcing a centre-based policy on it would make centre selection
         // itself impossible.
         ("identity", "memberships"),
+        // Edge resolution before an actor exists; IDs only. EF filters and write guard protect ordinary access.
+        ("conversations", "channel_accounts"),
         // Relay reads across centres; payloads contain identifiers only. Delivery opens one tenant scope
         // per command, where the normal dispatcher transaction and RLS apply.
         ("jobs", "outbox_messages"),

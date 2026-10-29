@@ -48,6 +48,8 @@ public sealed class QueryFilterBypassTests
         "src/TutoringCentre.Infrastructure/Repositories/AttendanceRecordRepository.cs",
         // SKIP LOCKED claim; RLS-exempt table. Each delivered command re-enters its tenant scope.
         "src/TutoringCentre.Infrastructure/Messaging/OutboxStore.cs",
+        // Before tenant selection: active provider account lookup returns IDs only.
+        "src/TutoringCentre.Infrastructure/Conversations/InboundChannelResolver.cs",
     ];
 
     private const string MigrationsDirectoryPrefix = "src/TutoringCentre.Infrastructure/Persistence/Migrations/";

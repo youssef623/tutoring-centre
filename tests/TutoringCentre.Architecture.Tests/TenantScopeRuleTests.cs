@@ -18,6 +18,7 @@ public sealed class TenantScopeRuleTests
     [
         "TutoringCentre.Application.Academics",
         "TutoringCentre.Application.Attendance",
+        "TutoringCentre.Application.Conversations",
         "TutoringCentre.Application.Staff",
         "TutoringCentre.Application.Centres.Queries.GetCentreSettings",
         "TutoringCentre.Application.Centres.Commands.UpdateCentreSettings",

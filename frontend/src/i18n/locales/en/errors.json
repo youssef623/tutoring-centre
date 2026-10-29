@@ -163,6 +163,12 @@
       "student_archived": "This student is archived and cannot use a card.",
       "student_not_in_group": "This student is not enrolled in this group.",
       "concurrent_issue": "Card issuance changed concurrently. Refresh and try again."
+    },
+    "conversations": {
+      "message_invalid": "The message is invalid.",
+      "channel_taken": "This channel account is already registered.",
+      "not_found": "Conversation or channel account not found.",
+      "message_already_processed": "This message has already been processed."
     }
   },
   "byKind": {

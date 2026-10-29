@@ -66,15 +66,22 @@ public sealed class RolePermissionsTests
     [InlineData(StaffRole.Owner, Permissions.AttendanceCardsManage, true)]
     [InlineData(StaffRole.Secretary, Permissions.AttendanceCardsManage, true)]
     [InlineData(StaffRole.Teacher, Permissions.AttendanceCardsManage, false)]
+    [InlineData(StaffRole.Owner, Permissions.ConversationsView, true)]
+    [InlineData(StaffRole.Secretary, Permissions.ConversationsView, true)]
+    [InlineData(StaffRole.Teacher, Permissions.ConversationsView, false)]
+    [InlineData(StaffRole.Owner, Permissions.ConversationsIngest, false)]
+    [InlineData(StaffRole.Secretary, Permissions.ConversationsIngest, false)]
+    [InlineData(StaffRole.Teacher, Permissions.ConversationsIngest, false)]
     public void Holds_MatchesTheMatrixCellLiterally(StaffRole role, string permission, bool expected)
     {
         Assert.Equal(expected, RolePermissions.Holds(role, permission));
     }
 
     [Fact]
-    public void Owner_HoldsEveryPermission()
+    public void Owner_HoldsEveryStaffPermission()
     {
-        Assert.All(Permissions.All, permission => Assert.True(RolePermissions.Holds(StaffRole.Owner, permission)));
+        Assert.Equal(22, Permissions.All.Count);
+        Assert.All(Permissions.All.Where(permission => permission != Permissions.ConversationsIngest), permission => Assert.True(RolePermissions.Holds(StaffRole.Owner, permission)));
     }
 
     [Theory]
