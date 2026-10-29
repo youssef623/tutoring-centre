@@ -97,7 +97,7 @@ proxies `/ops` to the existing API origin, preserving cookie authentication. Bot
 include the label and component tests cover both flag values.
 
 See [ADR 0015](../adr/0015-jobs-and-outbox.md) for the framework and hosting decision.
-Outbox delivery semantics follow on Day 69.
+Outbox delivery semantics are described below.
 
 ## Nightly schedule fan-out
 
@@ -115,3 +115,59 @@ an exception propagates for Hangfire retries. Logs include the centre and create
 session count. Parent retries may enqueue duplicates; existing rule/date sessions
 make repeated extensions no-ops. `ExtendScheduleJobTests` proves isolation,
 repeatability, local dates, collision rollback and independent children.
+
+## Transactional outbox
+
+`IOutbox.Enqueue<TMessage>` adds a row to the current command's DbContext. It does not save
+or open a transaction. The dispatcher's single save commits the business change and row
+together. Rows carry actor-stamped centre IDs, context correlation and `IClock` timestamps.
+An actor without a centre throws. `OutboxMessage` is an Infrastructure persistence type,
+not a Domain entity or tenant-owned object.
+
+Message types are sealed records with identifier/simple-value properties only: Guid, DateOnly,
+DateTimeOffset, int, bool or enums. `OutboxRuleTests` rejects strings and other property types.
+`AddOutboxMessage<TMessage, TCommand>(toCommand)` explicitly maps each type to one command;
+duplicates fail during registration. Unknown stored types are configuration errors and become
+dead letters with `unknown_type`. Every consumer must be idempotent. There is no reflection-based
+discovery of arbitrary commands from a payload; the explicitly registered command's response type
+is bound once to its dispatcher delegate.
+
+The owner migration creates `jobs.outbox_messages` with UUIDv7 keys, JSONB payloads, the pending
+and processed partial indexes, outcome/processed consistency checks and nonnegative attempts.
+Runtime gets exactly SELECT, INSERT, UPDATE, DELETE on this table. DELETE is only used to purge
+processed rows. Default privileges on future `jobs` tables remain SELECT, INSERT, UPDATE.
+The table has no RLS, query filter or tenant write guard: the relay reads across centres.
+Identifier-only payloads, actor stamping, explicit mapping and one tenant scope per command
+compensate for that documented exemption. No endpoint exposes queue rows.
+
+`Outbox:RunRelay` enables an in-process `OutboxRelayService`; Development enables it, base
+configuration and all test hosts disable it. Tests call `ProcessBatchAsync` directly. An idle
+relay polls every 2 seconds; a full batch of 20 is followed immediately by another claim.
+Its worker ID combines machine, process and a random suffix within 64 characters.
+
+`OutboxStore.ClaimAsync` executes the contract's single parameterized UPDATE with its ordered
+SELECT, LIMIT and `FOR UPDATE SKIP LOCKED`, in an independent short transaction. It increments
+attempts and sets a 60-second lease before returning. Eligibility requires available time to
+have arrived and an absent or expired lease. Every completion update matches `claimed_by` and
+reports its affected-row count. Completion statements also use independent short transactions.
+
+Each row resolves through the registry and runs in a fresh system scope for the row's centre
+and correlation (a generated outbox correlation is used if none exists). The dispatcher commits
+before the relay marks success. Failure Results are processed as failed, with the error code,
+without retry. Exceptions release the lease with backoff `min(5 s × 2^(attempts - 1), 10 min)`;
+attempt 8 dead-letters instead. `last_error` contains only a code or exception type name,
+truncated to 200 characters. It never contains an exception message. Cancellation leaves
+unfinished claims to expire. Delivery is at least once, including after commit-before-ack crashes.
+
+One structured Information entry per attempted message contains type, outcome, attempts and
+outbox ID, never payload. Polling failures log only the exception type. The maintenance job
+`outbox.maintenance` runs at `11 3 * * *` in Africa/Cairo when the Hangfire server is enabled.
+It purges rows processed more than 30 days ago in batches of 1,000 and warns when dead letters
+exist. Dead letters are never automatically deleted; see the [runbook](../runbook.md).
+
+`OutboxAtomicityTests`, `OutboxClaimTests` and `OutboxRelayTests` name guarantee cases 1–11.
+They prove rollback, actor/correlation stamping, competing claims, lease recovery, success,
+stale-worker protection, business failure, exception backoff, unknown types, crash duplicates
+and centre GUC isolation. `OutboxMaintenanceTests` proves retention. Mutation checks remove
+SKIP LOCKED, the worker guard, the payload restriction and the RLS exemption and fail their
+respective tests. `Outbox_TestHost_HasNoRelayHostedService` proves HTTP tests start no relay.

@@ -21,6 +21,7 @@ using TutoringCentre.Domain.Common;
 using TutoringCentre.Infrastructure;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Jobs;
+using TutoringCentre.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +72,10 @@ builder.Services.AddApiTelemetry(builder.Configuration);
 builder.Services.AddHealthChecks();
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddSingleton<JobLoggingFilter>();
+if (!isDocumentGeneration && !isCli && builder.Configuration.GetValue<bool>("Outbox:RunRelay"))
+{
+    builder.Services.AddHostedService(services => services.GetRequiredService<OutboxRelayService>());
+}
 builder.Services.AddHangfire((services, configuration) => configuration
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()

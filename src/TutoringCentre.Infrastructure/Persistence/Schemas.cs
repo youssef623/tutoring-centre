@@ -8,4 +8,5 @@ internal static class Schemas
     public const string Academics = "academics";
     public const string Audit = "audit";
     public const string Attendance = "attendance";
+    public const string Jobs = "jobs";
 }

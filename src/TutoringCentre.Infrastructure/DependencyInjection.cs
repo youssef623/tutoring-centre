@@ -26,6 +26,8 @@ using TutoringCentre.Application.Staff;
 using TutoringCentre.Infrastructure.Centres;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Jobs;
+using TutoringCentre.Infrastructure.Messaging;
+using TutoringCentre.Application.Common.Messaging;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Persistence.Interceptors;
 using TutoringCentre.Infrastructure.ReadServices;
@@ -135,6 +137,10 @@ public static class DependencyInjection
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IOutbox, EfOutbox>();
+        services.AddOptions<OutboxOptions>().Bind(configuration.GetSection("Outbox")).ValidateOnStart();
+        services.AddSingleton<OutboxStore>();
+        services.AddSingleton<OutboxRelayService>();
 
         services.AddScoped<ICentreRepository, CentreRepository>();
         services.AddCentreDirectory();

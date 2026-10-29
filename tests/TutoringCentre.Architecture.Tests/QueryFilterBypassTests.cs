@@ -18,6 +18,8 @@ public sealed class QueryFilterBypassTests
         "SqlQuery",
         "ExecuteSqlRaw",
         "ExecuteSql",
+        "NpgsqlCommand",
+        "CreateCommand",
     ];
 
     // A call like "x.ExecuteSqlRawAsync(...)" or "x.SqlQuery<T>(...)" still counts: \w* absorbs the Async/Raw/
@@ -44,6 +46,8 @@ public sealed class QueryFilterBypassTests
         // Day 57: parameterized FOR UPDATE serializes existing marks without client versions.
         // EF's tenant filter composes over the query; forced RLS also applies. First marks still race on uniqueness.
         "src/TutoringCentre.Infrastructure/Repositories/AttendanceRecordRepository.cs",
+        // SKIP LOCKED claim; RLS-exempt table. Each delivered command re-enters its tenant scope.
+        "src/TutoringCentre.Infrastructure/Messaging/OutboxStore.cs",
     ];
 
     private const string MigrationsDirectoryPrefix = "src/TutoringCentre.Infrastructure/Persistence/Migrations/";
