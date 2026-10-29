@@ -1,7 +1,7 @@
 ﻿# ADR 0014: Opaque hashed card tokens
 
-- **Status:** Draft (Day 61; final decision planned for Day 66)
-- **Date:** 2026-10-28
+- **Status:** Accepted (Day 66)
+- **Date:** 2026-10-29
 
 ## Context
 
@@ -11,7 +11,7 @@ credentials. Office staff need to replace and revoke cards without deleting thei
 
 ## Alternatives considered
 
-- **Opaque random token plus SHA-256 (proposed).** Generate 32 bytes with the BCL cryptographic random
+- **Opaque random token plus SHA-256 (selected).** Generate 32 bytes with the BCL cryptographic random
   generator and encode them as unpadded base64url after `TCM1.`. Store only the 32-byte SHA-256 digest
   of the UTF-8 token text. A fast digest permits indexed lookup; 256 random bits make guessing
   impractical, so password-style hashing adds cost without a useful guessing defence.
@@ -24,7 +24,7 @@ credentials. Office staff need to replace and revoke cards without deleting thei
   its deliberately expensive work adds scan cost and complicates indexed lookup without a practical
   security gain over SHA-256. The token is not a user-chosen password.
 
-## Decision (draft)
+## Decision
 
 Use `CardToken` as the sole owner of generation, parsing, hashing and deliberate reveal. The complete
 48-character text is `TCM1.` followed by 43 URL-safe characters. Hash the full normalized UTF-8 text,
@@ -51,8 +51,8 @@ responsible for checking the attendance window.
 - Unknown tokens and tokens from another centre must produce the identical `card.not_recognised`
   message. The message never confirms existence or ownership elsewhere.
 - Keep revoked records for accountability and replacement guidance. Do not delete on revocation.
-- Day 62 provides persistence, the one-active-card constraint, lookup and card management commands.
-  Day 63 adds the scan command and handler. The HTTP endpoint remains deferred to Day 64.
+- The one-active-card constraint, tenant-scoped hash lookup, management commands, HTTP routes and
+  browser issuing/scanning flows form one credential lifecycle. Reprinting means reissuing.
 
 ## Scan path (Day 63)
 
@@ -72,13 +72,45 @@ concurrent first inserts; a retry reads the committed arrival as `AlreadyRecorde
 
 The handler's single structured Information entry contains only outcome, session ID and nullable
 card ID. It never logs the token, student name or command. The dispatcher logs request type, never
-request contents. No endpoint, rate limiting or scanner UI is included in this decision stage.
+request contents. HTTP request logging also excludes request and response bodies.
 
 The complete order, reasons and test mapping are in [attendance architecture](../architecture/attendance.md#card-scan-validation-order-day-63).
 `RecordScanOrderTests` proves competing failures and the local window/card mutation was caught and
 restored. `RecordScanUseCaseTests` proves unchanged row version and no repeat audit.
 `ScanIsolationTests` proves tenant and teaching boundaries. `ConcurrentScanTests` forces five
 independent transactions to race in each of ten sessions and verifies one row plus successful retry.
+
+## HTTP and browser boundary
+
+Only Owner and Secretary can issue or revoke cards. Teachers can scan only their own sessions;
+the server enforces this independently of navigation guards. Issue uses POST because every call
+mints a new credential. Single and bulk issue responses use `Cache-Control: no-store`; status GET
+returns metadata only. Strict scan JSON accepts only `token` in the body, never an identity or URL
+credential. The sliding-window scan limit is 60 requests per minute per authenticated user, queue
+zero. Rejections retain the standard 429 response and `Retry-After`. The natural attendance key
+arbitrates races; clients retry `attendance.concurrent_mark` once.
+
+QR generation (`qrcode`) and decoding (`@zxing/browser`) run locally. Tokens live only in the issue
+dialog, print page, or bounded scanner queue/current request. They never enter storage, URLs or
+query/mutation variables. Closing the issue dialog or leaving the print page drops the issued
+tokens. Scanner result history contains only names, statuses, times and outcomes. A three-second
+SHA-256 fingerprint filter and prefix filter reduce camera noise; they grant no authority and do
+not replace server idempotency. One request runs at a time with at most five queued codes. A 429
+pauses decoding for `Retry-After`; a closed window stops the scanner. Camera and manual/USB entry
+feed the same queue. Successful new arrivals invalidate the roster query.
+
+The decoder is dynamically imported on camera use, outside the main entry's static dependency
+graph. The camera requests the rear-facing stream, decodes approximately ten times per second,
+and stops every track on navigation, hidden tabs, manual mode or rate-limit pause. Camera denial
+offers manual entry. Local phone use requires HTTPS on Vite's existing same-origin API proxy;
+optional ignored certificates enable LAN binding without changing API exposure, cookies, CSRF or
+production configuration. Installing a development CA is the developer's explicit manual step.
+
+`ScanRaceHttpTests` proves one arrival across five parallel clients with one retry. Scanner
+component tests mock the decoder boundary and prove filters, bounded serialization, lifecycle,
+errors and secret removal. `qr-attendance.spec.ts` proves issue, manual arrival, repeat, replacement
+and QR roster source through the real HTTP pipeline. Physical phone/camera testing supplements
+the CI manual-entry journey; it is not represented as automated hardware coverage.
 
 ## Evidence
 

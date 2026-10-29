@@ -13,6 +13,8 @@ demo password is never written here; it lives only in the deployment's own secre
 
 ## Quick start
 
+For camera use on a local phone, follow [Scanning from a phone](#scanning-from-a-phone).
+
 ### Prerequisites
 
 - .NET 10 SDK (the exact line is pinned in `global.json`)
@@ -232,7 +234,7 @@ flowchart TD
 
 ## Quality gates
 
-Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, nineteen Playwright end-to-end journeys against a real API and PostgreSQL (one of them sets up a whole centre from an empty one, in Arabic, through the UI alone), a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
+Every pull request runs: backend build and all tests (including architecture tests), frontend lint, type-check, tests, i18n key-parity check and production build, twenty-two Playwright end-to-end journeys against a real API and PostgreSQL (one of them sets up a whole centre from an empty one, in Arabic, through the UI alone), a production-image build and migration check, a deployed smoke test against a freshly built local production stack, CodeQL static analysis, and gitleaks secret scanning. Dependabot proposes dependency updates weekly. `main` is protected: nothing merges unless every check is green.
 
 ### Create today's attendance demo session
 
@@ -251,7 +253,7 @@ can inspect its audit entry. The group Attendance tab shows the resulting histor
 `--in-minutes` defaults to 10. The helper refuses outside Development and between 23:00 and midnight
 in the centre's zone. It retries teacher conflicts at later half-hour slots. The weekly rule is ended
 after today, so later generated sessions remain cancelled history rather than future demo classes.
-# Scanning from a phone
+## Scanning from a phone
 
 Use a phone on the same Wi-Fi as the development machine. The frontend is the only LAN-facing
 server; the API remains bound to localhost behind Vite's existing same-origin proxy. Production
@@ -275,4 +277,26 @@ Both certificate files are required. Without them, `npm run dev` and `npm run de
 existing HTTP/localhost behavior. With them, Vite serves HTTPS; only `dev:lan` binds to LAN
 interfaces. `certs/` is ignored by Git. A throwaway self-signed certificate can verify HTTPS
 transport but does not make a phone trust the origin; install your own mkcert CA as described above.
+
+### Slice 12 demonstration
+
+Use synthetic seeded students only. Follow [Scanning from a phone](#scanning-from-a-phone) before
+opening the scanner on a phone; do not display tokens in recordings, logs or screenshots.
+
+1. Run the attendance `demo-session` helper above for a group taught by the demo teacher. Check
+   the roster says Open; the helper can move a conflicting session later, so use its printed ID.
+2. As the secretary, open that group, choose Print cards, select at least three current students,
+   confirm replacement and print. Reprinting always issues new cards; save no credential text.
+3. Sign in on the phone as the session's teacher. Open its attendance roster and choose Scan cards.
+   Allow the camera, then scan three printed cards: each new arrival has a green name/status banner.
+4. Present one card again after three seconds: the amber banner preserves its first arrival time.
+   A website QR is silently ignored. Camera denial offers Manual entry, also usable by USB scanners.
+5. Reissue one card on the student page as secretary. Present its old printed card: the scanner
+   reports that it was replaced or revoked. The newly printed replacement remains usable.
+6. Return to the roster (or refresh another tab) and show the arrival statuses with source QR.
+   Mark another student absent, then scan their active card to show the arrival replacing absence.
+
+The phone check and demo recording are manual: verify camera permission, focus, QR readability,
+latency and release of the camera indicator on leaving the page. CI uses the same queue via manual
+entry, without camera hardware. Keep the demo behind the local network; no tunnel is required.
 
