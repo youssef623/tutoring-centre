@@ -2,6 +2,10 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Attendance;
+using TutoringCentre.Application.Attendance.Commands.RecordScan;
+using TutoringCentre.Application.Attendance.Commands.MarkAttendance;
+using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Tests.Fakes;
 using TutoringCentre.Domain.Common;
@@ -12,6 +16,45 @@ namespace TutoringCentre.Application.Tests.Cqrs;
 public sealed class DispatcherTests
 {
     private static readonly TestCommand ValidCommand = new("Nile", "nile");
+
+    [Fact]
+    public async Task SendAsync_CustomValidationFailureWithoutCode_ReturnsGenericValidationBeforeTransaction()
+    {
+        var unitOfWork = new FakeUnitOfWork();
+        using var provider = new ServiceCollection()
+            .AddSingleton<IValidator<MarkAttendanceCommand>>(new MarkAttendanceValidator())
+            .BuildServiceProvider();
+        var studentId = Guid.NewGuid();
+        var command = new MarkAttendanceCommand(Guid.NewGuid(),
+            [new(studentId, AttendanceStatus.Present), new(studentId, AttendanceStatus.Absent)]);
+
+        var result = await new Dispatcher(provider, unitOfWork, NullLogger<Dispatcher>.Instance)
+            .SendAsync<MarkAttendanceCommand, MarkAttendanceResult>(command, CancellationToken.None);
+
+        Assert.Equal("validation.failed", result.Error!.Code);
+        Assert.Equal(ErrorKind.Validation, result.Error.Kind);
+        Assert.Contains("marks[1].studentId", result.Error.Fields!.Keys);
+        Assert.Empty(unitOfWork.Calls);
+    }
+
+    [Fact]
+    public async Task SendAsync_InvalidScan_PreservesTokenCodeBeforeActorAndTransaction()
+    {
+        var unitOfWork = new FakeUnitOfWork();
+        using var provider = new ServiceCollection()
+            .AddSingleton<IValidator<RecordScanCommand>>(new RecordScanValidator())
+            .BuildServiceProvider();
+        var dispatcher = new Dispatcher(provider, unitOfWork, NullLogger<Dispatcher>.Instance);
+
+        // No actor or handler is registered: token validation must return before either is resolved.
+        var result = await dispatcher.SendAsync<RecordScanCommand, ScanResult>(
+            new RecordScanCommand(Guid.Empty, "foreign-qr"), CancellationToken.None);
+
+        Assert.Equal("card.invalid_format", result.Error!.Code);
+        Assert.Equal(ErrorKind.Validation, result.Error.Kind);
+        Assert.Contains("token", result.Error.Fields!.Keys);
+        Assert.Empty(unitOfWork.Calls);
+    }
 
     [Fact]
     public async Task SendAsync_ValidCommandHandlerSucceeds_BeginsHandlesSavesAndCommits()

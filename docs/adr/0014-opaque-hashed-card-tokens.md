@@ -51,8 +51,34 @@ responsible for checking the attendance window.
 - Unknown tokens and tokens from another centre must produce the identical `card.not_recognised`
   message. The message never confirms existence or ownership elsewhere.
 - Keep revoked records for accountability and replacement guidance. Do not delete on revocation.
-- Persistence, the one-active-card constraint, lookup, use cases and scan-path details are deferred
-  to Days 62–63. This draft does not add a table, endpoint or handler.
+- Day 62 provides persistence, the one-active-card constraint, lookup and card management commands.
+  Day 63 adds the scan command and handler. The HTTP endpoint remains deferred to Day 64.
+
+## Scan path (Day 63)
+
+The scan credential travels only in command body data, never in a URL, and no student ID is accepted.
+The validation order is a security property: token shape; tenant and permission; tenant-scoped session;
+teaching scope; cancellation and marking window; hashed card lookup; active card; expected student;
+then existing attendance. The indexed card lookup must remain after session ownership and the window,
+so possessing a scanner outside an authorized open class cannot test whether a card exists.
+Unknown cards and cards from another centre have identical `card.not_recognised` errors.
+
+Use `AttendanceRecord.Create` and `Mark` with source Qr. A first scan records Present through exactly
+15 minutes after the start, and Late strictly after that boundary. A repeated uncorrected arrival
+returns the original status and mark time without a write or audit entry. An uncorrected Absent or
+Excused record becomes an arrival. A corrected record, including a corrected arrival, is protected
+by `attendance.record_corrected`. The natural unique key returns `attendance.concurrent_mark` for
+concurrent first inserts; a retry reads the committed arrival as `AlreadyRecorded`.
+
+The handler's single structured Information entry contains only outcome, session ID and nullable
+card ID. It never logs the token, student name or command. The dispatcher logs request type, never
+request contents. No endpoint, rate limiting or scanner UI is included in this decision stage.
+
+The complete order, reasons and test mapping are in [attendance architecture](../architecture/attendance.md#card-scan-validation-order-day-63).
+`RecordScanOrderTests` proves competing failures and the local window/card mutation was caught and
+restored. `RecordScanUseCaseTests` proves unchanged row version and no repeat audit.
+`ScanIsolationTests` proves tenant and teaching boundaries. `ConcurrentScanTests` forces five
+independent transactions to race in each of ten sessions and verifies one row plus successful retry.
 
 ## Evidence
 
