@@ -24,4 +24,6 @@ export interface ApiError {
   fieldErrors?: Record<string, string[]>;
   /** Correlation ID to quote when reporting a problem (from Day 11). */
   correlationId?: string;
+  /** Delay requested by the server for a rate-limit rejection. */
+  retryAfterSeconds?: number;
 }
