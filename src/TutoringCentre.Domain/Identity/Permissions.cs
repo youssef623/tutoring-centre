@@ -29,8 +29,17 @@ public static class Permissions
     public const string ConversationsView = "conversations.view";
     public const string ConversationsIngest = "conversations.ingest";
 
+    public const string PortalAccountsManage = "portal.accounts.manage";
+    public const string PortalChat = "portal.chat";
+    public const string AssistantView = "assistant.view";
+    public const string BillingView = "billing.view";
+
     public static IReadOnlyCollection<string> All { get; } = new[]
     {
+        PortalAccountsManage,
+        PortalChat,
+        AssistantView,
+        BillingView,
         SubjectsView,
         SubjectsManage,
         StaffView,

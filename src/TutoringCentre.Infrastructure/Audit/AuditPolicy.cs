@@ -24,6 +24,11 @@ internal static class AuditPolicy
             new HashSet<string>(StringComparer.Ordinal) { nameof(ChannelAccount.Provider), nameof(ChannelAccount.ExternalAccountId), nameof(ChannelAccount.DisplayPhone), nameof(ChannelAccount.Status) },
             new HashSet<string>(StringComparer.Ordinal) { nameof(ChannelAccount.DisplayPhone) }),
 
+        [typeof(PortalLink)] = new AuditPolicyEntry(
+            AuditEntityType.PortalLink, entity => ((PortalLink)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal) { nameof(PortalLink.RoleKey), nameof(PortalLink.ParentId), nameof(PortalLink.StudentId) },
+            Actions: new HashSet<AuditAction> { AuditAction.Created }),
+
         [typeof(Subject)] = new AuditPolicyEntry(
             AuditEntityType.Subject,
             entity => ((Subject)entity).CentreId,

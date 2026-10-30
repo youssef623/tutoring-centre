@@ -13,6 +13,9 @@ internal static class ConstraintErrorCatalog
 {
     private static readonly Dictionary<string, Func<Error>> UniqueEntries = new(StringComparer.Ordinal)
     {
+        ["ux_portal_links_centre_user"] = () => Error.Conflict("portal.user_already_linked", "This login already has a portal link."),
+        ["ux_portal_links_centre_parent"] = () => Error.Conflict("portal.subject_already_linked", "This subject already has a portal account."),
+        ["ux_portal_links_centre_student"] = () => Error.Conflict("portal.subject_already_linked", "This subject already has a portal account."),
         ["ux_subjects_centre_normalized_name"] = () => new Error(
             "subject.name_taken",
             "A subject with this name already exists.",

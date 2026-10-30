@@ -10,9 +10,20 @@ using TutoringCentre.Infrastructure.Persistence.Configurations;
 namespace TutoringCentre.Architecture.Tests;
 
 /// <summary>Task 20.7 rule B, extended by Task 21.6: every ITenantOwned entity in the real model carries a query
-/// filter and the ConfigureTenantOwned keys — and every tenant-to-tenant foreign key is composite.</summary>
+/// filter and the ConfigureTenantOwned keys â€” and every tenant-to-tenant foreign key is composite.</summary>
 public sealed class TenantModelTests
 {
+    [Fact]
+    public void PortalLinkHasThreeUniqueIndexesAndNoSubjectSetters()
+    {
+        using var context = BuildContext();
+        var entity = context.Model.FindEntityType(typeof(TutoringCentre.Domain.Identity.PortalLink))!;
+        Assert.Equal(["ux_portal_links_centre_parent", "ux_portal_links_centre_student", "ux_portal_links_centre_user"],
+            entity.GetIndexes().Where(index => index.IsUnique).Select(index => index.GetDatabaseName()!).Order().ToArray());
+        Assert.All(typeof(TutoringCentre.Domain.Identity.PortalLink).GetProperties()
+            .Where(property => property.Name != "Id"), property => Assert.Null(property.SetMethod));
+    }
+
     [Fact]
     public void Attendance_HasContractIndexesAndRestrictiveReferences()
     {
@@ -34,7 +45,7 @@ public sealed class TenantModelTests
     [Fact]
     public void EveryTenantOwnedEntityInTheProductionModel_HasAQueryFilter()
     {
-        // Zero production entities implement ITenantOwned today (Subject is first, Day 23) — so on its own this
+        // Zero production entities implement ITenantOwned today (Subject is first, Day 23) â€” so on its own this
         // loop runs zero times and the assertion below is vacuously true. The probe model further down is what
         // keeps this test meaningful before then: it proves the convention still runs, on a type it has never
         // seen configured by name, not that there happen to be no violations to find.
@@ -44,6 +55,7 @@ public sealed class TenantModelTests
             .ToList();
 
         Assert.Contains(tenantOwnedTypes, entityType => entityType.ClrType == typeof(TutoringCentre.Domain.Attendance.AttendanceRecord));
+        Assert.Contains(tenantOwnedTypes, entityType => entityType.ClrType == typeof(TutoringCentre.Domain.Identity.PortalLink));
         Assert.All(tenantOwnedTypes, entityType => Assert.NotEmpty(entityType.GetDeclaredQueryFilters()));
         Assert.All(tenantOwnedTypes, AssertTenantOwnedKeysAndForeignKeys);
 
@@ -53,7 +65,7 @@ public sealed class TenantModelTests
         Assert.NotEmpty(probeEntityType.GetDeclaredQueryFilters());
         AssertTenantOwnedKeysAndForeignKeys(probeEntityType);
 
-        // Task 21.6: the child probe is what keeps "every tenant-to-tenant foreign key is composite" non-vacuous —
+        // Task 21.6: the child probe is what keeps "every tenant-to-tenant foreign key is composite" non-vacuous â€”
         // production has no tenant-to-tenant relationship yet (Month 2), so without it this check never runs.
         var childEntityType = probeContext.Model.FindEntityType(typeof(ArchitectureTenantProbeChild))!;
         Assert.NotNull(childEntityType);
@@ -61,7 +73,7 @@ public sealed class TenantModelTests
     }
 
     /// <summary>Task 21.6: required centre, a restrict foreign key to Centre, a unique key on exactly
-    /// (centre, id), and — for any foreign key whose principal is also tenant-owned — a composite key on both sides.</summary>
+    /// (centre, id), and â€” for any foreign key whose principal is also tenant-owned â€” a composite key on both sides.</summary>
     private static void AssertTenantOwnedKeysAndForeignKeys(IEntityType entityType)
     {
         var centreId = entityType.FindProperty("CentreId");
@@ -111,7 +123,7 @@ public sealed class TenantModelTests
 }
 
 /// <summary>A throwaway ITenantOwned type, local to this test, that AppDbContext has never seen configured by
-/// name — proving the filter convention really is generic, not special-cased to Subject or the Infrastructure.
+/// name â€” proving the filter convention really is generic, not special-cased to Subject or the Infrastructure.
 /// Tests' own probe. Never connects to a database: only the model is built.</summary>
 internal sealed class ArchitectureTenantProbe : ITenantOwned
 {
@@ -131,7 +143,7 @@ internal sealed class ArchitectureTenantProbeConfiguration : IEntityTypeConfigur
     }
 }
 
-/// <summary>Task 21.6: a tenant-owned child of ArchitectureTenantProbe, referenced compositely — the one example
+/// <summary>Task 21.6: a tenant-owned child of ArchitectureTenantProbe, referenced compositely â€” the one example
 /// that keeps the model test's tenant-to-tenant foreign key check non-vacuous (Month 2 has no real one yet).</summary>
 internal sealed class ArchitectureTenantProbeChild : ITenantOwned
 {

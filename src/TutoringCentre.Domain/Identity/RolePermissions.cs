@@ -9,6 +9,10 @@ public static class RolePermissions
         {
             Permissions.SubjectsView,
             Permissions.SubjectsManage,
+            Permissions.PortalAccountsManage,
+            Permissions.PortalChat,
+            Permissions.AssistantView,
+            Permissions.BillingView,
             Permissions.StaffView,
             Permissions.StaffManage,
             Permissions.AuditView,
@@ -33,6 +37,10 @@ public static class RolePermissions
         {
             Permissions.SubjectsView,
             Permissions.SubjectsManage,
+            Permissions.PortalAccountsManage,
+            Permissions.PortalChat,
+            Permissions.AssistantView,
+            Permissions.BillingView,
             Permissions.StudentsView,
             Permissions.StudentsManage,
             Permissions.TeachersView,
@@ -48,6 +56,8 @@ public static class RolePermissions
             Permissions.AttendanceCardsManage,
             Permissions.ConversationsView,
         },
+        [StaffRole.Parent] = new HashSet<string> { Permissions.AttendanceView, Permissions.PortalChat },
+        [StaffRole.Student] = new HashSet<string> { Permissions.AttendanceView, Permissions.PortalChat },
         [StaffRole.Teacher] = new HashSet<string>
         {
             Permissions.SubjectsView,

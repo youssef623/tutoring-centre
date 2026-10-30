@@ -17,8 +17,8 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
 
     private static readonly string[] AllStaffPermissionsSorted =
     [
-        "attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "audit.view", "centre.settings.manage", "conversations.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view",
-        "schedule.manage", "schedule.view", "staff.manage", "staff.view",
+        "assistant.view", "attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "audit.view", "billing.view", "centre.settings.manage", "conversations.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view",
+        "portal.accounts.manage", "portal.chat", "schedule.manage", "schedule.view", "staff.manage", "staff.view",
         "students.manage", "students.view", "subjects.manage", "subjects.view",
         "teachers.manage", "teachers.view",
     ];
@@ -78,7 +78,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal("secretary", body.RootElement.GetProperty("activeRole").GetString());
 
         var permissions = body.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(["attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "conversations.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
+        Assert.Equal(["assistant.view", "attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "billing.view", "conversations.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "portal.accounts.manage", "portal.chat", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public sealed class LoginFlowTests(ApiFactory factory) : IAsyncLifetime
         var me = await ReadJsonAsync(meResponse);
 
         var permissions = me.RootElement.GetProperty("permissions").EnumerateArray().Select(p => p.GetString() ?? string.Empty).ToArray();
-        Assert.Equal(["attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "conversations.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
+        Assert.Equal(["assistant.view", "attendance.cards.manage", "attendance.correct", "attendance.mark", "attendance.view", "billing.view", "conversations.view", "enrollments.manage", "enrollments.view", "groups.manage", "groups.view", "portal.accounts.manage", "portal.chat", "schedule.manage", "schedule.view", "students.manage", "students.view", "subjects.manage", "subjects.view", "teachers.view"], permissions);
     }
 
     [Fact]

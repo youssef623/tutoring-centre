@@ -11,6 +11,7 @@ internal static class AuditEntityTypeNames
     public static string ToDatabase(AuditEntityType value) => value switch
     {
         AuditEntityType.ChannelAccount => "channel_account",
+        AuditEntityType.PortalLink => "portal_link",
         AuditEntityType.Subject => "subject",
         AuditEntityType.Membership => "membership",
         AuditEntityType.Centre => "centre",
@@ -30,6 +31,7 @@ internal static class AuditEntityTypeNames
     public static AuditEntityType FromDatabase(string value) => value switch
     {
         "channel_account" => AuditEntityType.ChannelAccount,
+        "portal_link" => AuditEntityType.PortalLink,
         "subject" => AuditEntityType.Subject,
         "membership" => AuditEntityType.Membership,
         "centre" => AuditEntityType.Centre,
@@ -52,6 +54,9 @@ internal static class AuditEntityTypeNames
         {
             case "channel_account":
                 result = AuditEntityType.ChannelAccount;
+                return true;
+            case "portal_link":
+                result = AuditEntityType.PortalLink;
                 return true;
             case "subject":
                 result = AuditEntityType.Subject;

@@ -14,10 +14,22 @@ namespace TutoringCentre.Infrastructure.Tests.Audit;
 public sealed class AuditPolicyTests
 {
     [Fact]
-    public void Entries_HasExactlyFourteenAuditedTypes()
+    public void PortalLinkAuditsOnlyCreationAndSubjectIdentifiers()
     {
-        Assert.Equal(14, AuditPolicy.Entries.Count);
+        var policy = AuditPolicy.Entries[typeof(PortalLink)];
+        Assert.Equal(AuditEntityType.PortalLink, policy.EntityType);
+        Assert.Equal(new HashSet<string> { "RoleKey", "ParentId", "StudentId" }, policy.AllowedFields);
+        Assert.Equal(new HashSet<AuditAction> { AuditAction.Created }, policy.Actions);
+        Assert.Equal("portal_link", AuditEntityTypeNames.ToDatabase(policy.EntityType));
+        Assert.Equal(policy.EntityType, AuditEntityTypeNames.FromDatabase("portal_link"));
+    }
+
+    [Fact]
+    public void Entries_HasExactlyFifteenAuditedTypes()
+    {
+        Assert.Equal(15, AuditPolicy.Entries.Count);
         Assert.Contains(typeof(TutoringCentre.Domain.Conversations.ChannelAccount), AuditPolicy.Entries.Keys);
+        Assert.Contains(typeof(PortalLink), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(StudentCard), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(AttendanceRecord), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(ScheduleRule), AuditPolicy.Entries.Keys);
