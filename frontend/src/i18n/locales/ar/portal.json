@@ -30,5 +30,23 @@
   "language": "لغة الحساب",
   "cancel": "إلغاء",
   "subjectLinked": "هذا الشخص لديه حساب بوابة بالفعل.",
-  "userLinked": "هذا البريد لديه حساب في هذا المركز بالفعل."
+  "userLinked": "هذا البريد لديه حساب في هذا المركز بالفعل.",
+  "chatSendFailed": "تعذر إرسال الرسالة.",
+  "chatEmpty": "اسأل عن الحضور",
+  "chatSend": "إرسال",
+  "chatLoadFailed": "تعذر تحميل الرسائل.",
+  "chatSending": "جارٍ الإرسال…",
+  "chatMessage": "الرسالة",
+  "chatOlder": "تحميل رسائل أقدم",
+  "chatStatus": {
+    "queued": "قيد الإرسال",
+    "failed": "فشل الإرسال",
+    "read": "مقروءة",
+    "sent": "تم الإرسال",
+    "delivered": "تم التسليم",
+    "received": "تم الاستلام",
+    "processed": "تمت المعالجة"
+  },
+  "chatLoading": "جارٍ تحميل الرسائل…",
+  "chatRateLimited": "رسائل كثيرة. انتظر دقيقة ثم حاول مجددًا."
 }

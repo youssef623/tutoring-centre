@@ -25,6 +25,9 @@ public sealed class DependencyRuleTests
 
     private static readonly string[] ForbiddenForApplication =
     [
+        "Microsoft.Extensions.AI",
+        "OpenAI",
+        "Azure.AI",
         "TutoringCentre.Infrastructure",
         "TutoringCentre.Api",
         "Microsoft.EntityFrameworkCore",

@@ -1,4 +1,5 @@
 using TutoringCentre.Application.Identity.Portal;
+using TutoringCentre.Infrastructure.Assistant;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,9 @@ public static class DependencyInjection
         // services that need IConfiguration directly (the development seeder's Seed:Password lookup) also resolve
         // in test harnesses that build a plain ServiceCollection instead of a full host.
         services.AddSingleton(configuration);
+        services.AddAssistant(configuration);
+        services.AddScoped<TutoringCentre.Application.Conversations.Web.IWebChatReadService, WebChatReadService>();
+        services.AddScoped<IConversationReadService, ConversationReadService>();
 
         services.AddOptions<JobsOptions>().Bind(configuration.GetSection("Jobs"))
             .Validate(options => options.WorkerCount > 0, "Jobs:WorkerCount must be greater than zero.")

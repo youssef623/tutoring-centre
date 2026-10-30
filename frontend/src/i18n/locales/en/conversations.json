@@ -1,3 +1,31 @@
 {
-  "title": "Conversations"
+  "direction": "Direction",
+  "loading": "Loading…",
+  "sentAt": "Sent",
+  "correlationId": "Correlation ID",
+  "createdAt": "Created",
+  "statuses": {
+    "queued": "Queued",
+    "read": "Read",
+    "sent": "Sent",
+    "failed": "Failed",
+    "delivered": "Delivered",
+    "received": "Received",
+    "processed": "Processed"
+  },
+  "messageId": "Message ID",
+  "thread": "Message thread",
+  "status": "Status",
+  "channel": "Channel",
+  "failureCode": "Failure code",
+  "retry": "Try again",
+  "storedDetails": "Stored message details",
+  "select": "Select a conversation",
+  "details": "Details",
+  "processedAt": "Processed",
+  "older": "Load older messages",
+  "loadFailed": "Could not load conversations.",
+  "title": "Conversations",
+  "empty": "No conversations yet",
+  "text": "Text"
 }

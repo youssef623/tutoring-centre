@@ -1,0 +1,8 @@
+[
+  {
+    "text": "يمكنك السؤال عن الحضور أو مواعيد الحصص.",
+    "toolCalls": [],
+    "usage": { "inputTokens": 0, "outputTokens": 0 },
+    "stopReason": "completed"
+  }
+]

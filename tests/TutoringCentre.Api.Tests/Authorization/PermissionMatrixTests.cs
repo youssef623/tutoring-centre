@@ -26,6 +26,10 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     /// <summary>The fourteen routes this matrix classifies, in the exact raw pattern <see cref="EndpointInventoryTests"/> reads off the running app.</summary>
     internal static readonly string[] MatrixRoutes =
     [
+        "GET /api/portal/chat/messages",
+        "POST /api/portal/chat/messages",
+        "GET /api/conversations",
+        "GET /api/conversations/{conversationId:guid}/messages",
         "GET /api/portal-accounts",
         "POST /api/portal-accounts",
         "POST /api/portal-accounts/{linkId:guid}/deactivate",

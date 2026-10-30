@@ -24,6 +24,7 @@ public sealed class ModuleBoundaryRuleTests
         ["Audit"] = ["TutoringCentre.Application.Audit"],
         ["Attendance"] = ["TutoringCentre.Application.Attendance"],
         ["Conversations"] = ["TutoringCentre.Application.Conversations"],
+        ["Assistant"] = ["TutoringCentre.Application.Assistant"],
     };
 
     /// <summary>The same modules, by Domain namespace. Audit has no Domain types of its own (Task 31: it is read-only from the application's point of view), so its entry names a namespace nothing occupies.</summary>
@@ -35,6 +36,7 @@ public sealed class ModuleBoundaryRuleTests
         ["Audit"] = ["TutoringCentre.Domain.Audit"],
         ["Attendance"] = ["TutoringCentre.Domain.Attendance"],
         ["Conversations"] = ["TutoringCentre.Domain.Conversations"],
+        ["Assistant"] = ["TutoringCentre.Domain.Assistant"],
     };
 
     /// <summary>Domain and Application common namespaces: available to every module, never counted as "another module's".</summary>

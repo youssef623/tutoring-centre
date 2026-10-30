@@ -18,6 +18,7 @@ import { Route as StatusRouteImport } from './routes/status'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
+import { Route as AuthenticatedConversationsRouteImport } from './routes/_authenticated/conversations'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
@@ -25,6 +26,7 @@ import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as AuthenticatedTimetableRouteImport } from './routes/_authenticated/timetable'
+import { Route as PortalChatRouteImport } from './routes/portal.chat'
 import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
@@ -80,6 +82,12 @@ const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedConversationsRoute =
+  AuthenticatedConversationsRouteImport.update({
+    id: '/conversations',
+    path: '/conversations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
   id: '/groups',
   path: '/groups',
@@ -114,6 +122,11 @@ const AuthenticatedTimetableRoute = AuthenticatedTimetableRouteImport.update({
   id: '/timetable',
   path: '/timetable',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const PortalChatRoute = PortalChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => PortalRoute,
 } as any)
 const AuthenticatedAttendanceIndexRoute =
   AuthenticatedAttendanceIndexRouteImport.update({
@@ -180,11 +193,12 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/attendance': typeof AuthenticatedAttendanceRouteWithChildren
   '/audit': typeof AuthenticatedAuditRoute
+  '/conversations': typeof AuthenticatedConversationsRoute
   '/groups': typeof AuthenticatedGroupsRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRoute
@@ -192,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/timetable': typeof AuthenticatedTimetableRoute
+  '/portal/chat': typeof PortalChatRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -206,15 +221,17 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/audit': typeof AuthenticatedAuditRoute
+  '/conversations': typeof AuthenticatedConversationsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/timetable': typeof AuthenticatedTimetableRoute
+  '/portal/chat': typeof PortalChatRoute
   '/': typeof AuthenticatedIndexRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
@@ -232,11 +249,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRouteWithChildren
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
+  '/_authenticated/conversations': typeof AuthenticatedConversationsRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
@@ -244,6 +262,7 @@ export interface FileRoutesById {
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/timetable': typeof AuthenticatedTimetableRoute
+  '/portal/chat': typeof PortalChatRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
@@ -267,6 +286,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/attendance'
     | '/audit'
+    | '/conversations'
     | '/groups'
     | '/settings'
     | '/staff'
@@ -274,6 +294,7 @@ export interface FileRouteTypes {
     | '/subjects'
     | '/teachers'
     | '/timetable'
+    | '/portal/chat'
     | '/groups/$groupId'
     | '/parents/$parentId'
     | '/students/$studentId'
@@ -292,11 +313,13 @@ export interface FileRouteTypes {
     | '/select-centre'
     | '/status'
     | '/audit'
+    | '/conversations'
     | '/settings'
     | '/staff'
     | '/subjects'
     | '/teachers'
     | '/timetable'
+    | '/portal/chat'
     | '/'
     | '/groups/$groupId'
     | '/parents/$parentId'
@@ -318,6 +341,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/_authenticated/attendance'
     | '/_authenticated/audit'
+    | '/_authenticated/conversations'
     | '/_authenticated/groups'
     | '/_authenticated/settings'
     | '/_authenticated/staff'
@@ -325,6 +349,7 @@ export interface FileRouteTypes {
     | '/_authenticated/subjects'
     | '/_authenticated/teachers'
     | '/_authenticated/timetable'
+    | '/portal/chat'
     | '/_authenticated/'
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/parents/$parentId'
@@ -342,7 +367,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ChangePasswordRoute: typeof ChangePasswordRoute
   LoginRoute: typeof LoginRoute
-  PortalRoute: typeof PortalRoute
+  PortalRoute: typeof PortalRouteWithChildren
   SelectCentreRoute: typeof SelectCentreRoute
   StatusRoute: typeof StatusRoute
 }
@@ -412,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/conversations': {
+      id: '/_authenticated/conversations'
+      path: '/conversations'
+      fullPath: '/conversations'
+      preLoaderRoute: typeof AuthenticatedConversationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/groups': {
       id: '/_authenticated/groups'
       path: '/groups'
@@ -460,6 +492,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/timetable'
       preLoaderRoute: typeof AuthenticatedTimetableRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/portal/chat': {
+      id: '/portal/chat'
+      path: '/chat'
+      fullPath: '/portal/chat'
+      preLoaderRoute: typeof PortalChatRouteImport
+      parentRoute: typeof PortalRoute
     }
     '/_authenticated/attendance/': {
       id: '/_authenticated/attendance/'
@@ -584,6 +623,7 @@ const AuthenticatedStudentsRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRouteWithChildren
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
+  AuthenticatedConversationsRoute: typeof AuthenticatedConversationsRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
@@ -600,6 +640,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRouteWithChildren,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
+  AuthenticatedConversationsRoute: AuthenticatedConversationsRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
@@ -618,11 +659,22 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface PortalRouteChildren {
+  PortalChatRoute: typeof PortalChatRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalChatRoute: PortalChatRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ChangePasswordRoute: ChangePasswordRoute,
   LoginRoute: LoginRoute,
-  PortalRoute: PortalRoute,
+  PortalRoute: PortalRouteWithChildren,
   SelectCentreRoute: SelectCentreRoute,
   StatusRoute: StatusRoute,
 }

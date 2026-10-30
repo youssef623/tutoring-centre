@@ -5,6 +5,12 @@ using TutoringCentre.Application.Conversations.Web.Commands.SendWebMessage;
 using TutoringCentre.Domain.Common;
 using TutoringCentre.Domain.Conversations;
 using TutoringCentre.Domain.Identity;
+using TutoringCentre.Application.Conversations.Web;
+using TutoringCentre.Application.Conversations.Web.Queries.ListMyChatMessages;
+using TutoringCentre.Application.Conversations;
+using TutoringCentre.Application.Conversations.Queries.ListConversations;
+using TutoringCentre.Application.Conversations.Queries.GetConversationMessages;
+using TutoringCentre.Application.Conversations.Commands.RecordInboundMessage;
 using TutoringCentre.Infrastructure.Tests.Fixtures;
 
 namespace TutoringCentre.Infrastructure.Tests.Conversations;
@@ -47,7 +53,8 @@ public sealed class WebMessageTests(PostgresFixture fixture) : ConversationsTest
         Assert.Equal(1L, await CountAsync("inbound_messages"));
         Assert.Equal(1L, await OutboxCountAsync());
         Assert.Equal("hello from the portal", await Fixture.ScalarAsync<string>("select text_body from conversations.inbound_messages"));
-        Assert.Equal(clientId.ToString("D"), await Fixture.ScalarAsync<string>("select provider_message_id from conversations.inbound_messages"));
+        var storedConversation = await Fixture.ScalarAsync<Guid>("select id from conversations.conversations");
+        Assert.Equal($"{storedConversation:N}:{clientId:N}", await Fixture.ScalarAsync<string>("select provider_message_id from conversations.inbound_messages"));
         Assert.Equal("web", await Fixture.ScalarAsync<string>("select provider from conversations.inbound_messages"));
         Assert.Equal("identified", await Fixture.ScalarAsync<string>("select identity_status from conversations.conversations"));
         Assert.Equal(_nileParent, await Fixture.ScalarAsync<Guid>("select parent_id from conversations.conversations"));
@@ -144,7 +151,7 @@ public sealed class WebMessageTests(PostgresFixture fixture) : ConversationsTest
         await RegisterWebAsync(NileCentreId, "nile-centre");
         var result = await SendAsync(new StaffActor(Guid.NewGuid(), NileCentreId, StaffRole.Owner), new(Guid.NewGuid(), "staff message"));
         Assert.Equal("chat.portal_actor_required", result.Error?.Code);
-        Assert.Equal(ErrorKind.Rule, result.Error?.Kind);
+        Assert.Equal(ErrorKind.Forbidden, result.Error?.Kind);
         await AssertNoMessagesAsync();
     }
 
@@ -157,20 +164,19 @@ public sealed class WebMessageTests(PostgresFixture fixture) : ConversationsTest
     }
 
     [Fact]
-    public async Task ClientMessageIdCollisionBetweenUsers_ReturnsConflictWithoutLeakingOriginalId()
+    public async Task SameClientMessageIdBetweenUsers_RecordsIndependentlyAndReplaysWithinOwnConversation()
     {
         await RegisterWebAsync(NileCentreId, "nile-centre");
         var clientId = Guid.NewGuid();
         var first = await SendAsync(Parent(), new(clientId, "parent private message"));
         Assert.True(first.IsSuccess);
         var collision = await SendAsync(Student(), new(clientId, "student message"));
-        Assert.True(collision.IsFailure);
-        Assert.Equal("chat.client_message_conflict", collision.Error?.Code);
-        Assert.Equal(ErrorKind.Conflict, collision.Error?.Kind);
-        Assert.DoesNotContain(first.Value.MessageId.ToString(), collision.Error!.Message, StringComparison.Ordinal);
-        Assert.Equal(1L, await CountAsync("conversations"));
-        Assert.Equal(1L, await CountAsync("inbound_messages"));
-        Assert.Equal(1L, await OutboxCountAsync());
+        Assert.True(collision.IsSuccess);
+        Assert.False(collision.Value.AlreadyRecorded);
+        Assert.NotEqual(first.Value.MessageId, collision.Value.MessageId);
+        Assert.Equal(2L, await CountAsync("conversations"));
+        Assert.Equal(2L, await CountAsync("inbound_messages"));
+        Assert.Equal(2L, await OutboxCountAsync());
         var replay = await SendAsync(Parent(), new(clientId, "replay"));
         Assert.True(replay.IsSuccess);
         Assert.Equal(first.Value.MessageId, replay.Value.MessageId);
@@ -210,6 +216,65 @@ public sealed class WebMessageTests(PostgresFixture fixture) : ConversationsTest
     }
 
     private ParentActor Parent() => new(_parentUser, NileCentreId, _nileParent);
+
+    [Fact]
+    public async Task Timeline_IsActorOwnedMergedAndKeysetPagedWithEqualTimestamps()
+    {
+        await RegisterWebAsync(NileCentreId, "nile-centre");
+        await SendAsync(Parent(), new(Guid.NewGuid(), "parent one"));
+        await SendAsync(Parent(), new(Guid.NewGuid(), "parent two"));
+        await SendAsync(Student(), new(Guid.NewGuid(), "student private"));
+        var conversationId = await Fixture.ScalarAsync<Guid>($"select id from conversations.conversations where portal_user_id='{_parentUser}'");
+        await ExecuteAsync($"""
+            insert into conversations.outbound_messages (id,centre_id,conversation_id,text,status,failure_code,created_at)
+            values ('{Guid.NewGuid()}','{NileCentreId}','{conversationId}','failed reply','failed','delivery.failed',now());
+            update conversations.inbound_messages set created_at='2026-10-30T10:00:00Z';
+            update conversations.outbound_messages set created_at='2026-10-30T10:00:00Z';
+            """);
+        var first = await Fixture.QueryAsAsync<ListMyChatMessagesQuery, ChatMessagesPage>(Parent(), new(null, 2));
+        Assert.True(first.IsSuccess);
+        Assert.Equal(2, first.Value.Items.Count);
+        Assert.NotNull(first.Value.NextCursor);
+        var second = await Fixture.QueryAsAsync<ListMyChatMessagesQuery, ChatMessagesPage>(Parent(), new(first.Value.NextCursor, 2));
+        Assert.True(second.IsSuccess);
+        var all = first.Value.Items.Concat(second.Value.Items).ToArray();
+        Assert.Equal(3, all.Length);
+        Assert.Equal(3, all.Select(item => item.Id).Distinct().Count());
+        Assert.DoesNotContain(all, item => item.Text == "student private");
+        Assert.Equal("failed", Assert.Single(all, item => item.Direction == "outbound").Status);
+        Assert.Null(second.Value.NextCursor);
+        var student = await Fixture.QueryAsAsync<ListMyChatMessagesQuery, ChatMessagesPage>(Student(), new(null));
+        Assert.Equal("student private", Assert.Single(student.Value.Items).Text);
+        var otherCentre = await Fixture.QueryAsAsync<ListMyChatMessagesQuery, ChatMessagesPage>(new ParentActor(_parentUser, MaadiCentreId, _maadiParent), new(null));
+        Assert.Empty(otherCentre.Value.Items);
+        var staff = new StaffActor(Guid.NewGuid(), NileCentreId, StaffRole.Owner);
+        var forbidden = await Fixture.QueryAsAsync<ListMyChatMessagesQuery, ChatMessagesPage>(staff, new(null));
+        Assert.Equal(ErrorKind.Forbidden, forbidden.Error?.Kind);
+        var list = await Fixture.QueryAsAsync<ListConversationsQuery, ConversationPage>(staff, new());
+        Assert.Contains(list.Value.Items, item => item.Id == conversationId && item.Address == "Nile Parent" && item.Channel == "web");
+        var details = await Fixture.QueryAsAsync<GetConversationMessagesQuery, ConversationMessagesPage>(staff, new(conversationId, null));
+        Assert.Equal("delivery.failed", Assert.Single(details.Value.Items, item => item.Direction == "outbound").FailureCode);
+        var foreign = await Fixture.QueryAsAsync<GetConversationMessagesQuery, ConversationMessagesPage>(
+            new StaffActor(Guid.NewGuid(), MaadiCentreId, StaffRole.Owner), new(conversationId, null));
+        Assert.Equal(ErrorKind.NotFound, foreign.Error?.Kind);
+    }
+
+    [Fact]
+    public async Task StaffList_ShowsWebAndWhatsappTogetherWithoutUnmaskingPhones()
+    {
+        await RegisterWebAsync(NileCentreId, "nile-centre");
+        await SendAsync(Parent(), new(Guid.NewGuid(), "portal message"));
+        var whatsapp = new RecordInboundMessageCommand(NileAccountId, "201000000091", "whatsapp-staff-view",
+            InboundMessageType.Text, "WhatsApp message", Now);
+        Assert.True((await SendAsync<RecordInboundMessageCommand, RecordInboundMessageResult>(NileCentreId, whatsapp)).IsSuccess);
+        var staff = new StaffActor(Guid.NewGuid(), NileCentreId, StaffRole.Owner);
+        var list = await Fixture.QueryAsAsync<ListConversationsQuery, ConversationPage>(staff, new());
+        Assert.Equal(2, list.Value.Items.Count);
+        Assert.Equal("Nile Parent", Assert.Single(list.Value.Items, item => item.Channel == "web").Address);
+        var phone = Assert.Single(list.Value.Items, item => item.Channel == "whatsapp").Address;
+        Assert.Equal(PhoneNumber.Create("+201000000091").Value.Masked, phone);
+        Assert.DoesNotContain("201000000091", phone, StringComparison.Ordinal);
+    }
     private StudentActor Student() => new(_studentUser, NileCentreId, _nileStudent);
     private Task<Result<SendWebMessageResult>> SendAsync(Actor actor, SendWebMessageCommand command) =>
         Fixture.SendAsAsync<SendWebMessageCommand, SendWebMessageResult>(actor, command, "test:web-message");

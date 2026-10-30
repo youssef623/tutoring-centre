@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   GraduationCap,
   History,
+  MessageCircle,
   LayoutDashboard,
   Menu as MenuIcon,
   Presentation,
@@ -192,6 +193,12 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link to="/audit" className={linkClassName} onClick={onNavigate}>
           <History className="size-4" aria-hidden="true" />
           {t("nav.audit")}
+        </Link>
+      </Can>
+      <Can permission={Permissions.ConversationsView}>
+        <Link to="/conversations" className={linkClassName} onClick={onNavigate}>
+          <MessageCircle className="size-4" aria-hidden="true" />
+          {t("nav.conversations")}
         </Link>
       </Can>
     </nav>
