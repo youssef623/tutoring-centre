@@ -1,3 +1,4 @@
+import { PortalAccountSection } from "@/features/portal/PortalAccountSection";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { SearchX } from "lucide-react";
@@ -119,7 +120,9 @@ function StudentNotFound() {
       <SearchX className="size-10 text-muted-foreground" aria-hidden="true" />
       <h1 className="text-xl font-semibold tracking-tight">{t("notFound.title")}</h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("notFound.description")}</p>
-      <Link to="/students" className={buttonVariants()}>{t("notFound.backToList")}</Link>
+      <Link to="/students" className={buttonVariants()}>
+        {t("notFound.backToList")}
+      </Link>
     </div>
   );
 }
@@ -153,7 +156,9 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
       if (apiError.code === "student.has_active_enrollments") {
         // Names no group: the enrollments card (shown to those allowed to see it) already lists them.
         toast.error(enrollmentMessageFor(apiError));
-        await queryClient.invalidateQueries({ queryKey: getListStudentEnrollmentsQueryKey(student.id) });
+        await queryClient.invalidateQueries({
+          queryKey: getListStudentEnrollmentsQueryKey(student.id),
+        });
       } else {
         showApiError(apiError);
       }
@@ -242,21 +247,30 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
         </div>
       </div>
 
+      <PortalAccountSection kind="student" subjectId={student.id} />
       <ParentsCard student={student} canManage={canManage && !isArchived} />
-      <Can permission={Permissions.AttendanceCardsManage}><StudentCardSection key={student.id} student={student} /></Can>
+      <Can permission={Permissions.AttendanceCardsManage}>
+        <StudentCardSection key={student.id} student={student} />
+      </Can>
 
       <Can permission={Permissions.EnrollmentsView}>
         <StudentEnrollmentsCard student={student} canEnroll={!isArchived} />
       </Can>
 
-      <Can permission={Permissions.AttendanceView}><StudentAttendanceCard studentId={student.id} /></Can>
+      <Can permission={Permissions.AttendanceView}>
+        <StudentAttendanceCard studentId={student.id} />
+      </Can>
 
-      {canManage && <StudentEditDialog student={student} open={editOpen} onOpenChange={setEditOpen} />}
+      {canManage && (
+        <StudentEditDialog student={student} open={editOpen} onOpenChange={setEditOpen} />
+      )}
 
       <AlertDialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle dir="auto">{t("confirmations.archiveTitle", { name: student.fullName })}</AlertDialogTitle>
+            <AlertDialogTitle dir="auto">
+              {t("confirmations.archiveTitle", { name: student.fullName })}
+            </AlertDialogTitle>
             <AlertDialogDescription>{t("confirmations.archiveBody")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

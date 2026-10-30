@@ -11,12 +11,16 @@ import { asApiError } from "@/api/apiFetch";
 import { refreshCsrfToken } from "@/api/csrf";
 import { messageFor } from "@/api/errorMessages";
 import { applyFieldErrors, showApiError } from "@/api/showApiError";
-import { useChangePassword } from "@/api/generated/tutoring-centre";
-import { changePasswordFormSchema, type ChangePasswordFormValues } from "@/features/auth/changePasswordSchema";
+import { changePassword } from "@/api/generated/tutoring-centre";
+import {
+  changePasswordFormSchema,
+  type ChangePasswordFormValues,
+} from "@/features/auth/changePasswordSchema";
 import { HessaWordmark } from "@/components/brand/HessaLogo";
 import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import { meQueryOptions } from "@/features/session/meQueryOptions";
 import { useSession } from "@/features/session/useSession";
+import { sessionHome } from "@/features/session/roleShell";
 import { Button } from "@/components/ui/button";
 
 const KnownFields = ["currentPassword", "newPassword"] as const;
@@ -36,7 +40,6 @@ function ChangePasswordPage() {
   const { me } = useSession();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const mutation = useChangePassword();
 
   const {
     register,
@@ -52,8 +55,9 @@ function ChangePasswordPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await mutation.mutateAsync({
-        data: { currentPassword: values.currentPassword, newPassword: values.newPassword },
+      await changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
       });
       // The session cookie is re-issued on a successful change, so the antiforgery token (bound to the
       // signed-in user) must be refreshed before the next unsafe request — the same pattern login and
@@ -61,7 +65,8 @@ function ChangePasswordPage() {
       await refreshCsrfToken();
       await queryClient.invalidateQueries({ queryKey: meQueryOptions.queryKey });
       toast.success(t("changePassword.toastSuccess"));
-      await navigate({ to: me.activeCentreId === null ? "/select-centre" : "/" });
+      const updated = await queryClient.query(meQueryOptions);
+      await navigate({ href: updated === null ? "/login" : sessionHome(updated) });
     } catch (thrown) {
       const apiError = asApiError(thrown);
 
@@ -88,9 +93,13 @@ function ChangePasswordPage() {
 
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 pb-16 sm:px-0">
         <div className="space-y-1.5">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">{t("changePassword.title")}</h1>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">
+            {t("changePassword.title")}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            {me.mustChangePassword ? t("changePassword.firstLoginSubtitle") : t("changePassword.subtitle")}
+            {me.mustChangePassword
+              ? t("changePassword.firstLoginSubtitle")
+              : t("changePassword.subtitle")}
           </p>
         </div>
 
@@ -138,7 +147,9 @@ function ChangePasswordPage() {
             />
             {errors.newPassword !== undefined && (
               <p className="text-sm text-destructive">
-                {errors.newPassword.type === "server" ? errors.newPassword.message : t(errors.newPassword.message ?? "")}
+                {errors.newPassword.type === "server"
+                  ? errors.newPassword.message
+                  : t(errors.newPassword.message ?? "")}
               </p>
             )}
           </div>

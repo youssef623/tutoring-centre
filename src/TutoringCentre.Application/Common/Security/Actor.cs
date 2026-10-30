@@ -14,7 +14,7 @@ public abstract record Actor
 }
 
 /// <summary>The application itself: background jobs, the seed command, CLI tools. May act in one centre or platform-wide (null).</summary>
-public sealed record SystemActor(Guid? CentreId) : Actor
+public sealed record SystemActor(Guid? CentreId, Guid? InitiatedBy = null) : Actor
 {
     public override Guid? CentreId { get; } = CentreId;
 }

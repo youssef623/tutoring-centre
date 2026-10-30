@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/only-throw-error -- TanStack Router's documented redirect idiom:
  * `redirect()` returns a Response, which the router's own data loader catches, not an Error. */
 import { useQueryClient } from "@tanstack/react-query";
+import { sessionHome } from "@/features/session/roleShell";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import {
   Building2,
@@ -47,10 +48,19 @@ export const Route = createFileRoute("/select-centre")({
 /** Role badge styling, matched to the role's existing translation key (`auth:roles.*`). Decorative color beyond the badge's own text/icon — never the only signal of which role this is. */
 const ROLE_STYLE: Record<string, { icon: LucideIcon; className: string }> = {
   owner: { icon: Shield, className: "bg-accent text-accent-foreground" },
-  teacher: { icon: GraduationCap, className: "bg-warning/15 text-warning-foreground dark:bg-warning/25" },
-  secretary: { icon: ClipboardCheck, className: "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" },
+  teacher: {
+    icon: GraduationCap,
+    className: "bg-warning/15 text-warning-foreground dark:bg-warning/25",
+  },
+  secretary: {
+    icon: ClipboardCheck,
+    className: "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+  },
 };
-const DefaultRoleStyle: { icon: LucideIcon; className: string } = { icon: Shield, className: "bg-muted text-muted-foreground" };
+const DefaultRoleStyle: { icon: LucideIcon; className: string } = {
+  icon: Shield,
+  className: "bg-muted text-muted-foreground",
+};
 
 /** A small fixed palette for the per-centre avatar tile. Picked deterministically from the centre id, purely decorative — not tied to role. */
 const AVATAR_PALETTE = [
@@ -90,7 +100,8 @@ function SelectCentrePage() {
       await selectCentreMutation.mutateAsync({ data: { centreId } });
       await refreshCsrfToken();
       await queryClient.invalidateQueries({ queryKey: meQueryOptions.queryKey });
-      await navigate({ to: "/" });
+      const selected = await queryClient.query(meQueryOptions);
+      await navigate({ href: selected === null ? "/login" : sessionHome(selected) });
     } catch (error) {
       showApiError(asApiError(error));
     }
@@ -127,13 +138,21 @@ function SelectCentrePage() {
               <p className="text-sm font-medium text-primary">
                 {t("selectCentre.signedInAs")} <span dir="ltr">{me.email}</span>
               </p>
-              <h1 className="font-heading text-3xl font-semibold tracking-tight">{t("selectCentre.title")}</h1>
-              <p className="text-sm text-muted-foreground">{t("selectCentre.subtitle", { count: me.memberships.length })}</p>
+              <h1 className="font-heading text-3xl font-semibold tracking-tight">
+                {t("selectCentre.title")}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {t("selectCentre.subtitle", { count: me.memberships.length })}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2.5">
               {me.memberships.map((membership) => (
-                <CentreCard key={membership.centreId} membership={membership} onSelect={handleSelect} />
+                <CentreCard
+                  key={membership.centreId}
+                  membership={membership}
+                  onSelect={handleSelect}
+                />
               ))}
             </div>
 
@@ -184,21 +203,27 @@ function NoActiveCentre({ email, onSignOut }: { email: string; onSignOut: () => 
       </span>
 
       <div className="space-y-2">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">{t("selectCentre.noActiveCentre.title")}</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">
+          {t("selectCentre.noActiveCentre.title")}
+        </h1>
         <p className="max-w-sm text-base leading-relaxed text-muted-foreground">
           {t("selectCentre.noActiveCentre.description")}
         </p>
       </div>
 
       <div className="flex w-full flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 text-start shadow-sm">
-        <p className="text-xs font-semibold text-muted-foreground">{t("selectCentre.noActiveCentre.inviteLabel")}</p>
+        <p className="text-xs font-semibold text-muted-foreground">
+          {t("selectCentre.noActiveCentre.inviteLabel")}
+        </p>
         <div className="flex flex-wrap items-center gap-3">
           <span dir="ltr" className="flex-1 text-base font-semibold">
             {email}
           </span>
           <Button type="button" variant="outline" size="sm" onClick={() => void handleCopy()}>
             {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-            {copied ? t("selectCentre.noActiveCentre.copied") : t("selectCentre.noActiveCentre.copy")}
+            {copied
+              ? t("selectCentre.noActiveCentre.copied")
+              : t("selectCentre.noActiveCentre.copy")}
           </Button>
         </div>
       </div>
@@ -210,7 +235,9 @@ function NoActiveCentre({ email, onSignOut }: { email: string; onSignOut: () => 
           ) : (
             <RefreshCw aria-hidden="true" />
           )}
-          {isChecking ? t("selectCentre.noActiveCentre.checking") : t("selectCentre.noActiveCentre.checkAgain")}
+          {isChecking
+            ? t("selectCentre.noActiveCentre.checking")
+            : t("selectCentre.noActiveCentre.checkAgain")}
         </Button>
         <Button type="button" variant="outline" onClick={() => void onSignOut()}>
           {t("selectCentre.logout")}
@@ -262,7 +289,10 @@ function CentreCard({
         <RoleIcon className="size-3.5" aria-hidden="true" />
         {t(`roles.${String(membership.role)}`)}
       </span>
-      <ChevronRight className="size-4.5 shrink-0 text-muted-foreground rtl:rotate-180" aria-hidden="true" />
+      <ChevronRight
+        className="size-4.5 shrink-0 text-muted-foreground rtl:rotate-180"
+        aria-hidden="true"
+      />
     </button>
   );
 }

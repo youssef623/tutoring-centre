@@ -18,4 +18,7 @@ public sealed record MeDto(
     StaffRole? ActiveRole,
     IReadOnlyList<MembershipDto> Memberships,
     IReadOnlyList<string> Permissions,
-    bool IsOperator);
+    bool IsOperator,
+    PortalMeDto? Portal = null);
+
+public sealed record PortalMeDto(string Kind, string SubjectName);

@@ -1,3 +1,5 @@
+import portalEn from "./locales/en/portal.json";
+import portalAr from "./locales/ar/portal.json";
 import conversationsEn from "./locales/en/conversations.json";
 import conversationsAr from "./locales/ar/conversations.json";
 import cardsEn from "./locales/en/cards.json";
@@ -86,6 +88,7 @@ void i18next
   .init({
     resources: {
       en: {
+        portal: portalEn,
         common: commonEn,
         status: statusEn,
         errors: errorsEn,
@@ -107,6 +110,7 @@ void i18next
         scanner: scannerEn,
       },
       ar: {
+        portal: portalAr,
         common: commonAr,
         status: statusAr,
         errors: errorsAr,
@@ -130,7 +134,28 @@ void i18next
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule", "attendance", "cards", "scanner", "conversations"],
+    ns: [
+      "portal",
+      "common",
+      "status",
+      "errors",
+      "auth",
+      "shell",
+      "subjects",
+      "students",
+      "parents",
+      "staff",
+      "settings",
+      "audit",
+      "teachers",
+      "groups",
+      "enrollments",
+      "schedule",
+      "attendance",
+      "cards",
+      "scanner",
+      "conversations",
+    ],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });

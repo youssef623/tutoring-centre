@@ -26,6 +26,10 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     /// <summary>The fourteen routes this matrix classifies, in the exact raw pattern <see cref="EndpointInventoryTests"/> reads off the running app.</summary>
     internal static readonly string[] MatrixRoutes =
     [
+        "GET /api/portal-accounts",
+        "POST /api/portal-accounts",
+        "POST /api/portal-accounts/{linkId:guid}/deactivate",
+        "POST /api/portal-accounts/{linkId:guid}/reactivate",
         "GET /api/subjects",
         "GET /api/subjects/{id:guid}",
         "POST /api/subjects",
@@ -95,18 +99,28 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", "status", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "status", HttpStatusCode.OK)]
     [InlineData("teacher", "status", HttpStatusCode.Forbidden)]
+    [InlineData("parent", "status", HttpStatusCode.Forbidden)]
+    [InlineData("student", "status", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "issue", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", "issue", HttpStatusCode.Created)]
     [InlineData("teacher", "issue", HttpStatusCode.Forbidden)]
+    [InlineData("parent", "issue", HttpStatusCode.Forbidden)]
+    [InlineData("student", "issue", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "bulk", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "bulk", HttpStatusCode.OK)]
     [InlineData("teacher", "bulk", HttpStatusCode.Forbidden)]
+    [InlineData("parent", "bulk", HttpStatusCode.Forbidden)]
+    [InlineData("student", "bulk", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "revoke", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", "revoke", HttpStatusCode.NoContent)]
     [InlineData("teacher", "revoke", HttpStatusCode.Forbidden)]
+    [InlineData("parent", "revoke", HttpStatusCode.Forbidden)]
+    [InlineData("student", "revoke", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "scan", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "scan", HttpStatusCode.OK)]
     [InlineData("teacher", "scan", HttpStatusCode.OK)]
+    [InlineData("parent", "scan", HttpStatusCode.Forbidden)]
+    [InlineData("student", "scan", HttpStatusCode.Forbidden)]
     public async Task CardsAndScans(string role, string operation, HttpStatusCode expected)
     {
         factory.Time.FixAt(AttendanceHttp.BeforeSession);
@@ -145,18 +159,28 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", "sessions", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "sessions", HttpStatusCode.OK)]
     [InlineData("teacher", "sessions", HttpStatusCode.OK)]
+    [InlineData("parent", "sessions", HttpStatusCode.Forbidden)]
+    [InlineData("student", "sessions", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "roster", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "roster", HttpStatusCode.OK)]
     [InlineData("teacher", "roster", HttpStatusCode.OK)]
+    [InlineData("parent", "roster", HttpStatusCode.Forbidden)]
+    [InlineData("student", "roster", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "mark", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "mark", HttpStatusCode.OK)]
     [InlineData("teacher", "mark", HttpStatusCode.OK)]
+    [InlineData("parent", "mark", HttpStatusCode.Forbidden)]
+    [InlineData("student", "mark", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "correct", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", "correct", HttpStatusCode.NoContent)]
     [InlineData("teacher", "correct", HttpStatusCode.Forbidden)]
+    [InlineData("parent", "correct", HttpStatusCode.Forbidden)]
+    [InlineData("student", "correct", HttpStatusCode.Forbidden)]
     [InlineData("owner@nile.test", "history", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "history", HttpStatusCode.OK)]
     [InlineData("teacher", "history", HttpStatusCode.OK)]
+    [InlineData("parent", "history", HttpStatusCode.OK)]
+    [InlineData("student", "history", HttpStatusCode.OK)]
     public async Task Attendance(string role, string operation, HttpStatusCode expected)
     {
         factory.Time.FixAt(AttendanceHttp.BeforeSession);
@@ -189,7 +213,7 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
             if (expected == HttpStatusCode.Forbidden)
             {
                 await AssertPermissionDeniedAsync(response);
-                Assert.Equal(0L, await factory.ScalarAsync<long>("select sum(correction_count) from attendance.attendance_records"));
+                Assert.Equal(0L, await factory.ScalarAsync<long>("select coalesce(sum(correction_count), 0) from attendance.attendance_records"));
             }
         }
     }
@@ -205,6 +229,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task SubjectsList(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -218,6 +244,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task SubjectsGetById(string role, HttpStatusCode expected)
     {
         var (id, _) = await CreateSubjectAsOwnerAsync($"Matrix GetById {Guid.NewGuid():N}");
@@ -232,6 +260,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Created)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task SubjectsCreate(string role, HttpStatusCode expected)
     {
         var countBefore = await CountSubjectsAsync();
@@ -252,6 +282,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task SubjectsRename(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateSubjectAsOwnerAsync($"Matrix Rename {Guid.NewGuid():N}");
@@ -272,6 +304,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task SubjectsArchive(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateSubjectAsOwnerAsync($"Matrix Archive {Guid.NewGuid():N}");
@@ -292,6 +326,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task SubjectsRestore(string role, HttpStatusCode expected)
     {
         var (id, archivedVersion) = await CreateArchivedSubjectAsOwnerAsync($"Matrix Restore {Guid.NewGuid():N}");
@@ -312,6 +348,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StaffList(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -329,6 +367,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StaffCreate(string role, HttpStatusCode expected)
     {
         var usersBefore = await factory.ScalarAsync<long>("select count(*) from identity.users");
@@ -352,6 +392,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StaffChangeRole(string role, HttpStatusCode expected)
     {
         var (membershipId, version) = await CreateStaffMemberAsOwnerAsync($"matrix-role-{Guid.NewGuid():N}@nile.test");
@@ -372,6 +414,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StaffDeactivate(string role, HttpStatusCode expected)
     {
         var (membershipId, version) = await CreateStaffMemberAsOwnerAsync($"matrix-deact-{Guid.NewGuid():N}@nile.test");
@@ -392,6 +436,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StaffReactivate(string role, HttpStatusCode expected)
     {
         var (membershipId, deactivatedVersion) = await CreateDeactivatedStaffMemberAsOwnerAsync($"matrix-react-{Guid.NewGuid():N}@nile.test");
@@ -412,6 +458,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task AuditList(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -429,6 +477,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task CentreSettingsGet(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -446,6 +496,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task CentreSettingsUpdate(string role, HttpStatusCode expected)
     {
         var before = await SnapshotNileCentreAsync();
@@ -468,6 +520,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Created)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ParentsCreate(string role, HttpStatusCode expected)
     {
         var countBefore = await CountParentsAsync();
@@ -489,6 +543,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ParentsGetById(string role, HttpStatusCode expected)
     {
         var (id, _) = await CreateParentAsOwnerAsync($"Matrix GetById {Guid.NewGuid():N}");
@@ -507,6 +563,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ParentsUpdate(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateParentAsOwnerAsync($"Matrix Update {Guid.NewGuid():N}");
@@ -529,6 +587,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ParentsLookup(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -547,6 +607,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsList(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -564,6 +626,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsGetById(string role, HttpStatusCode expected)
     {
         var (id, _, _) = await RegisterStudentAsOwnerAsync($"Matrix GetById {Guid.NewGuid():N}");
@@ -582,6 +646,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Created)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsRegister(string role, HttpStatusCode expected)
     {
         var countBefore = await CountStudentsAsync();
@@ -607,6 +673,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsUpdate(string role, HttpStatusCode expected)
     {
         var (id, _, version) = await RegisterStudentAsOwnerAsync($"Matrix Update {Guid.NewGuid():N}");
@@ -629,6 +697,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsArchive(string role, HttpStatusCode expected)
     {
         var (id, _, version) = await RegisterStudentAsOwnerAsync($"Matrix Archive {Guid.NewGuid():N}");
@@ -649,6 +719,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsRestore(string role, HttpStatusCode expected)
     {
         var (id, _, archivedVersion) = await RegisterArchivedStudentAsOwnerAsync($"Matrix Restore {Guid.NewGuid():N}");
@@ -669,6 +741,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsLinkParent(string role, HttpStatusCode expected)
     {
         var (id, _, version) = await RegisterStudentAsOwnerAsync($"Matrix Link {Guid.NewGuid():N}");
@@ -691,6 +765,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsUnlinkParent(string role, HttpStatusCode expected)
     {
         var (id, firstParentId, secondParentId, version) = await RegisterStudentWithTwoParentsAsOwnerAsync($"Matrix Unlink {Guid.NewGuid():N}");
@@ -712,6 +788,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task StudentsMakePrimary(string role, HttpStatusCode expected)
     {
         var (id, _, secondParentId, version) = await RegisterStudentWithTwoParentsAsOwnerAsync($"Matrix MakePrimary {Guid.NewGuid():N}");
@@ -732,6 +810,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task TeachersList(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -749,6 +829,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task TeachersGetById(string role, HttpStatusCode expected)
     {
         var (id, _) = await CreateTeacherAsOwnerAsync($"Matrix GetById {Guid.NewGuid():N}");
@@ -767,6 +849,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task TeachersCreate(string role, HttpStatusCode expected)
     {
         var countBefore = await CountTeachersAsync();
@@ -787,6 +871,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task TeachersUpdate(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateTeacherAsOwnerAsync($"Matrix Update {Guid.NewGuid():N}");
@@ -808,6 +894,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task TeachersSetAccount(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateTeacherAsOwnerAsync($"Matrix SetAccount {Guid.NewGuid():N}");
@@ -829,6 +917,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task TeachersArchive(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateTeacherAsOwnerAsync($"Matrix Archive {Guid.NewGuid():N}");
@@ -849,6 +939,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.Forbidden)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task TeachersRestore(string role, HttpStatusCode expected)
     {
         var (id, archivedVersion) = await CreateArchivedTeacherAsOwnerAsync($"Matrix Restore {Guid.NewGuid():N}");
@@ -869,6 +961,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsList(string role, HttpStatusCode expected)
     {
         using var signedIn = await SignInAsync(role);
@@ -886,6 +980,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsGetById(string role, HttpStatusCode expected)
     {
         // The seeded Nile group the two-centre teacher owns, so the teacher's 200 is the permission decision,
@@ -906,6 +1002,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Created)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsCreate(string role, HttpStatusCode expected)
     {
         var (subjectId, _) = await CreateSubjectAsOwnerAsync($"Matrix Group Subject {Guid.NewGuid():N}");
@@ -929,6 +1027,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsRename(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Rename {Guid.NewGuid():N}");
@@ -950,6 +1050,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsChangeCapacity(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Capacity {Guid.NewGuid():N}");
@@ -971,6 +1073,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsAssignTeacher(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Assign {Guid.NewGuid():N}");
@@ -993,6 +1097,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsArchive(string role, HttpStatusCode expected)
     {
         var (id, version) = await CreateGroupAsOwnerAsync($"Matrix Archive {Guid.NewGuid():N}");
@@ -1014,6 +1120,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task GroupsRestore(string role, HttpStatusCode expected)
     {
         var (id, archivedVersion) = await CreateArchivedGroupAsOwnerAsync($"Matrix Restore {Guid.NewGuid():N}");
@@ -1035,6 +1143,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Created)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task EnrollmentsEnroll(string role, HttpStatusCode expected)
     {
         var groupId = await GetTwoCentreTeachersOwnNileGroupIdAsync();
@@ -1057,6 +1167,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task EnrollmentsRoster(string role, HttpStatusCode expected)
     {
         // The seeded Nile group the two-centre teacher owns, so the teacher's 200 is the permission decision,
@@ -1077,6 +1189,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task EnrollmentsListForStudent(string role, HttpStatusCode expected)
     {
         var (_, studentId) = await EnrollNewStudentInTeachersOwnGroupAsOwnerAsync();
@@ -1095,6 +1209,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task EnrollmentsWithdraw(string role, HttpStatusCode expected)
     {
         var (enrollmentId, _) = await EnrollNewStudentInTeachersOwnGroupAsOwnerAsync();
@@ -1117,6 +1233,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task EnrollmentsTransfer(string role, HttpStatusCode expected)
     {
         var (sourceGroupId, targetGroupId) = await CreateSameSubjectGroupsAsOwnerAsync($"Matrix Transfer {Guid.NewGuid():N}");
@@ -1141,6 +1259,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ScheduleListRules(string role, HttpStatusCode expected)
     {
         // The seeded Nile group the two-centre teacher owns: the teacher's 200 is the permission decision, not a scope
@@ -1162,6 +1282,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.Created)]
     [InlineData("secretary@nile.test", HttpStatusCode.Created)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ScheduleAddRule(string role, HttpStatusCode expected)
     {
         FixScheduleClock();
@@ -1184,6 +1306,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ScheduleEndRule(string role, HttpStatusCode expected)
     {
         FixScheduleClock();
@@ -1207,6 +1331,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ScheduleExtend(string role, HttpStatusCode expected)
     {
         FixScheduleClock();
@@ -1229,6 +1355,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", HttpStatusCode.OK)]
     [InlineData("teacher", HttpStatusCode.OK)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ScheduleTimetable(string role, HttpStatusCode expected)
     {
         FixScheduleClock();
@@ -1247,6 +1375,8 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
     [InlineData("owner@nile.test", HttpStatusCode.NoContent)]
     [InlineData("secretary@nile.test", HttpStatusCode.NoContent)]
     [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
     public async Task ScheduleCancelSession(string role, HttpStatusCode expected)
     {
         FixScheduleClock();
@@ -1470,10 +1600,25 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         return body.RootElement.GetProperty("version").GetUInt32();
     }
 
-    private Task<SignedInClient> SignInAsync(string role) =>
-        role == "teacher"
-            ? SignInHelper.SignInAsTwoCentreTeacherAsync(factory, "nile-centre")
-            : SignInHelper.SignInAsync(factory, role);
+    private async Task<SignedInClient> SignInAsync(string role)
+    {
+        if (role is "parent" or "student")
+        {
+            var centre = await factory.ScalarAsync<Guid>("select id from platform.centres where slug='nile-centre'");
+            var user = await factory.ScalarAsync<Guid>("select id from identity.users where email='secretary@nile.test'");
+            var owner = await factory.ScalarAsync<Guid>("select id from identity.users where email='owner@nile.test'");
+            var subject = await factory.ScalarAsync<Guid>($"select id from academics.{(role == "parent" ? "parents" : "students")} where centre_id='{centre}' order by id limit 1");
+            await factory.ExecuteAsync($"""
+                update identity.memberships set role='{role}' where centre_id='{centre}' and user_id='{user}';
+                insert into identity.portal_links (id,centre_id,user_id,role_key,parent_id,student_id,created_at,created_by)
+                values ('{Guid.NewGuid()}','{centre}','{user}','{role}',{(role == "parent" ? $"'{subject}'" : "null")},{(role == "student" ? $"'{subject}'" : "null")},now(),'{owner}');
+                """);
+            return await SignInHelper.SignInAsync(factory, "secretary@nile.test");
+        }
+        return role == "teacher"
+            ? await SignInHelper.SignInAsTwoCentreTeacherAsync(factory, "nile-centre")
+            : await SignInHelper.SignInAsync(factory, role);
+    }
 
     private static async Task AssertPermissionDeniedAsync(HttpResponseMessage response)
     {

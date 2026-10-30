@@ -330,6 +330,11 @@ public static class SeedCommand
             exitCode = 1;
         }
 
+        if (!await PortalSeed.RunAsync(services, centreIdsBySlug))
+        {
+            exitCode = 1;
+        }
+
         return exitCode;
     }
 

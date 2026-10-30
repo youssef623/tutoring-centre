@@ -11,12 +11,14 @@ import { applyFieldErrors } from "@/api/showApiError";
 import { messageFor } from "@/api/errorMessages";
 import { refreshCsrfToken } from "@/api/csrf";
 import { asApiError } from "@/api/apiFetch";
-import { useLogin, type MeDto } from "@/api/generated/tutoring-centre";
+import { login, type MeDto } from "@/api/generated/tutoring-centre";
 import { meQueryOptions } from "@/features/session/meQueryOptions";
+import { isPortalRole, sessionHome } from "@/features/session/roleShell";
 import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import { HessaMark, HessaWordmark } from "@/components/brand/HessaLogo";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import i18next from "@/i18n";
 
 export interface LoginSearch {
   redirect?: string;
@@ -37,15 +39,17 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 const KnownFields = ["email", "password"] as const;
 
-const PANEL_FEATURES: { icon: LucideIcon; key: "attendance" | "groups" | "fees" | "assistant" }[] = [
-  { icon: ClipboardCheck, key: "attendance" },
-  { icon: Users, key: "groups" },
-  { icon: Wallet, key: "fees" },
-  { icon: MessageCircle, key: "assistant" },
-];
+const PANEL_FEATURES: { icon: LucideIcon; key: "attendance" | "groups" | "fees" | "assistant" }[] =
+  [
+    { icon: ClipboardCheck, key: "attendance" },
+    { icon: Users, key: "groups" },
+    { icon: Wallet, key: "fees" },
+    { icon: MessageCircle, key: "assistant" },
+  ];
 
 /** Only ever a relative, same-site path: an open `redirect` search parameter is never trusted as-is. */
 function resolveTarget(me: MeDto, redirect: string | undefined): string {
+  if (me.mustChangePassword || isPortalRole(me.activeRole)) return sessionHome(me);
   if (me.activeCentreId === null) {
     return "/select-centre";
   }
@@ -62,7 +66,6 @@ function LoginPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const loginMutation = useLogin();
   const [banner, setBanner] = useState<string | null>(null);
 
   const {
@@ -75,7 +78,13 @@ function LoginPage() {
   const onSubmit = handleSubmit(async (values) => {
     setBanner(null);
     try {
-      const me = await loginMutation.mutateAsync({ data: values });
+      const me = await login(values);
+      if (
+        isPortalRole(me.activeRole) ||
+        me.memberships.some((membership) => isPortalRole(membership.role))
+      ) {
+        await i18next.changeLanguage(me.preferredLocale === "ar" ? "ar" : "en");
+      }
       await refreshCsrfToken();
       queryClient.setQueryData(meQueryOptions.queryKey, me);
       await navigate({ href: resolveTarget(me, redirect) });
@@ -107,7 +116,9 @@ function LoginPage() {
           <div className="w-full max-w-sm space-y-6">
             <div className="space-y-1.5">
               <p className="text-sm font-medium text-primary">{t("login.eyebrow")}</p>
-              <h1 className="font-heading text-3xl font-semibold tracking-tight">{t("login.title")}</h1>
+              <h1 className="font-heading text-3xl font-semibold tracking-tight">
+                {t("login.title")}
+              </h1>
               <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
             </div>
 
@@ -139,7 +150,9 @@ function LoginPage() {
                 />
                 {errors.email !== undefined && (
                   <p className="text-sm text-destructive">
-                    {errors.email.type === "server" ? errors.email.message : t(errors.email.message ?? "")}
+                    {errors.email.type === "server"
+                      ? errors.email.message
+                      : t(errors.email.message ?? "")}
                   </p>
                 )}
               </div>
@@ -158,11 +171,18 @@ function LoginPage() {
                 />
                 {errors.password !== undefined && (
                   <p className="text-sm text-destructive">
-                    {errors.password.type === "server" ? errors.password.message : t(errors.password.message ?? "")}
+                    {errors.password.type === "server"
+                      ? errors.password.message
+                      : t(errors.password.message ?? "")}
                   </p>
                 )}
               </div>
-              <Button type="submit" size="lg" className="h-11 w-full text-sm" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                className="h-11 w-full text-sm"
+                disabled={isSubmitting}
+              >
                 {isSubmitting && <Loader2 className="animate-spin" aria-hidden="true" />}
                 {isSubmitting ? t("login.submitting") : t("login.submit")}
               </Button>
@@ -178,12 +198,8 @@ function LoginPage() {
       >
         {/* decorative glows. Tailwind arbitrary-value utilities, not a style attribute: the CSS lands in the
             build's stylesheet rather than as an inline style, which a strict CSP (style-src 'self') blocks. */}
-        <div
-          className="pointer-events-none absolute -top-24 -end-16 size-80 rounded-full opacity-40 blur-3xl bg-[radial-gradient(circle,#5eead4_0%,transparent_70%)]"
-        />
-        <div
-          className="pointer-events-none absolute -bottom-24 -start-10 size-72 rounded-full opacity-30 blur-3xl bg-[radial-gradient(circle,#f59e0b_0%,transparent_70%)]"
-        />
+        <div className="pointer-events-none absolute -top-24 -end-16 size-80 rounded-full opacity-40 blur-3xl bg-[radial-gradient(circle,#5eead4_0%,transparent_70%)]" />
+        <div className="pointer-events-none absolute -bottom-24 -start-10 size-72 rounded-full opacity-30 blur-3xl bg-[radial-gradient(circle,#f59e0b_0%,transparent_70%)]" />
 
         <div className="relative z-10 mx-auto flex w-full max-w-md flex-col gap-10 px-12">
           <div className="flex items-center gap-3">
