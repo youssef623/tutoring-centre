@@ -145,6 +145,9 @@ public static class DependencyInjection
         services.AddSingleton<OutboxStore>();
         services.AddSingleton<OutboxRelayService>();
 
+        services.AddScoped<TutoringCentre.Application.Conversations.Outbound.IOutboundMessageRepository, OutboundMessageRepository>();
+        services.AddScoped<TutoringCentre.Application.Conversations.Web.IWebConversationRepository, WebConversationRepository>();
+        services.AddSingleton<TutoringCentre.Application.Conversations.Outbound.IChannelSender, TutoringCentre.Infrastructure.Channels.Web.WebChannelSender>();
         services.AddScoped<IChannelAccountRepository, ChannelAccountRepository>();
         services.AddScoped<IInboundChannelResolver, InboundChannelResolver>();
         services.AddScoped<IInboundMessageStore, InboundMessageStore>();

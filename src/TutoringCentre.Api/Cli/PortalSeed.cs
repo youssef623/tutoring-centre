@@ -10,6 +10,8 @@ using TutoringCentre.Application.Identity.Portal.Commands.CreatePortalAccount;
 using TutoringCentre.Application.Identity.Portal.Queries.ListPortalAccounts;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Infrastructure.Identity;
+using TutoringCentre.Application.Conversations.Commands.RegisterChannelAccount;
+using TutoringCentre.Domain.Conversations;
 
 namespace TutoringCentre.Api.Cli;
 
@@ -22,6 +24,14 @@ internal static class PortalSeed
         if (!services.GetRequiredService<IHostEnvironment>().IsDevelopment()) return true;
         var password = services.GetRequiredService<IConfiguration>()["Seed:Password"];
         if (string.IsNullOrWhiteSpace(password) || !centres.TryGetValue("nile-centre", out var centreId)) return false;
+
+        foreach (var (slug, webCentreId) in centres)
+        {
+            var registered = await services.GetRequiredService<ISystemScopeRunner>().RunAsync(webCentreId, "seed-web-channel",
+                (scopeServices, ct) => scopeServices.GetRequiredService<Dispatcher>().SendAsync<RegisterChannelAccountCommand, Guid>(
+                    new(ChannelProvider.Web, "web:" + slug, null), ct));
+            if (registered.IsFailure && registered.Error?.Code != "conversations.channel_taken") return false;
+        }
 
         Guid ownerId;
         await using (var lookupScope = services.CreateAsyncScope())

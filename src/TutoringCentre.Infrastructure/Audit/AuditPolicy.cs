@@ -17,6 +17,7 @@ namespace TutoringCentre.Infrastructure.Audit;
 /// </summary>
 internal static class AuditPolicy
 {
+    // Inbound and outbound messages are the conversation log itself. Never duplicate message text in audit changes.
     public static readonly IReadOnlyDictionary<Type, AuditPolicyEntry> Entries = new Dictionary<Type, AuditPolicyEntry>
     {
         [typeof(ChannelAccount)] = new AuditPolicyEntry(

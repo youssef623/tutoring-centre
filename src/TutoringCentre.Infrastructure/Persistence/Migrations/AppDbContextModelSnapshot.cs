@@ -1023,7 +1023,6 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<string>("DisplayPhone")
-                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)")
                         .HasColumnName("display_phone");
@@ -1068,9 +1067,9 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
 
                     b.ToTable("channel_accounts", "conversations", t =>
                         {
-                            t.HasCheckConstraint("ck_channel_accounts_phone", "display_phone ~ '^[+][1-9][0-9]{7,14}$'");
+                            t.HasCheckConstraint("ck_channel_accounts_phone", "(provider = 'web' AND display_phone IS NULL) OR (provider = 'whatsapp' AND display_phone IS NOT NULL AND display_phone ~ '^[+][1-9][0-9]{7,14}$')");
 
-                            t.HasCheckConstraint("ck_channel_accounts_provider", "provider IN ('whatsapp')");
+                            t.HasCheckConstraint("ck_channel_accounts_provider", "provider IN ('whatsapp','web')");
 
                             t.HasCheckConstraint("ck_channel_accounts_status", "status IN ('active','disabled')");
                         });
@@ -1091,7 +1090,6 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasColumnName("channel_account_id");
 
                     b.Property<string>("CounterpartAddress")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("counterpart_address");
@@ -1123,6 +1121,14 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("parent_id");
 
+                    b.Property<Guid?>("PortalUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("portal_user_id");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -1143,15 +1149,24 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_conversations_account_address");
 
+                    b.HasIndex("CentreId", "ChannelAccountId", "PortalUserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_conversations_account_portal_user")
+                        .HasFilter("portal_user_id IS NOT NULL");
+
                     b.HasIndex("CentreId", "LastMessageAt", "Id")
                         .IsDescending(false, true, true)
                         .HasDatabaseName("ix_conversations_centre_last");
 
                     b.ToTable("conversations", "conversations", t =>
                         {
-                            t.HasCheckConstraint("ck_conversations_identity", "identity_status IN ('unresolved','parent','unknown')");
+                            t.HasCheckConstraint("ck_conversations_address", "(counterpart_address IS NOT NULL) <> (portal_user_id IS NOT NULL)");
 
-                            t.HasCheckConstraint("ck_conversations_parent", "(identity_status = 'parent') = (parent_id IS NOT NULL)");
+                            t.HasCheckConstraint("ck_conversations_identity", "identity_status IN ('unresolved','parent','unknown','identified')");
+
+                            t.HasCheckConstraint("ck_conversations_parent", "(portal_user_id IS NULL AND identity_status <> 'identified' AND (identity_status = 'parent') = (parent_id IS NOT NULL) AND student_id IS NULL) OR (portal_user_id IS NOT NULL AND identity_status = 'identified' AND (parent_id IS NOT NULL) <> (student_id IS NOT NULL))");
+
+                            t.HasCheckConstraint("ck_conversations_subject", "parent_id IS NULL OR student_id IS NULL");
                         });
                 });
 
@@ -1238,6 +1253,80 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_inbound_messages_text", "(message_type = 'text') = (text_body IS NOT NULL)");
 
                             t.HasCheckConstraint("ck_inbound_messages_type", "message_type IN ('text','audio','image','other')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.OutboundMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("failure_code");
+
+                    b.Property<string>("ProviderMessageId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("provider_message_id");
+
+                    b.Property<Guid?>("ReplyToInboundId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reply_to_inbound_id");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outbound_messages");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_outbound_messages_centre_id_id");
+
+                    b.HasIndex("CentreId", "ReplyToInboundId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_outbound_messages_reply")
+                        .HasFilter("reply_to_inbound_id IS NOT NULL");
+
+                    b.HasIndex("CentreId", "ConversationId", "CreatedAt")
+                        .HasDatabaseName("ix_outbound_messages_conversation_created");
+
+                    b.ToTable("outbound_messages", "conversations", t =>
+                        {
+                            t.HasCheckConstraint("ck_outbound_messages_failure", "(status = 'failed') = (failure_code IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_outbound_messages_sent", "status NOT IN ('sent','delivered','read') OR sent_at IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_outbound_messages_status", "status IN ('queued','sent','delivered','read','failed')");
+
+                            t.HasCheckConstraint("ck_outbound_messages_text", "char_length(text) BETWEEN 1 AND 1000");
                         });
                 });
 
@@ -1949,6 +2038,13 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasPrincipalKey("CentreId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_conversations_parents");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Student", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_conversations_students");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Conversations.InboundMessage", b =>
@@ -1967,6 +2063,31 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_inbound_messages_conversations");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.OutboundMessage", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_outbound_messages_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Conversations.Conversation", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ConversationId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_outbound_messages_conversations");
+
+                    b.HasOne("TutoringCentre.Domain.Conversations.InboundMessage", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ReplyToInboundId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_outbound_messages_inbound");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Identity.Membership", b =>

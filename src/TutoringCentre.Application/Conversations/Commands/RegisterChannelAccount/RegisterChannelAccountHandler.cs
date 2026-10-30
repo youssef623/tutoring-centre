@@ -12,6 +12,13 @@ internal sealed class RegisterChannelAccountHandler(IChannelAccountRepository ac
 {
     public Task<Result<Guid>> HandleAsync(RegisterChannelAccountCommand command, CancellationToken cancellationToken)
     {
+        if (command.Provider == TutoringCentre.Domain.Conversations.ChannelProvider.Web)
+        {
+            var web = ChannelAccount.RegisterWeb(actor.Actor.CentreId!.Value, command.ExternalAccountId);
+            if (web.IsFailure) return Task.FromResult(Result<Guid>.Failure(web.Error!));
+            accounts.Add(web.Value);
+            return Task.FromResult(Result<Guid>.Success(web.Value.Id));
+        }
         var phone = PhoneNumber.Create(command.DisplayPhone);
         if (phone.IsFailure) return Task.FromResult(Result<Guid>.Failure(phone.Error!));
         var account = ChannelAccount.Register(actor.Actor.CentreId!.Value, command.Provider, command.ExternalAccountId, phone.Value);

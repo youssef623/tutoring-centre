@@ -11,9 +11,18 @@ namespace TutoringCentre.Application.Common.Messaging;
 public sealed class OutboxRegistry
 {
     private readonly Dictionary<string, OutboxMapping> _mappings;
+    private readonly HashSet<string> _deferred;
 
-    internal OutboxRegistry(IEnumerable<OutboxMapping> mappings) =>
+    internal OutboxRegistry(IEnumerable<OutboxMapping> mappings, IEnumerable<DeferredOutboxType>? deferred = null)
+    {
         _mappings = mappings.ToDictionary(mapping => mapping.TypeName, StringComparer.Ordinal);
+        _deferred = (deferred ?? []).Select(message => message.TypeName).ToHashSet(StringComparer.Ordinal);
+        if (_deferred.Overlaps(_mappings.Keys))
+            throw new InvalidOperationException("An outbox type cannot be both deferred and mapped to a command.");
+    }
+
+    /// <summary>Known work awaiting its consumer; it must remain pending rather than be acknowledged or discarded.</summary>
+    public bool IsDeferred(string typeName) => _deferred.Contains(typeName);
 
     public bool TryResolve(string typeName, string payload, out OutboxDelivery? delivery)
     {
@@ -35,14 +44,25 @@ public sealed class OutboxDelivery(object command, Func<IServiceProvider, Cancel
 }
 
 internal sealed record OutboxMapping(string TypeName, Func<string, OutboxDelivery> Resolve);
+internal sealed record DeferredOutboxType(string TypeName);
 
 public static class OutboxRegistration
 {
     public static IServiceCollection AddOutbox(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.TryAddSingleton(provider => new OutboxRegistry(provider.GetServices<OutboxMapping>()));
+        services.TryAddSingleton(provider => new OutboxRegistry(provider.GetServices<OutboxMapping>(), provider.GetServices<DeferredOutboxType>()));
         return services;
+    }
+
+    /// <summary>Explicitly preserves a stable message type until its actual consumer is installed.</summary>
+    public static IServiceCollection AddDeferredOutboxMessage<TMessage>(this IServiceCollection services)
+        where TMessage : class, IOutboxMessage
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ValidateRegistration(services, TMessage.TypeName);
+        services.AddSingleton(new DeferredOutboxType(TMessage.TypeName));
+        return services.AddOutbox();
     }
 
     /// <summary>Registers one stable message type to one idempotent command. Delivery may repeat after commit.</summary>
@@ -51,10 +71,7 @@ public static class OutboxRegistration
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(toCommand);
-        if (string.IsNullOrWhiteSpace(TMessage.TypeName) || TMessage.TypeName.Length > 100)
-            throw new InvalidOperationException("Outbox type names must contain 1 to 100 characters.");
-        if (services.Any(descriptor => descriptor.ImplementationInstance is OutboxMapping mapping && mapping.TypeName == TMessage.TypeName))
-            throw new InvalidOperationException($"Outbox type '{TMessage.TypeName}' is already registered.");
+        ValidateRegistration(services, TMessage.TypeName, allowDeferred: true);
 
         var contracts = typeof(TCommand).GetInterfaces().Where(type => type.IsGenericType
             && type.GetGenericTypeDefinition() == typeof(ICommand<>)).ToArray();
@@ -63,8 +80,22 @@ public static class OutboxRegistration
         // or arbitrary command discovery occurs, and delivery itself uses the typed dispatcher delegate.
         var factory = typeof(OutboxRegistration).GetMethod(nameof(CreateMapping), BindingFlags.NonPublic | BindingFlags.Static)!
             .MakeGenericMethod(typeof(TMessage), typeof(TCommand), contracts[0].GenericTypeArguments[0]);
-        services.AddSingleton((OutboxMapping)factory.Invoke(null, [toCommand])!);
+        var mapping = (OutboxMapping)factory.Invoke(null, [toCommand])!;
+        // Installing the real consumer explicitly promotes pending work; the type is never both active and deferred.
+        foreach (var descriptor in services.Where(descriptor => descriptor.ImplementationInstance is DeferredOutboxType deferred
+            && deferred.TypeName == TMessage.TypeName).ToArray())
+            services.Remove(descriptor);
+        services.AddSingleton(mapping);
         return services.AddOutbox();
+    }
+
+    private static void ValidateRegistration(IServiceCollection services, string typeName, bool allowDeferred = false)
+    {
+        if (string.IsNullOrWhiteSpace(typeName) || typeName.Length > 100)
+            throw new InvalidOperationException("Outbox type names must contain 1 to 100 characters.");
+        if (services.Any(descriptor => descriptor.ImplementationInstance is OutboxMapping mapping && mapping.TypeName == typeName
+            || !allowDeferred && descriptor.ImplementationInstance is DeferredOutboxType deferred && deferred.TypeName == typeName))
+            throw new InvalidOperationException($"Outbox type '{typeName}' is already registered.");
     }
 
     private static OutboxMapping CreateMapping<TMessage, TCommand, TResponse>(Func<TMessage, TCommand> toCommand)

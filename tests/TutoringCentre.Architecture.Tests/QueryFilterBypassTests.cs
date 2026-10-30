@@ -55,6 +55,10 @@ public sealed class QueryFilterBypassTests
         "src/TutoringCentre.Infrastructure/Conversations/InboundChannelResolver.cs",
         // Parameterized ON CONFLICT inserts use actor centre and the dispatcher transaction; forced RLS backs both.
         "src/TutoringCentre.Infrastructure/Conversations/InboundMessageStore.cs",
+        // Parameterized portal-user upsert uses the current actor's centre and ambient transaction; RLS remains forced.
+        "src/TutoringCentre.Infrastructure/Repositories/WebConversationRepository.cs",
+        // Serializes outbound sends with a row lock; explicit centre predicate plus composed EF filter and forced RLS.
+        "src/TutoringCentre.Infrastructure/Repositories/OutboundMessageRepository.cs",
     ];
 
     private const string MigrationsDirectoryPrefix = "src/TutoringCentre.Infrastructure/Persistence/Migrations/";

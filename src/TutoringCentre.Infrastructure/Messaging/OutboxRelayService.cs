@@ -52,6 +52,12 @@ public sealed partial class OutboxRelayService(OutboxStore store, OutboxRegistry
         var outcome = "abandoned";
         try
         {
+            if (registry.IsDeferred(row.Type))
+            {
+                outcome = await store.ReleaseForRetryAsync(row.Id, _worker, clock.UtcNow.AddMinutes(5), "consumer_deferred", cancellationToken) == 0
+                    ? "leaseLost" : "deferred";
+                return;
+            }
             if (!registry.TryResolve(row.Type, row.Payload, out var delivery))
             {
                 outcome = await store.DeadLetterAsync(row.Id, _worker, clock.UtcNow, "unknown_type", cancellationToken) == 0
@@ -69,7 +75,7 @@ public sealed partial class OutboxRelayService(OutboxStore store, OutboxRegistry
         catch (Exception exception)
         {
             var errorType = exception.GetType().Name;
-            if (row.Attempts >= 8)
+            if (row.Attempts >= 8 && !registry.IsDeferred(row.Type))
                 outcome = await store.DeadLetterAsync(row.Id, _worker, clock.UtcNow, errorType, cancellationToken) == 0
                     ? "leaseLost" : "deadLettered";
             else
