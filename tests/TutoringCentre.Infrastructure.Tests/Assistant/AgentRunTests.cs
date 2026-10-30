@@ -16,6 +16,7 @@ using TutoringCentre.Domain.Assistant;
 using TutoringCentre.Domain.Common;
 using TutoringCentre.Domain.Conversations;
 using TutoringCentre.Domain.Identity;
+using TutoringCentre.Domain.Centres;
 using TutoringCentre.Infrastructure.Messaging;
 using TutoringCentre.Infrastructure.Persistence;
 using TutoringCentre.Infrastructure.Tests.Conversations;
@@ -126,8 +127,11 @@ public sealed class AgentRunTests(PostgresFixture fixture) : ConversationsTestBa
         var parent=await Fixture.SeedParentAsync(NileCentreId,"Agent Parent","+201000000098");
         var channel=await SendAsync<RegisterChannelAccountCommand,Guid>(NileCentreId,new(ChannelProvider.Web,"web:nile-centre",null));
         Assert.True(channel.IsSuccess);
+        var account = await Fixture.SendAsAsync<TutoringCentre.Application.Identity.Portal.Commands.CreatePortalAccount.CreatePortalAccountCommand, TutoringCentre.Application.Identity.Portal.Commands.CreatePortalAccount.CreatePortalAccountResult>(
+            new SystemActor(NileCentreId,await Fixture.SeedUserAsync()), new(TutoringCentre.Application.Identity.Portal.PortalSubjectKind.Parent,parent,"agent-parent@nile.test",SupportedLocale.En));
+        Assert.True(account.IsSuccess,account.Error?.Message);
         var sent=await (services??Fixture.Services).SendAsAsync<SendWebMessageCommand,SendWebMessageResult>(
-            new ParentActor(Guid.NewGuid(),NileCentreId,parent),new(Guid.NewGuid(),text));
+            new ParentActor(account.Value.UserId,NileCentreId,parent),new(Guid.NewGuid(),text));
         Assert.True(sent.IsSuccess); return sent.Value.MessageId;
     }
     private async Task<AgentRun?> ClaimAsync(Guid conversation,Guid inbound)

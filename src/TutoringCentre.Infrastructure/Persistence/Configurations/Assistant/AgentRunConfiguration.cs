@@ -21,6 +21,7 @@ internal sealed class AgentRunConfiguration : IEntityTypeConfiguration<AgentRun>
         builder.Property(x => x.Status).HasConversion(x => x.ToString().ToLowerInvariant(), x => Enum.Parse<AgentRunStatus>(x, true)).HasMaxLength(12);
         builder.Property(x => x.FailureCode).HasMaxLength(60);
         builder.Property(x => x.GuardReason).HasMaxLength(60);
+        builder.Property(x => x.PromptVersion).HasMaxLength(30);
         builder.HasIndex(x => new { x.CentreId, x.InboundMessageId }).IsUnique().HasDatabaseName("ux_agent_runs_inbound_message");
         builder.HasOne<Conversation>().WithMany().HasForeignKey(x => new { x.CentreId, x.ConversationId }).HasPrincipalKey(x => new { x.CentreId, x.Id }).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_agent_runs_conversations");
         builder.HasOne<InboundMessage>().WithMany().HasForeignKey(x => new { x.CentreId, x.InboundMessageId }).HasPrincipalKey(x => new { x.CentreId, x.Id }).OnDelete(DeleteBehavior.Restrict).HasConstraintName("fk_agent_runs_inbound_messages");

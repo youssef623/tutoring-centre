@@ -16,6 +16,7 @@ public static class AssistantRegistration
         ArgumentNullException.ThrowIfNull(configuration);
         services.AddScoped(provider => provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AssistantOptions>>().Value);
         services.AddScoped<AgentLoop>();
+        services.AddHostedService<ToolRegistrationValidator>();
         services.AddOptions<AssistantOptions>().Bind(configuration.GetSection("Assistant")).ValidateDataAnnotations()
             .Validate(options => options.CallTimeout > TimeSpan.Zero && options.CallTimeout <= TimeSpan.FromMinutes(5), "CallTimeout must be positive and at most five minutes.")
             .Validate(options => options.TotalRunTimeout > TimeSpan.Zero && options.TotalRunTimeout <= TimeSpan.FromSeconds(60), "TotalRunTimeout must be positive and at most sixty seconds.")
