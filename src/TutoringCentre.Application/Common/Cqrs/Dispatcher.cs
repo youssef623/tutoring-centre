@@ -64,6 +64,13 @@ public sealed class Dispatcher
 
         var handler = _services.GetRequiredService<ICommandHandler<TCommand, TResponse>>();
 
+        var timeout = _services.GetService<ICommandTimeoutPolicy>()?.GetTimeout(command);
+        using var budget = timeout is null ? null : CancellationTokenSource.CreateLinkedTokenSource(ct);
+        if (budget is not null)
+        {
+            budget.CancelAfter(timeout!.Value);
+            ct = budget.Token;
+        }
         await _unitOfWork.BeginAsync(readOnly: false, ct);
         try
         {

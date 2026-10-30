@@ -766,6 +766,82 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Assistant.AgentRun", b =>
+                {
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("failure_code");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<string>("GuardReason")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("guard_reason");
+
+                    b.Property<Guid>("InboundMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("inbound_message_id");
+
+                    b.Property<int>("InputTokens")
+                        .HasColumnType("integer")
+                        .HasColumnName("input_tokens");
+
+                    b.Property<int>("OutputTokens")
+                        .HasColumnType("integer")
+                        .HasColumnName("output_tokens");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("Steps")
+                        .HasColumnType("integer")
+                        .HasColumnName("steps");
+
+                    b.HasKey("CentreId", "Id")
+                        .HasName("ux_agent_runs_centre_id_id");
+
+                    b.HasIndex("CentreId", "ConversationId")
+                        .HasDatabaseName("ix_agent_runs_centre_id_conversation_id");
+
+                    b.HasIndex("CentreId", "InboundMessageId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_agent_runs_inbound_message");
+
+                    b.ToTable("agent_runs", "assistant", t =>
+                        {
+                            t.HasCheckConstraint("ck_agent_runs_counts", "steps >= 0 AND input_tokens >= 0 AND output_tokens >= 0");
+
+                            t.HasCheckConstraint("ck_agent_runs_failure", "(status = 'failed') = (failure_code IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_agent_runs_finished", "(status = 'running') = (finished_at IS NULL)");
+
+                            t.HasCheckConstraint("ck_agent_runs_status", "status IN ('running','completed','failed')");
+                        });
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Attendance.AttendanceRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1926,6 +2002,32 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_teachers_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Assistant.AgentRun", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_agent_runs_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Conversations.Conversation", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ConversationId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_agent_runs_conversations");
+
+                    b.HasOne("TutoringCentre.Domain.Conversations.InboundMessage", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "InboundMessageId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_agent_runs_inbound_messages");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Attendance.AttendanceRecord", b =>

@@ -1,0 +1,20 @@
+[
+  {
+    "text": "أهلاً! لا أستطيع البحث في السجلات الآن، وسأتمكن من مساعدتك قريباً.",
+    "toolCalls": [],
+    "usage": {
+      "inputTokens": 60,
+      "outputTokens": 25
+    },
+    "stopReason": "Completed"
+  },
+  {
+    "text": "أهلاً! لا أستطيع البحث في السجلات الآن، وسأتمكن من مساعدتك قريباً.",
+    "toolCalls": [],
+    "usage": {
+      "inputTokens": 60,
+      "outputTokens": 25
+    },
+    "stopReason": "Completed"
+  }
+]

@@ -13,6 +13,7 @@ internal static class ConstraintErrorCatalog
 {
     private static readonly Dictionary<string, Func<Error>> UniqueEntries = new(StringComparer.Ordinal)
     {
+        ["ux_agent_runs_inbound_message"] = () => Error.Conflict("assistant.already_ran", "A run already exists for this message."),
         ["ux_outbound_messages_reply"] = () => Error.Conflict("outbound.reply_already_queued", "A reply is already queued for this message."),
         ["ux_conversations_account_portal_user"] = () => Error.Conflict("chat.conversation_already_exists", "This login already has a web conversation."),
         ["ux_portal_links_centre_user"] = () => Error.Conflict("portal.user_already_linked", "This login already has a portal link."),

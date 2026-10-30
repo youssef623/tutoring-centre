@@ -1,3 +1,11 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using TutoringCentre.Application;
+using TutoringCentre.Application.Assistant.Models;
+using TutoringCentre.Application.Common.Ports;
+using TutoringCentre.Domain.Common;
+using TutoringCentre.Infrastructure;
+using TutoringCentre.Infrastructure.Messaging;
 using System.Net;
 using System.Text.Json;
 using TutoringCentre.Api.Cli;
@@ -123,6 +131,44 @@ public sealed class PortalChatEndpointTests(ApiFactory factory) : IAsyncLifetime
         using var thread = await actor.Client.GetAsync(new Uri($"/api/conversations/{Guid.NewGuid()}/messages", UriKind.Relative));
         Assert.Equal(HttpStatusCode.Forbidden, list.StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, thread.StatusCode);
+    }
+
+    [Fact]
+    public async Task PortalSendThroughRealRelayReturnsExactlyOneSentReply()
+    {
+        using var actor = await PortalAsync("parent");
+        var model = new PortalModel();
+        await using var services = new ServiceCollection().AddLogging().AddApplication()
+            .AddInfrastructure(factory.Services.GetRequiredService<IConfiguration>())
+            .AddSingleton(factory.Services.GetRequiredService<TutoringCentre.Application.Platform.IDemoModeProvider>())
+            .AddSingleton<ILanguageModel>(model)
+            .AddSingleton(factory.Services.GetRequiredService<IClock>())
+            .BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
+        using var sent = await SendAsync(actor.Client, Guid.NewGuid(), "\u0645\u0631\u062d\u0628\u0627");
+        Assert.Equal(HttpStatusCode.Created,sent.StatusCode);
+        var relay = services.GetRequiredService<OutboxRelayService>();
+        for(var stage=0;stage<3;stage++) Assert.Equal(1,await relay.ProcessBatchAsync());
+        Assert.Equal(0,await relay.ProcessBatchAsync());
+        using var list = await actor.Client.GetAsync(Messages);
+        using var body = await JsonAsync(list);
+        var items = body.RootElement.GetProperty("items").EnumerateArray().ToArray();
+        Assert.Equal(2,items.Length);
+        var reply = Assert.Single(items,item=>item.GetProperty("direction").GetString()=="outbound");
+        Assert.Equal("sent",reply.GetProperty("status").GetString());
+        Assert.Equal("Hello. I cannot look up records yet.",reply.GetProperty("text").GetString());
+        Assert.Equal(1,model.Calls);
+        Assert.Equal(1L,await factory.ScalarAsync<long>("select count(*) from assistant.agent_runs"));
+        Assert.Equal(0L,await factory.ScalarAsync<long>("select count(*) from assistant.agent_runs r join platform.centres c on c.id=r.centre_id where c.slug='maadi-hub'"));
+    }
+
+    private sealed class PortalModel : ILanguageModel
+    {
+        public int Calls { get; private set; }
+        public Task<Result<ModelResponse>> GenerateAsync(ModelRequest request,CancellationToken cancellationToken)
+        {
+            Calls++;
+            return Task.FromResult(Result<ModelResponse>.Success(new("Hello. I cannot look up records yet.",[],new(20,10),ModelStopReason.Completed)));
+        }
     }
 
     private async Task<SignedInClient> PortalAsync(string role)

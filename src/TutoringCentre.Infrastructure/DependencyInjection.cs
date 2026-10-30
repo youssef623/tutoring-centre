@@ -154,6 +154,8 @@ public static class DependencyInjection
         services.AddSingleton<TutoringCentre.Application.Conversations.Outbound.IChannelSender, TutoringCentre.Infrastructure.Channels.Web.WebChannelSender>();
         services.AddScoped<IChannelAccountRepository, ChannelAccountRepository>();
         services.AddScoped<IInboundChannelResolver, InboundChannelResolver>();
+        services.AddScoped<TutoringCentre.Application.Assistant.IAgentRunRepository, TutoringCentre.Infrastructure.Assistant.AgentRunRepository>();
+        services.AddScoped<TutoringCentre.Application.Conversations.IAgentConversationRepository, TutoringCentre.Infrastructure.Assistant.AgentConversationRepository>();
         services.AddScoped<IInboundMessageStore, InboundMessageStore>();
         services.AddScoped<IPortalDirectory, PortalDirectory>();
         services.AddScoped<IPortalLinkRepository, PortalLinkRepository>();

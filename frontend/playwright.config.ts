@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 /**
@@ -7,7 +8,7 @@ import { defineConfig, devices } from "@playwright/test";
  * hard-check `HttpContext.Request.IsHttps` on the request *the backend itself receives*, independent of
  * "localhost is a trustworthy origin" (that exception covers the browser accepting a Secure cookie from
  * http://localhost:5173, not whether Kestrel saw TLS). This is the same reason Day 16 moved dev to HTTPS
- * rather than weakening that policy. E2E therefore uses the same "https" profile as normal development;
+ * rather than weakening that policy. E2E therefore uses the same HTTPS bindings in Testing;
  * the readiness probe below targets that profile's plain-http sibling binding purely to dodge the
  * self-signed certificate during the Node-side health check (the API itself is still reached over HTTPS).
  */
@@ -26,10 +27,18 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
-      command: "dotnet run --project ../src/TutoringCentre.Api --launch-profile https",
-      env: { Jobs__RunServer: "false", Outbox__RunRelay: "false" },
+      command:
+        'dotnet run --project ../src/TutoringCentre.Api --no-launch-profile --urls "https://localhost:7197;http://localhost:5245"',
+      env: {
+        DOTNET_ENVIRONMENT: "Testing",
+        ASPNETCORE_ENVIRONMENT: "Testing",
+        Jobs__RunServer: "false",
+        Outbox__RunRelay: "true",
+        Assistant__Provider: process.env.ASSISTANT_E2E_LIVE === "1" ? "live" : "scripted",
+        Assistant__ScriptPath: resolve("e2e/fixtures/scripted-model.json"),
+      },
       url: apiReadinessUrl,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120_000,
       stdout: "ignore",
     },
