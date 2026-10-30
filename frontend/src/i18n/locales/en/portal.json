@@ -30,5 +30,23 @@
   "language": "Account language",
   "cancel": "Cancel",
   "subjectLinked": "This person already has a portal account.",
-  "userLinked": "This email already has an account in this centre."
+  "userLinked": "This email already has an account in this centre.",
+  "chatSendFailed": "Message could not be sent.",
+  "chatEmpty": "Ask about attendance",
+  "chatSend": "Send",
+  "chatLoadFailed": "Messages could not be loaded.",
+  "chatSending": "Sending…",
+  "chatMessage": "Message",
+  "chatOlder": "Load older messages",
+  "chatStatus": {
+    "queued": "Queued",
+    "failed": "Failed",
+    "read": "Read",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "received": "Received",
+    "processed": "Processed"
+  },
+  "chatLoading": "Loading messages…",
+  "chatRateLimited": "Too many messages. Wait a minute, then retry."
 }

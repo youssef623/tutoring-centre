@@ -35,7 +35,7 @@ public sealed class SendWebMessageHandlerTests
         var message = Assert.IsType<InboundMessage>(fixture.Store.Message);
         Assert.Equal("hello portal", message.TextBody);
         Assert.Equal(ChannelProvider.Web, message.Provider);
-        Assert.Equal(fixture.ClientId.ToString("D"), message.ProviderMessageId);
+        Assert.Equal($"{fixture.Repository.ConversationId:N}:{fixture.ClientId:N}", message.ProviderMessageId);
         Assert.Equal(fixture.Repository.ConversationId, message.ConversationId);
         Assert.Equal(fixture.Repository.ConversationId, fixture.Store.InsertConversationId);
         Assert.Equal(fixture.Clock.UtcNow, message.ReceivedAt);
@@ -55,20 +55,20 @@ public sealed class SendWebMessageHandlerTests
         Assert.True(result.Value.AlreadyRecorded);
         Assert.Equal(fixture.Repository.ExistingMessageId, result.Value.MessageId);
         Assert.Equal(fixture.Repository.ConversationId, fixture.Repository.LookedUpConversationId);
-        Assert.Equal(fixture.ClientId.ToString("D"), fixture.Repository.LookedUpProviderId);
+        Assert.Equal($"{fixture.Repository.ConversationId:N}:{fixture.ClientId:N}", fixture.Repository.LookedUpProviderId);
         Assert.Empty(fixture.Outbox.Messages);
     }
 
     [Fact]
-    public async Task CollisionOutsideActorsConversation_ReturnsConflictWithoutIntentOrMessageId()
+    public async Task StorageConflictWithoutScopedRecord_FailsWithoutIntentOrMessageId()
     {
         var fixture = new HandlerFixture();
         fixture.Store.NewId = null;
         fixture.Repository.ExistingMessageId = null;
         var result = await fixture.SendAsync();
         Assert.True(result.IsFailure);
-        Assert.Equal("chat.client_message_conflict", result.Error?.Code);
-        Assert.Equal(ErrorKind.Conflict, result.Error?.Kind);
+        Assert.Equal("chat.record_failed", result.Error?.Code);
+        Assert.Equal(ErrorKind.Rule, result.Error?.Kind);
         Assert.Empty(fixture.Outbox.Messages);
     }
 

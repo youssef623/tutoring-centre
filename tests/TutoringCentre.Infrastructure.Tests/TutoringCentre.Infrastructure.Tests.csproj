@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TutoringCentre.Infrastructure\TutoringCentre.Infrastructure.csproj" />
+    <Compile Include="..\TutoringCentre.Application.Tests\Assistant\ModelContractTests.cs" Link="Assistant\ModelContractTests.cs" />
   </ItemGroup>
 
 </Project>

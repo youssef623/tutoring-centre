@@ -35,7 +35,7 @@ internal sealed class SendWebMessageHandler(ICurrentActor actor, IWebConversatio
     public async Task<Result<SendWebMessageResult>> HandleAsync(SendWebMessageCommand command, CancellationToken cancellationToken)
     {
         if (actor.Actor is not IPortalActor portal)
-            return Result<SendWebMessageResult>.Failure(Error.Rule("chat.portal_actor_required", "A portal session is required."));
+            return Result<SendWebMessageResult>.Failure(Error.Forbidden("chat.portal_actor_required", "A portal session is required."));
         var account = await conversations.GetChannelAsync(cancellationToken);
         if (account is null) return Result<SendWebMessageResult>.Failure(Error.Rule("chat.unavailable", "Web chat is unavailable."));
         var subject = new PortalConversationSubject(portal.SubjectKind == PortalSubjectKind.Parent ? PortalConversationSubjectKind.Parent : PortalConversationSubjectKind.Student, portal.SubjectId);
@@ -43,7 +43,9 @@ internal sealed class SendWebMessageHandler(ICurrentActor actor, IWebConversatio
         var opened = Conversation.OpenForPortal(portal.CentreId!.Value, account.Id, portal.UserId, subject, now);
         if (opened.IsFailure) return Result<SendWebMessageResult>.Failure(opened.Error!);
         var conversationId = await conversations.GetOrCreateAsync(opened.Value, cancellationToken);
-        var providerId = command.ClientMessageId.ToString("D");
+        // The inbound store's unique key spans the centre. Namespace a client ID by
+        // the server-resolved conversation so different families cannot collide.
+        var providerId = $"{conversationId:N}:{command.ClientMessageId:N}";
         var received = InboundMessage.Receive(portal.CentreId.Value, conversationId, ChannelProvider.Web, providerId,
             InboundMessageType.Text, command.Text.Trim(), now, now);
         if (received.IsFailure) return Result<SendWebMessageResult>.Failure(received.Error!);
@@ -57,6 +59,6 @@ internal sealed class SendWebMessageHandler(ICurrentActor actor, IWebConversatio
         var existingId = await conversations.GetMessageIdAsync(conversationId, providerId, cancellationToken);
         return existingId is { } existing
             ? Result<SendWebMessageResult>.Success(new(existing, true))
-            : Result<SendWebMessageResult>.Failure(Error.Conflict("chat.client_message_conflict", "This client message identifier is already used."));
+            : Result<SendWebMessageResult>.Failure(Error.Rule("chat.record_failed", "The message could not be recorded."));
     }
 }

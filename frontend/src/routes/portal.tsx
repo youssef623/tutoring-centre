@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/only-throw-error -- TanStack Router redirect contract. */
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Outlet, useLocation } from "@tanstack/react-router";
 import { meQueryOptions } from "@/features/session/meQueryOptions";
 import { useSession } from "@/features/session/useSession";
 import { isPortalRole, sessionHome } from "@/features/session/roleShell";
@@ -18,5 +18,8 @@ export const Route = createFileRoute("/portal")({
 
 function PortalPage() {
   const { me } = useSession();
-  return me === null ? null : <PortalShell me={me} />;
+  const path = useLocation({ select: (location) => location.pathname });
+  return me === null ? null : (
+    <PortalShell me={me}>{path === "/portal" ? undefined : <Outlet />}</PortalShell>
+  );
 }

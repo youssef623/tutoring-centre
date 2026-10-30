@@ -245,6 +245,22 @@ export interface ChangeStaffRoleRequest {
   version: number | string;
 }
 
+export interface ChatMessageDto {
+  id: string;
+  direction: string;
+  /** @nullable */
+  text: string | null;
+  /** @nullable */
+  status: string | null;
+  createdAt: string;
+}
+
+export interface ChatMessagesPage {
+  items: ChatMessageDto[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
 export type ClassSessionStatus = typeof ClassSessionStatus[keyof typeof ClassSessionStatus];
 
 
@@ -252,6 +268,42 @@ export const ClassSessionStatus = {
   scheduled: 'scheduled',
   cancelled: 'cancelled',
 } as const;
+
+export interface ConversationDto {
+  id: string;
+  address: string;
+  channel: string;
+  lastMessageAt: string;
+}
+
+export interface ConversationMessageDto {
+  id: string;
+  /** @nullable */
+  text: string | null;
+  createdAt: string;
+  direction: string;
+  /** @nullable */
+  status: string | null;
+  /** @nullable */
+  failureCode: string | null;
+  channel: string;
+  /** @nullable */
+  sentAt: string | null;
+  /** @nullable */
+  processedAt: string | null;
+  /** @nullable */
+  correlationId: string | null;
+}
+
+export interface ConversationMessagesPage {
+  items: ConversationMessageDto[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export interface ConversationPage {
+  items: ConversationDto[];
+}
 
 export interface CorrectAttendanceRequest {
   status: AttendanceStatus;
@@ -696,6 +748,16 @@ export interface SelectCentreRequest {
   centreId: string;
 }
 
+export interface SendPortalChatRequest {
+  clientMessageId: string;
+  text: string;
+}
+
+export interface SendWebMessageResult {
+  messageId: string;
+  alreadyRecorded: boolean;
+}
+
 export interface SessionAttendanceDto {
   session: AttendanceSessionDto;
   timeZoneId: string;
@@ -996,6 +1058,22 @@ pageSize?: number | string;
 export type ListPortalAccountsParams = {
 kind: string;
 subjectId: string;
+};
+
+export type ListMyChatMessagesParams = {
+cursor?: string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+pageSize?: number | string;
+};
+
+export type GetConversationMessagesParams = {
+cursor?: string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+pageSize?: number | string;
 };
 
 export type GetAuditLogParams = {
@@ -7274,6 +7352,395 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getReactivatePortalAccountMutationOptions(options), queryClient);
     }
+
+export const getListMyChatMessagesUrl = (params?: ListMyChatMessagesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/portal/chat/messages?${stringifiedParams}` : `/api/portal/chat/messages`
+}
+
+export const listMyChatMessages = async (params?: ListMyChatMessagesParams, options?: Parameters<typeof apiFetch>[1]): Promise<ChatMessagesPage> => {
+
+  return apiFetch<ChatMessagesPage>(getListMyChatMessagesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyChatMessagesQueryKey = (params?: ListMyChatMessagesParams,) => {
+    return [
+    `/api/portal/chat/messages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMyChatMessagesQueryOptions = <TData = Awaited<ReturnType<typeof listMyChatMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(params?: ListMyChatMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyChatMessages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyChatMessagesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyChatMessages>>> = ({ signal }) => listMyChatMessages(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyChatMessages>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyChatMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyChatMessages>>>
+export type ListMyChatMessagesQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useListMyChatMessages<TData = Awaited<ReturnType<typeof listMyChatMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params: undefined |  ListMyChatMessagesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyChatMessages>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyChatMessages>>,
+          TError,
+          Awaited<ReturnType<typeof listMyChatMessages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyChatMessages<TData = Awaited<ReturnType<typeof listMyChatMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: ListMyChatMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyChatMessages>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyChatMessages>>,
+          TError,
+          Awaited<ReturnType<typeof listMyChatMessages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyChatMessages<TData = Awaited<ReturnType<typeof listMyChatMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: ListMyChatMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyChatMessages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyChatMessages<TData = Awaited<ReturnType<typeof listMyChatMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ params?: ListMyChatMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyChatMessages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyChatMessagesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSendPortalChatMessageUrl = () => {
+
+
+
+
+  return `/api/portal/chat/messages`
+}
+
+export const sendPortalChatMessage = async (sendPortalChatRequest: SendPortalChatRequest, options?: Parameters<typeof apiFetch>[1]): Promise<SendWebMessageResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<SendWebMessageResult>(getSendPortalChatMessageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sendPortalChatRequest)
+  }
+);}
+
+
+
+
+
+export const getSendPortalChatMessageMutationKey = () => ['sendPortalChatMessage'] as const;
+
+export const getSendPortalChatMessageMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendPortalChatMessage>>, TError,SendPortalChatMessageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendPortalChatMessage>>, TError,SendPortalChatMessageMutationVariables, TContext> => {
+
+const mutationKey = getSendPortalChatMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendPortalChatMessage>>, SendPortalChatMessageMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendPortalChatMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendPortalChatMessageMutationResult = NonNullable<Awaited<ReturnType<typeof sendPortalChatMessage>>>
+    export type SendPortalChatMessageMutationBody = SendPortalChatRequest
+    export type SendPortalChatMessageMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type SendPortalChatMessageMutationVariables = {data: SendPortalChatRequest}
+
+    export const useSendPortalChatMessage = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendPortalChatMessage>>, TError,SendPortalChatMessageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendPortalChatMessage>>,
+        TError,
+        SendPortalChatMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendPortalChatMessageMutationOptions(options), queryClient);
+    }
+
+export const getListConversationsUrl = () => {
+
+
+
+
+  return `/api/conversations`
+}
+
+export const listConversations = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ConversationPage> => {
+
+  return apiFetch<ConversationPage>(getListConversationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListConversationsQueryKey = () => {
+    return [
+    `/api/conversations`
+    ] as const;
+    }
+
+
+export const getListConversationsQueryOptions = <TData = Awaited<ReturnType<typeof listConversations>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListConversationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listConversations>>> = ({ signal }) => listConversations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListConversationsQueryResult = NonNullable<Awaited<ReturnType<typeof listConversations>>>
+export type ListConversationsQueryError = ProblemDetails
+
+
+export function useListConversations<TData = Awaited<ReturnType<typeof listConversations>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listConversations>>,
+          TError,
+          Awaited<ReturnType<typeof listConversations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListConversations<TData = Awaited<ReturnType<typeof listConversations>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listConversations>>,
+          TError,
+          Awaited<ReturnType<typeof listConversations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListConversations<TData = Awaited<ReturnType<typeof listConversations>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListConversations<TData = Awaited<ReturnType<typeof listConversations>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListConversationsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetConversationMessagesUrl = (conversationId: string,
+    params?: GetConversationMessagesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/conversations/${conversationId}/messages?${stringifiedParams}` : `/api/conversations/${conversationId}/messages`
+}
+
+export const getConversationMessages = async (conversationId: string,
+    params?: GetConversationMessagesParams, options?: Parameters<typeof apiFetch>[1]): Promise<ConversationMessagesPage> => {
+
+  return apiFetch<ConversationMessagesPage>(getGetConversationMessagesUrl(conversationId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConversationMessagesQueryKey = (conversationId: string,
+    params?: GetConversationMessagesParams,) => {
+    return [
+    `/api/conversations/${conversationId}/messages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetConversationMessagesQueryOptions = <TData = Awaited<ReturnType<typeof getConversationMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(conversationId: string,
+    params?: GetConversationMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationMessages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConversationMessagesQueryKey(conversationId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConversationMessages>>> = ({ signal }) => getConversationMessages(conversationId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: conversationId !== null && conversationId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConversationMessages>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetConversationMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof getConversationMessages>>>
+export type GetConversationMessagesQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetConversationMessages<TData = Awaited<ReturnType<typeof getConversationMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params: undefined |  GetConversationMessagesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationMessages>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConversationMessages>>,
+          TError,
+          Awaited<ReturnType<typeof getConversationMessages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConversationMessages<TData = Awaited<ReturnType<typeof getConversationMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params?: GetConversationMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationMessages>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConversationMessages>>,
+          TError,
+          Awaited<ReturnType<typeof getConversationMessages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConversationMessages<TData = Awaited<ReturnType<typeof getConversationMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params?: GetConversationMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationMessages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetConversationMessages<TData = Awaited<ReturnType<typeof getConversationMessages>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params?: GetConversationMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationMessages>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetConversationMessagesQueryOptions(conversationId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetAuditLogUrl = (params?: GetAuditLogParams,) => {
   const normalizedParams = new URLSearchParams();

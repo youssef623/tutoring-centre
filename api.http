@@ -637,3 +637,19 @@ Content-Type: application/json
 X-XSRF-TOKEN: {{antiforgerySubjects.response.body.$.token}}
 
 { "reason": "lost", "version": {{studentCardVersion}} }
+### Day 77: portal chat (use a signed-in parent or student session)
+# @name sendPortalChat
+POST {{baseUrl}}/api/portal/chat/messages
+Content-Type: application/json
+X-XSRF-TOKEN: {{antiforgery.response.body.$.token}}
+
+{
+  "clientMessageId": "0192f3b4-1e8a-7c10-b2d4-6a0f9c3e7d11",
+  "text": "هو أحمد حضر النهارده؟"
+}
+
+### Repeat the preceding request: 201 on first send, 200 on replay
+GET {{baseUrl}}/api/portal/chat/messages?pageSize=50
+
+### Staff conversations (use a session with conversations.view)
+GET {{baseUrl}}/api/conversations

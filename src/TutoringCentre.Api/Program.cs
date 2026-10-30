@@ -97,6 +97,7 @@ builder.Services.AddApiAntiforgery();
 builder.Services.AddLoginRateLimiting(builder.Configuration);
 builder.Services.AddChangePasswordRateLimiting();
 builder.Services.AddScanRateLimiting();
+builder.Services.AddChatRateLimiting();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -261,6 +262,8 @@ api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();
 api.MapPortalAccountEndpoints();
+api.MapPortalChatEndpoints();
+api.MapConversationEndpoints();
 api.MapAuditEndpoints();
 api.MapCentreSettingsEndpoints();
 
