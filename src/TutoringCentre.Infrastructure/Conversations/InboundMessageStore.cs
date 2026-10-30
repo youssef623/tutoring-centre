@@ -18,6 +18,7 @@ internal sealed class InboundMessageStore(AppDbContext db, ICurrentActor actor, 
     public async Task<Guid> UpsertConversationAsync(Conversation conversation, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(conversation);
+        var address = conversation.CounterpartAddress ?? throw new InvalidOperationException("Phone ingestion requires a counterpart address.");
         await using var command = CreateCommand("""
             INSERT INTO conversations.conversations
               (id, centre_id, channel_account_id, counterpart_address, counterpart_phone, identity_status, last_message_at, created_at)
@@ -28,7 +29,7 @@ internal sealed class InboundMessageStore(AppDbContext db, ICurrentActor actor, 
             """);
         command.Parameters.AddWithValue("newId", conversation.Id);
         command.Parameters.AddWithValue("account", conversation.ChannelAccountId);
-        command.Parameters.AddWithValue("address", conversation.CounterpartAddress);
+        command.Parameters.AddWithValue("address", address);
         command.Parameters.Add("phone", NpgsqlDbType.Varchar).Value = (object?)conversation.CounterpartPhone?.Value ?? DBNull.Value;
         command.Parameters.AddWithValue("at", conversation.LastMessageAt);
         return (Guid)(await command.ExecuteScalarAsync(cancellationToken))!;

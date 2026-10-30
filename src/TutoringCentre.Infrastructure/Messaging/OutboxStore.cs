@@ -60,6 +60,7 @@ public sealed class OutboxStore(IOptions<DatabaseOptions> options)
         CancellationToken cancellationToken = default) =>
         ExecuteAsync("""
             UPDATE jobs.outbox_messages SET available_at=@next, last_error=@error,
+                attempts=CASE WHEN @error='consumer_deferred' THEN 0 ELSE attempts END,
                 claimed_by=NULL, claimed_until=NULL WHERE id=@id AND claimed_by=@worker;
             """, cancellationToken, new("id", id), new("worker", worker), new("next", nextAvailableAt), new("error", Limit(errorType)));
 

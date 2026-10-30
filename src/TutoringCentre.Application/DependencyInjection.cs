@@ -4,6 +4,10 @@ using TutoringCentre.Application.Academics.Contracts;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Application.Common.Messaging;
+using TutoringCentre.Application.Conversations.Outbound;
+using TutoringCentre.Application.Conversations.Outbound.Commands.SendOutboundMessage;
+using TutoringCentre.Application.Conversations.Outbound.Commands.RecordDeliveryStatus;
+using TutoringCentre.Application.Conversations;
 
 namespace TutoringCentre.Application;
 
@@ -26,6 +30,10 @@ public static class DependencyInjection
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
         services.AddScoped<Dispatcher>();
         services.AddOutbox();
+        services.AddDeferredOutboxMessage<InboundMessageReceived>();
+        services.AddOutboxMessage<SendOutboundMessageRequested, SendOutboundMessageCommand>(message => new(message.OutboundMessageId));
+        services.AddOutboxMessage<DeliveryStatusRecorded, RecordDeliveryStatusCommand>(message => new(message.OutboundMessageId, message.Status));
+        services.AddScoped<ChannelSenderRegistry>();
         services.AddScoped<ITeachingScope, TeachingScopeAdapter>();
 
         return services;
