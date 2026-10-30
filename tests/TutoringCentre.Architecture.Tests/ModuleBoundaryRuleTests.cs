@@ -73,6 +73,10 @@ public sealed class ModuleBoundaryRuleTests
         // Guards against the allowance being untested if nothing ever publishes a contract.
         Assert.NotEmpty(contractTypes);
 
+        Assert.Contains(typeof(TutoringCentre.Application.Academics.Contracts.IPortalDirectory), contractTypes);
+        Assert.Contains(typeof(TutoringCentre.Application.Academics.Contracts.PortalSubjectFacts), contractTypes);
+        Assert.Contains(typeof(TutoringCentre.Application.Academics.Contracts.PortalChild), contractTypes);
+
         var violations = contractTypes.Where(type => !type.IsInterface && !IsRecord(type)).Select(type => type.FullName).ToArray();
         Assert.True(violations.Length == 0, "Contracts-namespace type must be an interface or a record: " + string.Join(", ", violations));
     }

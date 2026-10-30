@@ -3,7 +3,7 @@ using TutoringCentre.Domain.Common;
 namespace TutoringCentre.Domain.Identity;
 
 /// <summary>
-/// A staff member's role in one centre. The only way to obtain one is <see cref="Create"/>, which enforces its invariants.
+/// A user's role in one centre. Its staff and portal factories enforce their respective invariants.
 /// Deliberately not <see cref="ITenantOwned"/>: memberships are read at login, before a tenant is selected, so they
 /// cannot be filtered by the current tenant the way centre-owned data is.
 /// </summary>

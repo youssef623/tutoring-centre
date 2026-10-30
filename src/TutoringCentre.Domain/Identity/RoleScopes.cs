@@ -9,6 +9,8 @@ public static class RoleScopes
 {
     public static bool IsStaffRole(StaffRole role) => role is StaffRole.Owner or StaffRole.Secretary or StaffRole.Teacher;
 
+    public static bool IsPortalRole(StaffRole? role) => role is StaffRole.Parent or StaffRole.Student;
+
     /// <summary>True only for Teacher: Owner and Secretary always see every group in the centre.</summary>
     public static bool IsLimitedToOwnGroups(StaffRole role) => role == StaffRole.Teacher;
 }

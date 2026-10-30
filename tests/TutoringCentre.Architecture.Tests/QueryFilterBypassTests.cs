@@ -41,6 +41,9 @@ public sealed class QueryFilterBypassTests
         "src/TutoringCentre.Infrastructure/Persistence/RuntimeRolePrivilegeHealthCheck.cs",
         "src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs",
         "src/TutoringCentre.Infrastructure/Repositories/MembershipRepository.cs",
+        // Session validation precedes actor construction. An active user membership supplies the centre;
+        // the read remains under forced RLS, with explicit centre/user/role predicates, and restores the setting.
+        "src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs",
         "src/TutoringCentre.Infrastructure/Repositories/GroupRepository.cs",
         "src/TutoringCentre.Infrastructure/Repositories/ClassSessionRepository.cs",
         // Day 57: parameterized FOR UPDATE serializes existing marks without client versions.

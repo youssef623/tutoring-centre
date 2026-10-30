@@ -23,7 +23,8 @@ internal sealed class MembershipRepository(AppDbContext db) : IMembershipReposit
     public async Task<Membership?> GetForUpdateAsync(Guid id, Guid centreId, uint expectedVersion, CancellationToken ct)
     {
         var membership = await db.Set<Membership>()
-            .SingleOrDefaultAsync(membership => membership.Id == id && membership.CentreId == centreId, ct);
+            .SingleOrDefaultAsync(membership => membership.Id == id && membership.CentreId == centreId
+                && (membership.Role == StaffRole.Owner || membership.Role == StaffRole.Secretary || membership.Role == StaffRole.Teacher), ct);
         if (membership is null)
         {
             return null;

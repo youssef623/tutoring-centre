@@ -16,19 +16,19 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
 {
     public async Task<Result<MeDto>> HandleAsync(GetMyMembershipsQuery query, CancellationToken cancellationToken)
     {
-        if (currentActor.Actor is not StaffActor staffActor)
+        if (currentActor.Actor is not IUserActor userActor)
         {
             return Result<MeDto>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
         }
 
-        var profile = await readService.GetProfileAsync(staffActor.UserId, cancellationToken);
+        var profile = await readService.GetProfileAsync(userActor.UserId, cancellationToken);
         if (profile is null)
         {
             return Result<MeDto>.Failure(Error.Unauthenticated("auth.not_authenticated", "Sign in to continue."));
         }
 
         // The actor's selected centre only counts if it is still an active membership in the freshly read profile.
-        var activeMembership = staffActor.CentreId is { } centreId
+        var activeMembership = userActor.CentreId is { } centreId
             ? profile.Memberships.FirstOrDefault(membership => membership.CentreId == centreId)
             : null;
 
@@ -46,7 +46,7 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
             activeMembership?.Role,
             profile.Memberships,
             permissions,
-            await operators.IsOperatorAsync(staffActor.UserId, cancellationToken));
+            await operators.IsOperatorAsync(userActor.UserId, cancellationToken));
 
         return Result<MeDto>.Success(dto);
     }

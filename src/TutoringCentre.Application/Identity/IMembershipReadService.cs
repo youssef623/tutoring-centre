@@ -39,4 +39,5 @@ public sealed record ActiveMembershipDto(Guid CentreId, string CentreName, Staff
 
 /// <summary>What the authentication pipeline needs to decide whether an existing session is still valid.</summary>
 /// <summary><see cref="CurrentRole"/> is null when no centre was given, and otherwise the membership's current role — even when inactive, so a demote-then-deactivate compares both independently.</summary>
-public sealed record SessionStateDto(string SecurityStamp, bool MembershipActive, StaffRole? CurrentRole);
+public sealed record SessionStateDto(string SecurityStamp, bool MembershipActive, StaffRole? CurrentRole,
+    Portal.PortalSubject? PortalSubject = null);

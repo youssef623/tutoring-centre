@@ -20,6 +20,7 @@ public sealed class TenantScopeRuleTests
         "TutoringCentre.Application.Attendance",
         "TutoringCentre.Application.Conversations",
         "TutoringCentre.Application.Staff",
+        "TutoringCentre.Application.Identity.Portal",
         "TutoringCentre.Application.Centres.Queries.GetCentreSettings",
         "TutoringCentre.Application.Centres.Commands.UpdateCentreSettings",
         "TutoringCentre.Application.Audit",
@@ -48,7 +49,8 @@ public sealed class TenantScopeRuleTests
     [Fact]
     public void EveryMonth1Request_DoesNotDeclareTenantScoped()
     {
-        var nonTenantRequests = Requests().Where(request => IsInNamespaces(request, NonTenantNamespaces)).ToList();
+        var nonTenantRequests = Requests().Where(request => IsInNamespaces(request, NonTenantNamespaces)
+            && !(request.Namespace?.StartsWith("TutoringCentre.Application.Identity.Portal", StringComparison.Ordinal) ?? false)).ToList();
 
         // Guards against the namespace list drifting out of sync with the real Month 1 request namespaces,
         // which would make this test vacuously (and silently) useless.

@@ -21,6 +21,7 @@ internal sealed class StaffReadService(AppDbContext db) : IStaffReadService
     private IQueryable<StaffMemberDto> Query(Guid centreId, Guid currentUserId) =>
         from membership in db.Set<Membership>().AsNoTracking()
         where membership.CentreId == centreId
+            && (membership.Role == StaffRole.Owner || membership.Role == StaffRole.Secretary || membership.Role == StaffRole.Teacher)
         join user in db.Set<ApplicationUser>().AsNoTracking() on membership.UserId equals user.Id
         orderby user.DisplayName
         select new StaffMemberDto(

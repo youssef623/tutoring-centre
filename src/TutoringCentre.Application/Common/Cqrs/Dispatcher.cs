@@ -183,7 +183,7 @@ public sealed class Dispatcher
         var allowed = actor switch
         {
             SystemActor => true,
-            StaffActor { Role: { } role } => RolePermissions.Holds(role, permission),
+            IUserActor { RoleKey: { } roleKey } => RolePermissions.Holds(roleKey, permission),
             _ => false,
         };
 
@@ -207,7 +207,7 @@ public sealed class Dispatcher
     private void LogPermissionDenied(string requestType, string permission, Actor actor)
     {
         // IDs only: never the actor's name or email (Day 28 contract).
-        var userId = actor is StaffActor staffActor ? staffActor.UserId : (Guid?)null;
+        var userId = actor is IUserActor userActor ? userActor.UserId : (Guid?)null;
         _logger.LogWarning(
             "{RequestType} denied for missing permission {Permission} (user {UserId}, centre {CentreId})",
             requestType,

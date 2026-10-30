@@ -22,6 +22,7 @@ internal sealed class StaffDirectory(AppDbContext db) : IStaffDirectory
                 membership => membership.CentreId == centreId
                     && membership.UserId == userId
                     && membership.Role == role
+                    && (membership.Role == StaffRole.Owner || membership.Role == StaffRole.Secretary || membership.Role == StaffRole.Teacher)
                     && membership.Status == MembershipStatus.Active,
                 ct);
 }

@@ -1,4 +1,5 @@
 using TutoringCentre.Domain.Identity;
+using TutoringCentre.Application.Identity.Portal;
 
 namespace TutoringCentre.Application.Common.Security;
 
@@ -28,7 +29,55 @@ public sealed record AnonymousActor : Actor
 /// A signed-in staff member. <see cref="CentreId"/> is null right after login, before a centre is selected;
 /// <see cref="Role"/> is the actor's role in that centre and is null whenever <see cref="CentreId"/> is.
 /// </summary>
-public sealed record StaffActor(Guid UserId, Guid? CentreId, StaffRole? Role) : Actor
+public sealed record StaffActor(Guid UserId, Guid? CentreId, StaffRole? Role) : Actor, IUserActor
 {
     public override Guid? CentreId { get; } = CentreId;
+    public string? RoleKey => Role?.ToString().ToLowerInvariant();
+}
+
+public interface IUserActor
+{
+    Guid UserId { get; }
+    Guid? CentreId { get; }
+    string? RoleKey { get; }
+}
+
+public interface IPortalActor : IUserActor
+{
+    PortalSubjectKind SubjectKind { get; }
+    Guid SubjectId { get; }
+}
+
+public sealed record ParentActor : Actor, IPortalActor
+{
+    public ParentActor(Guid userId, Guid centreId, Guid parentId)
+    {
+        UserId = userId;
+        CentreId = centreId;
+        ParentId = parentId;
+    }
+
+    public Guid UserId { get; }
+    public override Guid? CentreId { get; }
+    public Guid ParentId { get; }
+    public string RoleKey => "parent";
+    public PortalSubjectKind SubjectKind => PortalSubjectKind.Parent;
+    public Guid SubjectId => ParentId;
+}
+
+public sealed record StudentActor : Actor, IPortalActor
+{
+    public StudentActor(Guid userId, Guid centreId, Guid studentId)
+    {
+        UserId = userId;
+        CentreId = centreId;
+        StudentId = studentId;
+    }
+
+    public Guid UserId { get; }
+    public override Guid? CentreId { get; }
+    public Guid StudentId { get; }
+    public string RoleKey => "student";
+    public PortalSubjectKind SubjectKind => PortalSubjectKind.Student;
+    public Guid SubjectId => StudentId;
 }

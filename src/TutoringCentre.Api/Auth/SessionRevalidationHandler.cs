@@ -18,6 +18,8 @@ namespace TutoringCentre.Api.Auth;
 /// </summary>
 internal static class SessionRevalidationHandler
 {
+    internal static readonly object PortalSubjectItemKey = new();
+
     public static async Task ValidateAsync(CookieValidatePrincipalContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -30,34 +32,47 @@ internal static class SessionRevalidationHandler
             return;
         }
 
-        var centreId = Guid.TryParse(context.Principal?.FindFirstValue(SessionClaimNames.CentreId), out var parsedCentreId)
+        var centreClaim = context.Principal?.FindFirstValue(SessionClaimNames.CentreId);
+        var roleClaim = context.Principal?.FindFirstValue(SessionClaimNames.Role);
+        var centreId = Guid.TryParse(centreClaim, out var parsedCentreId)
             ? parsedCentreId
             : (Guid?)null;
-        var role = Enum.TryParse<StaffRole>(context.Principal?.FindFirstValue(SessionClaimNames.Role), out var parsedRole)
+        var role = Enum.TryParse<StaffRole>(roleClaim, out var parsedRole) && Enum.IsDefined(parsedRole)
             ? parsedRole
             : (StaffRole?)null;
+
+        if ((centreClaim is not null || roleClaim is not null) && (centreId is null || role is null))
+        {
+            await RejectAsync(context);
+            return;
+        }
 
         var services = context.HttpContext.RequestServices;
         var cache = services.GetRequiredService<IMemoryCache>();
         var options = services.GetRequiredService<IOptions<SessionValidationOptions>>().Value;
         var cacheKey = ($"session-valid", userId, stamp, centreId, role);
 
-        if (!cache.TryGetValue(cacheKey, out bool isValid))
+        if (!cache.TryGetValue(cacheKey, out SessionValidationResult validation))
         {
             var dispatcher = services.GetRequiredService<Dispatcher>();
-            var result = await dispatcher.QueryAsync<ValidateStaffSessionQuery, bool>(
+            var result = await dispatcher.QueryAsync<ValidateStaffSessionQuery, SessionValidationResult>(
                 new ValidateStaffSessionQuery(userId, stamp, centreId, role), context.HttpContext.RequestAborted);
-            isValid = result.IsSuccess && result.Value;
+            validation = result.IsSuccess ? result.Value : new(false);
 
-            if (isValid && options.CacheDuration > TimeSpan.Zero)
+            if (validation.IsValid && options.CacheDuration > TimeSpan.Zero)
             {
-                cache.Set(cacheKey, true, options.CacheDuration);
+                cache.Set(cacheKey, validation, options.CacheDuration);
             }
         }
 
-        if (!isValid)
+        if (!validation.IsValid)
         {
             await RejectAsync(context);
+        }
+        else if (validation.PortalSubject is { } subject)
+        {
+            // Server-only request data. Never add the subject or children to cookie claims.
+            context.HttpContext.Items[PortalSubjectItemKey] = subject;
         }
     }
 
