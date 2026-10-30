@@ -19,6 +19,41 @@ public sealed class PortalAccountEndpointTests(ApiFactory factory) : IAsyncLifet
 
     public Task DisposeAsync() => Task.CompletedTask;
 
+    [Theory]
+    [InlineData("parent")]
+    [InlineData("student")]
+    public async Task Me_PortalMetadataUsesLinkedSubjectNameInsteadOfAccountDisplayName(string role)
+    {
+        using var actor = await SignInAsync(role);
+        var table = role == "parent" ? "parents" : "students";
+        var subjectColumn = role == "parent" ? "parent_id" : "student_id";
+        var expectedName = await factory.ScalarAsync<string>($"""
+            select s.full_name from academics.{table} s
+            join identity.portal_links p on p.centre_id=s.centre_id and p.{subjectColumn}=s.id
+            join identity.users u on u.id=p.user_id
+            where u.email='secretary@nile.test' and p.role_key='{role}'
+            """);
+        using var response = await actor.Client.GetAsync(new Uri("/api/me", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var body = await JsonAsync(response);
+        var portal = body.RootElement.GetProperty("portal");
+        Assert.Equal(role, portal.GetProperty("kind").GetString());
+        Assert.Equal(expectedName, portal.GetProperty("subjectName").GetString());
+        Assert.NotEqual(body.RootElement.GetProperty("displayName").GetString(), portal.GetProperty("subjectName").GetString());
+        Assert.False(portal.TryGetProperty("subjectId", out _));
+        Assert.Equal(["kind", "subjectName"], portal.EnumerateObject().Select(property => property.Name).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public async Task Me_StaffMetadataHasNullPortal()
+    {
+        using var owner = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var response = await owner.Client.GetAsync(new Uri("/api/me", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var body = await JsonAsync(response);
+        Assert.Equal(JsonValueKind.Null, body.RootElement.GetProperty("portal").ValueKind);
+    }
+
     [Fact]
     public async Task CreateListDeactivateReactivate_OneTimeCredentialAndVersionedTransitions()
     {
