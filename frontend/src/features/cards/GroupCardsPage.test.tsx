@@ -19,7 +19,8 @@ describe("GroupCardsPage", () => {
     }));
     const storage = vi.spyOn(Storage.prototype, "setItem");
     const { router, queryClient } = renderRouter("/groups/g-1/cards");
-    expect(await screen.findByText("2 selected")).toBeInTheDocument();
+    // The lazy route loads the group and then its roster; cold Windows workers can exceed the default 1s.
+    expect(await screen.findByText("2 selected", {}, { timeout: 5000 })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Select none" }));
     fireEvent.click(screen.getByLabelText("Ahmed Mahmoud"));
     expect(screen.getByRole("button", { name: "Issue selected cards" })).toBeDisabled();
@@ -31,7 +32,7 @@ describe("GroupCardsPage", () => {
     expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
     await router.navigate({ to: "/groups/$groupId", params: { groupId: "g-1" }, search: { tab: "overview" } });
     fireEvent.click(await screen.findByRole("link", { name: "Print cards" }));
-    expect(await screen.findByText("2 selected")).toBeInTheDocument();
+    expect(await screen.findByText("2 selected", {}, { timeout: 5000 })).toBeInTheDocument();
     expect(document.querySelectorAll(".card-face")).toHaveLength(0);
     expect(storage).not.toHaveBeenCalled();
   });
