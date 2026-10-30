@@ -49,7 +49,8 @@ internal sealed partial class ActorMiddleware(RequestDelegate next)
         if (centreClaim is not null
             && roleClaim is not null
             && Guid.TryParse(centreClaim, out var centreId)
-            && Enum.TryParse<StaffRole>(roleClaim, out var role))
+            && Enum.TryParse<StaffRole>(roleClaim, out var role)
+            && RoleScopes.IsStaffRole(role))
         {
             actor = new StaffActor(userId, centreId, role);
             return true;
