@@ -1,5 +1,9 @@
 /** The closed set of permission keys (mirrors the backend's Domain-level `Permissions` catalogue, Day 28). */
 export const Permissions = {
+  PortalAccountsManage: "portal.accounts.manage",
+  PortalChat: "portal.chat",
+  AssistantView: "assistant.view",
+  BillingView: "billing.view",
   SubjectsView: "subjects.view",
   SubjectsManage: "subjects.manage",
   StaffView: "staff.view",

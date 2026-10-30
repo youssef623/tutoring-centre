@@ -260,6 +260,7 @@ api.MapStudentCardEndpoints();
 api.MapParentEndpoints();
 api.MapStudentEndpoints();
 api.MapStaffEndpoints();
+api.MapPortalAccountEndpoints();
 api.MapAuditEndpoints();
 api.MapCentreSettingsEndpoints();
 

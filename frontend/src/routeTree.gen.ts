@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as SelectCentreRouteImport } from './routes/select-centre'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
@@ -47,6 +48,11 @@ const ChangePasswordRoute = ChangePasswordRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SelectCentreRoute = SelectCentreRouteImport.update({
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/attendance': typeof AuthenticatedAttendanceRouteWithChildren
@@ -199,6 +206,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/audit': typeof AuthenticatedAuditRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
   '/select-centre': typeof SelectCentreRoute
   '/status': typeof StatusRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRouteWithChildren
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/'
     | '/change-password'
     | '/login'
+    | '/portal'
     | '/select-centre'
     | '/status'
     | '/attendance'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
   to:
     | '/change-password'
     | '/login'
+    | '/portal'
     | '/select-centre'
     | '/status'
     | '/audit'
@@ -302,6 +313,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/change-password'
     | '/login'
+    | '/portal'
     | '/select-centre'
     | '/status'
     | '/_authenticated/attendance'
@@ -330,6 +342,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ChangePasswordRoute: typeof ChangePasswordRoute
   LoginRoute: typeof LoginRoute
+  PortalRoute: typeof PortalRoute
   SelectCentreRoute: typeof SelectCentreRoute
   StatusRoute: typeof StatusRoute
 }
@@ -355,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/select-centre': {
@@ -602,6 +622,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ChangePasswordRoute: ChangePasswordRoute,
   LoginRoute: LoginRoute,
+  PortalRoute: PortalRoute,
   SelectCentreRoute: SelectCentreRoute,
   StatusRoute: StatusRoute,
 }

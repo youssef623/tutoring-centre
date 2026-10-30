@@ -18,4 +18,14 @@ Session validation returns validity plus an optional portal subject. The boolean
 
 The existing session cache stores validity and the subject for its configured revalidation window. The middleware constructs `ParentActor` or `StudentActor` only from that validated result, including cache hits. The cookie still contains only user, security stamp, centre and role; no subject or student set is added. Missing links, inactive memberships and changed role claims fail the next revalidation. Child membership changes are visible on the next request because student sets are never cached across requests.
 
-Account deactivation changes only membership status and uses its row version. It preserves the link, login and other centres' memberships. No portal HTTP endpoints are introduced by this slice.
+Account deactivation changes only membership status and uses its row version. It preserves the link, login and other centres' memberships.
+
+## HTTP and browser boundary
+
+The four `/api/portal-accounts` routes dispatch the account use cases. They accept no centre, role or creator identifiers. Creation returns a one-time credential only in its 201 body, with `Cache-Control: no-store`; list responses contain status, email and version but never credentials. Unsafe routes use the shared antiforgery filter and strict JSON binding.
+
+Parents and students land at `/portal`, with a separate shell using the staff product's Hessa branding, fonts and teal controls. A fine frame and faint grid distinguish the portal without introducing extra capabilities. Chat and Attendance remain disabled until their later slices. Guards redirect portal users away from staff pages and staff users away from the portal; API permissions remain the security boundary. The two staff-specific attendance reads also reject portal actors despite the shared attendance permission.
+
+Account creation calls the generated API function directly, outside the mutation cache. Its password lives only in mounted component state, is cleared when the dialog closes, and never enters browser storage or query results. Development seeds create `parent@nile.test` and `student@nile.test` through the same command as staff, as a system actor attributed to the existing owner. Testing retains the established seed fixtures. Production never receives demo credentials.
+
+Password recovery is not implemented. A forgotten portal password currently requires a separately designed recovery workflow; account deactivation and reactivation do not reset credentials.

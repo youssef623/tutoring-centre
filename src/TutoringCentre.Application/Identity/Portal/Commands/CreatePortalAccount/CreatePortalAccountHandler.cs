@@ -16,7 +16,8 @@ internal sealed class CreatePortalAccountHandler(ICurrentActor actor, IPortalDir
     public async Task<Result<CreatePortalAccountResult>> HandleAsync(CreatePortalAccountCommand command, CancellationToken cancellationToken)
     {
         var centreId = actor.Actor.CentreId!.Value;
-        if (actor.Actor is not IUserActor creator)
+        var createdBy = actor.Actor switch { IUserActor creator => creator.UserId, SystemActor system => system.InitiatedBy, _ => null };
+        if (createdBy is null || createdBy == Guid.Empty)
             return Result<CreatePortalAccountResult>.Failure(Error.Unauthenticated("auth.not_authenticated", "A signed-in creator is required."));
 
         var subject = command.Kind == PortalSubjectKind.Parent
@@ -40,8 +41,8 @@ internal sealed class CreatePortalAccountHandler(ICurrentActor actor, IPortalDir
         if (membership.IsFailure)
             return Result<CreatePortalAccountResult>.Failure(membership.Error!);
         var link = command.Kind == PortalSubjectKind.Parent
-            ? PortalLink.CreateForParent(account.UserId, centreId, command.SubjectId, creator.UserId)
-            : PortalLink.CreateForStudent(account.UserId, centreId, command.SubjectId, creator.UserId);
+            ? PortalLink.CreateForParent(account.UserId, centreId, command.SubjectId, createdBy.Value)
+            : PortalLink.CreateForStudent(account.UserId, centreId, command.SubjectId, createdBy.Value);
         if (link.IsFailure)
             return Result<CreatePortalAccountResult>.Failure(link.Error!);
 

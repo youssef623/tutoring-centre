@@ -4,6 +4,7 @@ import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/features/shell/AppShell";
 import { meQueryOptions } from "@/features/session/meQueryOptions";
 import { useSession } from "@/features/session/useSession";
+import { isPortalRole } from "@/features/session/roleShell";
 
 /**
  * Pathless layout: groups every protected page under one guard without adding a URL segment.
@@ -27,6 +28,9 @@ export const Route = createFileRoute("/_authenticated")({
 
     if (me.activeCentreId === null) {
       throw redirect({ to: "/select-centre" });
+    }
+    if (isPortalRole(me.activeRole)) {
+      throw redirect({ href: "/portal" });
     }
   },
   component: AuthenticatedLayout,

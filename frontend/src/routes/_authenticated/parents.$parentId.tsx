@@ -1,10 +1,15 @@
+import { PortalAccountSection } from "@/features/portal/PortalAccountSection";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { SearchX } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
-import { useGetParent, type ParentChildDto, type ParentDetailDto } from "@/api/generated/tutoring-centre";
+import {
+  useGetParent,
+  type ParentChildDto,
+  type ParentDetailDto,
+} from "@/api/generated/tutoring-centre";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -100,7 +105,9 @@ function ParentNotFound() {
       <SearchX className="size-10 text-muted-foreground" aria-hidden="true" />
       <h1 className="text-xl font-semibold tracking-tight">{t("notFound.title")}</h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("notFound.description")}</p>
-      <Link to="/students" className={buttonVariants()}>{t("notFound.backToStudents")}</Link>
+      <Link to="/students" className={buttonVariants()}>
+        {t("notFound.backToStudents")}
+      </Link>
     </div>
   );
 }
@@ -158,6 +165,7 @@ function ParentDetailContent({ parent }: { parent: ParentDetailDto }) {
         )}
       </div>
 
+      <PortalAccountSection kind="parent" subjectId={parent.id} />
       {canManage && <ParentEditDialog parent={parent} open={editOpen} onOpenChange={setEditOpen} />}
     </section>
   );
@@ -171,7 +179,11 @@ function ChildRow({ child }: { child: ParentChildDto }) {
     <DataTableRow muted={isArchived}>
       <DataTableCell kind="primary">
         <span className="flex flex-wrap items-center gap-2">
-          <Link to="/students/$studentId" params={{ studentId: child.studentId }} className="font-medium hover:underline">
+          <Link
+            to="/students/$studentId"
+            params={{ studentId: child.studentId }}
+            className="font-medium hover:underline"
+          >
             <bdi>{child.fullName}</bdi>
           </Link>
           {isArchived && <StatusBadge status="archived" />}

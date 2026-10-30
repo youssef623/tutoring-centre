@@ -7,6 +7,8 @@ using TutoringCentre.Application.Attendance.Queries.GetAttendance;
 using TutoringCentre.Application.Attendance.Queries.GetSessionAttendance;
 using TutoringCentre.Application.Attendance.Queries.ListAttendanceSessions;
 using TutoringCentre.Application.Common.Cqrs;
+using TutoringCentre.Application.Common.Security;
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Domain.Attendance;
 
 namespace TutoringCentre.Api.Endpoints;
@@ -20,8 +22,10 @@ public static class AttendanceEndpoints
             .RequireRateLimiting("scan").Produces<ScanResult>().ProducesValidationProblem()
             .ProducesProblem(401).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409).ProducesProblem(422).ProducesProblem(429);
         api.MapGet("/attendance/sessions", ListSessionsAsync).WithName("listAttendanceSessions")
+            .AddEndpointFilter(StaffAudienceAsync)
             .Produces<AttendanceSessionsDto>().ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403);
         api.MapGet("/sessions/{sessionId:guid}/attendance", GetSessionAsync).WithName("getSessionAttendance")
+            .AddEndpointFilter(StaffAudienceAsync)
             .Produces<SessionAttendanceDto>().ProducesProblem(400).ProducesProblem(401).ProducesProblem(403).ProducesProblem(404);
         api.MapPut("/sessions/{sessionId:guid}/attendance", MarkAsync).WithName("markAttendance")
             .Produces<MarkAttendanceResult>().ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403)
@@ -33,6 +37,11 @@ public static class AttendanceEndpoints
             .Produces<AttendancePageDto>().ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403);
         return api;
     }
+
+    private static ValueTask<object?> StaffAudienceAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next) =>
+        context.HttpContext.RequestServices.GetRequiredService<ICurrentActor>().Actor is IPortalActor
+            ? ValueTask.FromResult<object?>(Error.Forbidden("auth.permission_denied", "This route is for staff.").ToProblemResult())
+            : next(context);
 
     private static async Task<IResult> ScanAsync(Guid sessionId, RecordScanRequest request, Dispatcher dispatcher, CancellationToken ct)
     {

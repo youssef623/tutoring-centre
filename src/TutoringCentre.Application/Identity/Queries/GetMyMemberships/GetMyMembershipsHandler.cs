@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using TutoringCentre.Application.Academics.Contracts;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Common;
@@ -11,7 +12,7 @@ namespace TutoringCentre.Application.Identity.Queries.GetMyMemberships;
 /// so there is no ID to tamper with.
 /// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembershipReadService readService, IOperatorDirectory operators)
+internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembershipReadService readService, IOperatorDirectory operators, IPortalDirectory? portalDirectory = null)
     : IQueryHandler<GetMyMembershipsQuery, MeDto>
 {
     public async Task<Result<MeDto>> HandleAsync(GetMyMembershipsQuery query, CancellationToken cancellationToken)
@@ -47,6 +48,14 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
             profile.Memberships,
             permissions,
             await operators.IsOperatorAsync(userActor.UserId, cancellationToken));
+
+        if (userActor is IPortalActor portal && portalDirectory is not null)
+        {
+            var facts = portal is ParentActor
+                ? await portalDirectory.GetParentAsync(portal.SubjectId, cancellationToken)
+                : await portalDirectory.GetStudentAsync(portal.SubjectId, cancellationToken);
+            dto = dto with { Portal = new PortalMeDto(portal.RoleKey!, facts?.DisplayName ?? profile.DisplayName) };
+        }
 
         return Result<MeDto>.Success(dto);
     }

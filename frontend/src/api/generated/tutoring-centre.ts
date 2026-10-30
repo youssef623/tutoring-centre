@@ -281,6 +281,29 @@ export interface CreateParentResponse {
   id: string;
 }
 
+export type PortalSubjectKind = typeof PortalSubjectKind[keyof typeof PortalSubjectKind];
+
+
+export const PortalSubjectKind = {
+  parent: 'parent',
+  student: 'student',
+} as const;
+
+export interface CreatePortalAccountRequest {
+  kind: PortalSubjectKind;
+  subjectId: string;
+  email: string;
+  preferredLocale: SupportedLocale;
+}
+
+export interface CreatePortalAccountResult {
+  linkId: string;
+  membershipId: string;
+  userId: string;
+  /** @nullable */
+  temporaryPassword: string | null;
+}
+
 export interface CreateStaffRequest {
   email: string;
   displayName: string;
@@ -493,6 +516,11 @@ export interface MembershipDto {
   timeZoneId: string;
 }
 
+export interface PortalMeDto {
+  kind: string;
+  subjectName: string;
+}
+
 export interface MeDto {
   userId: string;
   displayName: string;
@@ -505,6 +533,7 @@ export interface MeDto {
   memberships: MembershipDto[];
   permissions: string[];
   isOperator: boolean;
+  portal?: null | PortalMeDto;
 }
 
 export type MembershipStatus = typeof MembershipStatus[keyof typeof MembershipStatus];
@@ -550,6 +579,20 @@ export interface ParentDto {
 
 export interface ParentLookupDto {
   parent: null | ParentDto;
+}
+
+export interface PortalAccountDto {
+  linkId: string;
+  membershipId: string;
+  email: string;
+  status: MembershipStatus;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  version: number | string;
+  createdAt: string;
+}
+
+export interface PortalAccountListResponse {
+  items: PortalAccountDto[];
 }
 
 export interface ProblemDetails {
@@ -948,6 +991,11 @@ cursor?: string;
  * @pattern ^-?(?:0|[1-9]\d*)$
  */
 pageSize?: number | string;
+};
+
+export type ListPortalAccountsParams = {
+kind: string;
+subjectId: string;
 };
 
 export type GetAuditLogParams = {
@@ -6875,6 +6923,356 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReactivateStaffMutationOptions(options), queryClient);
+    }
+
+export const getListPortalAccountsUrl = (params: ListPortalAccountsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/portal-accounts?${stringifiedParams}` : `/api/portal-accounts`
+}
+
+export const listPortalAccounts = async (params: ListPortalAccountsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PortalAccountListResponse> => {
+
+  return apiFetch<PortalAccountListResponse>(getListPortalAccountsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPortalAccountsQueryKey = (params?: ListPortalAccountsParams,) => {
+    return [
+    `/api/portal-accounts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPortalAccountsQueryOptions = <TData = Awaited<ReturnType<typeof listPortalAccounts>>, TError = ProblemDetails>(params: ListPortalAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPortalAccounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPortalAccountsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPortalAccounts>>> = ({ signal }) => listPortalAccounts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPortalAccounts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPortalAccountsQueryResult = NonNullable<Awaited<ReturnType<typeof listPortalAccounts>>>
+export type ListPortalAccountsQueryError = ProblemDetails
+
+
+export function useListPortalAccounts<TData = Awaited<ReturnType<typeof listPortalAccounts>>, TError = ProblemDetails>(
+ params: ListPortalAccountsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPortalAccounts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPortalAccounts>>,
+          TError,
+          Awaited<ReturnType<typeof listPortalAccounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPortalAccounts<TData = Awaited<ReturnType<typeof listPortalAccounts>>, TError = ProblemDetails>(
+ params: ListPortalAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPortalAccounts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPortalAccounts>>,
+          TError,
+          Awaited<ReturnType<typeof listPortalAccounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPortalAccounts<TData = Awaited<ReturnType<typeof listPortalAccounts>>, TError = ProblemDetails>(
+ params: ListPortalAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPortalAccounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPortalAccounts<TData = Awaited<ReturnType<typeof listPortalAccounts>>, TError = ProblemDetails>(
+ params: ListPortalAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPortalAccounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPortalAccountsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePortalAccountUrl = () => {
+
+
+
+
+  return `/api/portal-accounts`
+}
+
+export const createPortalAccount = async (createPortalAccountRequest: CreatePortalAccountRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CreatePortalAccountResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CreatePortalAccountResult>(getCreatePortalAccountUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createPortalAccountRequest)
+  }
+);}
+
+
+
+
+
+export const getCreatePortalAccountMutationKey = () => ['createPortalAccount'] as const;
+
+export const getCreatePortalAccountMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPortalAccount>>, TError,CreatePortalAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPortalAccount>>, TError,CreatePortalAccountMutationVariables, TContext> => {
+
+const mutationKey = getCreatePortalAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPortalAccount>>, CreatePortalAccountMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPortalAccount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePortalAccountMutationResult = NonNullable<Awaited<ReturnType<typeof createPortalAccount>>>
+    export type CreatePortalAccountMutationBody = CreatePortalAccountRequest
+    export type CreatePortalAccountMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreatePortalAccountMutationVariables = {data: CreatePortalAccountRequest}
+
+    export const useCreatePortalAccount = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPortalAccount>>, TError,CreatePortalAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPortalAccount>>,
+        TError,
+        CreatePortalAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePortalAccountMutationOptions(options), queryClient);
+    }
+
+export const getDeactivatePortalAccountUrl = (linkId: string,) => {
+
+
+
+
+  return `/api/portal-accounts/${linkId}/deactivate`
+}
+
+export const deactivatePortalAccount = async (linkId: string,
+    staffVersionRequest: StaffVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getDeactivatePortalAccountUrl(linkId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(staffVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getDeactivatePortalAccountMutationKey = () => ['deactivatePortalAccount'] as const;
+
+export const getDeactivatePortalAccountMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivatePortalAccount>>, TError,DeactivatePortalAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deactivatePortalAccount>>, TError,DeactivatePortalAccountMutationVariables, TContext> => {
+
+const mutationKey = getDeactivatePortalAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivatePortalAccount>>, DeactivatePortalAccountMutationVariables> = (props) => {
+          const {linkId,data} = props ?? {};
+
+          return  deactivatePortalAccount(linkId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivatePortalAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deactivatePortalAccount>>>
+    export type DeactivatePortalAccountMutationBody = StaffVersionRequest
+    export type DeactivatePortalAccountMutationError = ProblemDetails
+    export type DeactivatePortalAccountMutationVariables = {linkId: string;data: StaffVersionRequest}
+
+    export const useDeactivatePortalAccount = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivatePortalAccount>>, TError,DeactivatePortalAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deactivatePortalAccount>>,
+        TError,
+        DeactivatePortalAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeactivatePortalAccountMutationOptions(options), queryClient);
+    }
+
+export const getReactivatePortalAccountUrl = (linkId: string,) => {
+
+
+
+
+  return `/api/portal-accounts/${linkId}/reactivate`
+}
+
+export const reactivatePortalAccount = async (linkId: string,
+    staffVersionRequest: StaffVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getReactivatePortalAccountUrl(linkId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(staffVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getReactivatePortalAccountMutationKey = () => ['reactivatePortalAccount'] as const;
+
+export const getReactivatePortalAccountMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivatePortalAccount>>, TError,ReactivatePortalAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivatePortalAccount>>, TError,ReactivatePortalAccountMutationVariables, TContext> => {
+
+const mutationKey = getReactivatePortalAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivatePortalAccount>>, ReactivatePortalAccountMutationVariables> = (props) => {
+          const {linkId,data} = props ?? {};
+
+          return  reactivatePortalAccount(linkId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivatePortalAccountMutationResult = NonNullable<Awaited<ReturnType<typeof reactivatePortalAccount>>>
+    export type ReactivatePortalAccountMutationBody = StaffVersionRequest
+    export type ReactivatePortalAccountMutationError = ProblemDetails
+    export type ReactivatePortalAccountMutationVariables = {linkId: string;data: StaffVersionRequest}
+
+    export const useReactivatePortalAccount = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivatePortalAccount>>, TError,ReactivatePortalAccountMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivatePortalAccount>>,
+        TError,
+        ReactivatePortalAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivatePortalAccountMutationOptions(options), queryClient);
     }
 
 export const getGetAuditLogUrl = (params?: GetAuditLogParams,) => {

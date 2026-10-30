@@ -74,6 +74,10 @@ Run commands from the repository root unless a step says otherwise. Each step sh
    Check: https://localhost:7197/health → `Healthy`; https://localhost:7197/health/ready → `Healthy` when the database is up.
 
 5. **Seed the development database** (once per database; safe to run again — it skips what already exists).
+
+   Development also creates `parent@nile.test` and `student@nile.test` through the portal account use case,
+   using the configured seed password. They open the separate `/portal` shell. These demo credentials
+   are never created in production; ordinary portal accounts receive a one-time temporary password.
    Choose your own password and set it with user-secrets; it is never written to this repository.
 
    ```bash
