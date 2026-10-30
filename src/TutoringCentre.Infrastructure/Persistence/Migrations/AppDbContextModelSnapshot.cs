@@ -806,6 +806,11 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("output_tokens");
 
+                    b.Property<string>("PromptVersion")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("prompt_version");
+
                     b.Property<DateTimeOffset>("StartedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("started_at");
@@ -839,6 +844,84 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_agent_runs_finished", "(status = 'running') = (finished_at IS NULL)");
 
                             t.HasCheckConstraint("ck_agent_runs_status", "status IN ('running','completed','failed')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Assistant.ToolCall", b =>
+                {
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AgentRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("agent_run_id");
+
+                    b.Property<string>("ArgumentSummary")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("argument_summary");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("decision");
+
+                    b.Property<int>("DurationMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_ms");
+
+                    b.Property<int>("Ordinal")
+                        .HasColumnType("integer")
+                        .HasColumnName("ordinal");
+
+                    b.Property<string>("ReasonCode")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("reason_code");
+
+                    b.Property<string>("ResultSummary")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("result_summary");
+
+                    b.Property<int>("Step")
+                        .HasColumnType("integer")
+                        .HasColumnName("step");
+
+                    b.Property<string>("ToolName")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("tool_name");
+
+                    b.HasKey("CentreId", "Id")
+                        .HasName("ux_tool_calls_centre_id_id");
+
+                    b.HasIndex("CentreId", "AgentRunId")
+                        .HasDatabaseName("ix_tool_calls_centre_id_agent_run_id");
+
+                    b.HasIndex("CentreId", "AgentRunId", "Step", "Ordinal")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tool_calls_centre_id_agent_run_id_step_ordinal");
+
+                    b.ToTable("tool_calls", "assistant", t =>
+                        {
+                            t.HasCheckConstraint("ck_tool_calls_decision", "decision IN ('allowed','denied','invalid','failed')");
+
+                            t.HasCheckConstraint("ck_tool_calls_duration", "duration_ms >= 0");
+
+                            t.HasCheckConstraint("ck_tool_calls_reason", "decision = 'allowed' OR reason_code IS NOT NULL");
                         });
                 });
 
@@ -2028,6 +2111,23 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_agent_runs_inbound_messages");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Assistant.ToolCall", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tool_calls_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Assistant.AgentRun", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "AgentRunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tool_calls_agent_runs_centre_id_agent_run_id");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Attendance.AttendanceRecord", b =>

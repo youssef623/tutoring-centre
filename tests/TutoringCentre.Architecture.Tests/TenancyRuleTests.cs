@@ -5,6 +5,7 @@ namespace TutoringCentre.Architecture.Tests;
 
 public sealed class TenancyRuleTests
 {
+    [Fact] public void AssistantEvidenceIsTenantOwned() => Assert.True(typeof(TutoringCentre.Domain.Common.ITenantOwned).IsAssignableFrom(typeof(TutoringCentre.Domain.Assistant.ToolCall)));
     [Fact]
     public void CentreDirectory_OnlyInfrastructureJobsMayDependOnIt()
     {

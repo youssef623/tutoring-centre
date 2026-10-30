@@ -144,6 +144,8 @@ public static class DependencyInjection
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<TutoringCentre.Application.Assistant.IToolCallLog, ToolCallLog>();
+        services.AddScoped<TutoringCentre.Application.Identity.Contracts.IPortalActorDirectory, PortalActorDirectory>();
         services.AddScoped<IOutbox, EfOutbox>();
         services.AddOptions<OutboxOptions>().Bind(configuration.GetSection("Outbox")).ValidateOnStart();
         services.AddSingleton<OutboxStore>();

@@ -1,0 +1,1 @@
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Scope = "namespace", Target = "~N:TutoringCentre.Application.Assistant.Handles", Justification = "Handles is the specified C# capability namespace.")]

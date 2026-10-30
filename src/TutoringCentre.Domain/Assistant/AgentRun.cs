@@ -16,6 +16,12 @@ public sealed class AgentRun : Entity, ITenantOwned
     public int OutputTokens { get; private set; }
     public string? FailureCode { get; private set; }
     public string? GuardReason { get; private set; }
+    public string? PromptVersion { get; private set; }
+    public void SetPromptVersion(string version)
+    {
+        if (Status != AgentRunStatus.Running || version is not { Length: > 0 and <= 30 }) throw new ArgumentException("Invalid prompt version.");
+        PromptVersion = version;
+    }
     public static AgentRun Start(Guid centreId, Guid conversationId, Guid inboundMessageId, DateTimeOffset now)
     {
         if (centreId == Guid.Empty || conversationId == Guid.Empty || inboundMessageId == Guid.Empty)

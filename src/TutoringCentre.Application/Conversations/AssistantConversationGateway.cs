@@ -16,7 +16,7 @@ internal sealed class AssistantConversationGateway(IAgentConversationRepository 
         if (inbound is null) return null;
         var conversation = await messages.GetConversationAsync(inbound.ConversationId,cancellationToken);
         return conversation is null ? null : new(conversation.Id,conversation.ParentId,conversation.StudentId,
-            conversation.IdentityStatus == IdentityStatus.Identified && senders.Supports(inbound.Provider),inbound.TextBody ?? "");
+            conversation.IdentityStatus == IdentityStatus.Identified && senders.Supports(inbound.Provider),inbound.TextBody ?? "", conversation.PortalUserId);
     }
     public async Task<IReadOnlyList<AssistantHistoryEntry>> GetHistoryAsync(Guid inboundId,int count,CancellationToken cancellationToken)
     {

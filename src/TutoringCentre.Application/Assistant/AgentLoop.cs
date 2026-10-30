@@ -1,14 +1,15 @@
 using TutoringCentre.Application.Assistant.Context;
 using TutoringCentre.Application.Assistant.Models;
+using TutoringCentre.Application.Assistant.Tools;
 namespace TutoringCentre.Application.Assistant;
 
 /// <summary>The sole orchestration call site for the model. All limits are server controlled.</summary>
-public sealed class AgentLoop(ILanguageModel model, AssistantOptions options)
+public sealed class AgentLoop(ILanguageModel model, AssistantOptions options, ToolGateway? gateway = null, ToolRegistry? registry = null)
 {
     public Task<AgentOutcome> RunAsync(ContextOutput context, CancellationToken cancellationToken) =>
         RunWithinBudgetAsync(context, options.TotalRunTimeout, cancellationToken);
 
-    internal async Task<AgentOutcome> RunWithinBudgetAsync(ContextOutput context, TimeSpan remainingBudget, CancellationToken cancellationToken)
+    internal async Task<AgentOutcome> RunWithinBudgetAsync(ContextOutput context, TimeSpan remainingBudget, CancellationToken cancellationToken, ToolContext? toolContext = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         var limits = options;
@@ -27,7 +28,7 @@ public sealed class AgentLoop(ILanguageModel model, AssistantOptions options)
             try
             {
                 steps++;
-                var request = new ModelRequest(context.System, context.Messages, [], (int)(limits.MaxTotalTokens - input - output));
+                var request = new ModelRequest(context.System, context.Messages, registry?.Descriptors.Select(x => new ToolDefinition(x.Name, x.Description, x.Schema)).ToArray() ?? [], (int)(limits.MaxTotalTokens - input - output));
                 var result = await model.GenerateAsync(request, call.Token).WaitAsync(call.Token);
                 cancellationToken.ThrowIfCancellationRequested();
                 if (total.IsCancellationRequested) return Failed("assistant.total_timeout");
@@ -39,7 +40,20 @@ public sealed class AgentLoop(ILanguageModel model, AssistantOptions options)
                 input += response.Usage.InputTokens; output += response.Usage.OutputTokens;
                 if (input + output >= limits.MaxTotalTokens) return Failed("assistant.token_limit");
                 if (response.ToolCalls.Count != 0 || response.StopReason == ModelStopReason.ToolCalls)
-                    return Failed("assistant.tools_unavailable");
+                {
+                    if (gateway is null || toolContext is null) return Failed("assistant.tools_unavailable");
+                    var messages = context.Messages.ToList();
+                    messages.Add(new ModelMessage(ModelRole.Assistant, response.Text, response.ToolCalls));
+                    for (var ordinal = 0; ordinal < response.ToolCalls.Count; ordinal++)
+                    {
+                        var toolCall = response.ToolCalls[ordinal];
+                        var outcome = await gateway.ExecuteAsync(toolContext, steps, ordinal, toolCall.Name, toolCall.Arguments.GetRawText(), total.Token);
+                        messages.Add(new ModelMessage(ModelRole.Tool, outcome.Text, ToolCallId: toolCall.Id));
+                    }
+                    context = context with { Messages = messages };
+                    if (toolContext.AttemptedCalls > limits.MaxToolCalls) return Failed("assistant.tool_call_limit");
+                    continue;
+                }
                 if (string.IsNullOrWhiteSpace(response.Text)) return Failed("assistant.model_error");
                 if (response.StopReason == ModelStopReason.Other)
                 {

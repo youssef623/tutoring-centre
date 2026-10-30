@@ -7,5 +7,5 @@ public interface IAssistantConversationGateway
     Task<IReadOnlyList<AssistantHistoryEntry>> GetHistoryAsync(Guid inboundId, int count, CancellationToken cancellationToken);
     Task<Result> QueueReplyAsync(Guid inboundId, string reply, CancellationToken cancellationToken);
 }
-public sealed record AssistantConversationInput(Guid ConversationId, Guid? ParentId, Guid? StudentId, bool CanReply, string Text);
+public sealed record AssistantConversationInput(Guid ConversationId, Guid? ParentId, Guid? StudentId, bool CanReply, string Text, Guid? PortalUserId = null);
 public sealed record AssistantHistoryEntry(bool IsAssistant, string Text);

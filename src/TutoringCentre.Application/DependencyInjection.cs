@@ -26,6 +26,10 @@ public static class DependencyInjection
         services.AddScoped<CorrelationContext>();
         services.AddScoped<ICorrelationContext>(provider => provider.GetRequiredService<CorrelationContext>());
         services.AddSingleton<ISystemScopeRunner, SystemScopeRunner>();
+        services.AddScoped<TutoringCentre.Application.Common.Execution.IActorScopeRunner, TutoringCentre.Application.Common.Execution.ActorScopeRunner>();
+        services.AddScoped<TutoringCentre.Application.Assistant.PortalActorFactory>();
+        services.AddScoped<TutoringCentre.Application.Assistant.Tools.ToolRegistry>();
+        services.AddScoped<TutoringCentre.Application.Assistant.Tools.ToolGateway>();
 
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
         services.AddScoped<Dispatcher>();
