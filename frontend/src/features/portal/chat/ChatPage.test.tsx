@@ -65,6 +65,47 @@ describe("Portal chat", () => {
     expect(screen.getAllByText("مرحبا")).toHaveLength(1);
   });
 
+  it("keeps polling queued replies until sent", async () => {
+    let stored = false;
+    let reads = 0;
+    server.use(
+      http.post("/api/portal/chat/messages", () => {
+        stored = true;
+        return HttpResponse.json({ messageId: "inbound", alreadyRecorded: false });
+      }),
+      http.get("/api/portal/chat/messages", () => {
+        if (!stored) return HttpResponse.json({ items: [], nextCursor: null });
+        reads += 1;
+        return HttpResponse.json({
+          items: [
+            {
+              id: "reply",
+              direction: "outbound",
+              text: "Reply",
+              status: reads === 1 ? "queued" : "sent",
+              createdAt: "2026-10-30T10:00:01Z",
+            },
+            {
+              id: "inbound",
+              direction: "inbound",
+              text: "Hello",
+              status: "processed",
+              createdAt: "2026-10-30T10:00:00Z",
+            },
+          ],
+          nextCursor: null,
+        });
+      }),
+    );
+    renderWithQueryClient(<ChatPage />);
+    await screen.findByText("Ask about attendance");
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "Hello" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    expect(await screen.findByText("Queued")).toBeInTheDocument();
+    expect(await screen.findByText("Sent", {}, { timeout: 4500 })).toBeInTheDocument();
+    expect(screen.queryByText("Queued")).not.toBeInTheDocument();
+  });
+
   it("retry reuses clientMessageId and shows rate limit error", async () => {
     const ids: string[] = [];
     server.use(

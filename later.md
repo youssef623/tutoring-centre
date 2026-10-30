@@ -64,3 +64,5 @@ Ideas that are out of scope for the current slice. Each entry: date, idea, why n
 | 2026-10-29 | Per-card print audit | Issue/reissue and revoke have server audit history; browser printing has no reliable server completion signal | Add an explicit print-intent/acknowledgement model if centres require a print trail, without logging credentials |
 | 2026-10-29 | Card expiry | Cards remain active until revoked or replaced; no expiry rule is defined | Specify term/instant boundaries, staff messaging and scan error semantics before adding expiry |
 | 2026-10-30 | Portal password recovery | Portal credentials are shown once; no recovery or password reset flow exists yet | Design verified recovery and revocation before supporting forgotten passwords |
+
+| 2026-10-30 | Agent model calls hold a transaction and connection; a rollback after a model response can repeat a billable call | Day 78 keeps run claim, reply and outbox intent atomic; the server deadline bounds the transaction | Month 8: evaluate claim/run/complete phases with leases, recovery and reconciliation (ADR 0019) |

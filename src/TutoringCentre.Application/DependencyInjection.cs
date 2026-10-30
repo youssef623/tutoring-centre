@@ -29,11 +29,14 @@ public static class DependencyInjection
 
         services.AddCqrsHandlers(typeof(AssemblyMarker).Assembly);
         services.AddScoped<Dispatcher>();
+        services.AddScoped<ICommandTimeoutPolicy, TutoringCentre.Application.Assistant.AgentCommandTimeoutPolicy>();
         services.AddOutbox();
-        services.AddDeferredOutboxMessage<InboundMessageReceived>();
+        services.AddOutboxMessage<InboundMessageReceived, TutoringCentre.Application.Conversations.Inbound.Commands.ProcessInboundMessage.ProcessInboundMessageCommand>(message => new(message.MessageId));
+        services.AddOutboxMessage<TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentRequested, TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentCommand>(message => new(message.InboundMessageId));
         services.AddOutboxMessage<SendOutboundMessageRequested, SendOutboundMessageCommand>(message => new(message.OutboundMessageId));
         services.AddOutboxMessage<DeliveryStatusRecorded, RecordDeliveryStatusCommand>(message => new(message.OutboundMessageId, message.Status));
         services.AddScoped<ChannelSenderRegistry>();
+        services.AddScoped<TutoringCentre.Application.Conversations.Contracts.IAssistantConversationGateway, AssistantConversationGateway>();
         services.AddScoped<ITeachingScope, TeachingScopeAdapter>();
 
         return services;

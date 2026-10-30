@@ -11,11 +11,13 @@ namespace TutoringCentre.Infrastructure.Tests.Assistant;
 
 public sealed class AssistantRegistrationTests
 {
-    [Fact]
-    public void Production_RejectsScriptedEvenWithExistingFile()
+    [Theory]
+    [InlineData("Production")]
+    [InlineData("Development")]
+    public void NonTestingEnvironment_RejectsScriptedEvenWithExistingFile(string environment)
     {
         using var script = new ScriptFile();
-        using var services = Services("Production", new() { ["Assistant:Provider"] = "scripted", ["Assistant:ScriptPath"] = script.Path });
+        using var services = Services(environment, new() { ["Assistant:Provider"] = "scripted", ["Assistant:ScriptPath"] = script.Path });
         Assert.Throws<OptionsValidationException>(() => services.GetRequiredService<IOptions<ModelProviderOptions>>().Value);
     }
 
@@ -32,6 +34,16 @@ public sealed class AssistantRegistrationTests
     public void InvalidTimeout_IsRejected(string timeout)
     {
         using var services = Services("Testing", new() { ["Assistant:CallTimeout"] = timeout });
+        Assert.Throws<OptionsValidationException>(() => services.GetRequiredService<IOptions<AssistantOptions>>().Value);
+    }
+
+    [Theory]
+    [InlineData("00:00:00")]
+    [InlineData("-00:00:01")]
+    [InlineData("00:01:01")]
+    public void InvalidTotalTimeout_IsRejected(string timeout)
+    {
+        using var services = Services("Testing", new() { ["Assistant:TotalRunTimeout"] = timeout });
         Assert.Throws<OptionsValidationException>(() => services.GetRequiredService<IOptions<AssistantOptions>>().Value);
     }
 

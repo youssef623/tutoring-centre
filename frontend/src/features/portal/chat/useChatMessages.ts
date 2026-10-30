@@ -64,7 +64,12 @@ export function useChatMessages() {
       if (!visible || !expected || Date.now() >= expected.deadline) return false;
       const items = state.state.data?.pages.flatMap((page) => page.items) ?? [];
       const sentIndex = items.findIndex((item) => item.id === expected.id);
-      if (sentIndex >= 0 && items.slice(0, sentIndex).some((item) => item.direction === "outbound"))
+      if (
+        sentIndex >= 0 &&
+        items
+          .slice(0, sentIndex)
+          .some((item) => item.direction === "outbound" && item.status !== "queued")
+      )
         return false;
       return 3000;
     },

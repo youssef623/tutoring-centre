@@ -16,7 +16,7 @@ Configure `Assistant:Provider` as `live` or `scripted`. No model is called until
 
 Live configuration requires `Assistant:Model` and `Assistant:ApiKey`. Supply the key through user-secrets (`Assistant:ApiKey`) or the environment (`Assistant__ApiKey`), never committed settings. The model identifier remains deployment configuration so the adapter does not silently choose or change a billable model. An explicit live configuration without a key fails startup.
 
-`Assistant:ScriptPath` names an existing JSON array of model responses. Scripted responses advance once per call, do not consume a step for pre-cancelled calls, and fail explicitly when exhausted. The scripted adapter is accepted only in Development and Testing; Production and every other environment reject it even when the file exists.
+`Assistant:ScriptPath` names an existing JSON array of model responses. Scripted responses advance once per call, do not consume a step for pre-cancelled calls, and fail explicitly when exhausted. The scripted adapter is accepted only in Testing; Production and every other environment reject it even when the file exists.
 
 Server defaults: MaxSteps 4, MaxTotalTokens 6000, CallTimeout 20 seconds, MaxReplyCharacters 800, HistoryMessages 10. Startup rejects nonpositive limits and unreasonable upper bounds. The adapter caps output tokens by MaxTotalTokens and enforces CallTimeout with a linked token and `WaitAsync`, including clients that ignore cancellation. Day 78 owns aggregate step/token budgets, history selection and reply length enforcement.
 

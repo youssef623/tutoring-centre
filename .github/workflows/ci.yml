@@ -124,7 +124,7 @@ jobs:
       Seed__Password: ci-only-throwaway-seed-password
       SEED_PASSWORD: ci-only-throwaway-seed-password
       Jobs__RunServer: "false"
-      Outbox__RunRelay: "false"
+      Outbox__RunRelay: "true"
       # The e2e suite's ~13 UI logins across 2 parallel workers (plus retries) outrun the default
       # 10/minute-per-IP login budget (src/TutoringCentre.Api/Auth/LoginRateLimiting.cs) within this
       # single job's run — not a brute-force signal, just this one trusted runner IP exercising many
