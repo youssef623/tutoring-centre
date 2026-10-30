@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { AlertTriangle, Copy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   createPortalAccount,
@@ -11,6 +12,7 @@ import {
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -81,7 +83,7 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
       className="space-y-4 rounded-xl border border-border p-5"
       aria-label={t("accountTitle")}
     >
-      <div>
+      <div className="-mx-5 border-b border-border px-5 pb-4">
         <h2 className="text-lg font-semibold">{t("accountTitle")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("accountDescription")}</p>
       </div>
@@ -101,7 +103,7 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             {account === undefined ? (
               <p className="text-sm text-muted-foreground">{t("none")}</p>
             ) : (
@@ -109,9 +111,24 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
                 <p className="break-all text-sm" dir="ltr">
                   {account.email}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <Badge
+                  variant="outline"
+                  className={
+                    account.status === "active"
+                      ? "border-transparent bg-success/15 text-foreground"
+                      : "border-transparent bg-muted text-foreground"
+                  }
+                >
+                  <span
+                    aria-hidden="true"
+                    className={
+                      account.status === "active"
+                        ? "size-2 rounded-full bg-success"
+                        : "size-2 rounded-full bg-muted-foreground"
+                    }
+                  />
                   {t(account.status === "active" ? "active" : "inactive")}
-                </p>
+                </Badge>
               </>
             )}
           </div>
@@ -125,7 +142,7 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
             </Button>
           ) : (
             <Button
-              variant="outline"
+              variant={account.status === "active" ? "outline" : "default"}
               disabled={pending}
               onClick={() => {
                 void toggle();
@@ -150,7 +167,16 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t(created ? "created" : "createTitle")}</DialogTitle>
-            <DialogDescription>
+            <DialogDescription
+              className={
+                created && password !== null
+                  ? "flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-warning-foreground"
+                  : undefined
+              }
+            >
+              {created && password !== null && (
+                <AlertTriangle className="size-5 shrink-0" aria-hidden="true" />
+              )}
               {t(
                 created
                   ? password === null
@@ -165,29 +191,33 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
               {password !== null && (
                 <>
                   <Label>{t("temporaryPassword")}</Label>
-                  <output
-                    className="block rounded-lg border border-border bg-muted p-4 font-mono text-lg"
-                    dir="ltr"
-                  >
-                    {password}
-                  </output>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      const copy = async () => {
-                        try {
-                          await navigator.clipboard.writeText(password);
-                          setCopied(true);
-                          setError(null);
-                        } catch {
-                          setError(t("copyFailed"));
-                        }
-                      };
-                      void copy();
-                    }}
-                  >
-                    {t(copied ? "copied" : "copy")}
-                  </Button>
+                  <div className="flex flex-wrap items-stretch gap-2">
+                    <output
+                      className="min-w-40 flex-1 break-all rounded-lg border border-border bg-muted p-3 font-mono text-base"
+                      dir="ltr"
+                    >
+                      {password}
+                    </output>
+                    <Button
+                      className="h-auto"
+                      variant="outline"
+                      onClick={() => {
+                        const copy = async () => {
+                          try {
+                            await navigator.clipboard.writeText(password);
+                            setCopied(true);
+                            setError(null);
+                          } catch {
+                            setError(t("copyFailed"));
+                          }
+                        };
+                        void copy();
+                      }}
+                    >
+                      <Copy className="size-4" aria-hidden="true" />
+                      {t(copied ? "copied" : "copy")}
+                    </Button>
+                  </div>
                 </>
               )}
               {error !== null && (
@@ -195,9 +225,11 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
                   {error}
                 </p>
               )}
-              <Button className="w-full" onClick={close}>
-                {t("done")}
-              </Button>
+              <div className="border-t border-border pt-4">
+                <Button className="w-full" onClick={close}>
+                  {t("done")}
+                </Button>
+              </div>
             </div>
           ) : (
             <form
@@ -258,7 +290,7 @@ function AccountSection({ kind, subjectId }: { kind: PortalSubjectKind; subjectI
                   {error}
                 </p>
               )}
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 border-t border-border pt-4">
                 <Button type="button" variant="outline" disabled={pending} onClick={close}>
                   {t("cancel")}
                 </Button>

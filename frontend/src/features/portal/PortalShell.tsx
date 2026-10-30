@@ -10,8 +10,8 @@ export function PortalShell({ me }: { me: MeDto }) {
   const centre = me.memberships.find((item) => item.centreId === me.activeCentreId);
   const name = me.portal?.subjectName ?? me.displayName;
   return (
-    <div className="min-h-dvh bg-background p-3 sm:p-6">
-      <div className="flex min-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-primary/30 sm:min-h-[calc(100dvh-3rem)]">
+    <div className="min-h-dvh w-full bg-background">
+      <div className="flex min-h-dvh w-full flex-col overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-5 border-b border-primary/15 px-5 py-5 sm:px-8">
           <div className="space-y-1">
             <HessaWordmark />
