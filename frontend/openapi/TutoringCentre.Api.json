@@ -6748,6 +6748,8 @@
           "owner",
           "teacher",
           "secretary",
+          "parent",
+          "student",
           null
         ]
       },

@@ -28,10 +28,19 @@ public sealed class Membership : Entity
 
     public StaffRole Role { get; private set; }
 
+    public string RoleKey => Role.ToString().ToLowerInvariant();
+
+    public bool IsPortal => Role is StaffRole.Parent or StaffRole.Student;
+
     public MembershipStatus Status { get; private set; }
 
     public static Result<Membership> Create(Guid userId, Guid centreId, StaffRole role)
     {
+        if (role is not (StaffRole.Owner or StaffRole.Secretary or StaffRole.Teacher))
+        {
+            return Result<Membership>.Failure(Error.Validation("membership.role_invalid", "A staff role is required."));
+        }
+
         if (userId == Guid.Empty)
         {
             return Result<Membership>.Failure(Error.Validation("membership.user_required", "A user is required."));
@@ -47,6 +56,16 @@ public sealed class Membership : Entity
 
     public Result ChangeRole(StaffRole role)
     {
+        if (IsPortal)
+        {
+            return Result.Failure(Error.Rule("membership.portal_role_fixed", "A portal membership's role cannot change."));
+        }
+
+        if (role is not (StaffRole.Owner or StaffRole.Secretary or StaffRole.Teacher))
+        {
+            return Result.Failure(Error.Validation("membership.role_invalid", "A staff role is required."));
+        }
+
         if (Status == MembershipStatus.Inactive)
         {
             return Result.Failure(Error.Rule("membership.inactive", "This membership is inactive."));
@@ -70,6 +89,19 @@ public sealed class Membership : Entity
 
         Status = MembershipStatus.Inactive;
         return Result.Success();
+    }
+
+    public static Result<Membership> CreatePortal(Guid userId, Guid centreId, PortalRole role)
+    {
+        if (userId == Guid.Empty)
+            return Result<Membership>.Failure(Error.Validation("membership.user_required", "A user is required."));
+        if (centreId == Guid.Empty)
+            return Result<Membership>.Failure(Error.Validation("membership.centre_required", "A centre is required."));
+        if (!Enum.IsDefined(role))
+            return Result<Membership>.Failure(Error.Validation("membership.role_invalid", "A portal role is required."));
+
+        return Result<Membership>.Success(new Membership(userId, centreId,
+            role == PortalRole.Parent ? StaffRole.Parent : StaffRole.Student));
     }
 
     public Result Activate()

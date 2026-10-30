@@ -22,7 +22,7 @@ internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Members
             Schemas.Identity,
             table =>
             {
-                table.HasCheckConstraint("ck_memberships_role", "role IN ('owner','teacher','secretary')");
+                table.HasCheckConstraint("ck_memberships_role", "role IN ('owner','teacher','secretary','parent','student')");
                 table.HasCheckConstraint("ck_memberships_status", "status IN ('active','inactive')");
             });
 
@@ -60,9 +60,15 @@ internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Members
             .IsRequired()
             .HasMaxLength(StatusMaxLength);
 
+        builder.HasAlternateKey(membership => new { membership.CentreId, membership.UserId })
+            .HasName("ak_memberships_centre_user");
         builder.HasIndex(membership => new { membership.CentreId, membership.UserId })
-            .IsUnique()
-            .HasDatabaseName("ux_memberships_centre_user");
+            .IsUnique().HasDatabaseName("ux_memberships_centre_user");
+
+        builder.Ignore(membership => membership.RoleKey);
+        builder.Ignore(membership => membership.IsPortal);
+        builder.HasIndex(membership => new { membership.CentreId, membership.UserId, membership.Role }).IsUnique()
+            .HasDatabaseName("ux_memberships_centre_user_role");
 
         builder.HasRowVersion();
 
@@ -73,6 +79,8 @@ internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Members
 
     private static string RoleToDatabase(StaffRole role) => role switch
     {
+        StaffRole.Parent => "parent",
+        StaffRole.Student => "student",
         StaffRole.Owner => "owner",
         StaffRole.Teacher => "teacher",
         StaffRole.Secretary => "secretary",
@@ -81,6 +89,8 @@ internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Members
 
     private static StaffRole RoleFromDatabase(string value) => value switch
     {
+        "parent" => StaffRole.Parent,
+        "student" => StaffRole.Student,
         "owner" => StaffRole.Owner,
         "teacher" => StaffRole.Teacher,
         "secretary" => StaffRole.Secretary,

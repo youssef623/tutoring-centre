@@ -235,6 +235,8 @@ export const StaffRole = {
   owner: 'owner',
   teacher: 'teacher',
   secretary: 'secretary',
+  parent: 'parent',
+  student: 'student',
 } as const;
 
 export interface ChangeStaffRoleRequest {

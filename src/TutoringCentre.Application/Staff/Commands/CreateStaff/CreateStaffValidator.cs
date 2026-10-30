@@ -1,3 +1,4 @@
+using TutoringCentre.Domain.Identity;
 using FluentValidation;
 
 namespace TutoringCentre.Application.Staff.Commands.CreateStaff;
@@ -12,7 +13,7 @@ internal sealed class CreateStaffValidator : AbstractValidator<CreateStaffComman
     {
         RuleFor(command => command.Email).NotEmpty().EmailAddress().MaximumLength(EmailMaxLength);
         RuleFor(command => command.DisplayName).NotEmpty().MaximumLength(DisplayNameMaxLength);
-        RuleFor(command => command.Role).IsInEnum();
+        RuleFor(command => command.Role).Must(role => RoleScopes.IsStaffRole(role));
         RuleFor(command => command.PreferredLocale).Must(locale => locale is "ar" or "en").WithMessage("Preferred locale must be 'ar' or 'en'.");
     }
 }

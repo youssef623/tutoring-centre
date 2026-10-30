@@ -30,7 +30,7 @@ public sealed class MembershipConstraintTests(PostgresFixture fixture) : Postgre
             tables.Add(reader.GetString(0));
         }
 
-        Assert.Equal(["memberships", "user_claims", "user_logins", "user_tokens", "users"], tables);
+        Assert.Equal(["memberships", "portal_links", "user_claims", "user_logins", "user_tokens", "users"], tables);
     }
 
     [Fact]
@@ -43,6 +43,9 @@ public sealed class MembershipConstraintTests(PostgresFixture fixture) : Postgre
 
         context.Add(Membership.Create(userId, centreId, StaffRole.Teacher).Value);
         await context.SaveChangesAsync();
+
+        // Test the database guarantee independently of EF's alternate-key identity map.
+        context.ChangeTracker.Clear();
 
         context.Add(Membership.Create(userId, centreId, StaffRole.Secretary).Value);
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());

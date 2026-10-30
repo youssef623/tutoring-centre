@@ -1,3 +1,4 @@
+using TutoringCentre.Domain.Identity;
 using FluentValidation;
 
 namespace TutoringCentre.Application.Staff.Commands.ChangeStaffRole;
@@ -7,6 +8,6 @@ internal sealed class ChangeStaffRoleValidator : AbstractValidator<ChangeStaffRo
     public ChangeStaffRoleValidator()
     {
         RuleFor(command => command.MembershipId).NotEmpty();
-        RuleFor(command => command.Role).IsInEnum();
+        RuleFor(command => command.Role).Must(role => RoleScopes.IsStaffRole(role));
     }
 }

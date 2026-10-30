@@ -1,9 +1,12 @@
 namespace TutoringCentre.Domain.Identity;
 
-/// <summary>A staff member's role within one centre (not global). Secretary is the product's "Assistant" role.</summary>
+/// <summary>Membership role discriminator, retaining its original public name for session compatibility.
+/// Staff entry points accept only Owner, Secretary and Teacher; portal creation uses PortalRole.</summary>
 public enum StaffRole
 {
     Owner,
     Teacher,
     Secretary,
+    Parent,
+    Student,
 }

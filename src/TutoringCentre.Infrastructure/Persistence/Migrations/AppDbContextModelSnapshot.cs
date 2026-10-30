@@ -1284,6 +1284,9 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_memberships");
 
+                    b.HasAlternateKey("CentreId", "UserId")
+                        .HasName("ak_memberships_centre_user");
+
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_memberships_user_id");
 
@@ -1291,11 +1294,82 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_memberships_centre_user");
 
+                    b.HasIndex("CentreId", "UserId", "Role")
+                        .IsUnique()
+                        .HasDatabaseName("ux_memberships_centre_user_role");
+
                     b.ToTable("memberships", "identity", t =>
                         {
-                            t.HasCheckConstraint("ck_memberships_role", "role IN ('owner','teacher','secretary')");
+                            t.HasCheckConstraint("ck_memberships_role", "role IN ('owner','teacher','secretary','parent','student')");
 
                             t.HasCheckConstraint("ck_memberships_status", "status IN ('active','inactive')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Identity.PortalLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<string>("RoleKey")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("role_key");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_portal_links");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_portal_links_centre_id_id");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("ix_portal_links_created_by");
+
+                    b.HasIndex("CentreId", "ParentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_portal_links_centre_parent")
+                        .HasFilter("parent_id IS NOT NULL");
+
+                    b.HasIndex("CentreId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_portal_links_centre_student")
+                        .HasFilter("student_id IS NOT NULL");
+
+                    b.HasIndex("CentreId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_portal_links_centre_user");
+
+                    b.ToTable("portal_links", "identity", t =>
+                        {
+                            t.HasCheckConstraint("ck_portal_links_role", "role_key IN ('parent','student')");
+
+                            t.HasCheckConstraint("ck_portal_links_subject", "(role_key = 'parent' AND parent_id IS NOT NULL AND student_id IS NULL) OR (role_key = 'student' AND student_id IS NOT NULL AND parent_id IS NULL)");
                         });
                 });
 
@@ -1910,6 +1984,45 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_memberships_users_user_id");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Identity.PortalLink", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_portal_links_centres");
+
+                    b.HasOne("TutoringCentre.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_portal_links_created_by");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Parent", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ParentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_portal_links_parents");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Student", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_portal_links_students");
+
+                    b.HasOne("TutoringCentre.Domain.Identity.Membership", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "UserId")
+                        .HasPrincipalKey("CentreId", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_portal_links_membership_identity");
                 });
 
             modelBuilder.Entity("TutoringCentre.Infrastructure.Audit.AuditEntry", b =>
