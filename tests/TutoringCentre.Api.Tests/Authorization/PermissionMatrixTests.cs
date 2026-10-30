@@ -30,6 +30,7 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "POST /api/portal/chat/messages",
         "GET /api/conversations",
         "GET /api/conversations/{conversationId:guid}/messages",
+        "GET /api/conversations/{conversationId:guid}/timeline",
         "GET /api/portal-accounts",
         "POST /api/portal-accounts",
         "POST /api/portal-accounts/{linkId:guid}/deactivate",
@@ -99,6 +100,18 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "POST /api/sessions/{sessionId:guid}/scans",
     ];
 
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.NotFound)]
+    [InlineData("secretary@nile.test", HttpStatusCode.NotFound)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
+    public async Task AssistantTimelinePermission(string role, HttpStatusCode expected)
+    {
+        using var signedIn = await SignInAsync(role);
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/conversations/{Guid.NewGuid()}/timeline", UriKind.Relative));
+        Assert.Equal(expected, response.StatusCode);
+    }
     [Theory]
     [InlineData("owner@nile.test", "status", HttpStatusCode.OK)]
     [InlineData("secretary@nile.test", "status", HttpStatusCode.OK)]
@@ -216,7 +229,10 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
             Assert.Equal(expected, response.StatusCode);
             if (expected == HttpStatusCode.Forbidden)
             {
-                await AssertPermissionDeniedAsync(response);
+                if ((role is "parent" or "student") && (operation is "sessions" or "roster"))
+                    await AttendanceHttp.Problem(response, HttpStatusCode.Forbidden, "attendance.not_available_to_portal");
+                else
+                    await AssertPermissionDeniedAsync(response);
                 Assert.Equal(0L, await factory.ScalarAsync<long>("select coalesce(sum(correction_count), 0) from attendance.attendance_records"));
             }
         }

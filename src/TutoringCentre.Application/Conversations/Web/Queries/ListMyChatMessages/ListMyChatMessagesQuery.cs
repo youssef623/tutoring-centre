@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Conversations.Contracts;
 using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using TutoringCentre.Application.Common.Cqrs;
@@ -18,21 +19,6 @@ internal sealed class ListMyChatMessagesValidator : AbstractValidator<ListMyChat
     {
         RuleFor(query => query.PageSize).InclusiveBetween(1, 100);
         RuleFor(query => query.Cursor).Must(cursor => cursor is null || ChatCursor.TryParse(cursor, out _, out _));
-    }
-}
-
-public static class ChatCursor
-{
-    public static string Format(DateTimeOffset at, Guid id) => $"{at.UtcTicks}:{id:D}";
-    public static bool TryParse(string value, out DateTimeOffset at, out Guid id)
-    {
-        at = default;
-        id = default;
-        var parts = value.Split(':');
-        if (parts.Length != 2 || !long.TryParse(parts[0], out var ticks) || ticks < 0 || ticks > DateTimeOffset.MaxValue.Ticks
-            || !Guid.TryParseExact(parts[1], "D", out id)) return false;
-        at = new DateTimeOffset(ticks, TimeSpan.Zero);
-        return true;
     }
 }
 

@@ -68,6 +68,39 @@ export interface AssignGroupTeacherRequest {
   version: number | string;
 }
 
+export interface TimelineToolCall {
+  toolName: string;
+  decision: string;
+  /** @nullable */
+  reasonCode: string | null;
+  argumentSummary: string;
+  /** @nullable */
+  resultSummary: string | null;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  durationMs: number | string;
+}
+
+export interface AssistantTimelineItem {
+  id: string;
+  kind: string;
+  at: string;
+  /** @nullable */
+  text: string | null;
+  /** @nullable */
+  status: string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)$
+     */
+  steps?: number | string | null;
+  /** @nullable */
+  guardReason?: string | null;
+  /** @nullable */
+  failureCode?: string | null;
+  /** @nullable */
+  toolCalls?: TimelineToolCall[] | null;
+}
+
 export interface AttendanceHistoryItemDto {
   recordId: string;
   sessionId: string;
@@ -303,6 +336,12 @@ export interface ConversationMessagesPage {
 
 export interface ConversationPage {
   items: ConversationDto[];
+}
+
+export interface ConversationTimelinePage {
+  items: AssistantTimelineItem[];
+  /** @nullable */
+  nextCursor: string | null;
 }
 
 export interface CorrectAttendanceRequest {
@@ -568,9 +607,16 @@ export interface MembershipDto {
   timeZoneId: string;
 }
 
+export interface PortalChild {
+  id: string;
+  name: string;
+}
+
 export interface PortalMeDto {
   kind: string;
   subjectName: string;
+  /** @nullable */
+  children?: PortalChild[] | null;
 }
 
 export interface MeDto {
@@ -1069,6 +1115,14 @@ pageSize?: number | string;
 };
 
 export type GetConversationMessagesParams = {
+cursor?: string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+pageSize?: number | string;
+};
+
+export type GetConversationTimelineParams = {
 cursor?: string;
 /**
  * @pattern ^-?(?:0|[1-9]\d*)$
@@ -7730,6 +7784,116 @@ export function useGetConversationMessages<TData = Awaited<ReturnType<typeof get
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetConversationMessagesQueryOptions(conversationId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetConversationTimelineUrl = (conversationId: string,
+    params?: GetConversationTimelineParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/conversations/${conversationId}/timeline?${stringifiedParams}` : `/api/conversations/${conversationId}/timeline`
+}
+
+export const getConversationTimeline = async (conversationId: string,
+    params?: GetConversationTimelineParams, options?: Parameters<typeof apiFetch>[1]): Promise<ConversationTimelinePage> => {
+
+  return apiFetch<ConversationTimelinePage>(getGetConversationTimelineUrl(conversationId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConversationTimelineQueryKey = (conversationId: string,
+    params?: GetConversationTimelineParams,) => {
+    return [
+    `/api/conversations/${conversationId}/timeline`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetConversationTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getConversationTimeline>>, TError = HttpValidationProblemDetails | ProblemDetails>(conversationId: string,
+    params?: GetConversationTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConversationTimelineQueryKey(conversationId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConversationTimeline>>> = ({ signal }) => getConversationTimeline(conversationId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: conversationId !== null && conversationId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConversationTimeline>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetConversationTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getConversationTimeline>>>
+export type GetConversationTimelineQueryError = HttpValidationProblemDetails | ProblemDetails
+
+
+export function useGetConversationTimeline<TData = Awaited<ReturnType<typeof getConversationTimeline>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params: undefined |  GetConversationTimelineParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationTimeline>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConversationTimeline>>,
+          TError,
+          Awaited<ReturnType<typeof getConversationTimeline>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConversationTimeline<TData = Awaited<ReturnType<typeof getConversationTimeline>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params?: GetConversationTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationTimeline>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConversationTimeline>>,
+          TError,
+          Awaited<ReturnType<typeof getConversationTimeline>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConversationTimeline<TData = Awaited<ReturnType<typeof getConversationTimeline>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params?: GetConversationTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetConversationTimeline<TData = Awaited<ReturnType<typeof getConversationTimeline>>, TError = HttpValidationProblemDetails | ProblemDetails>(
+ conversationId: string,
+    params?: GetConversationTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConversationTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetConversationTimelineQueryOptions(conversationId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

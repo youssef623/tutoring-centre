@@ -25,6 +25,45 @@ namespace TutoringCentre.Infrastructure.Tests.Assistant;
 public sealed class AgentRunTests(PostgresFixture fixture) : ConversationsTestBase(fixture)
 {
     [Fact]
+    public async Task ConcurrentConversationRunsReturnBusyBeforeWorkThenFinishInOrder()
+    {
+        var model = new BlockingModel();
+        await using var services = Fixture.CreateServiceProvider(s => s.AddSingleton<ILanguageModel>(model));
+        var first = await SeedWebAsync(services, "first");
+        var parent = await Fixture.ScalarAsync<Guid>("select parent_id from conversations.conversations");
+        var user = await Fixture.ScalarAsync<Guid>("select portal_user_id from conversations.conversations");
+        var second = await services.SendAsAsync<SendWebMessageCommand, SendWebMessageResult>(new ParentActor(user, NileCentreId, parent), new(Guid.NewGuid(), "second"));
+        Assert.True(second.IsSuccess);
+        var running = services.SendAsAsync<RunAgentCommand, RunAgentResult>(new SystemActor(NileCentreId), new(first));
+        try
+        {
+            await model.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            var busy = await services.SendAsAsync<RunAgentCommand, RunAgentResult>(new SystemActor(NileCentreId), new(second.Value.MessageId));
+            Assert.Equal("assistant.conversation_busy", busy.Error!.Code);
+            Assert.Equal(1, model.Calls);
+        }
+        finally { model.Release.TrySetResult(); }
+        Assert.True((await running).IsSuccess);
+        var retried = await services.SendAsAsync<RunAgentCommand, RunAgentResult>(new SystemActor(NileCentreId), new(second.Value.MessageId));
+        Assert.True(retried.IsSuccess);
+        Assert.Equal(2, model.Calls);
+        Assert.Equal(2L, await Fixture.ScalarAsync<long>("select count(*) from assistant.agent_runs where status='completed'"));
+        Assert.Equal("first|second", await Fixture.ScalarAsync<string>("select string_agg(i.text_body, '|' order by o.created_at,o.id) from conversations.outbound_messages o join conversations.inbound_messages i on i.id=o.reply_to_inbound_id"));
+    }
+    private sealed class BlockingModel : ILanguageModel
+    {
+        private int _calls;
+        public int Calls => _calls;
+        public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public async Task<Result<ModelResponse>> GenerateAsync(ModelRequest request, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls); Entered.TrySetResult();
+            await Release.Task.WaitAsync(cancellationToken);
+            return Result<ModelResponse>.Success(new("Hello.", [], new(10,10), ModelStopReason.Completed));
+        }
+    }
+    [Fact]
     public async Task SequentialAndParallelClaimsReturnExactlyOneRun()
     {
         var inbound = await SeedWebAsync();

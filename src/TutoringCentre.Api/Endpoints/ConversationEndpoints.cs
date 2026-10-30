@@ -1,3 +1,5 @@
+using TutoringCentre.Application.Assistant;
+using TutoringCentre.Application.Assistant.Queries.GetConversationTimeline;
 using TutoringCentre.Api.Http;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Conversations;
@@ -23,6 +25,12 @@ public static class ConversationEndpoints
             var result = await dispatcher.QueryAsync<GetConversationMessagesQuery, ConversationMessagesPage>(new(conversationId, cursor, pageSize ?? 50), ct);
             return result.ToHttpResult(value => Results.Ok(value));
         }).WithName("GetConversationMessages").Produces<ConversationMessagesPage>().ProducesValidationProblem().ProducesProblem(403).ProducesProblem(404);
+        api.MapGet("/conversations/{conversationId:guid}/timeline", async (Guid conversationId, string? cursor, int? pageSize, HttpContext context, Dispatcher dispatcher, CancellationToken ct) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var result = await dispatcher.QueryAsync<GetConversationTimelineQuery, ConversationTimelinePage>(new(conversationId, cursor, pageSize ?? 50), ct);
+            return result.ToHttpResult(value => Results.Ok(value));
+        }).WithName("GetConversationTimeline").Produces<ConversationTimelinePage>().ProducesValidationProblem().ProducesProblem(403).ProducesProblem(404);
         return api;
     }
 }

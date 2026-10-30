@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Attendance.Contracts;
 namespace TutoringCentre.Application.Attendance;
 
 public interface IAttendanceReadService
@@ -9,10 +10,17 @@ public interface IAttendanceReadService
 
 public sealed record AttendanceAccess
 {
-    private AttendanceAccess(bool all, Guid? teacherId) { IsAll = all; TeacherId = teacherId; }
+    private AttendanceAccess(bool all, Guid? teacherId, IReadOnlyList<Guid>? studentIds = null)
+    { IsAll = all; TeacherId = teacherId; StudentIds = studentIds; }
     public static AttendanceAccess All { get; } = new(true, null);
     public static AttendanceAccess None { get; } = new(false, null);
     public static AttendanceAccess OwnSessions(Guid teacherId) => teacherId == Guid.Empty ? None : new(false, teacherId);
+    public static AttendanceAccess Children(IReadOnlyList<Guid> studentIds)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        return new(false, null, Array.AsReadOnly(studentIds.Distinct().ToArray()));
+    }
+    public IReadOnlyList<Guid>? StudentIds { get; }
     public bool IsAll { get; }
     public Guid? TeacherId { get; }
 }
@@ -29,6 +37,3 @@ public sealed record AttendanceSessionListItemDto(Guid SessionId, Guid GroupId, 
     string TeacherName, DateTimeOffset StartsAt, DateTimeOffset EndsAt, string? Room, string Status, string Window,
     int ExpectedCount, int RecordedCount);
 public sealed record AttendanceSessionsDto(DateOnly Date, string TimeZoneId, IReadOnlyList<AttendanceSessionListItemDto> Items);
-public sealed record AttendanceHistoryItemDto(Guid RecordId, Guid SessionId, DateOnly LocalDate, DateTimeOffset StartsAt,
-    Guid GroupId, string GroupName, string SubjectName, Guid StudentId, string StudentName, string Status, string Source, int CorrectionCount);
-public sealed record AttendancePageDto(IReadOnlyList<AttendanceHistoryItemDto> Items, string? NextCursor);

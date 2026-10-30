@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Attendance.Contracts;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using TutoringCentre.Application.Attendance;
@@ -36,13 +37,14 @@ internal sealed class AttendanceReadService(AppDbContext db) : IAttendanceReadSe
     {
         ArgumentNullException.ThrowIfNull(filter);
         ArgumentNullException.ThrowIfNull(access);
-        if (!access.IsAll && access.TeacherId is null) { return new([], null); }
+        if (!access.IsAll && access.TeacherId is null && (access.StudentIds is null || access.StudentIds.Count == 0)) { return new([], null); }
 
         var records = db.Set<AttendanceRecord>().AsNoTracking().AsQueryable();
+        if (access.StudentIds is { } children) { records = records.Where(record => children.Contains(record.StudentId)); }
         if (filter.StudentId is { } studentId) { records = records.Where(record => record.StudentId == studentId); }
         var sessions = db.Set<ClassSession>().AsNoTracking().Where(session => session.LocalDate >= filter.From && session.LocalDate <= filter.To);
         if (filter.GroupId is { } groupId) { sessions = sessions.Where(session => session.GroupId == groupId); }
-        if (!access.IsAll) { sessions = sessions.Where(session => session.TeacherId == access.TeacherId); }
+        if (access.TeacherId is not null) { sessions = sessions.Where(session => session.TeacherId == access.TeacherId); }
         var query = from record in records
                     join session in sessions on record.SessionId equals session.Id
                     join studyGroup in db.Set<Group>().AsNoTracking() on session.GroupId equals studyGroup.Id

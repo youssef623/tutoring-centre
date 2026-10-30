@@ -27,6 +27,9 @@ public sealed class AttendanceReadServiceTests(PostgresFixture fixture, ITestOut
         var date = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(scenario.StartsAt, "Africa/Cairo").DateTime);
         var filter = new AttendanceFilter(scenario.StudentId, scenario.GroupId, date, date);
         Assert.Single((await reads.ListAsync(filter, AttendanceAccess.All, null, 50, CancellationToken.None)).Items);
+        Assert.Single((await reads.ListAsync(filter, AttendanceAccess.Children([scenario.StudentId]), null, 50, CancellationToken.None)).Items);
+        Assert.Empty((await reads.ListAsync(filter, AttendanceAccess.Children([Guid.NewGuid()]), null, 50, CancellationToken.None)).Items);
+        Assert.Empty((await reads.ListAsync(filter, AttendanceAccess.Children([]), null, 50, CancellationToken.None)).Items);
         Assert.Single((await reads.ListAsync(filter, AttendanceAccess.OwnSessions(scenario.TeacherId), null, 50, CancellationToken.None)).Items);
         Assert.Empty((await reads.ListAsync(filter, AttendanceAccess.OwnSessions(scenario.SubstituteId), null, 50, CancellationToken.None)).Items);
         Assert.Empty((await reads.ListAsync(filter, AttendanceAccess.None, null, 50, CancellationToken.None)).Items);

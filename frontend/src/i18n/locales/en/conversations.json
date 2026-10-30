@@ -11,7 +11,9 @@
     "failed": "Failed",
     "delivered": "Delivered",
     "received": "Received",
-    "processed": "Processed"
+    "processed": "Processed",
+    "completed": "Completed",
+    "running": "Running"
   },
   "messageId": "Message ID",
   "thread": "Message thread",
@@ -27,5 +29,47 @@
   "loadFailed": "Could not load conversations.",
   "title": "Conversations",
   "empty": "No conversations yet",
-  "text": "Text"
+  "text": "Text",
+  "toolFailed": "The request could not be completed.",
+  "decisions": {
+    "invalid": "Invalid",
+    "denied": "Denied",
+    "allowed": "Allowed",
+    "failed": "Failed"
+  },
+  "activity": "Assistant activity",
+  "steps": "{count} steps",
+  "guardFallback": "A safe fallback reply was sent.",
+  "reasons": {
+    "guard": {
+      "ungrounded": "Attendance could not be verified.",
+      "format": "The reply format was unsafe.",
+      "foreign_name": "The reply mentioned another family.",
+      "identifier": "The reply contained an internal identifier."
+    },
+    "tool": {
+      "arguments_invalid": "The tool request was invalid.",
+      "unknown": "This tool is unavailable.",
+      "invalid_arguments": "Choose a valid date range.",
+      "internal_error": "The tool could not be completed.",
+      "call_limit": "The tool call limit was reached.",
+      "handle_unknown": "This child is not available."
+    },
+    "assistant": {
+      "account_inactive": "The portal account is inactive.",
+      "conversation_busy": "An earlier message is still being handled.",
+      "reply_capped": "The reply was shortened to the reply limit.",
+      "model_error": "The assistant could not complete the reply.",
+      "call_timeout": "The model call timed out.",
+      "total_timeout": "The assistant run timed out.",
+      "token_limit": "The token limit was reached.",
+      "step_limit": "The step limit was reached.",
+      "tool_call_limit": "The tool call limit was reached.",
+      "tools_unavailable": "The requested tool is unavailable."
+    },
+    "attendance": {
+      "not_found": "Attendance could not be found."
+    }
+  },
+  "threadEmpty": "No messages yet"
 }

@@ -10,6 +10,7 @@ public sealed class ToolArguments
     private readonly JsonElement _value;
     private ToolArguments(JsonElement value) => _value = value;
     public string GetString(string name) => _value.GetProperty(name).GetString()!;
+    public string? GetOptionalString(string name) => _value.TryGetProperty(name, out var value) ? value.GetString() : null;
     public int GetInteger(string name) => _value.GetProperty(name).GetInt32();
     public string HandleSummary() => "handles=" + string.Join(',', HandleValues(_value).Distinct(StringComparer.Ordinal));
     private static IEnumerable<string> HandleValues(JsonElement value)

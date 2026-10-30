@@ -1,3 +1,6 @@
+import { RunBlock, type RunItem } from "./RunBlock";
+import { useCan } from "@/features/session/useCan";
+import { Permissions } from "@/features/session/permissions";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +16,7 @@ interface Conversation {
 }
 export function ConversationsPage() {
   const { t, i18n } = useTranslation("conversations");
+  const canInspect = useCan(Permissions.AssistantView);
   const [selected, setSelected] = useState<string | null>(null);
   const [details, setDetails] = useState<ConversationMessage | null>(null);
   const conversations = useQuery({
@@ -20,17 +24,24 @@ export function ConversationsPage() {
     queryFn: ({ signal }) => apiFetch<{ items: Conversation[] }>("/api/conversations", { signal }),
   });
   const messages = useInfiniteQuery({
-    queryKey: ["conversation-messages", selected],
+    queryKey: ["conversation-messages", selected, canInspect],
     enabled: !!selected,
     initialPageParam: null as string | null,
     queryFn: ({ pageParam, signal }) =>
-      apiFetch<{ items: ConversationMessage[]; nextCursor: string | null }>(
-        `/api/conversations/${selected ?? ""}/messages${pageParam ? `?cursor=${encodeURIComponent(pageParam)}` : ""}`,
+      apiFetch<{ items: (ConversationMessage & RunItem)[]; nextCursor: string | null }>(
+        `/api/conversations/${selected ?? ""}/${canInspect ? "timeline" : "messages"}${pageParam ? `?cursor=${encodeURIComponent(pageParam)}` : ""}`,
         { signal },
       ),
     getNextPageParam: (page) => page.nextCursor,
   });
-  const items = messages.data?.pages.flatMap((page) => page.items) ?? [];
+  const items =
+    messages.data?.pages.flatMap((page) =>
+      page.items.map((item) => ({
+        ...item,
+        createdAt: item.at ?? item.createdAt,
+        direction: item.kind === "inbound" || item.kind === "outbound" ? item.kind : item.direction,
+      })),
+    ) ?? [];
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
@@ -101,40 +112,49 @@ export function ConversationsPage() {
               {t("older")}
             </Button>
           )}
+          {selected && messages.isSuccess && items.length === 0 && (
+            <p className="py-12 text-center text-muted-foreground">{t("threadEmpty")}</p>
+          )}
           <ol className="space-y-6">
-            {[...items].reverse().map((message) => (
-              <li
-                key={message.id}
-                className={`flex flex-col ${message.direction === "outbound" ? "items-end" : "items-start"}`}
-              >
-                <p
-                  dir="auto"
-                  className={`max-w-[90%] whitespace-pre-wrap break-words rounded-xl px-4 py-3 text-sm leading-relaxed ${message.direction === "outbound" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+            {[...items].reverse().map((message) =>
+              message.kind === "run" ? (
+                <li key={message.id}>
+                  <RunBlock run={message} />
+                </li>
+              ) : (
+                <li
+                  key={message.id}
+                  className={`flex flex-col ${message.direction === "outbound" ? "items-end" : "items-start"}`}
                 >
-                  {message.text}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                  <time dateTime={message.createdAt}>
-                      {new Date(message.createdAt).toLocaleString(i18n.language)}
-                  </time>
-                  {message.status && (
-                    <span
-                      className={`rounded-md border px-2 py-1 ${message.status === "failed" ? "text-destructive" : ""}`}
-                    >
-                      {t(`statuses.${message.status}`)}
-                    </span>
-                  )}
-                  <button
-                    className="rounded px-1 py-1 underline focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() => {
-                      setDetails(message);
-                    }}
+                  <p
+                    dir="auto"
+                    className={`max-w-[90%] whitespace-pre-wrap break-words rounded-xl px-4 py-3 text-sm leading-relaxed ${message.direction === "outbound" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
                   >
-                    {t("details")}
-                  </button>
-                </div>
-              </li>
-            ))}
+                    {message.text}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <time dateTime={message.createdAt}>
+                      {new Date(message.createdAt).toLocaleString(i18n.language)}
+                    </time>
+                    {message.status && (
+                      <span
+                        className={`rounded-md border px-2 py-1 ${message.status === "failed" ? "text-destructive" : ""}`}
+                      >
+                        {t(`statuses.${message.status}`)}
+                      </span>
+                    )}
+                    <button
+                      className="rounded px-1 py-1 underline focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => {
+                        setDetails(message);
+                      }}
+                    >
+                      {t("details")}
+                    </button>
+                  </div>
+                </li>
+              ),
+            )}
           </ol>
         </section>
       </div>

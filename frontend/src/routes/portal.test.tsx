@@ -99,7 +99,7 @@ describe("portal route guards", () => {
     expect(screen.queryByRole("heading", { name: "Centre portal" })).not.toBeInTheDocument();
   });
 
-  it("renders the server-resolved subject in Arabic RTL with chat enabled and attendance disabled", async () => {
+  it("renders the server-resolved subject in Arabic RTL with chat and attendance enabled", async () => {
     await i18n.changeLanguage("ar");
     const name = "محمود سامي";
     serveMe({
@@ -116,13 +116,13 @@ describe("portal route guards", () => {
     expect(screen.getByRole("button", { name })).toBeInTheDocument();
     expect(screen.queryByText("Account profile name")).not.toBeInTheDocument();
     const navigation = screen.getByRole("navigation", { name: portalAr.navigation });
-    const buttons = within(navigation).getAllByRole("button");
-    expect(buttons).toHaveLength(1);
-    expect(within(navigation).getByRole("link", { name: portalAr.chat })).toHaveAttribute("href", "/portal/chat");
-    expect(buttons[0]).toHaveTextContent(portalAr.attendance);
-    for (const button of buttons) {
-      expect(button).toBeDisabled();
-      expect(button).toHaveTextContent(portalAr.coming);
-    }
+    expect(within(navigation).getByRole("link", { name: portalAr.chat })).toHaveAttribute(
+      "href",
+      "/portal/chat",
+    );
+    expect(within(navigation).getByRole("link", { name: portalAr.attendance })).toHaveAttribute(
+      "href",
+      "/portal/attendance",
+    );
   });
 });

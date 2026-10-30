@@ -8,6 +8,16 @@ namespace TutoringCentre.Infrastructure.Assistant;
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by DI.")]
 internal sealed class AgentConversationRepository(AppDbContext db) : IAgentConversationRepository
 {
+    public async Task<bool> HasEarlierPendingAsync(Guid inboundId, CancellationToken ct)
+    {
+        var current = await db.Set<InboundMessage>().AsNoTracking().SingleAsync(message => message.Id == inboundId, ct);
+        return await db.Set<InboundMessage>().AsNoTracking().AnyAsync(message => message.CentreId == current.CentreId
+            && message.ConversationId == current.ConversationId
+            && (message.ReceivedAt < current.ReceivedAt || message.ReceivedAt == current.ReceivedAt && message.Id.CompareTo(current.Id) < 0)
+            && (message.ProcessedAt == null || db.Set<TutoringCentre.Infrastructure.Messaging.OutboxMessage>().Any(work => work.CentreId == current.CentreId
+                && work.Type == "assistant.run_agent.v1" && EF.Functions.JsonContains(work.Payload, "{\"inboundMessageId\":\"" + message.Id.ToString() + "\"}")))
+            && !db.Set<TutoringCentre.Domain.Assistant.AgentRun>().Any(run => run.CentreId == current.CentreId && run.InboundMessageId == message.Id), ct);
+    }
     public Task<InboundMessage?> GetInboundAsync(Guid id, CancellationToken cancellationToken) =>
         db.Set<InboundMessage>().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
     public Task<Conversation?> GetConversationAsync(Guid id, CancellationToken cancellationToken) =>

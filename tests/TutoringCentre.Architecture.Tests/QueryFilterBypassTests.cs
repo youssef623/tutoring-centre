@@ -37,6 +37,8 @@ public sealed class QueryFilterBypassTests
     // takes a transaction-scoped advisory lock per teacher, which reads no table and has no LINQ form).
     private static readonly string[] AllowListedFiles =
     [
+        // Transaction-scoped try-lock, parameterized tenant/conversation key; reads no table.
+        "src/TutoringCentre.Infrastructure/Assistant/AdvisoryConversationLock.cs",
         "src/TutoringCentre.Infrastructure/Persistence/UnitOfWork.cs",
         "src/TutoringCentre.Infrastructure/Persistence/RuntimeRolePrivilegeHealthCheck.cs",
         "src/TutoringCentre.Infrastructure/Persistence/MigrationRunner.cs",

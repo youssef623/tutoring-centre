@@ -257,3 +257,13 @@ ignored certificates enable Vite HTTPS and `dev:lan` LAN binding. The API remain
 behind the existing same-origin proxy; Secure cookies, CSRF and production settings are unchanged.
 Without both files the existing HTTP/localhost startup is retained. No agent installs a CA or
 changes trust stores. [ADR 0014](../adr/0014-opaque-hashed-card-tokens.md) records the full decision.
+
+## Portal attendance and assistant reads (81.1–83.3)
+
+`GET /api/attendance` remains the only attendance history endpoint. Portal scope is resolved on every query; student filters outside that set return the same `attendance.not_found` as nonexistent students. Group filters only narrow the child set. Filtering occurs before keyset pagination. Portal actors cannot read session rosters or mark/correct attendance.
+
+`get_attendance` uses the same query inside the gateway's freshly validated family actor scope. Model arguments contain handles and ISO calendar dates only. Results contain names, local dates/times, status words and group names, never database identifiers. Missing records do not imply absence.
+
+Assistant runs take a transaction-scoped PostgreSQL advisory try-lock keyed by centre and conversation. Only `assistant.conversation_busy` is registered for retry; other business failures retain the existing relay behavior. Deterministic output guards check identifiers, ungrounded attendance, foreign full names and format before persisting outbound text. These checks are not a semantic fact checker. The centre name directory is reloaded for each run; rejected candidate text is never persisted or logged.
+
+Staff with `assistant.view` use the keyset timeline, including safe decision summaries. It uses explicit centre predicates and a batched tool-call read. Other staff retain the messages view.

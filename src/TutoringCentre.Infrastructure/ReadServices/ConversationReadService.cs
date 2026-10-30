@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Conversations.Contracts;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using TutoringCentre.Application.Common.Security;

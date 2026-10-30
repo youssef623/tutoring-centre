@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Conversations.Contracts;
 using TutoringCentre.Application.Conversations.Web;
 using TutoringCentre.Application.Conversations.Web.Queries.ListMyChatMessages;
 using TutoringCentre.Application.Common.Security;

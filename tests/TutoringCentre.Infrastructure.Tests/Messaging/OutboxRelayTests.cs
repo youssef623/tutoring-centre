@@ -8,6 +8,20 @@ namespace TutoringCentre.Infrastructure.Tests.Messaging;
 public sealed class OutboxRelayTests(PostgresFixture fixture) : OutboxTestBase(fixture)
 {
     [Fact]
+    public async Task RegisteredBusyCodeRetriesWithBackoffThenSucceeds()
+    {
+        State.Mode = DeliveryMode.Busy;
+        await SeedAsync();
+        Assert.Equal(1, await Relay.ProcessBatchAsync());
+        Assert.True(await Fixture.ScalarAsync<bool>("select processed_at is null and claimed_by is null and outcome is null from jobs.outbox_messages"));
+        Assert.Equal("assistant.conversation_busy", await Fixture.ScalarAsync<string>("select last_error from jobs.outbox_messages"));
+        Assert.Equal(0, await Relay.ProcessBatchAsync());
+        Time.Advance(TimeSpan.FromSeconds(5)); State.Mode = DeliveryMode.Succeed;
+        Assert.Equal(1, await Relay.ProcessBatchAsync());
+        Assert.Equal("succeeded", await Fixture.ScalarAsync<string>("select outcome from jobs.outbox_messages"));
+        Assert.Equal(2, State.Calls);
+    }
+    [Fact]
     public async Task Case5_Success_CommitsBeforeAcknowledgement_AndIsNeverClaimedAgain()
     {
         await SeedAsync();

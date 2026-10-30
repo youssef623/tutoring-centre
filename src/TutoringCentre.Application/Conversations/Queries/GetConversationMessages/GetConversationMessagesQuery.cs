@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Conversations.Contracts;
 using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using TutoringCentre.Application.Common.Cqrs;

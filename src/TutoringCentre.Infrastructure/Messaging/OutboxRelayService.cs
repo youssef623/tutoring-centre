@@ -66,6 +66,13 @@ public sealed partial class OutboxRelayService(OutboxStore store, OutboxRegistry
             }
             var correlation = string.IsNullOrWhiteSpace(row.CorrelationId) ? "outbox:" + row.Id.ToString("N") : row.CorrelationId;
             var result = await runner.RunAsync(row.CentreId, correlation, (services, ct) => delivery!.DispatchAsync(services, ct), cancellationToken);
+            if (result.IsFailure && registry.IsRetryable(row.Type, result.Error!.Code))
+            {
+                var delay = TimeSpan.FromSeconds(Math.Min(5 * Math.Pow(2, row.Attempts - 1), 600));
+                outcome = await store.ReleaseForRetryAsync(row.Id, _worker, clock.UtcNow.Add(delay), result.Error.Code, cancellationToken) == 0
+                    ? "leaseLost" : "retry";
+                return;
+            }
             var changed = result.IsSuccess
                 ? await store.MarkSucceededAsync(row.Id, _worker, clock.UtcNow, cancellationToken)
                 : await store.MarkFailedAsync(row.Id, _worker, clock.UtcNow, result.Error!.Code, cancellationToken);

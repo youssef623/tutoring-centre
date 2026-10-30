@@ -19,7 +19,7 @@ public sealed class RunAgentHandlerTests
         directory.Parents[gateway.Input.ParentId!.Value] = new(gateway.Input.ParentId.Value,"Family Parent",true);
         var actor = new FakeCurrentActor { Actor = new TutoringCentre.Application.Common.Security.SystemActor(runs.Centre) };
         var options = new AssistantOptions();
-        var handler = new RunAgentHandler(gateway,runs,directory,new FakeCentreTimeZoneProvider(),clock,actor,new AgentLoop(new Model(fail),options),options,new PortalActorFactory(new ActorDirectory(),actor),new HandleScope());
+        var handler = new RunAgentHandler(gateway,runs,directory,new FakeCentreTimeZoneProvider(),clock,actor,new AgentLoop(new Model(fail),options),options,new PortalActorFactory(new ActorDirectory(),actor),new HandleScope(), new ConversationLock());
         var result = await handler.HandleAsync(new(runs.Inbound),CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.False(result.Value.AlreadyRan);
@@ -40,10 +40,14 @@ public sealed class RunAgentHandlerTests
         var runs = new Runs(gateway.Input.ConversationId,clock.UtcNow);
         var options = new AssistantOptions();
         var handler = new RunAgentHandler(gateway,runs,new FakePortalDirectory(),new FakeCentreTimeZoneProvider(),clock,
-            new FakeCurrentActor(),new AgentLoop(new Model(false),options),options,new PortalActorFactory(new ActorDirectory(),new FakeCurrentActor()),new HandleScope());
+            new FakeCurrentActor(),new AgentLoop(new Model(false),options),options,new PortalActorFactory(new ActorDirectory(),new FakeCurrentActor()),new HandleScope(), new ConversationLock());
         Assert.True((await handler.HandleAsync(new(runs.Inbound),CancellationToken.None)).IsFailure);
         Assert.Null(runs.Run);
         Assert.Empty(gateway.Replies);
+    }
+    private sealed class ConversationLock : IConversationLock
+    {
+        public Task<bool> TryAcquireAsync(Guid centreId, Guid conversationId, CancellationToken ct) => Task.FromResult(true);
     }
     private sealed class Gateway : IAssistantConversationGateway
     {

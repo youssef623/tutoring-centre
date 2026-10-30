@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddSingleton(configuration);
         services.AddAssistant(configuration);
         services.AddScoped<TutoringCentre.Application.Conversations.Web.IWebChatReadService, WebChatReadService>();
+        services.AddScoped<TutoringCentre.Application.Assistant.IAssistantReadService, AssistantReadService>();
         services.AddScoped<IConversationReadService, ConversationReadService>();
 
         services.AddOptions<JobsOptions>().Bind(configuration.GetSection("Jobs"))
@@ -144,6 +145,7 @@ public static class DependencyInjection
 
         // One unit of work per scope: the dispatcher begins, saves and commits through it.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<TutoringCentre.Application.Assistant.IConversationLock, AdvisoryConversationLock>();
         services.AddScoped<TutoringCentre.Application.Assistant.IToolCallLog, ToolCallLog>();
         services.AddScoped<TutoringCentre.Application.Identity.Contracts.IPortalActorDirectory, PortalActorDirectory>();
         services.AddScoped<IOutbox, EfOutbox>();

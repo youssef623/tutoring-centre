@@ -5,16 +5,19 @@ using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Application.Common.Ports;
 using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Application.Common.Security;
 
 namespace TutoringCentre.Application.Attendance.Queries.ListAttendanceSessions;
 
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by DI.")]
 internal sealed class ListAttendanceSessionsHandler(IAttendanceRosterSource roster, ITeachingScope teachingScope,
-    IAttendanceReadService reads, ICentreTimeZoneProvider timeZones, IClock clock)
+    IAttendanceReadService reads, ICentreTimeZoneProvider timeZones, IClock clock, ICurrentActor actor)
     : IQueryHandler<ListAttendanceSessionsQuery, AttendanceSessionsDto>
 {
     public async Task<Result<AttendanceSessionsDto>> HandleAsync(ListAttendanceSessionsQuery query, CancellationToken cancellationToken)
     {
+        if (actor.Actor is IPortalActor)
+            return Result<AttendanceSessionsDto>.Failure(Error.Forbidden("attendance.not_available_to_portal", "Attendance rosters are not available to portal users."));
         var zone = await timeZones.GetForCurrentCentreAsync(cancellationToken);
         var now = clock.UtcNow;
         var date = query.Date ?? DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone).DateTime);

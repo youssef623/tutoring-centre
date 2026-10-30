@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Attendance.Contracts;
 using FluentValidation;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Domain.Identity;

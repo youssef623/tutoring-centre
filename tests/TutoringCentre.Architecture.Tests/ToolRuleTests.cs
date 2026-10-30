@@ -42,11 +42,13 @@ public sealed class ToolRuleTests
     [Fact] public void ToolsDependOnlyOnDispatcherContractsAndModels()
     {
         var tools=SourceAssemblies.All.SelectMany(a=>a.GetTypes()).Where(t=>t.IsClass && typeof(ITool).IsAssignableFrom(t)).ToArray();
-        var forbidden=SourceAssemblies.All.SelectMany(a=>a.GetTypes()).Where(t=>!AllowedToolDependency(t)).Select(t=>t.FullName!).ToArray();
+        var allForbidden=SourceAssemblies.All.SelectMany(a=>a.GetTypes()).Where(t=>!AllowedToolDependency(t)).Select(t=>t.FullName!).ToArray();
         foreach(var tool in tools)
         {
+            // A tool owns its helpers and compiler-generated async state machines; external dependencies remain checked.
+            var forbidden = allForbidden.Where(name => name != tool.FullName && !name.StartsWith(tool.FullName + "+", StringComparison.Ordinal)).ToArray();
             var check=NetArchTest.Rules.Types.InAssembly(tool.Assembly).That().HaveName(tool.Name).ShouldNot().HaveDependencyOnAny(forbidden).GetResult();
-            Assert.True(check.IsSuccessful,ArchitectureSupport.Describe(check));
+            Assert.True(check.IsSuccessful, check.IsSuccessful ? "" : "Forbidden tool dependencies: " + string.Join(", ", forbidden.Where(dependency => !NetArchTest.Rules.Types.InAssembly(tool.Assembly).That().HaveName(tool.Name).ShouldNot().HaveDependencyOn(dependency).GetResult().IsSuccessful)));
             var storage=NetArchTest.Rules.Types.InAssembly(tool.Assembly).That().HaveName(tool.Name)
                 .ShouldNot().HaveDependencyOnAny("Microsoft.EntityFrameworkCore", "Npgsql", "System.Data").GetResult();
             Assert.True(storage.IsSuccessful,ArchitectureSupport.Describe(storage));
