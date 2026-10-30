@@ -1008,6 +1008,239 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.ChannelAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisplayPhone")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("display_phone");
+
+                    b.Property<string>("ExternalAccountId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("external_account_id");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_channel_accounts");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_channel_accounts_centre_id_id");
+
+                    b.HasIndex("Provider", "ExternalAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_channel_accounts_provider_external");
+
+                    b.ToTable("channel_accounts", "conversations", t =>
+                        {
+                            t.HasCheckConstraint("ck_channel_accounts_phone", "display_phone ~ '^[+][1-9][0-9]{7,14}$'");
+
+                            t.HasCheckConstraint("ck_channel_accounts_provider", "provider IN ('whatsapp')");
+
+                            t.HasCheckConstraint("ck_channel_accounts_status", "status IN ('active','disabled')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<Guid>("ChannelAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("channel_account_id");
+
+                    b.Property<string>("CounterpartAddress")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("counterpart_address");
+
+                    b.Property<string>("CounterpartPhone")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("counterpart_phone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("IdentityResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("identity_resolved_at");
+
+                    b.Property<string>("IdentityStatus")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("identity_status");
+
+                    b.Property<DateTimeOffset>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_message_at");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_conversations");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_conversations_centre_id_id");
+
+                    b.HasIndex("CentreId", "ChannelAccountId", "CounterpartAddress")
+                        .IsUnique()
+                        .HasDatabaseName("ux_conversations_account_address");
+
+                    b.HasIndex("CentreId", "LastMessageAt", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("ix_conversations_centre_last");
+
+                    b.ToTable("conversations", "conversations", t =>
+                        {
+                            t.HasCheckConstraint("ck_conversations_identity", "identity_status IN ('unresolved','parent','unknown')");
+
+                            t.HasCheckConstraint("ck_conversations_parent", "(identity_status = 'parent') = (parent_id IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.InboundMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("message_type");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("ProviderMessageId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("provider_message_id");
+
+                    b.Property<DateTimeOffset>("ProviderTimestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("provider_timestamp");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("TextBody")
+                        .HasColumnType("text")
+                        .HasColumnName("text_body");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inbound_messages");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_inbound_messages_centre_id_id");
+
+                    b.HasIndex("CentreId", "ConversationId", "ReceivedAt")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_inbound_messages_conversation");
+
+                    b.HasIndex("CentreId", "Provider", "ProviderMessageId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_inbound_messages_provider_id");
+
+                    b.ToTable("inbound_messages", "conversations", t =>
+                        {
+                            t.HasCheckConstraint("ck_inbound_messages_length", "char_length(text_body) <= 4096");
+
+                            t.HasCheckConstraint("ck_inbound_messages_processed", "(status = 'processed') = (processed_at IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_inbound_messages_status", "status IN ('received','processed')");
+
+                            t.HasCheckConstraint("ck_inbound_messages_text", "(message_type = 'text') = (text_body IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_inbound_messages_type", "message_type IN ('text','audio','image','other')");
+                        });
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Identity.Membership", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1607,6 +1840,59 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_student_cards_students");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.ChannelAccount", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_channel_accounts_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.Conversation", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversations_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Conversations.ChannelAccount", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ChannelAccountId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversations_channel_accounts");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Parent", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ParentId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_conversations_parents");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Conversations.InboundMessage", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inbound_messages_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Conversations.Conversation", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "ConversationId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inbound_messages_conversations");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Identity.Membership", b =>

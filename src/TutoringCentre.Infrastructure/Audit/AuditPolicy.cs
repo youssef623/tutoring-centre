@@ -2,6 +2,7 @@ using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Academics.Scheduling;
 using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Domain.Centres;
+using TutoringCentre.Domain.Conversations;
 using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Infrastructure.Audit;
@@ -18,6 +19,11 @@ internal static class AuditPolicy
 {
     public static readonly IReadOnlyDictionary<Type, AuditPolicyEntry> Entries = new Dictionary<Type, AuditPolicyEntry>
     {
+        [typeof(ChannelAccount)] = new AuditPolicyEntry(
+            AuditEntityType.ChannelAccount, entity => ((ChannelAccount)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal) { nameof(ChannelAccount.Provider), nameof(ChannelAccount.ExternalAccountId), nameof(ChannelAccount.DisplayPhone), nameof(ChannelAccount.Status) },
+            new HashSet<string>(StringComparer.Ordinal) { nameof(ChannelAccount.DisplayPhone) }),
+
         [typeof(Subject)] = new AuditPolicyEntry(
             AuditEntityType.Subject,
             entity => ((Subject)entity).CentreId,

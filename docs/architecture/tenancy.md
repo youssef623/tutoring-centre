@@ -323,6 +323,8 @@ Eight application tables carry no centre-based policy, confirmed against the sch
 | `platform.data_protection_keys` | The session/antiforgery cookie key ring (Task 34.6): platform-level, read before any centre (or any session) exists, and shared across every centre and every instance — there is no single tenant it could belong to. |
 | `jobs.outbox_messages` | The relay claims work across centres. Payloads contain identifiers/simple values only, enforced by `OutboxRuleTests`; the centre is stamped from the actor. Each explicit registry mapping is delivered through `SystemScopeRunner` as that centre's system actor, with the normal dispatcher transaction and RLS. The persistence row has no EF filter or tenant write guard. `RowLevelSecurityCoverageTests` documents this exemption, and `OutboxRelayTests.Case11_EachDelivery_UsesItsOwnCentreGucCorrelationAndScope` proves the compensating tenant boundary. |
 
+| `conversations.channel_accounts` | `IInboundChannelResolver` resolves an active provider account before any actor exists, returning centre and account IDs only. Ordinary EF access remains tenant filtered and guarded on writes. Registration uses a tenant-scoped command through `SystemScopeRunner`; account changes are audited with masked display phones. Provider/external ID uniqueness is global. |
+
 If a future table needs centre scoping and is missing from both layers, that is the bug this list exists to
 catch — every exemption above has a reason checked against the code, not an assumption.
 

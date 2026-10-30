@@ -16,4 +16,5 @@ public enum AuditEntityType
     ClassSession,
     AttendanceRecord,
     StudentCard,
+    ChannelAccount,
 }

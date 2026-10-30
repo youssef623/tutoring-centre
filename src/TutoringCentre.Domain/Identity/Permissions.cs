@@ -26,6 +26,9 @@ public static class Permissions
 
     public const string AttendanceCardsManage = "attendance.cards.manage";
 
+    public const string ConversationsView = "conversations.view";
+    public const string ConversationsIngest = "conversations.ingest";
+
     public static IReadOnlyCollection<string> All { get; } = new[]
     {
         SubjectsView,
@@ -48,5 +51,7 @@ public static class Permissions
         AttendanceMark,
         AttendanceCorrect,
         AttendanceCardsManage,
+        ConversationsView,
+        ConversationsIngest,
     };
 }

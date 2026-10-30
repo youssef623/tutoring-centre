@@ -58,11 +58,27 @@ public sealed class SeedCommandTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal(0, firstExitCode);
         Assert.Equal(0, secondExitCode);
 
+        Assert.Equal(2, await factory.ScalarAsync<long>("select count(*) from conversations.channel_accounts"));
+        Assert.Equal("100000000000001,100000000000002", await factory.ScalarAsync<string>(
+            "select string_agg(external_account_id, ',' order by external_account_id) from conversations.channel_accounts"));
+
         // The tests run as Testing, so the setup centre (Development and Testing only) is here too.
         Assert.Equal(3, await factory.ScalarAsync<long>("select count(*) from platform.centres"));
         Assert.Equal(
             "giza-new,maadi-hub,nile-centre",
             await factory.ScalarAsync<string>("select string_agg(slug, ',' order by slug) from platform.centres"));
+    }
+
+    [Fact]
+    public async Task ChannelsRegister_DuplicateInOtherCentre_ReturnsFailureWithoutExtraAccount()
+    {
+        Assert.Equal(0, await SeedCommand.RunAsync(factory.Services));
+        Assert.Equal(1, await ChannelsCommand.RunAsync(factory.Services,
+            ["register", "--centre", "maadi-hub", "--provider", "whatsapp", "--account-id", "100000000000001", "--display-phone", "+201000000093"]));
+        Assert.Equal(2, await factory.ScalarAsync<long>("select count(*) from conversations.channel_accounts"));
+        Assert.Equal(0, await ChannelsCommand.RunAsync(factory.Services,
+            ["register", "--centre", "maadi-hub", "--provider", "whatsapp", "--account-id", "100000000000003", "--display-phone", "+201000000093"]));
+        Assert.Equal(3, await factory.ScalarAsync<long>("select count(*) from conversations.channel_accounts"));
     }
 
     [Fact]

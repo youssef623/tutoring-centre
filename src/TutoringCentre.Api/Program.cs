@@ -28,7 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Build-time OpenAPI generation (Microsoft.Extensions.ApiDescription.Server) runs this entry point inside GetDocument.Insider.
 // Startup side effects must not run there, but every endpoint must still be registered or the document comes out empty.
 var isDocumentGeneration = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
-var isCli = args is ["migrate" or "seed" or "demo-session" or "reset-password", ..];
+var isCli = args is ["migrate" or "seed" or "demo-session" or "reset-password" or "channels", ..];
 if (isDocumentGeneration)
 {
     // Satisfies fail-fast options validation without a real database or proxy; nothing connects or listens
@@ -143,6 +143,11 @@ builder.Services.AddOpenApi(options =>
 });
 
 var app = builder.Build();
+
+if (args is ["channels", ..])
+{
+    return await ChannelsCommand.RunAsync(app.Services, args[1..]);
+}
 
 if (!isDocumentGeneration && !isCli && app.Services.GetRequiredService<IOptions<JobsOptions>>().Value.RunServer)
 {

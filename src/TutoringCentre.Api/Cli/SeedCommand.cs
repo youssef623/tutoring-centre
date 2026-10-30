@@ -33,6 +33,8 @@ using TutoringCentre.Application.Common.Time;
 using TutoringCentre.Domain.Academics;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Conversations;
+using TutoringCentre.Application.Conversations.Commands.RegisterChannelAccount;
 using TutoringCentre.Infrastructure.Identity;
 using TutoringCentre.Infrastructure.Persistence;
 
@@ -203,6 +205,27 @@ public static class SeedCommand
             var db = scopedServices.GetRequiredService<AppDbContext>();
             return db.Set<Centre>().ToDictionaryAsync(centre => centre.Slug, centre => centre.Id, CancellationToken.None);
         });
+
+        foreach (var (slug, accountId, phone) in new[]
+        {
+            ("nile-centre", "100000000000001", "+201000000091"),
+            ("maadi-hub", "100000000000002", "+201000000092"),
+        })
+        {
+            if (!centreIdsBySlug.TryGetValue(slug, out var centreId)) { exitCode = 1; continue; }
+            var registered = await InCentreAsync(services, centreId, async (scopedServices, dispatcher) =>
+            {
+                var db = scopedServices.GetRequiredService<AppDbContext>();
+                if (await db.Set<ChannelAccount>().AnyAsync(x => x.Provider == ChannelProvider.Whatsapp && x.ExternalAccountId == accountId))
+                    return true;
+                var result = await dispatcher.SendAsync<RegisterChannelAccountCommand, Guid>(
+                    new(ChannelProvider.Whatsapp, accountId, phone), CancellationToken.None);
+                if (result.IsSuccess) return true;
+                logger.LogError("Seed: channel registration failed with {ErrorCode}", result.Error?.Code);
+                return false;
+            });
+            if (!registered) exitCode = 1;
+        }
 
         foreach (var centreSubjects in Subjects)
         {

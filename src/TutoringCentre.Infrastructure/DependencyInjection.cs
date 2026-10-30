@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TutoringCentre.Application.Conversations;
+using TutoringCentre.Infrastructure.Conversations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -142,6 +144,9 @@ public static class DependencyInjection
         services.AddSingleton<OutboxStore>();
         services.AddSingleton<OutboxRelayService>();
 
+        services.AddScoped<IChannelAccountRepository, ChannelAccountRepository>();
+        services.AddScoped<IInboundChannelResolver, InboundChannelResolver>();
+        services.AddScoped<IInboundMessageStore, InboundMessageStore>();
         services.AddScoped<ICentreRepository, CentreRepository>();
         services.AddCentreDirectory();
         services.AddScoped<ICentreReadService, CentreReadService>();

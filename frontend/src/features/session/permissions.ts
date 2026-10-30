@@ -20,6 +20,8 @@ export const Permissions = {
   AttendanceMark: "attendance.mark",
   AttendanceCardsManage: "attendance.cards.manage",
   AttendanceCorrect: "attendance.correct",
+  ConversationsView: "conversations.view",
+  ConversationsIngest: "conversations.ingest",
 } as const;
 
 export type Permission = (typeof Permissions)[keyof typeof Permissions];

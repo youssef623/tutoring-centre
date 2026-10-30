@@ -1,3 +1,5 @@
+import conversationsEn from "./locales/en/conversations.json";
+import conversationsAr from "./locales/ar/conversations.json";
 import cardsEn from "./locales/en/cards.json";
 import cardsAr from "./locales/ar/cards.json";
 import scannerEn from "./locales/en/scanner.json";
@@ -100,6 +102,7 @@ void i18next
         enrollments: enrollmentsEn,
         schedule: scheduleEn,
         attendance: attendanceEn,
+        conversations: conversationsEn,
         cards: cardsEn,
         scanner: scannerEn,
       },
@@ -120,13 +123,14 @@ void i18next
         enrollments: enrollmentsAr,
         schedule: scheduleAr,
         attendance: attendanceAr,
+        conversations: conversationsAr,
         cards: cardsAr,
         scanner: scannerAr,
       },
     },
     lng: initialLanguage,
     fallbackLng: "en",
-    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule", "attendance", "cards", "scanner"],
+    ns: ["common", "status", "errors", "auth", "shell", "subjects", "students", "parents", "staff", "settings", "audit", "teachers", "groups", "enrollments", "schedule", "attendance", "cards", "scanner", "conversations"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
   });
