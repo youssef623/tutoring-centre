@@ -1,6 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Data.Common;
 using TutoringCentre.Application.Identity;
+using TutoringCentre.Application.Identity.Portal;
 using TutoringCentre.Domain.Centres;
 using TutoringCentre.Domain.Identity;
 using TutoringCentre.Infrastructure.Identity;
@@ -71,7 +74,55 @@ internal sealed class MembershipReadService(AppDbContext db) : IMembershipReadSe
             .SingleOrDefaultAsync(ct);
 
         var membershipActive = membership is not null && membership.Status == MembershipStatus.Active;
-        return new SessionStateDto(stamp, membershipActive, membership?.Role);
+        var subject = membershipActive && RoleScopes.IsPortalRole(membership!.Role)
+            ? await ReadPortalSubjectAsync(userId, centreId.Value, membership.Role, ct) : null;
+        return new SessionStateDto(stamp, membershipActive, membership?.Role, subject);
+    }
+
+    private async Task<PortalSubject?> ReadPortalSubjectAsync(Guid userId, Guid centreId, StaffRole role, CancellationToken ct)
+    {
+        // Authentication runs before an actor exists. Only after finding this user's active membership do
+        // we bind RLS to that membership's centre. Keep an explicit centre/user/role predicate as well.
+        // A direct adapter caller gets a short-lived transaction; the dispatcher normally supplies one.
+        await using var ownedTransaction = db.Database.CurrentTransaction is null
+            ? await db.Database.BeginTransactionAsync(ct) : null;
+        var previousCentre = db.CurrentCentreId?.ToString() ?? string.Empty;
+        try
+        {
+            await db.Database.ExecuteSqlRawAsync("SELECT set_config('app.current_centre', {0}, true)", [centreId.ToString()], ct);
+            await using var command = db.Database.GetDbConnection().CreateCommand();
+            command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();
+            command.CommandText = """
+                SELECT parent_id, student_id FROM identity.portal_links
+                WHERE centre_id = @centre AND user_id = @user AND role_key = @role
+                """;
+            AddParameter(command, "centre", centreId);
+            AddParameter(command, "user", userId);
+            AddParameter(command, "role", role.ToString().ToLowerInvariant());
+            PortalSubject? subject;
+            await using (var reader = await command.ExecuteReaderAsync(ct))
+            {
+                subject = !await reader.ReadAsync(ct) ? null : role == StaffRole.Parent
+                    ? new PortalSubject(PortalSubjectKind.Parent, reader.GetGuid(0))
+                    : new PortalSubject(PortalSubjectKind.Student, reader.GetGuid(1));
+            }
+            if (ownedTransaction is not null)
+                await ownedTransaction.CommitAsync(ct);
+            return subject;
+        }
+        finally
+        {
+            if (ownedTransaction is null)
+                await db.Database.ExecuteSqlRawAsync("SELECT set_config('app.current_centre', {0}, true)", [previousCentre], CancellationToken.None);
+        }
+    }
+
+    private static void AddParameter(DbCommand command, string name, object value)
+    {
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.Value = value;
+        command.Parameters.Add(parameter);
     }
 
     public Task<bool> MustChangePasswordAsync(Guid userId, CancellationToken ct) =>

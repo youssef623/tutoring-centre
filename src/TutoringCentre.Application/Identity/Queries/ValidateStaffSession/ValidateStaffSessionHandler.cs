@@ -1,15 +1,16 @@
 using System.Diagnostics.CodeAnalysis;
 using TutoringCentre.Application.Common.Cqrs;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Application.Identity.Queries.ValidateStaffSession;
 
 /// <summary>Does not depend on the current actor: called before one exists, with the user ID the session claims.</summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
 internal sealed class ValidateStaffSessionHandler(IMembershipReadService readService)
-    : IQueryHandler<ValidateStaffSessionQuery, bool>
+    : IQueryHandler<ValidateStaffSessionQuery, SessionValidationResult>
 {
-    public async Task<Result<bool>> HandleAsync(ValidateStaffSessionQuery query, CancellationToken cancellationToken)
+    public async Task<Result<SessionValidationResult>> HandleAsync(ValidateStaffSessionQuery query, CancellationToken cancellationToken)
     {
         var state = await readService.GetSessionStateAsync(query.UserId, query.CentreId, cancellationToken);
 
@@ -22,6 +23,12 @@ internal sealed class ValidateStaffSessionHandler(IMembershipReadService readSer
             && state.MembershipActive
             && state.CurrentRole == query.Role;
 
-        return Result<bool>.Success(isValid);
+        var portal = RoleScopes.IsPortalRole(query.Role);
+        if (portal)
+        {
+            isValid = isValid && state?.PortalSubject is { Id: var id } && id != Guid.Empty
+                && state.PortalSubject.RoleKey == query.Role?.ToString().ToLowerInvariant();
+        }
+        return Result<SessionValidationResult>.Success(new(isValid, isValid && portal ? state!.PortalSubject : null));
     }
 }

@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Identity.Portal;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -147,6 +148,10 @@ public static class DependencyInjection
         services.AddScoped<IChannelAccountRepository, ChannelAccountRepository>();
         services.AddScoped<IInboundChannelResolver, InboundChannelResolver>();
         services.AddScoped<IInboundMessageStore, InboundMessageStore>();
+        services.AddScoped<IPortalDirectory, PortalDirectory>();
+        services.AddScoped<IPortalLinkRepository, PortalLinkRepository>();
+        services.AddScoped<IPortalAccountReadService, PortalAccountReadService>();
+        services.AddScoped<IPortalScopeResolver, PortalScopeResolver>();
         services.AddScoped<ICentreRepository, CentreRepository>();
         services.AddCentreDirectory();
         services.AddScoped<ICentreReadService, CentreReadService>();

@@ -16,7 +16,7 @@ namespace TutoringCentre.Api.Auth;
 /// <summary>
 /// Session endpoints. Each one orchestrates transport around Application calls — no password logic, no
 /// membership rules, no Infrastructure or Identity types. Authentication ends here: everything after an
-/// endpoint deals with a StaffActor (via ActorMiddleware), never with cookies or claims.
+/// endpoint deals with an IUserActor (via ActorMiddleware), never with cookies or claims.
 /// </summary>
 public static class AuthEndpoints
 {
@@ -164,10 +164,10 @@ public static class AuthEndpoints
         }
 
         // User ID and security stamp are carried over from the current session, never taken from the request.
-        var staffActor = (StaffActor)currentActor.Actor;
+        var userActor = (IUserActor)currentActor.Actor;
         var stamp = httpContext.User.FindFirstValue(SessionClaimNames.SecurityStamp) ?? string.Empty;
 
-        var principal = SessionPrincipalFactory.Create(staffActor.UserId, stamp, result.Value.CentreId, result.Value.Role);
+        var principal = SessionPrincipalFactory.Create(userActor.UserId, stamp, result.Value.CentreId, result.Value.Role);
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
         return Results.NoContent();
@@ -186,8 +186,8 @@ public static class AuthEndpoints
             return validationError.ToProblemResult();
         }
 
-        var staffActor = (StaffActor)currentActor.Actor;
-        var result = await authenticationService.ChangePasswordAsync(staffActor.UserId, request.CurrentPassword, request.NewPassword, ct);
+        var userActor = (IUserActor)currentActor.Actor;
+        var result = await authenticationService.ChangePasswordAsync(userActor.UserId, request.CurrentPassword, request.NewPassword, ct);
         if (result.IsFailure)
         {
             return result.Error!.ToProblemResult();

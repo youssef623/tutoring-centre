@@ -9,3 +9,13 @@ Portal roles hold only `attendance.view` and `portal.chat`. Permissions grant ca
 The application role has only SELECT and INSERT on links. Moving an account to another subject requires a separately designed administrative lifecycle; current use cases never update or delete links. Link creation is audited with only role, parent ID and student ID.
 
 A second FK to the stable membership identity `(centre_id, user_id)` gives EF an insert dependency so membership and link can be saved together. Its EF alternate key is separate from the existing unique index: earlier migrations already reference that index, so replacing it would break existing foreign keys. Neither stable identity property can change; the staff role remains mutable.
+
+## Account use cases and sessions
+
+Create, deactivate, reactivate and list requests require `portal.accounts.manage` and a selected centre. Creation checks an active subject through the Academics contract before ensuring a login, then creates the membership and link in the dispatcher's transaction. Any later failure rolls back even the user saved by Identity. Subject and login uniqueness races return the same portal conflict codes as pre-checks; shared membership constraints retain their existing staff codes for staff creation.
+
+Session validation returns validity plus an optional portal subject. The boolean conversion preserves existing validation consumers. A portal session is valid only with an active, matching membership and link. Before actor construction, the session read temporarily binds forced RLS to the centre established by that user's active membership, reads the link with explicit centre/user/role predicates, then restores the ambient setting. This is a narrowly allow-listed raw read, not an RLS exemption.
+
+The existing session cache stores validity and the subject for its configured revalidation window. The middleware constructs `ParentActor` or `StudentActor` only from that validated result, including cache hits. The cookie still contains only user, security stamp, centre and role; no subject or student set is added. Missing links, inactive memberships and changed role claims fail the next revalidation. Child membership changes are visible on the next request because student sets are never cached across requests.
+
+Account deactivation changes only membership status and uses its row version. It preserves the link, login and other centres' memberships. No portal HTTP endpoints are introduced by this slice.

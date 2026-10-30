@@ -205,3 +205,11 @@ a centre ID enters a session in the first place: login never auto-selects one wh
 `auth.password_change_required` before it even looks at membership. Every permission check downstream is
 therefore moot for a gated user — there is no centre, so every tenant-scoped request already fails with
 `tenant.not_selected` on its own. No pipeline step, no new error kind, no change to `RolePermissions`.
+
+## Portal actors
+
+Parent and student actors implement the same user identity interface as staff actors. The dispatcher permission step now reads that interface's role key and delegates to the existing `RolePermissions` matrix. The tenant step already reads the base actor's centre and needs no role-specific branch. No second permission matrix or extra authorization step is introduced.
+
+Portal roles hold only `attendance.view` and `portal.chat`. A validated session supplies the immutable parent or student subject; request data and cookies never supply it. `IPortalScopeResolver` resolves a parent's active children through `Academics.Contracts.IPortalDirectory`, or a student's own identifier. Its cache is scoped to the request. Existing staff attendance routes retain their teaching scope, which returns no access for portal actors; portal-specific reads must use the portal resolver explicitly.
+
+Staff lists and administrative membership lookups explicitly restrict roles to owner, secretary and teacher. The owner lock already restricts to active owners. The account-creation duplicate check intentionally sees every membership kind because one login may have only one membership in a centre.

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Identity;
 
 namespace TutoringCentre.Infrastructure.Persistence;
 
@@ -42,7 +43,13 @@ internal static class PersistenceErrorTranslator
                 return null;
             }
 
-            var mapped = ConstraintErrorCatalog.FindUnique(postgresException.ConstraintName);
+            // Portal and staff creation share memberships' unique keys. Preserve each use case's stable
+            // conflict code even when concurrent creates lose on membership insertion before link insertion.
+            var constraintName = postgresException.ConstraintName;
+            if (constraintName is "ux_memberships_centre_user" or "ak_memberships_centre_user" or "ux_memberships_centre_user_role"
+                && ((DbUpdateException)exception).Entries.Any(entry => entry.Entity is Membership { IsPortal: true }))
+                constraintName = "ux_portal_links_centre_user";
+            var mapped = ConstraintErrorCatalog.FindUnique(constraintName);
             if (mapped is not null)
             {
                 return Result.Failure(mapped);

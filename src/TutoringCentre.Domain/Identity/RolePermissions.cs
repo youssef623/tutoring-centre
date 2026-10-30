@@ -78,4 +78,12 @@ public static class RolePermissions
 
     /// <summary>Whether the role holds the given permission. Denies unknown roles and unknown permissions.</summary>
     public static bool Holds(StaffRole role, string permission) => For(role).Contains(permission);
+
+    /// <summary>Uses the same permission matrix for every server-resolved actor role key.</summary>
+    public static IReadOnlySet<string> For(string? roleKey) =>
+        Enum.TryParse<StaffRole>(roleKey, true, out var role)
+        && string.Equals(role.ToString(), roleKey, StringComparison.OrdinalIgnoreCase)
+            ? For(role) : new HashSet<string>();
+
+    public static bool Holds(string? roleKey, string permission) => For(roleKey).Contains(permission);
 }

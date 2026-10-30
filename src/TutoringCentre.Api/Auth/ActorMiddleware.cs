@@ -2,12 +2,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using TutoringCentre.Application.Common.Security;
 using TutoringCentre.Domain.Identity;
+using TutoringCentre.Application.Identity.Portal;
 
 namespace TutoringCentre.Api.Auth;
 
 /// <summary>
 /// The single translation point from HTTP identity (session cookie claims) to Application identity
-/// (<see cref="StaffActor"/>). No handler and no other endpoint reads claims. Runs after authentication,
+/// (<see cref="Actor"/>). No handler and no other endpoint reads claims. Runs after authentication,
 /// before authorization. Unauthenticated requests are untouched; a request whose claims cannot be parsed
 /// stays anonymous (authorization then rejects it) rather than trusting a partially-read session.
 /// </summary>
@@ -18,15 +19,16 @@ internal sealed partial class ActorMiddleware(RequestDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        if (context.User.Identity?.IsAuthenticated == true && TryBuildActor(context.User, logger, out var staffActor))
+        var subject = context.Items[SessionRevalidationHandler.PortalSubjectItemKey] as PortalSubject;
+        if (context.User.Identity?.IsAuthenticated == true && TryBuildActor(context.User, subject, logger, out var userActor))
         {
-            currentActor.Set(staffActor);
+            currentActor.Set(userActor);
         }
 
         await next(context);
     }
 
-    private static bool TryBuildActor(ClaimsPrincipal principal, ILogger logger, [NotNullWhen(true)] out StaffActor? actor)
+    private static bool TryBuildActor(ClaimsPrincipal principal, PortalSubject? subject, ILogger logger, [NotNullWhen(true)] out Actor? actor)
     {
         actor = null;
 
@@ -49,11 +51,19 @@ internal sealed partial class ActorMiddleware(RequestDelegate next)
         if (centreClaim is not null
             && roleClaim is not null
             && Guid.TryParse(centreClaim, out var centreId)
-            && Enum.TryParse<StaffRole>(roleClaim, out var role)
-            && RoleScopes.IsStaffRole(role))
+            && Enum.TryParse<StaffRole>(roleClaim, out var role))
         {
-            actor = new StaffActor(userId, centreId, role);
-            return true;
+            if (RoleScopes.IsStaffRole(role))
+                actor = new StaffActor(userId, centreId, role);
+            else if (subject is { Id: var id } && id != Guid.Empty)
+            {
+                if (role == StaffRole.Parent && subject.Kind == PortalSubjectKind.Parent)
+                    actor = new ParentActor(userId, centreId, id);
+                else if (role == StaffRole.Student && subject.Kind == PortalSubjectKind.Student)
+                    actor = new StudentActor(userId, centreId, id);
+            }
+            if (actor is not null)
+                return true;
         }
 
         LogInvalidCentreOrRole(logger, userId);

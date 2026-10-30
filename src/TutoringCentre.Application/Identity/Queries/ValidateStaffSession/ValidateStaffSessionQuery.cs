@@ -10,4 +10,4 @@ namespace TutoringCentre.Application.Identity.Queries.ValidateStaffSession;
 /// <see cref="Role"/> is the role the session's cookie claims for <see cref="CentreId"/> (Day 29); a mismatch
 /// against the membership's current role is treated exactly like a deactivated membership.
 /// </summary>
-public sealed record ValidateStaffSessionQuery(Guid UserId, string SecurityStamp, Guid? CentreId, StaffRole? Role) : IQuery<bool>;
+public sealed record ValidateStaffSessionQuery(Guid UserId, string SecurityStamp, Guid? CentreId, StaffRole? Role) : IQuery<SessionValidationResult>;

@@ -4,4 +4,7 @@ namespace TutoringCentre.Application.Common.Security;
 public interface ICurrentActor
 {
     Actor Actor { get; }
+    Guid? CentreId => Actor.CentreId;
+    Guid? UserId => (Actor as IUserActor)?.UserId;
+    string? RoleKey => (Actor as IUserActor)?.RoleKey;
 }

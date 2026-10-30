@@ -4,6 +4,18 @@ namespace TutoringCentre.Domain.Tests.Identity;
 
 public sealed class RolePermissionsTests
 {
+    [Theory]
+    [InlineData("parent", Permissions.AttendanceView, true)]
+    [InlineData("student", Permissions.PortalChat, true)]
+    [InlineData("parent", Permissions.PortalAccountsManage, false)]
+    [InlineData("student", Permissions.StaffManage, false)]
+    [InlineData("teacher", Permissions.AssistantView, false)]
+    [InlineData("owner", Permissions.PortalAccountsManage, true)]
+    [InlineData("0", Permissions.StaffManage, false)]
+    [InlineData("unknown", Permissions.AttendanceView, false)]
+    public void RoleKeyLookupUsesExistingMatrixAndDeniesUnknownKeys(string roleKey, string permission, bool expected) =>
+        Assert.Equal(expected, RolePermissions.Holds(roleKey, permission));
+
     // Day 28 contract matrix, written out literally. Never derive these from RolePermissions itself.
     [Theory]
     [InlineData(StaffRole.Owner, Permissions.SubjectsView, true)]
