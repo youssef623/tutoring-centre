@@ -169,7 +169,10 @@
       "channel_taken": "حساب القناة مسجل بالفعل.",
       "not_found": "المحادثة أو حساب القناة غير موجود.",
       "message_already_processed": "تمت معالجة هذه الرسالة بالفعل."
-    }
+    },
+    "billing.money_invalid": "أدخل مبلغاً بمنزلتين عشريتين كحد أقصى.",
+    "group.monthly_fee_invalid": "لا يمكن أن تكون الرسوم الشهرية سالبة.",
+    "billing.charge_exists": "الرسوم الشهرية موجودة بالفعل."
   },
   "byKind": {
     "validation": "يرجى مراجعة الحقول المحددة.",

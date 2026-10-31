@@ -72,8 +72,17 @@ Ideas that are out of scope for the current slice. Each entry: date, idea, why n
 
 ## Evaluation (Days 85-87)
 
-- Only 15 synthetic cases: grow to 150 with better semantic/compound-sentence expectations.
+- The original dataset had 15 synthetic cases; 13 remain after the explicit E3/E11 removal. Grow toward 150 and restore Franco attendance / centre-wide request coverage with deliberate expectations.
 - No live CI: replay measures surrounding application, not current model quality.
 - No LLM-as-judge; deterministic lexical scoring has known limits.
 - No repeated-run variance measurement.
-- The first genuine local Qwen 4B baseline fails E3 and E11 quality expectations. Improve model selection in a future deliberate recording run; retain the 90% overall / 80% style floors and disclose this failing baseline before merge.
+- Removing E3/E11 reduces coverage; it does not establish better live-model quality. Keep quality floors and the security gates independent.
+
+## Month 5 checkpoint residual work
+
+- No message-retention policy, including outbound text and tool-call result summaries.
+- Foreign-name guard loads centre student names per reply; scoped handles remain in memory only.
+- Assistant run holds the transaction/connection; revisit claim/run/complete phases with leases in Month 8 (ADR 0019).
+- No parent finance until Month 7. No portal-user password-reset/recovery flow.
+- Billing settings are constants: EGP and due day 5. No proration, adjustments, payments, balances or allocations. Adjustment kind/checks reserve compatibility only.
+- Centre directory has no inactive-centre state; all provisioned centres currently participate in job fan-out.

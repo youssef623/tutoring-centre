@@ -47,6 +47,8 @@ public sealed class QueryFilterBypassTests
         // the read remains under forced RLS, with explicit centre/user/role predicates, and restores the setting.
         "src/TutoringCentre.Infrastructure/ReadServices/MembershipReadService.cs",
         "src/TutoringCentre.Infrastructure/Repositories/GroupRepository.cs",
+        // Targeted partial-key ON CONFLICT, actor centre and ambient transaction, with atomic audit.
+        "src/TutoringCentre.Infrastructure/Repositories/ChargeRepository.cs",
         "src/TutoringCentre.Infrastructure/Repositories/ClassSessionRepository.cs",
         // Day 57: parameterized FOR UPDATE serializes existing marks without client versions.
         // EF's tenant filter composes over the query; forced RLS also applies. First marks still race on uniqueness.

@@ -142,7 +142,7 @@ public sealed class CreateGroupHandlerTests
         teachers.Existing.Add(archivedTeacher);
 
         var currentActor = new FakeCurrentActor { Actor = new StaffActor(Guid.CreateVersion7(), NileCentreId, StaffRole.Owner) };
-        var handler = new CreateGroupHandler(currentActor, groups, subjects, teachers);
+        var handler = new CreateGroupHandler(currentActor, groups, subjects, teachers, new FakeClock(), new FakeCentreTimeZoneProvider());
         return new Sut(handler, groups, activeSubject, archivedSubject, activeTeacher, archivedTeacher);
     }
 

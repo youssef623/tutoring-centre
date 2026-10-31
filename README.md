@@ -307,3 +307,19 @@ The phone check and demo recording are manual: verify camera permission, focus, 
 latency and release of the camera indicator on leaving the page. CI uses the same queue via manual
 entry, without camera hardware. Keep the demo behind the local network; no tunnel is required.
 
+# Month 5 billing and assistant checkpoint
+
+Groups now support nonnegative monthly EGP fees. Initial fees apply immediately; edits take effect next centre-local month. Enrollment outbox delivery and the Cairo first-of-month job create immutable monthly obligations once per student/subject/month. Owner/Secretary can read the student's Billing tab; teachers and portal accounts cannot view fees or charges. Payments, balances and parent finance are not included.
+
+Development seeding creates synthetic `parent@nile.test` and `student@nile.test` portal logins using the local `Seed:Password` you configured, with their password change already completed. This happens only for newly created demo accounts; seeding again never resets an existing changed password. Testing does not issue these demo credentials. For a separate synthetic family, the owner can create an account such as `parent-month5@example.test`; its generated temporary password is shown once and must be changed at first login. The isolated browser journey uses only synthetic `@example.test` accounts and the changed password `E2E-Month5-Parent-Safe!`; do not reuse it for real accounts. Never store or paste real credentials/provider keys.
+
+```text
+dotnet run --project tests/TutoringCentre.Evaluation -- selftest
+dotnet run --project tests/TutoringCentre.Evaluation -- run --mode record --out eval-record
+dotnet run --project tests/TutoringCentre.Evaluation -- run --mode replay --out eval-report
+```
+
+Recording/live uses an environment provider key or an authorized loopback Ollama endpoint (`EVAL_MODEL_ENDPOINT` / `EVAL_MODEL`); both modes refuse CI=true. Replay needs no model service/key. The active dataset contains **13** cases after the explicit E3/E11 removal, so it no longer measures Franco attendance. CI still enforces every remaining security gate and the unchanged applicable quality floors. Replay measures the surrounding system, not current model quality.
+
+The scripted provider is for Testing journeys only; it is not a genuine recording or live-provider verification. Follow [the fresh-local checklist](docs/runbook.md), [ADR 0022](docs/adr/0022-charge-ledger.md) and [the Month 5 checkpoint](docs/operations/month5-checkpoint.md) for evidence and remaining blockers.
+

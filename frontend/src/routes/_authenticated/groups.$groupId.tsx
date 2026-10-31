@@ -1,3 +1,4 @@
+import { formatMoney } from "@/features/billing/money";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -41,7 +42,11 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AssignGroupTeacherDialog, ChangeGroupCapacityDialog, RenameGroupDialog } from "@/features/groups/GroupEditDialogs";
+import {
+  AssignGroupTeacherDialog,
+  ChangeGroupCapacityDialog,
+  RenameGroupDialog,
+} from "@/features/groups/GroupEditDialogs";
 import { GroupRosterTab } from "@/features/enrollments/GroupRosterTab";
 import { SeatMeter } from "@/features/enrollments/SeatMeter";
 import { GroupAttendanceTab } from "@/features/attendance/GroupAttendanceTab";
@@ -155,7 +160,9 @@ function GroupNotFound() {
       </span>
       <h1 className="text-xl font-semibold tracking-tight">{t("notFound.title")}</h1>
       <p className="max-w-sm text-sm text-muted-foreground">{t("notFound.description")}</p>
-      <Link to="/groups" className={buttonVariants()}>{t("notFound.backToList")}</Link>
+      <Link to="/groups" className={buttonVariants()}>
+        {t("notFound.backToList")}
+      </Link>
     </div>
   );
 }
@@ -163,7 +170,7 @@ function GroupNotFound() {
 type EditDialog = "rename" | "capacity" | "assignTeacher" | null;
 
 function GroupDetailContent({ group }: { group: GroupDto }) {
-  const { t } = useTranslation("groups");
+  const { t, i18n } = useTranslation("groups");
   const { tab: requestedTab, from, to } = Route.useSearch();
   const canViewAttendance = useCan(Permissions.AttendanceView);
   const canViewRoster = useCan(Permissions.EnrollmentsView);
@@ -171,7 +178,11 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
   // Without enrollments.view there is no Roster tab, and without schedule.view no Schedule tab, so a pasted
   // "?tab=roster" or "?tab=schedule" falls back to the overview.
   const tab =
-    (requestedTab === "roster" && !canViewRoster) || (requestedTab === "schedule" && !canViewSchedule) || (requestedTab === "attendance" && !canViewAttendance) ? "overview" : requestedTab;
+    (requestedTab === "roster" && !canViewRoster) ||
+    (requestedTab === "schedule" && !canViewSchedule) ||
+    (requestedTab === "attendance" && !canViewAttendance)
+      ? "overview"
+      : requestedTab;
   const navigate = useNavigate({ from: Route.fullPath });
   const queryClient = useQueryClient();
   const archiveMutation = useArchiveGroup();
@@ -251,7 +262,13 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
           </div>
 
           <Can permission={Permissions.AttendanceCardsManage}>
-            <Link to="/groups/$groupId/cards" params={{ groupId: group.id }} className={buttonVariants({ variant: "outline" })}>{t("cards:printCards")}</Link>
+            <Link
+              to="/groups/$groupId/cards"
+              params={{ groupId: group.id }}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              {t("cards:printCards")}
+            </Link>
           </Can>
           <Can permission={Permissions.GroupsManage}>
             <div className="flex flex-wrap items-center gap-2">
@@ -347,14 +364,20 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
               {t("tabs.schedule")}
             </TabsTrigger>
           )}
-          {canViewAttendance && <TabsTrigger value="attendance">{t("tabs.attendance")}</TabsTrigger>}
+          {canViewAttendance && (
+            <TabsTrigger value="attendance">{t("tabs.attendance")}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-xl border border-border bg-card p-4 md:col-span-1">
               <p className="mb-3 text-sm text-muted-foreground">{t("overview.seats")}</p>
-              <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} size="full" />
+              <SeatMeter
+                enrolled={Number(group.enrolledCount)}
+                capacity={Number(group.capacity)}
+                size="full"
+              />
             </div>
             <dl className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 md:col-span-2">
               <div className="space-y-1">
@@ -381,6 +404,15 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
                   <StatusBadge status={group.status} />
                 </dd>
               </div>
+              {typeof group.monthlyFee === "string" && (
+                <div className="space-y-1">
+                  <dt className="text-sm text-muted-foreground">{t("form.monthlyFeeLabel")}</dt>
+                  <dd>
+                    <bdi dir="ltr">{formatMoney(group.monthlyFee, i18n.language)}</bdi>
+                  </dd>
+                  <p className="text-xs text-muted-foreground">{t("form.initialMonthlyFeeHint")}</p>
+                </div>
+              )}
             </dl>
           </div>
         </TabsContent>
@@ -396,20 +428,41 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
             <GroupScheduleTab group={group} />
           </TabsContent>
         )}
-        {canViewAttendance && <TabsContent value="attendance">
-          <GroupAttendanceTab groupId={group.id} from={from} to={to} onRangeChange={(range) => { void navigate({ search: (previous) => ({ ...previous, ...range }), replace: true }); }} />
-        </TabsContent>}
+        {canViewAttendance && (
+          <TabsContent value="attendance">
+            <GroupAttendanceTab
+              groupId={group.id}
+              from={from}
+              to={to}
+              onRangeChange={(range) => {
+                void navigate({ search: (previous) => ({ ...previous, ...range }), replace: true });
+              }}
+            />
+          </TabsContent>
+        )}
       </Tabs>
 
       <Can permission={Permissions.GroupsManage}>
-        <RenameGroupDialog group={group} open={editDialog === "rename"} onOpenChange={closeEditDialog} />
-        <ChangeGroupCapacityDialog group={group} open={editDialog === "capacity"} onOpenChange={closeEditDialog} />
-        {editDialog === "assignTeacher" && <AssignGroupTeacherDialog group={group} open onOpenChange={closeEditDialog} />}
+        <RenameGroupDialog
+          group={group}
+          open={editDialog === "rename"}
+          onOpenChange={closeEditDialog}
+        />
+        <ChangeGroupCapacityDialog
+          group={group}
+          open={editDialog === "capacity"}
+          onOpenChange={closeEditDialog}
+        />
+        {editDialog === "assignTeacher" && (
+          <AssignGroupTeacherDialog group={group} open onOpenChange={closeEditDialog} />
+        )}
 
         <AlertDialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle dir="auto">{t("confirmations.archiveTitle", { name: group.name })}</AlertDialogTitle>
+              <AlertDialogTitle dir="auto">
+                {t("confirmations.archiveTitle", { name: group.name })}
+              </AlertDialogTitle>
               <AlertDialogDescription>{t("confirmations.archiveBody")}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

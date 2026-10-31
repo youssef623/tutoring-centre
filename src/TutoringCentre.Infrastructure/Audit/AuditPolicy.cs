@@ -1,4 +1,6 @@
+using TutoringCentre.Domain.Common;
 using TutoringCentre.Domain.Academics;
+using TutoringCentre.Domain.Billing;
 using TutoringCentre.Domain.Academics.Scheduling;
 using TutoringCentre.Domain.Attendance;
 using TutoringCentre.Domain.Centres;
@@ -21,6 +23,11 @@ internal static class AuditPolicy
     // Inbound and outbound messages are the conversation log itself. Never duplicate message text in audit changes.
     public static readonly IReadOnlyDictionary<Type, AuditPolicyEntry> Entries = new Dictionary<Type, AuditPolicyEntry>
     {
+        [typeof(Charge)] = new AuditPolicyEntry(AuditEntityType.Charge, entity => ((Charge)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal) { nameof(Charge.StudentId), nameof(Charge.EnrollmentId), nameof(Charge.GroupId), nameof(Charge.SubjectId), nameof(Charge.TeacherId), nameof(Charge.Kind), nameof(Charge.BillingMonth), nameof(Charge.Amount), nameof(Charge.DueDate) },
+            Actions: new HashSet<AuditAction> { AuditAction.Created }),
+        [typeof(GroupMonthlyFee)] = new AuditPolicyEntry(AuditEntityType.GroupMonthlyFee, entity => ((GroupMonthlyFee)entity).CentreId,
+            new HashSet<string>(StringComparer.Ordinal) { nameof(GroupMonthlyFee.GroupId), nameof(GroupMonthlyFee.EffectiveMonth), nameof(GroupMonthlyFee.Fee) }),
         [typeof(ChannelAccount)] = new AuditPolicyEntry(
             AuditEntityType.ChannelAccount, entity => ((ChannelAccount)entity).CentreId,
             new HashSet<string>(StringComparer.Ordinal) { nameof(ChannelAccount.Provider), nameof(ChannelAccount.ExternalAccountId), nameof(ChannelAccount.DisplayPhone), nameof(ChannelAccount.Status) },
@@ -92,7 +99,7 @@ internal static class AuditPolicy
             entity => ((Group)entity).CentreId,
             new HashSet<string>(StringComparer.Ordinal)
             {
-                nameof(Group.Name), nameof(Group.SubjectId), nameof(Group.TeacherId), nameof(Group.Capacity), nameof(Group.Status),
+                nameof(Group.Name), nameof(Group.SubjectId), nameof(Group.TeacherId), nameof(Group.Capacity), nameof(Group.Status), nameof(Group.MonthlyFee),
             }),
 
         // Who enrolled or withdrew a student, and when, is evidence in a later fee dispute. The timestamps

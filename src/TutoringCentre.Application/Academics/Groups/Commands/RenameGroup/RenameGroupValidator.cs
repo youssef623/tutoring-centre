@@ -1,3 +1,4 @@
+using TutoringCentre.Domain.Common;
 using FluentValidation;
 using TutoringCentre.Domain.Academics;
 
@@ -9,6 +10,7 @@ internal sealed class RenameGroupValidator : AbstractValidator<RenameGroupComman
     public RenameGroupValidator()
     {
         RuleFor(command => command.GroupId).NotEmpty();
+        RuleFor(command => command.MonthlyFee).Must(value => value is null || (value >= 0 && TutoringCentre.Domain.Common.Money.Create(value.Value).IsSuccess)).WithMessage("Use a nonnegative fee with at most two decimal places.");
         RuleFor(command => command.Name).NotEmpty().MaximumLength(Group.NameMaxLength);
     }
 }

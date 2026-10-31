@@ -12,7 +12,7 @@ public sealed class RenameGroupHandlerTests
     [Fact]
     public async Task HandleAsync_UnknownId_ReturnsNotFound()
     {
-        var handler = new RenameGroupHandler(new FakeGroupRepository());
+        var handler = new RenameGroupHandler(new FakeGroupRepository(), new FakeClock(), new FakeCentreTimeZoneProvider());
 
         var result = await handler.HandleAsync(new RenameGroupCommand(Guid.CreateVersion7(), "Grade 10 B", 0), CancellationToken.None);
 
@@ -27,7 +27,7 @@ public sealed class RenameGroupHandlerTests
         var group = NewGroup("Grade 10 A");
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
-        var handler = new RenameGroupHandler(repository);
+        var handler = new RenameGroupHandler(repository, new FakeClock(), new FakeCentreTimeZoneProvider());
 
         var result = await handler.HandleAsync(new RenameGroupCommand(group.Id, "Grade 10 B", 0), CancellationToken.None);
 
@@ -41,7 +41,7 @@ public sealed class RenameGroupHandlerTests
         var group = NewGroup("Grade 10 A");
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
-        var handler = new RenameGroupHandler(repository);
+        var handler = new RenameGroupHandler(repository, new FakeClock(), new FakeCentreTimeZoneProvider());
 
         var result = await handler.HandleAsync(new RenameGroupCommand(group.Id, "Grade 10 A", 0), CancellationToken.None);
 
@@ -57,7 +57,7 @@ public sealed class RenameGroupHandlerTests
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
         repository.Existing.Add(other);
-        var handler = new RenameGroupHandler(repository);
+        var handler = new RenameGroupHandler(repository, new FakeClock(), new FakeCentreTimeZoneProvider());
 
         var result = await handler.HandleAsync(new RenameGroupCommand(group.Id, "grade 10 b", 0), CancellationToken.None);
 
@@ -74,7 +74,7 @@ public sealed class RenameGroupHandlerTests
         group.Archive();
         var repository = new FakeGroupRepository();
         repository.Existing.Add(group);
-        var handler = new RenameGroupHandler(repository);
+        var handler = new RenameGroupHandler(repository, new FakeClock(), new FakeCentreTimeZoneProvider());
 
         var result = await handler.HandleAsync(new RenameGroupCommand(group.Id, "Grade 10 B", 0), CancellationToken.None);
 

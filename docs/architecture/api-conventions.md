@@ -167,3 +167,8 @@ Card and scan bodies use the existing strict JSON options: unknown members are `
 The scan accepts only `token`; its session comes from the route and its student from the card lookup.
 Both `recorded` and `alreadyRecorded` return 200. Only a simultaneous first insert may return
 409 `attendance.concurrent_mark`; a scanner retries that conflict once.
+# Billing contracts
+
+GET /api/students/{studentId}/charges requires billing.view and returns {items,nextCursor}, newest billingMonth then stable unique ID first. A malformed UUID is 400; an unknown/foreign student is uniformly 404. Amount is an invariant string with exactly two places, billingMonth is yyyy-MM, dueDate is an unshifted ISO calendar date. There are no paid/outstanding fields. Cursor/page-size validation uses the normal dispatcher error pipeline.
+
+Group creation accepts optional monthlyFee (omission means zero); group update accepts optional monthlyFee (omission preserves). Three decimal places, negatives and numeric(10,2) overflow are 400, never rounded. Authorized group reads expose a two-place monthlyFee string; otherwise the property is omitted from JSON entirely. Initial prices apply immediately; edits schedule next month. This is additive to existing name/version group updates.

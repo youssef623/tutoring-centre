@@ -176,6 +176,9 @@ public static class DependencyInjection
         services.AddScoped<ITeacherRepository, TeacherRepository>();
         services.AddScoped<ITeacherReadService, TeacherReadService>();
         services.AddScoped<IGroupRepository, GroupRepository>();
+        services.AddScoped<TutoringCentre.Application.Academics.Contracts.IBillingRosterSource, BillingRosterSource>();
+        services.AddScoped<TutoringCentre.Application.Billing.IChargeRepository, ChargeRepository>();
+        services.AddScoped<TutoringCentre.Application.Billing.IBillingReadService, BillingReadService>();
         services.AddScoped<IGroupReadService, GroupReadService>();
 
         services.AddScoped<IParentRepository, ParentRepository>();

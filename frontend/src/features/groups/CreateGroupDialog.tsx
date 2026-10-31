@@ -30,11 +30,17 @@ import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermi
 import { SubjectSelect } from "@/features/subjects/SubjectSelect";
 import { TeacherSelect } from "@/features/teachers/TeacherSelect";
 
-const KnownFields = ["name", "subjectId", "teacherId", "capacity"] as const;
+const KnownFields = ["name", "subjectId", "teacherId", "capacity", "monthlyFee"] as const;
 const SubjectRefusals = new Set(["group.subject_archived", "subject.not_found"]);
 const TeacherRefusals = new Set(["group.teacher_archived", "teacher.not_found"]);
 
-const EmptyValues = { name: "", subjectId: "", teacherId: "", capacity: 20 } satisfies CreateGroupFormValues;
+const EmptyValues = {
+  name: "",
+  subjectId: "",
+  teacherId: "",
+  capacity: 20,
+  monthlyFee: "0.00",
+} satisfies CreateGroupFormValues;
 
 /**
  * Creates a group from exactly four fields. Subject and teacher are selects backed by their own lists (active
@@ -42,7 +48,13 @@ const EmptyValues = { name: "", subjectId: "", teacherId: "", capacity: 20 } sat
  * under that select and refetches its list so the stale entry disappears. On success the new group's own
  * page opens.
  */
-export function CreateGroupDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function CreateGroupDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { t } = useTranslation("groups");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -62,12 +74,24 @@ export function CreateGroupDialog({ open, onOpenChange }: { open: boolean; onOpe
   const onSubmit = handleSubmit(async (values) => {
     try {
       const created = await mutation.mutateAsync({
-        data: { name: values.name, subjectId: values.subjectId, teacherId: values.teacherId, capacity: values.capacity },
+        data: {
+          name: values.name,
+          subjectId: values.subjectId,
+          teacherId: values.teacherId,
+          capacity: values.capacity,
+          ...(values.monthlyFee && values.monthlyFee !== "0.00"
+            ? { monthlyFee: Number(values.monthlyFee) }
+            : {}),
+        },
       });
       await queryClient.invalidateQueries({ queryKey: getListGroupsQueryKey() });
       toast.success(t("toasts.created"));
       onOpenChange(false);
-      await navigate({ to: "/groups/$groupId", params: { groupId: created.id }, search: { tab: "overview" } });
+      await navigate({
+        to: "/groups/$groupId",
+        params: { groupId: created.id },
+        search: { tab: "overview" },
+      });
     } catch (thrown) {
       const apiError = asApiError(thrown);
 
@@ -157,7 +181,9 @@ export function CreateGroupDialog({ open, onOpenChange }: { open: boolean; onOpe
                       }}
                       disabled={isSubmitting}
                       invalid={errors.subjectId !== undefined}
-                      describedBy={errors.subjectId !== undefined ? "create-group-subjectId-error" : undefined}
+                      describedBy={
+                        errors.subjectId !== undefined ? "create-group-subjectId-error" : undefined
+                      }
                     />
                   )}
                 />
@@ -178,7 +204,9 @@ export function CreateGroupDialog({ open, onOpenChange }: { open: boolean; onOpe
                       }}
                       disabled={isSubmitting}
                       invalid={errors.teacherId !== undefined}
-                      describedBy={errors.teacherId !== undefined ? "create-group-teacherId-error" : undefined}
+                      describedBy={
+                        errors.teacherId !== undefined ? "create-group-teacherId-error" : undefined
+                      }
                     />
                   )}
                 />
@@ -186,6 +214,22 @@ export function CreateGroupDialog({ open, onOpenChange }: { open: boolean; onOpe
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <Label htmlFor="create-group-monthlyFee">{t("form.monthlyFeeLabel")}</Label>
+              <Input
+                id="create-group-monthlyFee"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                max="99999999.99"
+                step="0.01"
+                dir="ltr"
+                {...register("monthlyFee")}
+                aria-invalid={errors.monthlyFee !== undefined}
+              />
+              <p className="text-xs text-muted-foreground">{t("form.initialMonthlyFeeHint")}</p>
+              {errorText("monthlyFee")}
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="create-group-capacity">{t("form.capacityLabel")}</Label>
               <Input
@@ -199,7 +243,11 @@ export function CreateGroupDialog({ open, onOpenChange }: { open: boolean; onOpe
                 className="w-32 text-start"
                 disabled={isSubmitting}
                 aria-invalid={errors.capacity !== undefined}
-                aria-describedby={errors.capacity !== undefined ? "create-group-capacity-error" : "create-group-capacity-hint"}
+                aria-describedby={
+                  errors.capacity !== undefined
+                    ? "create-group-capacity-error"
+                    : "create-group-capacity-hint"
+                }
                 {...register("capacity", { valueAsNumber: true })}
               />
               {errors.capacity === undefined ? (

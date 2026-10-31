@@ -18,7 +18,9 @@ internal sealed class CreateGroupHandler(
     ICurrentActor currentActor,
     IGroupRepository groups,
     ISubjectRepository subjects,
-    ITeacherRepository teachers)
+    ITeacherRepository teachers,
+    TutoringCentre.Application.Common.Ports.IClock clock,
+    TutoringCentre.Application.Centres.Contracts.ICentreTimeZoneProvider zones)
     : ICommandHandler<CreateGroupCommand, CreateGroupResult>
 {
     public async Task<Result<CreateGroupResult>> HandleAsync(CreateGroupCommand command, CancellationToken cancellationToken)
@@ -59,6 +61,11 @@ internal sealed class CreateGroupHandler(
             return Result<CreateGroupResult>.Failure(GroupErrors.NameTaken());
         }
 
+        var fee = TutoringCentre.Domain.Common.Money.Create(command.MonthlyFee);
+        if (fee.IsFailure) return Result<CreateGroupResult>.Failure(fee.Error!);
+        var month = TutoringCentre.Domain.Common.BillingMonth.Of(TutoringCentre.Application.Common.Time.CentreCalendar.Today(clock, await zones.GetForCurrentCentreAsync(cancellationToken)));
+        var priced = created.Value.SetMonthlyFee(fee.Value, month);
+        if (priced.IsFailure) return Result<CreateGroupResult>.Failure(priced.Error!);
         groups.Add(created.Value);
         return Result<CreateGroupResult>.Success(new CreateGroupResult(created.Value.Id));
     }

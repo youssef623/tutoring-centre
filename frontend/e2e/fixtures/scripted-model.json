@@ -1,4 +1,4 @@
-﻿{
+{
   "rules": [
     {
       "contains": "هو أحمد حضر النهارده؟",
@@ -8,16 +8,45 @@
           {
             "id": "attendance-today",
             "name": "get_attendance",
-            "arguments": { "childHandle": "child_1" }
+            "arguments": {
+              "childHandle": "child_1"
+            }
           }
         ],
-        "usage": { "inputTokens": 30, "outputTokens": 10 },
+        "usage": {
+          "inputTokens": 30,
+          "outputTokens": 10
+        },
         "stopReason": "ToolCalls"
       },
       "afterTool": {
         "text": "أحمد حاضر اليوم.",
         "toolCalls": [],
-        "usage": { "inputTokens": 40, "outputTokens": 10 },
+        "usage": {
+          "inputTokens": 40,
+          "outputTokens": 10
+        },
+        "stopReason": "Completed"
+      }
+    },
+    {
+      "contains": "Omar",
+      "first": {
+        "text": "I can only help with your own children.",
+        "toolCalls": [],
+        "usage": {
+          "inputTokens": 30,
+          "outputTokens": 12
+        },
+        "stopReason": "Completed"
+      },
+      "afterTool": {
+        "text": "I can only help with your own children.",
+        "toolCalls": [],
+        "usage": {
+          "inputTokens": 30,
+          "outputTokens": 12
+        },
         "stopReason": "Completed"
       }
     },
@@ -26,13 +55,19 @@
       "first": {
         "text": "أهلاً! لا أستطيع البحث في السجلات الآن، وسأتمكن من مساعدتك قريباً.",
         "toolCalls": [],
-        "usage": { "inputTokens": 60, "outputTokens": 25 },
+        "usage": {
+          "inputTokens": 60,
+          "outputTokens": 25
+        },
         "stopReason": "Completed"
       },
       "afterTool": {
         "text": "أهلاً!",
         "toolCalls": [],
-        "usage": { "inputTokens": 60, "outputTokens": 25 },
+        "usage": {
+          "inputTokens": 60,
+          "outputTokens": 25
+        },
         "stopReason": "Completed"
       }
     }

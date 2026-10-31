@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using TutoringCentre.Domain.Common;
+using TutoringCentre.Domain.Billing;
 
 namespace TutoringCentre.Domain.Academics;
 
@@ -49,6 +50,30 @@ public sealed partial class Group : Entity, ITenantOwned
     public int Capacity { get; private set; }
 
     public GroupStatus Status { get; private set; }
+
+    private readonly List<GroupMonthlyFee> _monthlyFees = [];
+    public IReadOnlyCollection<GroupMonthlyFee> MonthlyFees => _monthlyFees.AsReadOnly();
+    public Money MonthlyFee { get; private set; }
+
+    public Result SetMonthlyFee(Money fee)
+    {
+        if (fee.Amount < 0) return Result.Failure(Error.Validation("group.monthly_fee_invalid", "Monthly fee cannot be negative."));
+        var writable = CheckNotArchived();
+        if (writable.IsFailure) return writable;
+        MonthlyFee = fee;
+        return Result.Success();
+    }
+
+    public Result SetMonthlyFee(Money fee, BillingMonth effectiveMonth)
+    {
+        var unchanged = MonthlyFee == fee;
+        var changed = SetMonthlyFee(fee);
+        if (changed.IsFailure || unchanged) return changed;
+        var existing = _monthlyFees.SingleOrDefault(x => x.EffectiveMonth == effectiveMonth);
+        if (existing is null) _monthlyFees.Add(new(CentreId, Id, effectiveMonth, fee));
+        else existing.Replace(fee);
+        return Result.Success();
+    }
 
     public static Result<Group> Create(Guid centreId, string name, Guid subjectId, Guid teacherId, int capacity)
     {

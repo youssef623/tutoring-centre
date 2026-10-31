@@ -94,7 +94,10 @@
     "capacityLabel": "السعة",
     "capacityHint": "عدد المقاعد، من 1 إلى 200.",
     "save": "حفظ",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "monthlyFeeLabel": "الرسوم الشهرية (ج.م)",
+    "monthlyFeeHint": "تطبق من الشهر القادم",
+    "initialMonthlyFeeHint": "تطبق الرسوم الأولية فوراً، والتعديلات من الشهر القادم."
   },
   "selects": {
     "loading": "جاري التحميل…",
@@ -132,6 +135,7 @@
     "teacherRequired": "اختر معلمًا.",
     "capacityRequired": "أدخل عدد المقاعد.",
     "capacityWhole": "يجب أن تكون السعة عددًا صحيحًا.",
-    "capacityRange": "يجب أن تكون السعة بين 1 و200."
+    "capacityRange": "يجب أن تكون السعة بين 1 و200.",
+    "monthlyFee": "أدخل مبلغاً غير سالب بمنزلتين عشريتين كحد أقصى."
   }
 }

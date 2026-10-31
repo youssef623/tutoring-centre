@@ -10,6 +10,8 @@ internal static class AuditEntityTypeNames
 {
     public static string ToDatabase(AuditEntityType value) => value switch
     {
+        AuditEntityType.Charge => "charge",
+        AuditEntityType.GroupMonthlyFee => "group_monthly_fee",
         AuditEntityType.ChannelAccount => "channel_account",
         AuditEntityType.PortalLink => "portal_link",
         AuditEntityType.Subject => "subject",
@@ -30,6 +32,8 @@ internal static class AuditEntityTypeNames
 
     public static AuditEntityType FromDatabase(string value) => value switch
     {
+        "charge" => AuditEntityType.Charge,
+        "group_monthly_fee" => AuditEntityType.GroupMonthlyFee,
         "channel_account" => AuditEntityType.ChannelAccount,
         "portal_link" => AuditEntityType.PortalLink,
         "subject" => AuditEntityType.Subject,
@@ -52,6 +56,8 @@ internal static class AuditEntityTypeNames
     {
         switch (value)
         {
+            case "charge": result = AuditEntityType.Charge; return true;
+            case "group_monthly_fee": result = AuditEntityType.GroupMonthlyFee; return true;
             case "channel_account":
                 result = AuditEntityType.ChannelAccount;
                 return true;

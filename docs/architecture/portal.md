@@ -29,3 +29,6 @@ Parents and students land at `/portal`, with a full-viewport shell using the sta
 Account creation calls the generated API function directly, outside the mutation cache. Its password lives only in mounted component state, is cleared when the dialog closes, and never enters browser storage or query results. Development seeds create `parent@nile.test` and `student@nile.test` through the same command as staff, as a system actor attributed to the existing owner. Testing retains the established seed fixtures. Production never receives demo credentials.
 
 Password recovery is not implemented. A forgotten portal password currently requires a separately designed recovery workflow; account deactivation and reactivation do not reset credentials.
+# Month 5 checkpoint
+
+Portal finance remains unavailable: Parent/Student do not hold billing.view or billing.generate, and receive 403 from the staff charges endpoint. Parent chat and attendance still resolve only the validated portal subject's family. Deactivation/session revocation and first-login password change remain the existing Identity pipeline; no second authentication implementation is added. See the fresh-local runbook and Month 5 checkpoint for executed evidence and any unavailable live-provider checks.

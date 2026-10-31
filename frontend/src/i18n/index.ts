@@ -1,3 +1,5 @@
+import billingEn from "./locales/en/billing.json";
+import billingAr from "./locales/ar/billing.json";
 import portalEn from "./locales/en/portal.json";
 import portalAr from "./locales/ar/portal.json";
 import conversationsEn from "./locales/en/conversations.json";
@@ -102,6 +104,7 @@ void i18next
         audit: auditEn,
         teachers: teachersEn,
         groups: groupsEn,
+        billing: billingEn,
         enrollments: enrollmentsEn,
         schedule: scheduleEn,
         attendance: attendanceEn,
@@ -124,6 +127,7 @@ void i18next
         audit: auditAr,
         teachers: teachersAr,
         groups: groupsAr,
+        billing: billingAr,
         enrollments: enrollmentsAr,
         schedule: scheduleAr,
         attendance: attendanceAr,

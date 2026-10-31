@@ -1,0 +1,13 @@
+{
+  "title": "Billing",
+  "overview": "Overview",
+  "month": "Month",
+  "subject": "Subject",
+  "group": "Group",
+  "amount": "Amount (EGP)",
+  "dueDate": "Due date",
+  "empty": "No charges yet",
+  "loading": "Loading charges…",
+  "retry": "Retry",
+  "loadMore": "Load more"
+}

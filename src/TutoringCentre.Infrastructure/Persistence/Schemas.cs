@@ -10,5 +10,6 @@ internal static class Schemas
     public const string Attendance = "attendance";
     public const string Conversations = "conversations";
     public const string Assistant = "assistant";
+    public const string Billing = "billing";
     public const string Jobs = "jobs";
 }

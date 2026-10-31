@@ -53,6 +53,7 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         "GET /api/parents/{id:guid}",
         "PUT /api/parents/{id:guid}",
         "POST /api/parents/lookup",
+        "GET /api/students/{studentId}/charges",
         "GET /api/students",
         "GET /api/students/{id:guid}",
         "POST /api/students",
@@ -1618,6 +1619,33 @@ public sealed class PermissionMatrixTests(ApiFactory factory) : IAsyncLifetime
         using var response = await owner.Client.GetAsync(new Uri("/api/centre/settings", UriKind.Relative));
         var body = await ReadJsonAsync(response);
         return body.RootElement.GetProperty("version").GetUInt32();
+    }
+
+    [Theory]
+    [InlineData("owner@nile.test", HttpStatusCode.OK)]
+    [InlineData("secretary@nile.test", HttpStatusCode.OK)]
+    [InlineData("teacher", HttpStatusCode.Forbidden)]
+    [InlineData("parent", HttpStatusCode.Forbidden)]
+    [InlineData("student", HttpStatusCode.Forbidden)]
+    public async Task StudentCharges_UsesBillingViewForAllFiveRoles(string role, HttpStatusCode expected)
+    {
+        using var signedIn = await SignInAsync(role);
+        var studentId = await factory.ScalarAsync<Guid>("select s.id from academics.students s join platform.centres c on c.id=s.centre_id where c.slug='nile-centre' order by s.id limit 1");
+        using var response = await signedIn.Client.GetAsync(new Uri($"/api/students/{studentId}/charges", UriKind.Relative));
+        Assert.Equal(expected, response.StatusCode);
+        if (expected == HttpStatusCode.OK)
+        {
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(JsonValueKind.Array, json.RootElement.GetProperty("items").ValueKind);
+        }
+    }
+
+    [Fact]
+    public async Task StudentCharges_MalformedStudentIdIs400()
+    {
+        using var signedIn = await SignInHelper.SignInAsNileOwnerAsync(factory);
+        using var response = await signedIn.Client.GetAsync(new Uri("/api/students/not-a-guid/charges", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private async Task<SignedInClient> SignInAsync(string role)

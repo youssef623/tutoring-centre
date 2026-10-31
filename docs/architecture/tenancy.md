@@ -337,3 +337,6 @@ Real tenant reads and writes then use the dispatcher transaction and RLS normall
 `TenancyRuleTests.CentreDirectory_OnlyInfrastructureJobsMayDependOnIt` confines
 cross-centre listing to Infrastructure jobs, including their directory adapter
 and registration. No HTTP request or application handler can depend on it.
+# Billing ledger isolation
+
+billing.charges and academics.group_monthly_fees use the normal tenant query filter and forced RLS. Charges have a composite tenant primary key and restrict composite references, including (centre_id,enrollment_id,student_id) to the Month 4 enrollment alternate key. The runtime role receives only SELECT/INSERT on charges. The exact partial monthly key makes retry/transfer obligations unique without preventing future adjustments. Read queries retain explicit centre predicates as well as RLS; public endpoints never accept a centre ID.

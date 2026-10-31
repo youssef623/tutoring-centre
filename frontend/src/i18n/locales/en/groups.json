@@ -94,7 +94,10 @@
     "capacityLabel": "Capacity",
     "capacityHint": "Number of seats, 1 to 200.",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "monthlyFeeLabel": "Monthly fee (EGP)",
+    "monthlyFeeHint": "Applies from next month",
+    "initialMonthlyFeeHint": "Initial fee applies immediately. Later edits apply from next month."
   },
   "selects": {
     "loading": "Loading…",
@@ -132,6 +135,7 @@
     "teacherRequired": "Choose a teacher.",
     "capacityRequired": "Enter the number of seats.",
     "capacityWhole": "Capacity must be a whole number.",
-    "capacityRange": "Capacity must be between 1 and 200."
+    "capacityRange": "Capacity must be between 1 and 200.",
+    "monthlyFee": "Enter a nonnegative fee with at most two decimal places."
   }
 }

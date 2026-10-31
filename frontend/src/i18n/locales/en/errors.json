@@ -169,7 +169,10 @@
       "channel_taken": "This channel account is already registered.",
       "not_found": "Conversation or channel account not found.",
       "message_already_processed": "This message has already been processed."
-    }
+    },
+    "billing.money_invalid": "Enter an amount with at most two decimal places.",
+    "group.monthly_fee_invalid": "Monthly fee cannot be negative.",
+    "billing.charge_exists": "The monthly charge already exists."
   },
   "byKind": {
     "validation": "Please check the highlighted fields.",

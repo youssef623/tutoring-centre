@@ -4204,6 +4204,87 @@
         }
       }
     },
+    "/api/students/{studentId}/charges": {
+      "get": {
+        "tags": [
+          "TutoringCentre.Api"
+        ],
+        "operationId": "GetStudentCharges",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentChargesPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/staff": {
       "get": {
         "tags": [
@@ -6253,6 +6334,14 @@
               "string"
             ],
             "format": "int32"
+          },
+          "monthlyFee": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -6641,6 +6730,12 @@
               "string"
             ],
             "format": "uint32"
+          },
+          "monthlyFee": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         },
         "additionalProperties": false
@@ -7418,6 +7513,15 @@
         ],
         "type": "object",
         "properties": {
+          "monthlyFee": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
           "name": {
             "type": "string"
           },
@@ -7889,6 +7993,66 @@
               {
                 "$ref": "#/components/schemas/StudentCardDto"
               }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "StudentChargeDto": {
+        "required": [
+          "id",
+          "billingMonth",
+          "kind",
+          "subjectName",
+          "groupName",
+          "amount",
+          "dueDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "billingMonth": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "subjectName": {
+            "type": "string"
+          },
+          "groupName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StudentChargesPage": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentChargeDto"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         },

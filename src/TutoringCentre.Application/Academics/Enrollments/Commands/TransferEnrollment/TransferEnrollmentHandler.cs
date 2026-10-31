@@ -21,7 +21,8 @@ internal sealed class TransferEnrollmentHandler(
     ICurrentActor currentActor,
     IClock clock,
     IGroupRepository groups,
-    IEnrollmentRepository enrollments)
+    IEnrollmentRepository enrollments,
+    TutoringCentre.Application.Common.Messaging.IOutbox outbox)
     : ICommandHandler<TransferEnrollmentCommand, TransferEnrollmentResult>
 {
     public async Task<Result<TransferEnrollmentResult>> HandleAsync(TransferEnrollmentCommand command, CancellationToken cancellationToken)
@@ -89,6 +90,7 @@ internal sealed class TransferEnrollmentHandler(
         }
 
         enrollments.Add(started.Value);
+        outbox.Enqueue(new TutoringCentre.Application.Academics.Contracts.EnrollmentStarted(started.Value.Id));
         return Result<TransferEnrollmentResult>.Success(new TransferEnrollmentResult(started.Value.Id));
     }
 }

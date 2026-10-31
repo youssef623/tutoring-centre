@@ -1,7 +1,7 @@
-# Real-model cassettes
+# Genuine local model cassettes
 
-E1.json through E15.json contain genuine local Ollama responses from `qwen3:4b-instruct-2507-q4_K_M` (model digest prefix `0edcdef34593`), recorded on 2026-10-31. All requests contain synthetic fixture data. The twenty request/response frames are the first complete full-dataset recording, without response selection or scripted replacements.
+The active thirteen case files contain genuine local Ollama responses from qwen3:4b-instruct-2507-q4_K_M (digest prefix 0edcdef34593), originally recorded on 2026-10-31. Requests contain synthetic fixture data. E3 and E11 were removed from both cases and recordings at the user's explicit checkpoint instruction. The remaining eighteen request/response frames were not edited or replaced with scripted output.
 
-This baseline intentionally preserves model-quality failures in E3 (Franco attendance) and E11 (centre-wide student request). Both security gates pass, but replay fails the unchanged quality floors. Do not treat these cassettes as a passing evaluation baseline or weaken thresholds to make CI green. A later temperature-zero full-dataset attempt performed worse and is retained only in ignored local artifacts.
+The original fifteen-case quality failures remain historical evidence in docs/ai/day85-87-verification.md. Active coverage is now 4 attendance / 2 ambiguity / 4 attack / 3 out-of-scope, with no Franco attendance case. This reduction does not prove improved model quality. Gates and quality floors remain unchanged.
 
-Missing/stale recordings deliberately fail replay. Scripted selftests never populate this directory. See `docs/ai/day85-87-verification.md` for validation evidence and the remaining quality blocker.
+Missing/stale requests fail replay with no live fallback. See docs/architecture/evaluation.md and docs/ai/evaluation-methodology.md.

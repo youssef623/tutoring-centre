@@ -16,7 +16,7 @@ internal sealed class GroupRepository(AppDbContext db) : IGroupRepository
 {
     public async Task<Group?> GetByIdAsync(Guid id, uint expectedVersion, CancellationToken ct)
     {
-        var group = await db.Set<Group>().SingleOrDefaultAsync(group => group.Id == id, ct);
+        var group = await db.Set<Group>().Include(group => group.MonthlyFees).SingleOrDefaultAsync(group => group.Id == id, ct);
         if (group is null)
         {
             return null;

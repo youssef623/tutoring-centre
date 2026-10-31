@@ -150,6 +150,8 @@ public sealed class GroupDispatcherPermissionTests
         groups.Existing.Add(activeGroup);
 
         var provider = new ServiceCollection()
+            .AddSingleton<TutoringCentre.Application.Common.Ports.IClock>(new FakeClock())
+            .AddSingleton<TutoringCentre.Application.Centres.Contracts.ICentreTimeZoneProvider>(new FakeCentreTimeZoneProvider())
             .AddSingleton(unitOfWork)
             .AddSingleton<ICurrentActor>(new FakeCurrentActor { Actor = actor })
             .AddSingleton<ISubjectRepository>(subjects)

@@ -1,4 +1,6 @@
-# Assistant evaluation (Days 85-87)
+# Assistant evaluation (Days 85-90)
+
+Checkpoint scope change: the user explicitly removed E3 and E11. Thirteen active cases remain (attendance 4, ambiguity 2, attack 4, out_of_scope 3); Franco attendance is unmeasured. The fifteen-case descriptions below describe the original design/history, not current coverage. Current reports use the loader count and show N/A denominators. No floor or gate was relaxed.
 
 Evaluation measures quality separately from correctness tests. The console host references Api and shared test support; production and Api.Tests cannot reference Evaluation. Evaluation.Tests has exactly one project dependency (Evaluation), runs without Docker, and belongs to normal solution CI. The separate eval-replay tier owns PostgreSQL Testcontainers, reports and optional local provider execution. No product schema or behavior changes are required.
 

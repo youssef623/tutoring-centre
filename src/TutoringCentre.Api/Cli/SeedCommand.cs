@@ -247,16 +247,15 @@ public static class SeedCommand
 
                     if (result.IsSuccess)
                     {
-                        logger.LogInformation("Seed: created subject {Name} in {Slug}", name, centreSubjects.CentreSlug);
+                        logger.LogInformation("Seed: created subject record in {Slug}", centreSubjects.CentreSlug);
                     }
                     else if (result.Error?.Code == "subject.name_taken")
                     {
-                        logger.LogInformation("Seed: subject {Name} in {Slug} already exists", name, centreSubjects.CentreSlug);
+                        logger.LogInformation("Seed: subject record in {Slug} already exists", centreSubjects.CentreSlug);
                     }
                     else
                     {
-                        logger.LogError(
-                            "Seed: creating subject {Name} in {Slug} failed with {ErrorCode}", name, centreSubjects.CentreSlug, result.Error?.Code);
+                        logger.LogError("Seed: creating subject record in {Slug} failed with {ErrorCode}", centreSubjects.CentreSlug, result.Error?.Code);
                         exitCode = 1;
                     }
                 }
@@ -288,7 +287,7 @@ public static class SeedCommand
                         new ListStudentsQuery(studentName, true, null, 5), CancellationToken.None);
                     if (existingSearch.IsSuccess && existingSearch.Value.Items.Any(item => item.FullName == studentName))
                     {
-                        logger.LogInformation("Seed: student {Name} in {Slug} already exists", studentName, family.CentreSlug);
+                        logger.LogInformation("Seed: student record in {Slug} already exists", family.CentreSlug);
                         continue;
                     }
 
@@ -302,12 +301,11 @@ public static class SeedCommand
                     if (result.IsSuccess)
                     {
                         parentId = result.Value.ParentId;
-                        logger.LogInformation("Seed: created student {Name} in {Slug}", studentName, family.CentreSlug);
+                        logger.LogInformation("Seed: created student record in {Slug}", family.CentreSlug);
                     }
                     else
                     {
-                        logger.LogError(
-                            "Seed: creating student {Name} in {Slug} failed with {ErrorCode}", studentName, family.CentreSlug, result.Error?.Code);
+                        logger.LogError("Seed: creating student record in {Slug} failed with {ErrorCode}", family.CentreSlug, result.Error?.Code);
                         exitCode = 1;
                     }
                 }
@@ -375,7 +373,7 @@ public static class SeedCommand
 
             if (groupId is null)
             {
-                logger.LogError("Seed: group {Name} in {Slug} does not exist; cannot seed its enrollments", seedEnrollment.GroupName, seedEnrollment.CentreSlug);
+                logger.LogError("Seed: group record in {Slug} does not exist; cannot seed its enrollments", seedEnrollment.CentreSlug);
                 succeeded = false;
                 continue;
             }
@@ -389,7 +387,7 @@ public static class SeedCommand
                     var studentId = search.IsSuccess ? search.Value.Items.FirstOrDefault(item => item.FullName == studentName)?.Id : null;
                     if (studentId is null)
                     {
-                        logger.LogError("Seed: student {Name} in {Slug} does not exist; cannot enroll", studentName, seedEnrollment.CentreSlug);
+                        logger.LogError("Seed: student record in {Slug} does not exist; cannot enroll", seedEnrollment.CentreSlug);
                         return false;
                     }
 
@@ -398,17 +396,15 @@ public static class SeedCommand
 
                     if (result.IsSuccess)
                     {
-                        logger.LogInformation("Seed: enrolled {Student} in {Group} in {Slug}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug);
+                        logger.LogInformation("Seed: enrolled student in group in {Slug}", seedEnrollment.CentreSlug);
                     }
                     else if (result.Error?.Code is "enrollment.already_enrolled" or "group.full")
                     {
-                        logger.LogInformation(
-                            "Seed: {Student} in {Group} in {Slug} already seeded ({ErrorCode})", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error.Code);
+                        logger.LogInformation("Seed: student in group in {Slug} already seeded ({ErrorCode})", seedEnrollment.CentreSlug, result.Error.Code);
                     }
                     else
                     {
-                        logger.LogError(
-                            "Seed: enrolling {Student} in {Group} in {Slug} failed with {ErrorCode}", studentName, seedEnrollment.GroupName, seedEnrollment.CentreSlug, result.Error?.Code);
+                        logger.LogError("Seed: enrolling student in group in {Slug} failed with {ErrorCode}", seedEnrollment.CentreSlug, result.Error?.Code);
                         return false;
                     }
                     return true;
@@ -483,7 +479,7 @@ public static class SeedCommand
                 if (existing is not null)
                 {
                     teacherId = existing.Id;
-                    logger.LogInformation("Seed: teacher {Name} in {Slug} already exists", seedTeacher.FullName, slug);
+                    logger.LogInformation("Seed: teacher record in {Slug} already exists", slug);
                 }
                 else
                 {
@@ -492,13 +488,13 @@ public static class SeedCommand
                             new CreateTeacherCommand(seedTeacher.FullName, null), CancellationToken.None));
                     if (!created.IsSuccess)
                     {
-                        logger.LogError("Seed: creating teacher {Name} in {Slug} failed with {ErrorCode}", seedTeacher.FullName, slug, created.Error?.Code);
+                        logger.LogError("Seed: creating teacher record in {Slug} failed with {ErrorCode}", slug, created.Error?.Code);
                         succeeded = false;
                         continue;
                     }
 
                     teacherId = created.Value.TeacherId;
-                    logger.LogInformation("Seed: created teacher {Name} in {Slug}", seedTeacher.FullName, slug);
+                    logger.LogInformation("Seed: created teacher record in {Slug}", slug);
                 }
 
                 teacherIdsByName[seedTeacher.FullName] = teacherId;
@@ -518,7 +514,7 @@ public static class SeedCommand
 
                     if (linked.IsSuccess)
                     {
-                        logger.LogInformation("Seed: linked teacher {Name} in {Slug} to the two-centre teacher account", seedTeacher.FullName, slug);
+                        logger.LogInformation("Seed: linked teacher record in {Slug} to the two-centre teacher account", slug);
                     }
                     else if (linked.Error?.Code == "teacher.account_taken")
                     {
@@ -526,8 +522,7 @@ public static class SeedCommand
                     }
                     else
                     {
-                        logger.LogError(
-                            "Seed: linking teacher {Name} in {Slug} failed with {ErrorCode}", seedTeacher.FullName, slug, linked.Error?.Code);
+                        logger.LogError("Seed: linking teacher record in {Slug} failed with {ErrorCode}", slug, linked.Error?.Code);
                         succeeded = false;
                     }
                     return Unit.Value;
@@ -539,7 +534,7 @@ public static class SeedCommand
                 if (!subjectIdsByName.TryGetValue(seedGroup.SubjectName, out var subjectId)
                     || !teacherIdsByName.TryGetValue(seedGroup.TeacherName, out var teacherId))
                 {
-                    logger.LogError("Seed: group {Name} in {Slug} references a missing subject or teacher", seedGroup.Name, slug);
+                    logger.LogError("Seed: group record in {Slug} references a missing subject or teacher", slug);
                     succeeded = false;
                     continue;
                 }
@@ -550,15 +545,15 @@ public static class SeedCommand
 
                 if (result.IsSuccess)
                 {
-                    logger.LogInformation("Seed: created group {Name} in {Slug}", seedGroup.Name, slug);
+                    logger.LogInformation("Seed: created group record in {Slug}", slug);
                 }
                 else if (result.Error?.Code == "group.name_taken")
                 {
-                    logger.LogInformation("Seed: group {Name} in {Slug} already exists", seedGroup.Name, slug);
+                    logger.LogInformation("Seed: group record in {Slug} already exists", slug);
                 }
                 else
                 {
-                    logger.LogError("Seed: creating group {Name} in {Slug} failed with {ErrorCode}", seedGroup.Name, slug, result.Error?.Code);
+                    logger.LogError("Seed: creating group record in {Slug} failed with {ErrorCode}", slug, result.Error?.Code);
                     succeeded = false;
                 }
             }
@@ -618,7 +613,7 @@ public static class SeedCommand
             {
                 if (!groupIdsByName.TryGetValue(seedRule.GroupName, out var groupId))
                 {
-                    logger.LogError("Seed: group {Name} in {Slug} does not exist; cannot seed its schedule", seedRule.GroupName, slug);
+                    logger.LogError("Seed: group record in {Slug} does not exist; cannot seed its schedule", slug);
                     succeeded = false;
                     continue;
                 }
@@ -629,15 +624,13 @@ public static class SeedCommand
                         new ListGroupScheduleRulesQuery(groupId), CancellationToken.None);
                     if (!existing.IsSuccess)
                     {
-                        logger.LogError(
-                            "Seed: listing the rules of {Group} in {Slug} failed with {ErrorCode}", seedRule.GroupName, slug, existing.Error?.Code);
+                        logger.LogError("Seed: listing the rules of group in {Slug} failed with {ErrorCode}", slug, existing.Error?.Code);
                         return false;
                     }
 
                     if (existing.Value.Any(rule => rule.DayOfWeek == seedRule.DayOfWeek && rule.StartTime == seedRule.StartTime))
                     {
-                        logger.LogInformation(
-                            "Seed: {Group} in {Slug} already meets on {Day} at {Time}", seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime);
+                        logger.LogInformation("Seed: group in {Slug} already meets on {Day} at {Time}", slug, seedRule.DayOfWeek, seedRule.StartTime);
                         return true;
                     }
 
@@ -647,22 +640,16 @@ public static class SeedCommand
 
                     if (result.IsSuccess)
                     {
-                        logger.LogInformation(
-                            "Seed: {Group} in {Slug} meets on {Day} at {Time} ({Sessions} sessions)",
-                            seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Value.SessionsCreated);
+                        logger.LogInformation("Seed: group in {Slug} meets on {Day} at {Time} ({Sessions} sessions)", slug, seedRule.DayOfWeek, seedRule.StartTime, result.Value.SessionsCreated);
                     }
                     else if (result.Error?.Code is "schedule.teacher_double_booked" or "schedule.group_double_booked")
                     {
-                        logger.LogError(
-                            "Seed: the seed's own schedule collides: {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
-                            seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error.Code);
+                        logger.LogError("Seed: the seed's own schedule collides: group in {Slug} on {Day} at {Time} failed with {ErrorCode}", slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error.Code);
                         return false;
                     }
                     else
                     {
-                        logger.LogError(
-                            "Seed: scheduling {Group} in {Slug} on {Day} at {Time} failed with {ErrorCode}",
-                            seedRule.GroupName, slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error?.Code);
+                        logger.LogError("Seed: scheduling group in {Slug} on {Day} at {Time} failed with {ErrorCode}", slug, seedRule.DayOfWeek, seedRule.StartTime, result.Error?.Code);
                         return false;
                     }
                     return true;

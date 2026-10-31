@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<Dispatcher>();
         services.AddScoped<ICommandTimeoutPolicy, TutoringCentre.Application.Assistant.AgentCommandTimeoutPolicy>();
         services.AddOutbox();
+        services.AddOutboxMessage<TutoringCentre.Application.Academics.Contracts.EnrollmentStarted, TutoringCentre.Application.Billing.Commands.CreateEnrollmentCharge.CreateEnrollmentChargeCommand>(message => new(message.EnrollmentId));
         services.AddOutboxMessage<InboundMessageReceived, TutoringCentre.Application.Conversations.Inbound.Commands.ProcessInboundMessage.ProcessInboundMessageCommand>(message => new(message.MessageId));
         services.AddOutboxMessage<TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentRequested, TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentCommand>(message => new(message.InboundMessageId), "assistant.conversation_busy");
         services.AddOutboxMessage<SendOutboundMessageRequested, SendOutboundMessageCommand>(message => new(message.OutboundMessageId));

@@ -107,13 +107,13 @@ public static class GroupEndpoints
     private static async Task<IResult> CreateGroupAsync(CreateGroupRequest request, Dispatcher dispatcher, CancellationToken ct)
     {
         var result = await dispatcher.SendAsync<CreateGroupCommand, CreateGroupResult>(
-            new CreateGroupCommand(request.Name, request.SubjectId, request.TeacherId, request.Capacity), ct);
+            new CreateGroupCommand(request.Name, request.SubjectId, request.TeacherId, request.Capacity, request.MonthlyFee), ct);
         return result.ToCreatedHttpResult(value => ($"/api/groups/{value.GroupId}", new CreateGroupResponse(value.GroupId)));
     }
 
     private static async Task<IResult> RenameGroupAsync(Guid id, RenameGroupRequest request, Dispatcher dispatcher, CancellationToken ct)
     {
-        var result = await dispatcher.SendAsync<RenameGroupCommand, Unit>(new RenameGroupCommand(id, request.Name, request.Version), ct);
+        var result = await dispatcher.SendAsync<RenameGroupCommand, Unit>(new RenameGroupCommand(id, request.Name, request.Version, request.MonthlyFee), ct);
         return result.ToHttpResult(_ => Results.NoContent());
     }
 
@@ -165,6 +165,8 @@ public sealed record CreateGroupRequest
     public required Guid TeacherId { get; init; }
 
     public required int Capacity { get; init; }
+
+    public decimal MonthlyFee { get; init; }
 }
 
 public sealed record CreateGroupResponse(Guid Id);
@@ -172,6 +174,7 @@ public sealed record CreateGroupResponse(Guid Id);
 /// <summary>Name plus version only. The ID comes from the route; a subjectId here is an unknown field and a 400.</summary>
 public sealed record RenameGroupRequest
 {
+    public decimal? MonthlyFee { get; init; }
     public required string Name { get; init; }
 
     public required uint Version { get; init; }

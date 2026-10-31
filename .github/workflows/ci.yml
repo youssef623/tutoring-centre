@@ -152,6 +152,7 @@ jobs:
       # single job's run — not a brute-force signal, just this one trusted runner IP exercising many
       # fixture logins quickly. Raised for this job only; Production/Development keep the default.
       Auth__LoginRateLimit__PermitLimit: "100"
+      E2E_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
     steps:
       - name: Check out
         uses: actions/checkout@v6
@@ -205,6 +206,9 @@ jobs:
       - name: Install Chromium with its system dependencies
         working-directory: frontend
         run: npx playwright install --with-deps chromium
+
+      - name: Build shared journey probes
+        run: dotnet build tests/TutoringCentre.Evaluation -c Release
 
       - name: Run the E2E auth journeys
         working-directory: frontend

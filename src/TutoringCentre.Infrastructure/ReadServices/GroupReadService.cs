@@ -14,8 +14,11 @@ namespace TutoringCentre.Infrastructure.ReadServices;
 /// scope returns nothing without running a query.
 /// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class GroupReadService(AppDbContext db) : IGroupReadService
+internal sealed class GroupReadService(AppDbContext db, ICurrentActor actor) : IGroupReadService
 {
+    private bool CanViewFee => actor.Actor is SystemActor || actor.Actor is IUserActor user
+        && (TutoringCentre.Domain.Identity.RolePermissions.Holds(user.RoleKey, TutoringCentre.Domain.Identity.Permissions.BillingView)
+            || TutoringCentre.Domain.Identity.RolePermissions.Holds(user.RoleKey, TutoringCentre.Domain.Identity.Permissions.GroupsManage));
     private const int ListCap = 500;
 
     public async Task<IReadOnlyList<GroupDto>> ListAsync(GroupListCriteria criteria, TeacherScope scope, CancellationToken ct)
@@ -84,5 +87,5 @@ internal sealed class GroupReadService(AppDbContext db) : IGroupReadService
             // Correlated count: the enrollment rows are the only source of truth; nothing stores this number.
             db.Set<Enrollment>().Count(enrollment => enrollment.GroupId == grp.Id && enrollment.Status == EnrollmentStatus.Active),
             grp.Status,
-            EF.Property<uint>(grp, "Version"));
+            EF.Property<uint>(grp, "Version"), CanViewFee ? grp.MonthlyFee.ToString() : null);
 }

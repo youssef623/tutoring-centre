@@ -1,3 +1,39 @@
+## Current Month 5 matrix (27 keys / 135 cells)
+
+This supersedes the historical Month 3 counts below. SystemActor generation is a separate trusted dispatcher path; normal roles never hold billing.generate.
+
+| Permission | Owner | Secretary | Teacher | Parent | Student |
+|---|---|---|---|---|---|
+| subjects.view | yes | yes | yes | no | no |
+| subjects.manage | yes | yes | no | no | no |
+| staff.view | yes | no | no | no | no |
+| staff.manage | yes | no | no | no | no |
+| audit.view | yes | no | no | no | no |
+| centre.settings.manage | yes | no | no | no | no |
+| students.view | yes | yes | no | no | no |
+| students.manage | yes | yes | no | no | no |
+| teachers.view | yes | yes | no | no | no |
+| teachers.manage | yes | no | no | no | no |
+| groups.view | yes | yes | yes | no | no |
+| groups.manage | yes | yes | no | no | no |
+| enrollments.view | yes | yes | yes | no | no |
+| enrollments.manage | yes | yes | no | no | no |
+| schedule.view | yes | yes | yes | no | no |
+| schedule.manage | yes | yes | no | no | no |
+| attendance.view | yes | yes | yes | yes | yes |
+| attendance.mark | yes | yes | yes | no | no |
+| attendance.correct | yes | yes | no | no | no |
+| attendance.cards.manage | yes | yes | no | no | no |
+| conversations.view | yes | yes | no | no | no |
+| conversations.ingest | no | no | no | no | no |
+| portal.accounts.manage | yes | yes | no | no | no |
+| portal.chat | yes | yes | no | yes | yes |
+| assistant.view | yes | yes | no | no | no |
+| billing.view | yes | yes | no | no | no |
+| billing.generate | no | no | no | no | no |
+
+Group fee edits retain groups.manage; reads require billing.view OR groups.manage and otherwise omit the field. GET /api/students/{studentId}/charges requires billing.view, with no public generation endpoint.
+
 # Authorization
 
 Who may do what, once tenancy (`docs/architecture/tenancy.md`) has already decided which centre a request
