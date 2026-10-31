@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { useCan } from "@/features/session/useCan";
 import { Permissions } from "@/features/session/permissions";
 import { ChargesTable } from "./ChargesTable";
+import { ReceiptText } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StudentBillingTab({ studentId }: { studentId: string }) {
   const allowed = useCan(Permissions.BillingView);
@@ -24,7 +27,13 @@ function BillingContent({ studentId }: { studentId: string }) {
       ),
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
-  if (query.isPending) return <p role="status">{t("loading")}</p>;
+  if (query.isPending)
+    return (
+      <div role="status" aria-label={t("loading")} className="space-y-3">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    );
   if (query.isError)
     return (
       <div role="alert">
@@ -41,7 +50,11 @@ function BillingContent({ studentId }: { studentId: string }) {
   const items = query.data.pages.flatMap((page) => page.items);
   return (
     <section aria-label={t("title")} className="space-y-4">
-      {items.length === 0 ? <p>{t("empty")}</p> : <ChargesTable items={items} />}
+      {items.length === 0 ? (
+        <EmptyState icon={ReceiptText} title={t("empty")} />
+      ) : (
+        <ChargesTable items={items} />
+      )}
       {query.hasNextPage && (
         <Button
           disabled={query.isFetchingNextPage}

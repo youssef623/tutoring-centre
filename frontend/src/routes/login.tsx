@@ -104,16 +104,17 @@ function LoginPage() {
   });
 
   return (
-    <main className="min-h-dvh lg:grid lg:grid-cols-[1fr_1.05fr]">
+    <main className="login-page min-h-dvh lg:grid lg:grid-cols-2">
       {/* Form column */}
-      <div className="relative flex min-h-dvh flex-col px-6 py-8 sm:px-10 lg:min-h-0 lg:px-14">
-        <div className="flex items-center justify-between">
-          <HessaWordmark />
+      <div className="login-form-column relative flex min-h-dvh flex-col px-6 py-8 sm:px-10 lg:min-h-0 lg:px-14">
+        <div className="login-topbar flex items-center justify-end">
           <LanguageSwitcher />
         </div>
 
         <div className="flex flex-1 items-center justify-center py-10">
-          <div className="w-full max-w-sm space-y-6">
+          <div className="login-form-stack w-full max-w-lg">
+            <HessaWordmark className="login-wordmark" />
+          <div className="login-form-box w-full space-y-6">
             <div className="space-y-1.5">
               <p className="text-sm font-medium text-primary">{t("login.eyebrow")}</p>
               <h1 className="font-heading text-3xl font-semibold tracking-tight">
@@ -146,10 +147,11 @@ function LoginPage() {
                   disabled={isSubmitting}
                   className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
                   aria-invalid={errors.email !== undefined}
+                  aria-describedby={errors.email === undefined ? undefined : "email-error"}
                   {...register("email")}
                 />
                 {errors.email !== undefined && (
-                  <p className="text-sm text-destructive">
+                  <p id="email-error" className="text-sm text-destructive">
                     {errors.email.type === "server"
                       ? errors.email.message
                       : t(errors.email.message ?? "")}
@@ -167,10 +169,11 @@ function LoginPage() {
                   disabled={isSubmitting}
                   className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
                   aria-invalid={errors.password !== undefined}
+                  aria-describedby={errors.password === undefined ? undefined : "password-error"}
                   {...register("password")}
                 />
                 {errors.password !== undefined && (
-                  <p className="text-sm text-destructive">
+                  <p id="password-error" className="text-sm text-destructive">
                     {errors.password.type === "server"
                       ? errors.password.message
                       : t(errors.password.message ?? "")}
@@ -188,49 +191,45 @@ function LoginPage() {
               </Button>
             </form>
           </div>
+          </div>
         </div>
       </div>
 
       {/* Brand panel */}
       <aside
-        className="relative hidden overflow-hidden text-white lg:flex lg:flex-col lg:justify-center bg-[linear-gradient(135deg,#0d9488_0%,#0f766e_55%,#115e59_100%)]"
+        className="login-panel relative hidden overflow-hidden text-white lg:flex lg:flex-col lg:justify-center"
         aria-hidden="true"
       >
         {/* decorative glows. Tailwind arbitrary-value utilities, not a style attribute: the CSS lands in the
             build's stylesheet rather than as an inline style, which a strict CSP (style-src 'self') blocks. */}
-        <div className="pointer-events-none absolute -top-24 -end-16 size-80 rounded-full opacity-40 blur-3xl bg-[radial-gradient(circle,#5eead4_0%,transparent_70%)]" />
-        <div className="pointer-events-none absolute -bottom-24 -start-10 size-72 rounded-full opacity-30 blur-3xl bg-[radial-gradient(circle,#f59e0b_0%,transparent_70%)]" />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-md flex-col gap-10 px-12">
-          <div className="flex items-center gap-3">
-            <HessaMark className="size-11 shadow-lg ring-1 ring-white/25 rounded-[13px]" />
-            <span className="flex items-baseline gap-2 leading-none">
-              <span className="font-heading text-2xl font-semibold tracking-tight">Hessa</span>
-              <span dir="rtl" className="text-xl font-medium text-white/70">
+        <div className="login-panel-content relative z-10 mx-auto flex w-full flex-col gap-8 px-10 xl:px-20">
+          <div className="flex items-center gap-5">
+            <HessaMark className="size-24" />
+            <span className="flex flex-col gap-2 leading-none">
+              <span className="font-heading text-4xl font-semibold tracking-tight">Hessa</span>
+              <span dir="rtl" className="text-3xl font-medium text-white/80">
                 حصة
               </span>
             </span>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="font-heading text-3xl leading-tight font-semibold text-balance">
+          <div className="space-y-0">
+            <h2 className="font-heading text-4xl leading-tight font-semibold tracking-tight text-balance xl:text-5xl">
               {t("panel.tagline")}
             </h2>
-            <p className="max-w-sm text-base text-white/80">{t("panel.description")}</p>
+            <p className="mt-4 text-lg text-white/80">{t("panel.description")}</p>
           </div>
 
           <ul className="space-y-3">
             {PANEL_FEATURES.map(({ icon: Icon, key }) => (
-              <li
-                key={key}
-                className="flex items-start gap-3 rounded-xl bg-white/10 p-3.5 ring-1 ring-white/15 backdrop-blur-sm"
-              >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                  <Icon className="size-5" strokeWidth={1.75} />
+              <li key={key} className="login-feature flex items-start gap-4 py-4">
+                <span className="flex size-10 shrink-0 items-center justify-center text-[#b397ff]">
+                  <Icon className="size-7" strokeWidth={1.75} />
                 </span>
                 <div className="space-y-0.5">
-                  <p className="text-sm font-semibold">{t(`panel.features.${key}.title`)}</p>
-                  <p className="text-sm text-white/75">{t(`panel.features.${key}.description`)}</p>
+                  <p className="text-base font-semibold">{t(`panel.features.${key}.title`)}</p>
+                  <p className="text-base text-white/75">{t(`panel.features.${key}.description`)}</p>
                 </div>
               </li>
             ))}

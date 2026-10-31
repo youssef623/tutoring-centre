@@ -8,7 +8,7 @@ import { cn } from "cn";
  */
 export function DataTable({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-card sm:overflow-x-auto">
+    <div className="table-surface rounded-xl border border-border bg-card sm:overflow-x-auto">
       <table role="table" className={cn("data-table w-full text-start text-sm", className)}>
         {children}
       </table>
@@ -24,9 +24,19 @@ export function DataTableHead({ children }: { children: ReactNode }) {
   );
 }
 
-export function DataTableColumn({ children, hidden = false }: { children: ReactNode; hidden?: boolean }) {
+export function DataTableColumn({
+  children,
+  hidden = false,
+}: {
+  children: ReactNode;
+  hidden?: boolean;
+}) {
   return (
-    <th role="columnheader" scope="col" className="px-4 py-2.5 text-start font-medium">
+    <th
+      role="columnheader"
+      scope="col"
+      className="px-5 py-3.5 text-start text-xs font-semibold tracking-wide"
+    >
       {hidden ? <span className="sr-only">{children}</span> : children}
     </th>
   );
@@ -41,9 +51,21 @@ export function DataTableBody({ children }: { children: ReactNode }) {
 }
 
 /** `muted` greys out an archived or inactive row; its badge, next to the name, says why in words. */
-export function DataTableRow({ muted = false, children }: { muted?: boolean; children: ReactNode }) {
+export function DataTableRow({
+  muted = false,
+  children,
+}: {
+  muted?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <tr role="row" className={muted ? "text-muted-foreground" : undefined}>
+    <tr
+      role="row"
+      className={cn(
+        "transition-colors hover:bg-muted/40 focus-within:bg-accent/40",
+        muted && "text-muted-foreground",
+      )}
+    >
       {children}
     </tr>
   );
@@ -69,7 +91,7 @@ export function DataTableCell({
       role="cell"
       data-label={kind === undefined ? label : undefined}
       data-cell={kind}
-      className={cn("px-4 py-3", kind === "actions" && "w-px text-end", className)}
+      className={cn("px-5 py-4", kind === "actions" && "w-px text-end", className)}
     >
       {children}
     </td>

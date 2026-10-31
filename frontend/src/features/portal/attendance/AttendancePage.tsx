@@ -7,6 +7,7 @@ import { useSession } from "@/features/session/useSession";
 import { useCentreTimeZone } from "@/features/session/useCentreTimeZone";
 import { formatTime, todayIn } from "@/features/schedule/centreTime";
 import { HistoryStatus } from "@/features/attendance/HistoryStatus";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Route } from "@/routes/portal.attendance";
 
 export function AttendancePage() {
@@ -40,8 +41,8 @@ export function AttendancePage() {
   };
   return (
     <section className="mx-auto max-w-3xl space-y-7">
-      <h1 className="text-3xl font-semibold tracking-tight">{t("attendance")}</h1>
-      <div className="flex flex-wrap items-end justify-between gap-5">
+      <PageHeader title={t("attendance")} />
+      <div className="flex flex-wrap items-end justify-between gap-5 rounded-xl border bg-card p-4">
         {me?.portal?.kind === "parent" && children.length > 1 && (
           <label className="grid gap-2 text-sm font-medium">
             {t("attendanceChild")}
@@ -113,7 +114,7 @@ export function AttendancePage() {
           <h2 className="text-sm font-semibold">
             <time dateTime={date}>{date}</time>
           </h2>
-          <ul className="divide-y border-y">
+          <ul className="divide-y overflow-hidden rounded-xl border bg-card px-4">
             {rows
               .filter((row) => row.localDate === date)
               .map((row) => (

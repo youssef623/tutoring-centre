@@ -16,13 +16,22 @@ import {
 import { ParentLookupField } from "@/components/shared/ParentLookupField";
 import { useParentLookup } from "@/components/shared/useParentLookup";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
-import { registerStudentFormSchema, type RegisterStudentFormValues } from "@/features/students/registerStudentSchema";
+import {
+  registerStudentFormSchema,
+  type RegisterStudentFormValues,
+} from "@/features/students/registerStudentSchema";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/shared/PhoneInput";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const KnownFields = ["fullName", "phone", "schoolYear", "parent.phone", "parent.fullName"] as const;
 
@@ -69,7 +78,10 @@ export function RegisterStudentForm() {
     } else {
       const parentFullName = values.parent.fullName.trim();
       if (parentFullName === "") {
-        setError("parent.fullName", { type: "manual", message: "validation.parentFullNameRequired" });
+        setError("parent.fullName", {
+          type: "manual",
+          message: "validation.parentFullNameRequired",
+        });
         return;
       }
 
@@ -112,14 +124,16 @@ export function RegisterStudentForm() {
 
   return (
     <form
-      className="max-w-lg space-y-6"
+      className="registration-form max-w-lg space-y-6"
       onSubmit={(event) => {
         void onSubmit(event);
       }}
       noValidate
     >
       <fieldset className="space-y-4">
-        <legend className="text-base font-semibold tracking-tight">{t("form.studentSectionTitle")}</legend>
+        <legend className="text-base font-semibold tracking-tight">
+          {t("form.studentSectionTitle")}
+        </legend>
 
         <div className="space-y-1.5">
           <Label htmlFor="student-full-name">{t("form.fullNameLabel")}</Label>
@@ -134,7 +148,9 @@ export function RegisterStudentForm() {
           />
           {errors.fullName !== undefined && (
             <p className="text-sm text-destructive">
-              {errors.fullName.type === "server" ? errors.fullName.message : t(errors.fullName.message ?? "")}
+              {errors.fullName.type === "server"
+                ? errors.fullName.message
+                : t(errors.fullName.message ?? "")}
             </p>
           )}
         </div>
@@ -157,7 +173,9 @@ export function RegisterStudentForm() {
           />
           {errors.phone !== undefined && (
             <p className="text-sm text-destructive">
-              {errors.phone.type === "server" ? errors.phone.message : t(errors.phone.message ?? "")}
+              {errors.phone.type === "server"
+                ? errors.phone.message
+                : t(errors.phone.message ?? "")}
             </p>
           )}
         </div>
@@ -174,14 +192,18 @@ export function RegisterStudentForm() {
           />
           {errors.schoolYear !== undefined && (
             <p className="text-sm text-destructive">
-              {errors.schoolYear.type === "server" ? errors.schoolYear.message : t(errors.schoolYear.message ?? "")}
+              {errors.schoolYear.type === "server"
+                ? errors.schoolYear.message
+                : t(errors.schoolYear.message ?? "")}
             </p>
           )}
         </div>
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="text-base font-semibold tracking-tight">{t("form.parentSectionTitle")}</legend>
+        <legend className="text-base font-semibold tracking-tight">
+          {t("form.parentSectionTitle")}
+        </legend>
 
         <Controller
           control={control}
@@ -214,13 +236,25 @@ export function RegisterStudentForm() {
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange} disabled={disabled}>
                 <SelectTrigger id="parent-relationship" className="w-full">
-                  <SelectValue>{(value: RegisterStudentFormValues["relationship"]) => t(`relationship.${value}`)}</SelectValue>
+                  <SelectValue>
+                    {(value: RegisterStudentFormValues["relationship"]) =>
+                      t(`relationship.${value}`)
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ParentRelationship.father}>{t("relationship.father")}</SelectItem>
-                  <SelectItem value={ParentRelationship.mother}>{t("relationship.mother")}</SelectItem>
-                  <SelectItem value={ParentRelationship.guardian}>{t("relationship.guardian")}</SelectItem>
-                  <SelectItem value={ParentRelationship.other}>{t("relationship.other")}</SelectItem>
+                  <SelectItem value={ParentRelationship.father}>
+                    {t("relationship.father")}
+                  </SelectItem>
+                  <SelectItem value={ParentRelationship.mother}>
+                    {t("relationship.mother")}
+                  </SelectItem>
+                  <SelectItem value={ParentRelationship.guardian}>
+                    {t("relationship.guardian")}
+                  </SelectItem>
+                  <SelectItem value={ParentRelationship.other}>
+                    {t("relationship.other")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}

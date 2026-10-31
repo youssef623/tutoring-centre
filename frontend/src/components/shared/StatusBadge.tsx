@@ -10,5 +10,12 @@ export function StatusBadge({ status }: { status: "active" | "archived" }) {
   const { t } = useTranslation("common");
   const isArchived = status === "archived";
 
-  return <Badge variant={isArchived ? "outline" : "default"}>{t(isArchived ? "status.archived" : "status.active")}</Badge>;
+  return (
+    <Badge
+      variant={isArchived ? "outline" : "secondary"}
+      className={isArchived ? undefined : "border-success/15 bg-success/10 text-success"}
+    >
+      {t(isArchived ? "status.archived" : "status.active")}
+    </Badge>
+  );
 }

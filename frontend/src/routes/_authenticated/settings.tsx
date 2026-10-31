@@ -19,9 +19,18 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { centreSettingsFormSchema, type CentreSettingsFormValues } from "@/features/settings/settingsSchema";
+import {
+  centreSettingsFormSchema,
+  type CentreSettingsFormValues,
+} from "@/features/settings/settingsSchema";
 import { refetchMeOnPermissionDenied } from "@/features/session/refetchMeOnPermissionDenied";
 import { RouteGuard } from "@/features/session/RouteGuard";
 import { Permissions } from "@/features/session/permissions";
@@ -143,7 +152,7 @@ function SettingsPageContent() {
     <section className="space-y-4">
       <PageHeader title={t("page.title")} description={t("page.subtitle")} />
       <form
-        className="max-w-md space-y-4"
+        className="settings-form max-w-xl space-y-5 rounded-2xl border bg-card p-6 shadow-xs"
         onSubmit={(event) => {
           void onSubmit(event);
         }}
@@ -171,7 +180,11 @@ function SettingsPageContent() {
             control={control}
             name="defaultLocale"
             render={({ field }) => (
-              <LocaleSelect value={field.value} onValueChange={field.onChange} disabled={isSubmitting} />
+              <LocaleSelect
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isSubmitting}
+              />
             )}
           />
         </div>
@@ -219,7 +232,11 @@ function LocaleSelect({
       disabled={disabled}
     >
       <SelectTrigger id="settings-locale" className="w-full">
-        <SelectValue>{(current: SupportedLocale) => (current === "ar" ? t("language.arabic") : t("language.english"))}</SelectValue>
+        <SelectValue>
+          {(current: SupportedLocale) =>
+            current === "ar" ? t("language.arabic") : t("language.english")
+          }
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={SupportedLocale.ar}>{t("language.arabic")}</SelectItem>

@@ -18,5 +18,12 @@
   },
   "demoBanner": {
     "message": "Demo environment — data may be reset. Do not enter real personal data."
+  },
+  "route": {
+    "notFound": "This page could not be found",
+    "notFoundDescription": "Check the address or return to your workspace.",
+    "error": "Something interrupted this page",
+    "errorDescription": "Try loading it again or return to your workspace.",
+    "home": "Go to workspace"
   }
 }

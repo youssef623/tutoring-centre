@@ -19,5 +19,6 @@
     "applicationVersion": "إصدار التطبيق",
     "latestMigration": "آخر ترحيل",
     "none": "لا يوجد"
-  }
+  },
+  "title": "حالة النظام"
 }

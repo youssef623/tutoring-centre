@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { apiFetch } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { MessageDetailsDrawer, type ConversationMessage } from "./MessageDetailsDrawer";
 
 interface Conversation {
@@ -44,8 +45,8 @@ export function ConversationsPage() {
     ) ?? [];
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
-      <div className="grid min-h-[65dvh] overflow-hidden rounded-xl border md:grid-cols-[16rem_1fr]">
+      <PageHeader title={t("title")} />
+      <div className="conversation-workspace grid min-h-[65dvh] overflow-hidden rounded-2xl border bg-card shadow-sm md:grid-cols-[16rem_1fr]">
         <aside className="border-b md:border-e md:border-b-0" aria-label={t("title")}>
           {conversations.isPending && (
             <p role="status" className="p-5">

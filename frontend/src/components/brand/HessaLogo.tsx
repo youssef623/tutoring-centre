@@ -2,35 +2,35 @@ import { useId } from "react";
 import { cn } from "cn";
 
 /**
- * The Hessa (حصة) brand mark: a graduation cap on a rounded teal tile.
+ * Hessa's open book: rising pages meet at a shared spine, suggesting discovery and progress.
  * Self-contained SVG with a locally-scoped gradient id so multiple instances never collide.
  */
 export function HessaMark({ className }: { className?: string }) {
   const gradientId = useId();
   return (
-    <svg
-      viewBox="0 0 48 48"
-      role="img"
-      aria-hidden="true"
-      className={cn("size-10", className)}
-    >
+    <svg viewBox="0 0 48 48" role="img" aria-hidden="true" className={cn("size-10", className)}>
       <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="var(--brand-grad-from, #14b8a6)" />
-          <stop offset="1" stopColor="var(--brand-grad-to, #0f766e)" />
+        <linearGradient
+          id={gradientId}
+          x1="0"
+          y1="0"
+          x2="48"
+          y2="48"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#B69AFF" />
+          <stop offset="1" stopColor="#8B5CF4" />
         </linearGradient>
       </defs>
-      <rect width="48" height="48" rx="13" fill={`url(#${gradientId})`} />
-      {/* mortarboard */}
-      <path d="M24 12 L40 20 L24 28 L8 20 Z" fill="#fff" />
-      <path
-        d="M16 23.3 L24 27.3 L32 23.3 V30 C32 32.2 28.4 33.8 24 33.8 C19.6 33.8 16 32.2 16 30 Z"
-        fill="#fff"
-        opacity="0.9"
-      />
-      {/* tassel */}
-      <path d="M40 20 V28.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="40" cy="30.2" r="1.9" fill="var(--brand-grad-accent, #f59e0b)" />
+      <g fill={`url(#${gradientId})`}>
+        <path d="M23 38C17 33 10 31 3 32v-6c8 0 15 5 20 12Z" />
+        <path d="M23 36C17 28 12 24 6 23l2-6c8 3 12 10 15 19Z" />
+        <path d="M23 33C20 24 16 18 12 15l5-5c5 6 6 14 6 23Z" />
+        <path d="M24 31 21 6l7 2-4 23Z" />
+        <path d="M26 34c1-10 5-19 10-23l4 5c-6 4-10 10-14 18Z" />
+        <path d="M26 37c5-10 10-15 16-17l3 6c-8 1-13 5-19 11Z" />
+        <path d="M25 39c7-6 13-8 20-8v6c-8-2-14-1-20 2Z" />
+      </g>
     </svg>
   );
 }
@@ -49,10 +49,10 @@ export function HessaWordmark({
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <HessaMark className="size-9" />
-      <span className="flex items-baseline gap-1.5 leading-none">
+      <span className="brand-type flex items-baseline gap-2 leading-none">
         <span className="font-heading text-xl font-semibold tracking-tight">Hessa</span>
         {showArabic && (
-          <span dir="rtl" className="text-lg font-medium text-muted-foreground">
+          <span dir="rtl" className="brand-arabic text-lg font-medium text-muted-foreground">
             حصة
           </span>
         )}

@@ -108,7 +108,7 @@ function SelectCentrePage() {
   };
 
   return (
-    <main className="flex min-h-dvh flex-col bg-muted/30">
+    <main className="auth-utility flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 sm:px-10">
         <HessaWordmark />
         <div className="flex items-center gap-2">

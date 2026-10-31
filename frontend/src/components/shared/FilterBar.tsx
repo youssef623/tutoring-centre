@@ -6,7 +6,7 @@ export function FilterBar({ label, children }: { label: string; children: ReactN
     <div
       role="search"
       aria-label={label}
-      className="flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-border bg-card p-4"
+      className="filter-bar flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-border bg-card p-4"
     >
       {children}
     </div>

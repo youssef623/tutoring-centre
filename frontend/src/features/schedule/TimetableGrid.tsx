@@ -31,7 +31,7 @@ export function TimetableGrid({
   }
 
   return (
-    <div className="grid gap-3 lg:grid-cols-7 lg:gap-2">
+    <div className="timetable-grid grid gap-3 xl:grid-cols-7 xl:gap-2">
       {weekDates(weekStart).map((date) => {
         const daySessions = byDate.get(date) ?? [];
         const isToday = date === today;
@@ -48,7 +48,10 @@ export function TimetableGrid({
             )}
           >
             <header className="flex items-baseline justify-between gap-2 lg:flex-col lg:items-start lg:gap-0.5">
-              <h2 id={headingId} className="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold">
+              <h2
+                id={headingId}
+                className="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold"
+              >
                 <span>{t(`weekdays.${weekdayOf(date)}`)}</span>
                 <span className="text-xs font-normal text-muted-foreground">
                   {formatCalendarDate(date, i18n.language, { day: "numeric", month: "short" })}
@@ -57,13 +60,17 @@ export function TimetableGrid({
               <div className="flex items-center gap-2">
                 {isToday && <Badge variant="default">{t("timetable.today")}</Badge>}
                 <span className="text-xs text-muted-foreground lg:sr-only">
-                  {daySessions.length === 0 ? t("timetable.noSessionsDay") : t("timetable.sessionCount", { count: daySessions.length })}
+                  {daySessions.length === 0
+                    ? t("timetable.noSessionsDay")
+                    : t("timetable.sessionCount", { count: daySessions.length })}
                 </span>
               </div>
             </header>
 
             {daySessions.length === 0 ? (
-              <p className="hidden py-4 text-center text-xs text-muted-foreground lg:block">{t("timetable.noSessionsDay")}</p>
+              <p className="hidden py-4 text-center text-xs text-muted-foreground lg:block">
+                {t("timetable.noSessionsDay")}
+              </p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
                 {daySessions.map((session) => (

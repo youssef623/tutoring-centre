@@ -1,13 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 48 48">
-  <defs>
-    <linearGradient id="hessa" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#14b8a6"/>
-      <stop offset="1" stop-color="#0f766e"/>
-    </linearGradient>
-  </defs>
-  <rect width="48" height="48" rx="13" fill="url(#hessa)"/>
-  <path d="M24 12 40 20 24 28 8 20Z" fill="#fff"/>
-  <path d="M16 23.3 24 27.3 32 23.3V30c0 2.2-3.6 3.8-8 3.8s-8-1.6-8-3.8Z" fill="#fff" fill-opacity=".9"/>
-  <path d="M40 20v8.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
-  <circle cx="40" cy="30.2" r="1.9" fill="#f59e0b"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="book" x2="1" y2="1"><stop stop-color="#B69AFF"/><stop offset="1" stop-color="#8B5CF4"/></linearGradient></defs><g fill="url(#book)"><path d="M23 38C17 33 10 31 3 32v-6c8 0 15 5 20 12Z"/><path d="M23 36C17 28 12 24 6 23l2-6c8 3 12 10 15 19Z"/><path d="M23 33C20 24 16 18 12 15l5-5c5 6 6 14 6 23Z"/><path d="M24 31 21 6l7 2-4 23Z"/><path d="M26 34c1-10 5-19 10-23l4 5c-6 4-10 10-14 18Z"/><path d="M26 37c5-10 10-15 16-17l3 6c-8 1-13 5-19 11Z"/><path d="M25 39c7-6 13-8 20-8v6c-8-2-14-1-20 2Z"/></g></svg>
