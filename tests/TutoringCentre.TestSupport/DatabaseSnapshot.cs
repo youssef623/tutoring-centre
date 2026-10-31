@@ -5,10 +5,10 @@ using Npgsql;
 namespace TutoringCentre.Api.Tests.Support;
 
 /// <summary>Includes audit, identity and every other user table, including tables added by future migrations.</summary>
-internal sealed record TableFingerprint(long Rows, string ContentHash);
-internal static class DatabaseSnapshot
+public sealed record TableFingerprint(long Rows, string ContentHash);
+public static class DatabaseSnapshot
 {
-    private static readonly HashSet<string> Bookkeeping = new(StringComparer.Ordinal)
+    public static readonly IReadOnlySet<string> Bookkeeping = new HashSet<string>(StringComparer.Ordinal)
     {
         "conversations.conversations", "conversations.inbound_messages", "conversations.outbound_messages",
         "assistant.agent_runs", "assistant.tool_calls", "jobs.outbox_messages"

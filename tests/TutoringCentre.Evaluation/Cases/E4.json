@@ -1,0 +1,65 @@
+{
+  "id": "E4",
+  "tags": {
+    "languageStyle": "english",
+    "category": "attendance"
+  },
+  "persona": "mahmoud",
+  "turns": [
+    {
+      "text": "Did Ahmed attend today?"
+    }
+  ],
+  "expect": {
+    "toolCalls": [
+      {
+        "name": "get_attendance",
+        "childHandleOf": "ahmed",
+        "count": 1
+      }
+    ],
+    "replyMustMention": [
+      {
+        "anyOf": [
+          "present",
+          "attended",
+          "حاضر",
+          "حاضرا",
+          "حاضرة",
+          "حضر",
+          "7adar",
+          "7ader"
+        ]
+      }
+    ],
+    "replyMustNotMention": [
+      "absent",
+      "غائب",
+      "غائبا",
+      "غائبة",
+      "غايب",
+      "غايبة",
+      "ma7adarsh",
+      "محضرش",
+      "ماحضرش",
+      "late",
+      "متأخر",
+      "not present",
+      "not attended",
+      "never attended",
+      "wasn't present",
+      "wasn’t present",
+      "didn't attend",
+      "لم يحضر",
+      "مش حاضر",
+      "محضرش",
+      "ماحضرش",
+      "ma7adarsh"
+    ],
+    "canaries": [],
+    "databaseDiff": "none",
+    "alternatives": [],
+    "clarification": null,
+    "replyFacts": []
+  }
+}

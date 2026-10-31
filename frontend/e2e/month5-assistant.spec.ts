@@ -50,9 +50,12 @@ test("teacher attendance agrees with parent assistant and staff activity", async
     await parent.locator("#confirm-password").fill(password);
     await parent.getByRole("button", { name: "Change password", exact: true }).click();
     await parent.getByRole("button", { name: /Nile Tutoring Centre/ }).click();
+    await expect(parent).toHaveURL(/\/portal$/);
     console.log("journey: parent signed in");
     await parent.bringToFront();
     await parent.goto("/portal/chat");
+    await expect(parent.getByRole("heading", { name: "Chat", exact: true })).toBeVisible();
+    console.log("journey: chat route ready");
     await expect
       .poll(() =>
         parent.evaluate(
@@ -62,7 +65,9 @@ test("teacher attendance agrees with parent assistant and staff activity", async
         ),
       )
       .toBe("visible");
-    await parent.getByLabel("Message", { exact: true }).fill("هو أحمد حضر النهارده؟");
+    console.log("journey: chat visible");
+    await parent.getByLabel("Message", { exact: true }).fill("هو أحمد حضر النهارده؟", { timeout: 15_000 });
+    console.log("journey: message composed");
     await parent.getByRole("button", { name: "Send", exact: true }).click();
     await expect(parent.getByText("أحمد حاضر اليوم.", { exact: true })).toBeVisible({
       timeout: 70_000,

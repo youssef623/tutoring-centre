@@ -54,6 +54,28 @@ jobs:
       - name: Test (all test projects, including architecture tests)
         run: dotnet test TutoringCentre.slnx --no-build -c Release
 
+  eval-replay:
+    name: eval-replay
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Build evaluation host
+        run: dotnet build tests/TutoringCentre.Evaluation -c Release
+      - name: Replay real-model cassettes without model secrets
+        env:
+          CI: "true"
+        run: dotnet run --no-build -c Release --project tests/TutoringCentre.Evaluation -- run --mode replay --out eval-report
+      - name: Upload evaluation report
+        if: always() && hashFiles('eval-report/report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval-report/
+          retention-days: 7
+
   frontend:
     name: frontend
     runs-on: ubuntu-latest

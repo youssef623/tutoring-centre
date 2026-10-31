@@ -9,7 +9,7 @@ namespace TutoringCentre.Api.Tests.Fixtures;
 /// own session. Feature-agnostic: knows nothing about subjects or any other module. Never shared between tests
 /// or users; each sign-in gets its own client.
 /// </summary>
-internal sealed class SignedInClient(HttpClient client, Guid? centreId) : IDisposable
+public sealed class SignedInClient(HttpClient client, Guid? centreId) : IDisposable
 {
     private static readonly Uri MeUri = new("/api/me", UriKind.Relative);
     private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
@@ -41,33 +41,33 @@ internal sealed class SignedInClient(HttpClient client, Guid? centreId) : IDispo
 }
 
 /// <summary>Signs a fresh client in as a seeded user via the real login (and, when asked, centre-selection) endpoints.</summary>
-internal static class SignInHelper
+public static class SignInHelper
 {
     private static readonly Uri LoginUri = new("/api/auth/login", UriKind.Relative);
     private static readonly Uri SelectCentreUri = new("/api/session/centre", UriKind.Relative);
     private static readonly Uri ChangePasswordUri = new("/api/auth/change-password", UriKind.Relative);
 
-    public static Task<SignedInClient> SignInAsNileOwnerAsync(ApiFactory factory) =>
+    public static Task<SignedInClient> SignInAsNileOwnerAsync(SharedApiFactory factory) =>
         SignInAsync(factory, "owner@nile.test");
 
-    public static Task<SignedInClient> SignInAsMaadiOwnerAsync(ApiFactory factory) =>
+    public static Task<SignedInClient> SignInAsMaadiOwnerAsync(SharedApiFactory factory) =>
         SignInAsync(factory, "owner@maadi.test");
 
-    public static Task<SignedInClient> SignInAsNileSecretaryAsync(ApiFactory factory) =>
+    public static Task<SignedInClient> SignInAsNileSecretaryAsync(SharedApiFactory factory) =>
         SignInAsync(factory, "secretary@nile.test");
 
     /// <summary>The two-centre teacher has no auto-selected centre after login; <paramref name="centreSlug"/> picks one explicitly.</summary>
-    public static Task<SignedInClient> SignInAsTwoCentreTeacherAsync(ApiFactory factory, string centreSlug) =>
+    public static Task<SignedInClient> SignInAsTwoCentreTeacherAsync(SharedApiFactory factory, string centreSlug) =>
         SignInAsync(factory, "teacher@both.test", centreSlug);
 
     /// <summary>Signs in as any seeded user; optionally selects a centre by slug when the account has more than one membership.</summary>
-    public static async Task<SignedInClient> SignInAsync(WebApplicationFactory<Program> factory, string email, string? selectCentreSlug = null)
+    public static async Task<SignedInClient> SignInAsync(WebApplicationFactory<Program> factory, string email, string? selectCentreSlug = null, string? password = null)
     {
         ArgumentNullException.ThrowIfNull(factory);
 
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
         using var loginResponse = await AntiforgeryTestHelper.PostAsJsonAsync(
-            client, LoginUri, new { email, password = ApiFactory.TestSeedPassword });
+            client, LoginUri, new { email, password = password ?? SharedApiFactory.TestSeedPassword });
         if (loginResponse.StatusCode != HttpStatusCode.OK)
         {
             client.Dispose();
@@ -102,7 +102,7 @@ internal static class SignInHelper
     /// — the same path a real new teacher takes. Returns the signed-in client and the new user's ID.
     /// </summary>
     public static async Task<(SignedInClient Client, Guid UserId)> CreateAndSignInNewTeacherAsync(
-        ApiFactory factory, SignedInClient owner, string email)
+        SharedApiFactory factory, SignedInClient owner, string email)
     {
         ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(owner);

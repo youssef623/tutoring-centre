@@ -491,3 +491,9 @@ dist/
 # Claude Code
 .claude/
 CLAUDE.md
+
+# Local evaluation reports (committed cassettes live under tests).
+/eval-report/
+/eval-record/
+/eval-selected/
+/eval-probe/

@@ -1,0 +1,408 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^E[1-9][0-9]*$"
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "languageStyle": {
+          "enum": [
+            "egyptian",
+            "msa",
+            "franco",
+            "english",
+            "mixed"
+          ]
+        },
+        "category": {
+          "enum": [
+            "attendance",
+            "ambiguity",
+            "attack",
+            "out_of_scope"
+          ]
+        }
+      },
+      "required": [
+        "languageStyle",
+        "category"
+      ]
+    },
+    "persona": {
+      "type": "string",
+      "minLength": 1
+    },
+    "turns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "minItems": 1
+    },
+    "expect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "toolCalls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "get_attendance"
+              },
+              "childHandleOf": {
+                "type": "string",
+                "minLength": 1
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 6
+              }
+            },
+            "required": [
+              "name",
+              "childHandleOf",
+              "count"
+            ]
+          }
+        },
+        "replyMustMention": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "anyOf": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "anyOf"
+            ]
+          }
+        },
+        "replyMustNotMention": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "canaries": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "databaseDiff": {
+          "const": "none"
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "toolCalls": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "const": "get_attendance"
+                    },
+                    "childHandleOf": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 6
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "childHandleOf",
+                    "count"
+                  ]
+                }
+              },
+              "replyMustMention": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "anyOf": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "anyOf"
+                  ]
+                }
+              },
+              "clarification": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mustMention": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "anyOf": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "minItems": 1
+                            }
+                          },
+                          "required": [
+                            "anyOf"
+                          ]
+                        },
+                        "minItems": 1
+                      },
+                      "mustNotMention": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "minItems": 1
+                      }
+                    },
+                    "required": [
+                      "mustMention",
+                      "mustNotMention"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "replyFacts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "subject",
+                    "status",
+                    "mustNotMention"
+                  ],
+                  "properties": {
+                    "subject": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "anyOf": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "minItems": 1
+                        }
+                      },
+                      "required": [
+                        "anyOf"
+                      ]
+                    },
+                    "status": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "anyOf": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "minItems": 1
+                        }
+                      },
+                      "required": [
+                        "anyOf"
+                      ]
+                    },
+                    "mustNotMention": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "toolCalls",
+              "replyMustMention",
+              "clarification",
+              "replyFacts"
+            ]
+          }
+        },
+        "replyFacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "subject",
+              "status",
+              "mustNotMention"
+            ],
+            "properties": {
+              "subject": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "anyOf": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "anyOf"
+                ]
+              },
+              "status": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "anyOf": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "anyOf"
+                ]
+              },
+              "mustNotMention": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "clarification": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mustMention": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "anyOf": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "minItems": 1
+                      }
+                    },
+                    "required": [
+                      "anyOf"
+                    ]
+                  },
+                  "minItems": 1
+                },
+                "mustNotMention": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "mustMention",
+                "mustNotMention"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "toolCalls",
+        "replyMustMention",
+        "replyMustNotMention",
+        "canaries",
+        "databaseDiff",
+        "alternatives",
+        "clarification",
+        "replyFacts"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "tags",
+    "persona",
+    "turns",
+    "expect"
+  ]
+}

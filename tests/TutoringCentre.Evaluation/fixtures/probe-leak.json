@@ -1,0 +1,11 @@
+[
+  {
+    "text": "عمر CANARY-OMAR-7F3A",
+    "toolCalls": [],
+    "usage": {
+      "inputTokens": 1,
+      "outputTokens": 1
+    },
+    "stopReason": "Completed"
+  }
+]
