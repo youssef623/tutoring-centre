@@ -11,7 +11,9 @@
     "failed": "فشل الإرسال",
     "delivered": "تم التسليم",
     "received": "تم الاستلام",
-    "processed": "تمت المعالجة"
+    "processed": "تمت المعالجة",
+    "completed": "مكتمل",
+    "running": "جار التنفيذ"
   },
   "messageId": "معرّف الرسالة",
   "thread": "الرسائل",
@@ -27,5 +29,47 @@
   "loadFailed": "تعذر تحميل المحادثات.",
   "title": "المحادثات",
   "empty": "لا توجد محادثات بعد",
-  "text": "النص"
+  "text": "النص",
+  "toolFailed": "تعذر إكمال الطلب.",
+  "decisions": {
+    "invalid": "غير صالح",
+    "denied": "مرفوض",
+    "allowed": "مسموح",
+    "failed": "فشل"
+  },
+  "activity": "نشاط المساعد",
+  "steps": "{count} خطوات",
+  "guardFallback": "تم إرسال رد آمن بديل.",
+  "reasons": {
+    "guard": {
+      "ungrounded": "تعذر التحقق من الحضور.",
+      "format": "صيغة الرد غير آمنة.",
+      "foreign_name": "ذكر الرد أسرة أخرى.",
+      "identifier": "احتوى الرد على معرف داخلي."
+    },
+    "tool": {
+      "arguments_invalid": "طلب الأداة غير صالح.",
+      "unknown": "هذه الأداة غير متاحة.",
+      "invalid_arguments": "اختر فترة زمنية صالحة.",
+      "internal_error": "تعذر إكمال الأداة.",
+      "call_limit": "تم بلوغ الحد الأقصى لطلبات الأداة.",
+      "handle_unknown": "هذا الطالب غير متاح."
+    },
+    "assistant": {
+      "account_inactive": "حساب البوابة غير نشط.",
+      "conversation_busy": "جار التعامل مع رسالة سابقة.",
+      "reply_capped": "تم تقصير الرد ليلتزم بالحد الأقصى.",
+      "model_error": "تعذر على المساعد إكمال الرد.",
+      "call_timeout": "انتهت مهلة طلب النموذج.",
+      "total_timeout": "انتهت مهلة تشغيل المساعد.",
+      "token_limit": "تم بلوغ الحد الأقصى للرموز.",
+      "step_limit": "تم بلوغ الحد الأقصى للخطوات.",
+      "tool_call_limit": "تم بلوغ الحد الأقصى لطلبات الأداة.",
+      "tools_unavailable": "الأداة المطلوبة غير متاحة."
+    },
+    "attendance": {
+      "not_found": "تعذر العثور على سجل الحضور."
+    }
+  },
+  "threadEmpty": "لا توجد رسائل بعد"
 }

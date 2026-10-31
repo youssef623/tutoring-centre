@@ -48,5 +48,13 @@
     "processed": "تمت المعالجة"
   },
   "chatLoading": "جارٍ تحميل الرسائل…",
-  "chatRateLimited": "رسائل كثيرة. انتظر دقيقة ثم حاول مجددًا."
+  "chatRateLimited": "رسائل كثيرة. انتظر دقيقة ثم حاول مجددًا.",
+  "attendanceRetry": "إعادة المحاولة",
+  "attendancePrevious": "الشهر السابق",
+  "attendanceMore": "تحميل المزيد",
+  "attendanceChild": "الطالب",
+  "attendanceError": "تعذر تحميل الحضور.",
+  "attendanceEmpty": "لم يتم تسجيل حضور لهذا الشهر",
+  "attendanceNext": "الشهر التالي",
+  "attendanceLoading": "جار تحميل الحضور…"
 }

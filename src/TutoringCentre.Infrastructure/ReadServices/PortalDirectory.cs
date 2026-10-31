@@ -10,6 +10,10 @@ namespace TutoringCentre.Infrastructure.ReadServices;
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by DI.")]
 internal sealed class PortalDirectory(AppDbContext db, ICurrentActor actor) : IPortalDirectory
 {
+    public async Task<IReadOnlyList<string>> ListStudentNamesAsync(CancellationToken ct) =>
+        await db.Set<Student>().AsNoTracking().Where(student => student.CentreId == actor.CentreId)
+            .Select(student => student.FullName).Distinct().ToListAsync(ct);
+
     public async Task<PortalSubjectFacts?> GetParentAsync(Guid parentId, CancellationToken ct) =>
         await db.Set<Parent>().AsNoTracking()
             .Where(parent => parent.CentreId == actor.CentreId && parent.Id == parentId)

@@ -44,7 +44,11 @@ export async function attendanceWrite(page: Page, url: string, data: unknown, me
 }
 
 /** Own group and today's rule through the public Month 3 API; no seeded weekday or roster counts. */
-export async function createAttendanceSession(owner: Page, teacherUserId: string | null) {
+export async function createAttendanceSession(
+  owner: Page,
+  teacherUserId: string | null,
+  namedStudent?: string,
+) {
   const suffix = `${Date.now().toString()}-${Math.random().toString(36).slice(2, 7)}`;
   const sessionsResponse = await owner.request.get("/api/attendance/sessions");
   const calendar = (await sessionsResponse.json()) as AttendanceSessionsDto;
@@ -96,7 +100,7 @@ export async function createAttendanceSession(owner: Page, teacherUserId: string
       capacity: 10,
     })
   ).json()) as { id: string };
-  const studentName = `Attendance student ${suffix}`;
+  const studentName = namedStudent ?? `Attendance student ${suffix}`;
   const student = (await (
     await attendanceWrite(owner, "/api/students", {
       fullName: studentName,

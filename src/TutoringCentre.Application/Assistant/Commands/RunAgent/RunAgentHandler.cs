@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using TutoringCentre.Application.Assistant.Guards;
 using System.Diagnostics.CodeAnalysis;
 using TutoringCentre.Application.Academics.Contracts;
 using TutoringCentre.Application.Assistant.Context;
@@ -18,7 +19,7 @@ namespace TutoringCentre.Application.Assistant.Commands.RunAgent;
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by DI.")]
 internal sealed class RunAgentHandler(IAssistantConversationGateway conversations, IAgentRunRepository runs,
     IPortalDirectory directory, ICentreTimeZoneProvider zones, IClock clock, ICurrentActor actor,
-    AgentLoop loop, AssistantOptions options, PortalActorFactory actors, IActorScopeRunner scopes) : ICommandHandler<RunAgentCommand, RunAgentResult>
+    AgentLoop loop, AssistantOptions options, PortalActorFactory actors, IActorScopeRunner scopes, IConversationLock conversationLock) : ICommandHandler<RunAgentCommand, RunAgentResult>
 {
     public async Task<Result<RunAgentResult>> HandleAsync(RunAgentCommand command, CancellationToken cancellationToken)
     {
@@ -31,12 +32,21 @@ internal sealed class RunAgentHandler(IAssistantConversationGateway conversation
         var ct = timeout.Token;
         var inbound = await conversations.LoadAsync(command.InboundMessageId, ct);
         if (inbound is null) return Result<RunAgentResult>.Failure(Error.NotFound("assistant.inbound_not_found", "Message not found."));
+        if (actor.CentreId is not Guid centre || !await conversationLock.TryAcquireAsync(centre, inbound.ConversationId, ct))
+            return Result<RunAgentResult>.Failure(Error.Conflict("assistant.conversation_busy", "The conversation is busy. Retry shortly."));
+        inbound = await conversations.LoadAsync(command.InboundMessageId, ct) ?? inbound;
+        if (inbound.HasEarlierPending)
+            return Result<RunAgentResult>.Failure(Error.Conflict("assistant.conversation_busy", "An earlier message is still pending."));
         if (!inbound.CanReply)
             return Result<RunAgentResult>.Failure(Error.Rule("assistant.conversation_unavailable", "The conversation cannot receive assistant replies."));
         var run = await runs.TryStartAsync(inbound.ConversationId, command.InboundMessageId, clock.UtcNow, ct);
         if (run is null) return Result<RunAgentResult>.Success(new(true));
         var portalActor = await actors.ForConversationAsync(inbound, ct);
-        if (portalActor.IsFailure) return Result<RunAgentResult>.Failure(portalActor.Error!);
+        if (portalActor.IsFailure)
+        {
+            var failed = run.Fail("assistant.account_inactive", 0, 0, 0, clock.UtcNow);
+            return failed.IsFailure ? Result<RunAgentResult>.Failure(failed.Error!) : Result<RunAgentResult>.Success(new(false));
+        }
         var handles = await scopes.RunAsync(portalActor.Value, provider => provider.GetRequiredService<Dispatcher>()
             .QueryAsync<GetRunHandlesQuery, HandleTable>(new(), ct));
         if (handles.IsFailure) return Result<RunAgentResult>.Failure(handles.Error!);
@@ -48,10 +58,19 @@ internal sealed class RunAgentHandler(IAssistantConversationGateway conversation
         var history = await conversations.GetHistoryAsync(command.InboundMessageId, options.HistoryMessages, ct);
         var context = ContextBuilder.Build(new(identity.DisplayName, inbound.ParentId is not null ? "parent" : "student",
             CentreCalendar.Today(clock, zone), zone.Id, history.Select(x => new ModelMessage(x.IsAssistant ? ModelRole.Assistant : ModelRole.User, x.Text)).ToArray(), inbound.Text, handles.Value), options.HistoryMessages);
+        var toolContext = new ToolContext(run.CentreId, run.Id, command.InboundMessageId, handles.Value);
         var outcome = await loop.RunWithinBudgetAsync(context, workBudget - Stopwatch.GetElapsedTime(started), cancellationToken,
-            new ToolContext(run.CentreId, run.Id, command.InboundMessageId, handles.Value));
+            toolContext);
         cancellationToken.ThrowIfCancellationRequested();
-        var reply = outcome.Reply ?? (IsArabic(inbound.Text) ? "\u0639\u0630\u0631\u0627\u064b\u060c \u0644\u0627 \u0623\u0633\u062a\u0637\u064a\u0639 \u0627\u0644\u0631\u062f \u0627\u0644\u0622\u0646. \u062d\u0627\u0648\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649 \u0642\u0631\u064a\u0628\u0627\u064b." : "Sorry, I cannot reply right now. Please try again soon.");
+        var reply = outcome.Reply ?? FallbackReplies.For(inbound.Text);
+        var names = await directory.ListStudentNamesAsync(cancellationToken);
+        var verdict = OutputGuards.Check(reply, inbound.Text, handles.Value.Children.Values.Select(child => child.Name).ToArray(),
+            names.ToArray(), toolContext.HasAttendance, toolContext.ReturnedFacts, options.MaxReplyCharacters);
+        if (!verdict.Allowed)
+        {
+            reply = FallbackReplies.For(inbound.Text);
+            outcome = outcome with { GuardReason = verdict.Reason };
+        }
         var finished = outcome.FailureCode is null
             ? run.Complete(outcome.Steps, (int)outcome.Usage.InputTokens, (int)outcome.Usage.OutputTokens, clock.UtcNow, outcome.GuardReason)
             : run.Fail(outcome.FailureCode, outcome.Steps, (int)outcome.Usage.InputTokens, (int)outcome.Usage.OutputTokens, clock.UtcNow);
@@ -60,5 +79,4 @@ internal sealed class RunAgentHandler(IAssistantConversationGateway conversation
         if (queued.IsFailure) return Result<RunAgentResult>.Failure(queued.Error!);
         return Result<RunAgentResult>.Success(new(false));
     }
-    private static bool IsArabic(string? text) => text?.Any(c => c is >= '\u0600' and <= '\u06ff') == true;
 }

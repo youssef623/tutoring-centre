@@ -54,7 +54,10 @@ internal sealed class GetMyMembershipsHandler(ICurrentActor currentActor, IMembe
             var facts = portal is ParentActor
                 ? await portalDirectory.GetParentAsync(portal.SubjectId, cancellationToken)
                 : await portalDirectory.GetStudentAsync(portal.SubjectId, cancellationToken);
-            dto = dto with { Portal = new PortalMeDto(portal.RoleKey!, facts?.DisplayName ?? profile.DisplayName) };
+            IReadOnlyList<PortalChild> children = portal is ParentActor
+                ? await portalDirectory.GetChildrenAsync(portal.SubjectId, cancellationToken)
+                : facts is null ? [] : [new PortalChild(facts.Id, facts.DisplayName)];
+            dto = dto with { Portal = new PortalMeDto(portal.RoleKey!, facts?.DisplayName ?? profile.DisplayName, children) };
         }
 
         return Result<MeDto>.Success(dto);

@@ -4,6 +4,7 @@ namespace TutoringCentre.Application.Tests.Fakes;
 
 public sealed class FakePortalDirectory : IPortalDirectory
 {
+    public Task<IReadOnlyList<string>> ListStudentNamesAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<string>>(Students.Values.Select(student => student.DisplayName).ToArray());
     public Dictionary<Guid, PortalSubjectFacts> Parents { get; } = [];
     public Dictionary<Guid, PortalSubjectFacts> Students { get; } = [];
     public IReadOnlyList<PortalChild> Children { get; set; } = [];

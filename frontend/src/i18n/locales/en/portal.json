@@ -48,5 +48,13 @@
     "processed": "Processed"
   },
   "chatLoading": "Loading messages…",
-  "chatRateLimited": "Too many messages. Wait a minute, then retry."
+  "chatRateLimited": "Too many messages. Wait a minute, then retry.",
+  "attendanceRetry": "Retry",
+  "attendancePrevious": "Previous month",
+  "attendanceMore": "Load more",
+  "attendanceChild": "Child",
+  "attendanceError": "Attendance could not be loaded.",
+  "attendanceEmpty": "No attendance recorded for this month",
+  "attendanceNext": "Next month",
+  "attendanceLoading": "Loading attendance…"
 }

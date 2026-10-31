@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Assistant.Queries.GetConversationTimeline;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +47,29 @@ public sealed class ToolCallLogTests(PostgresFixture fixture) : ConversationsTes
         Assert.Equal(expected,await Fixture.ScalarAsync<string>("select decision from assistant.tool_calls order by ordinal desc limit 1"));
         if(code is not null)Assert.Equal(code,await Fixture.ScalarAsync<string>("select reason_code from assistant.tool_calls order by ordinal desc limit 1"));
         Assert.Equal("v2",await Fixture.ScalarAsync<string>("select prompt_version from assistant.agent_runs"));
+        var conversation = await Fixture.ScalarAsync<Guid>("select conversation_id from assistant.agent_runs");
+        var timelineItems = new List<AssistantTimelineItem>();
+        string? cursor = null;
+        do
+        {
+            var page = await services.QueryAsAsync<GetConversationTimelineQuery, ConversationTimelinePage>(new StaffActor(Guid.NewGuid(), NileCentreId, StaffRole.Owner), new(conversation, cursor, 1));
+            Assert.True(page.IsSuccess);
+            timelineItems.AddRange(page.Value.Items); cursor = page.Value.NextCursor;
+        } while (cursor is not null);
+        Assert.Equal(3, timelineItems.Count);
+        Assert.Equal(3, timelineItems.Select(item => item.Id).Distinct().Count());
+        Assert.Equal(timelineItems.OrderByDescending(item => item.At).ThenByDescending(item => item.Id), timelineItems);
+        var activity = Assert.Single(timelineItems, item => item.Kind == "run");
+        Assert.Equal(expected, activity.ToolCalls![^1].Decision);
+        Assert.Equal(code, activity.ToolCalls[^1].ReasonCode);
+        Assert.DoesNotContain("studentId", activity.ToolCalls[^1].ArgumentSummary, StringComparison.Ordinal);
+        var foreignTimeline = await services.QueryAsAsync<GetConversationTimelineQuery, ConversationTimelinePage>(new SystemActor(MaadiCentreId), new(conversation, null));
+        Assert.Equal("conversations.not_found", foreignTimeline.Error!.Code);
+        foreach (var deniedActor in new Actor[] { new ParentActor(account.Value.UserId, NileCentreId, parent), new StaffActor(Guid.NewGuid(), NileCentreId, StaffRole.Teacher) })
+        {
+            var deniedTimeline = await services.QueryAsAsync<GetConversationTimelineQuery, ConversationTimelinePage>(deniedActor, new(conversation, null));
+            Assert.Equal("auth.permission_denied", deniedTimeline.Error!.Code);
+        }
         Assert.False(await Fixture.ScalarAsync<bool>("select has_table_privilege('tutoring_app','assistant.tool_calls','UPDATE') or has_table_privilege('tutoring_app','assistant.tool_calls','DELETE')"));
         Assert.True(await Fixture.ScalarAsync<bool>("select relrowsecurity and relforcerowsecurity from pg_class where oid='assistant.tool_calls'::regclass"));
         var update=await Assert.ThrowsAsync<PostgresException>(()=>ExecuteAsync("update assistant.tool_calls set result_summary='tampered'",Fixture.AppConnectionString,NileCentreId));

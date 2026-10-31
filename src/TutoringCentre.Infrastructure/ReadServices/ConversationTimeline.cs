@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Conversations.Contracts;
 using Microsoft.EntityFrameworkCore;
 using TutoringCentre.Application.Conversations.Web.Queries.ListMyChatMessages;
 using TutoringCentre.Domain.Conversations;

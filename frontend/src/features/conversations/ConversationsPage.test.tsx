@@ -71,3 +71,122 @@ it("renders existing inbound rows without new fields", async () => {
   fireEvent.click(await screen.findByText("+20••••1234"));
   expect(await screen.findByText("Old message")).toBeInTheDocument();
 });
+
+it("a custom secretary role without assistant.view keeps the messages view", async () => {
+  let timelineReads = 0;
+  server.use(
+    http.get("/api/me", () =>
+      HttpResponse.json({
+        userId: "secretary",
+        displayName: "Secretary",
+        email: "secretary@example.test",
+        preferredLocale: "en",
+        mustChangePassword: false,
+        activeCentreId: "centre",
+        activeRole: "secretary",
+        memberships: [],
+        permissions: ["conversations.view"],
+        isOperator: false,
+        portal: null,
+      }),
+    ),
+    http.get("/api/conversations", () =>
+      HttpResponse.json({
+        items: [{ id: "legacy", address: "Legacy family", lastMessageAt: "2026-10-30T10:00:00Z" }],
+      }),
+    ),
+    http.get("/api/conversations/legacy/messages", () =>
+      HttpResponse.json({ items: [], nextCursor: null }),
+    ),
+    http.get("/api/conversations/legacy/timeline", () => {
+      timelineReads++;
+      return HttpResponse.json({ items: [], nextCursor: null });
+    }),
+  );
+  renderWithQueryClient(<ConversationsPage />);
+  fireEvent.click(await screen.findByText("Legacy family"));
+  expect(await screen.findByText("No messages yet")).toBeInTheDocument();
+  expect(screen.queryByText("Assistant activity")).not.toBeInTheDocument();
+  expect(timelineReads).toBe(0);
+});
+
+it("loads allowed, denied and guard-blocked activity through the timeline in Arabic", async () => {
+  await i18n.changeLanguage("ar");
+  const tool = {
+    toolName: "get_attendance",
+    argumentSummary: "child_1",
+    resultSummary: "1 record",
+    durationMs: 4,
+  };
+  server.use(
+    http.get("/api/me", () =>
+      HttpResponse.json({
+        userId: "owner",
+        displayName: "Owner",
+        email: "owner@example.test",
+        preferredLocale: "ar",
+        mustChangePassword: false,
+        activeCentreId: "centre",
+        activeRole: "owner",
+        memberships: [],
+        permissions: ["conversations.view", "assistant.view"],
+        isOperator: false,
+        portal: null,
+      }),
+    ),
+    http.get("/api/conversations", () =>
+      HttpResponse.json({
+        items: [
+          {
+            id: "demo",
+            address: "Demo family",
+            channel: "web",
+            lastMessageAt: "2026-10-30T10:00:00Z",
+          },
+        ],
+      }),
+    ),
+    http.get("/api/conversations/demo/messages", () =>
+      HttpResponse.json({ items: [], nextCursor: null }),
+    ),
+    http.get("/api/conversations/demo/timeline", () =>
+      HttpResponse.json({
+        items: [
+          {
+            id: "denied",
+            kind: "run",
+            at: "2026-10-30T10:02:00Z",
+            status: "completed",
+            steps: 1,
+            guardReason: "guard.identifier",
+            toolCalls: [
+              {
+                ...tool,
+                decision: "denied",
+                reasonCode: "tool.handle_unknown",
+                resultSummary: null,
+              },
+            ],
+          },
+          {
+            id: "allowed",
+            kind: "run",
+            at: "2026-10-30T10:01:00Z",
+            status: "completed",
+            steps: 2,
+            toolCalls: [{ ...tool, decision: "allowed" }],
+          },
+        ],
+        nextCursor: null,
+      }),
+    ),
+  );
+  renderWithQueryClient(<ConversationsPage />);
+  fireEvent.click(await screen.findByText("Demo family"));
+  const activities = await screen.findAllByText("نشاط المساعد");
+  for (const activity of activities) fireEvent.click(activity);
+  expect(screen.getByText("مسموح")).toBeInTheDocument();
+  expect(screen.getByText("مرفوض")).toBeInTheDocument();
+  expect(screen.getByText("احتوى الرد على معرف داخلي.")).toBeInTheDocument();
+  expect(screen.getByText("هذا الطالب غير متاح.")).toBeInTheDocument();
+});

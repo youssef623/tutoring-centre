@@ -41,7 +41,7 @@ public sealed class PortalAccountEndpointTests(ApiFactory factory) : IAsyncLifet
         Assert.Equal(expectedName, portal.GetProperty("subjectName").GetString());
         Assert.NotEqual(body.RootElement.GetProperty("displayName").GetString(), portal.GetProperty("subjectName").GetString());
         Assert.False(portal.TryGetProperty("subjectId", out _));
-        Assert.Equal(["kind", "subjectName"], portal.EnumerateObject().Select(property => property.Name).Order(StringComparer.Ordinal));
+        Assert.Equal(["children", "kind", "subjectName"], portal.EnumerateObject().Select(property => property.Name).Order(StringComparer.Ordinal));
     }
 
     [Fact]

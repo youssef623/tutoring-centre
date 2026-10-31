@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Attendance.Contracts;
 using TutoringCentre.Api.Http;
 using TutoringCentre.Application.Attendance;
 using TutoringCentre.Application.Attendance.Commands.CorrectAttendance;
@@ -34,13 +35,13 @@ public static class AttendanceEndpoints
             .Produces(204).ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403)
             .ProducesProblem(404).ProducesProblem(409).ProducesProblem(422);
         api.MapGet("/attendance", GetHistoryAsync).WithName("getAttendance")
-            .Produces<AttendancePageDto>().ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403);
+            .Produces<AttendancePageDto>().ProducesValidationProblem().ProducesProblem(401).ProducesProblem(403).ProducesProblem(404);
         return api;
     }
 
     private static ValueTask<object?> StaffAudienceAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next) =>
         context.HttpContext.RequestServices.GetRequiredService<ICurrentActor>().Actor is IPortalActor
-            ? ValueTask.FromResult<object?>(Error.Forbidden("auth.permission_denied", "This route is for staff.").ToProblemResult())
+            ? ValueTask.FromResult<object?>(Error.Forbidden("attendance.not_available_to_portal", "Attendance rosters are not available to portal users.").ToProblemResult())
             : next(context);
 
     private static async Task<IResult> ScanAsync(Guid sessionId, RecordScanRequest request, Dispatcher dispatcher, CancellationToken ct)

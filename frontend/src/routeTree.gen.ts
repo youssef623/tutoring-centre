@@ -26,6 +26,7 @@ import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as AuthenticatedTimetableRouteImport } from './routes/_authenticated/timetable'
+import { Route as PortalAttendanceRouteImport } from './routes/portal.attendance'
 import { Route as PortalChatRouteImport } from './routes/portal.chat'
 import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
@@ -123,6 +124,11 @@ const AuthenticatedTimetableRoute = AuthenticatedTimetableRouteImport.update({
   path: '/timetable',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const PortalAttendanceRoute = PortalAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalChatRoute = PortalChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/timetable': typeof AuthenticatedTimetableRoute
+  '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/chat': typeof PortalChatRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/parents/$parentId': typeof AuthenticatedParentsParentIdRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByTo {
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/timetable': typeof AuthenticatedTimetableRoute
+  '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/chat': typeof PortalChatRoute
   '/': typeof AuthenticatedIndexRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
@@ -262,6 +270,7 @@ export interface FileRoutesById {
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/timetable': typeof AuthenticatedTimetableRoute
+  '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/chat': typeof PortalChatRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
@@ -294,6 +303,7 @@ export interface FileRouteTypes {
     | '/subjects'
     | '/teachers'
     | '/timetable'
+    | '/portal/attendance'
     | '/portal/chat'
     | '/groups/$groupId'
     | '/parents/$parentId'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/subjects'
     | '/teachers'
     | '/timetable'
+    | '/portal/attendance'
     | '/portal/chat'
     | '/'
     | '/groups/$groupId'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/_authenticated/subjects'
     | '/_authenticated/teachers'
     | '/_authenticated/timetable'
+    | '/portal/attendance'
     | '/portal/chat'
     | '/_authenticated/'
     | '/_authenticated/groups/$groupId'
@@ -492,6 +504,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/timetable'
       preLoaderRoute: typeof AuthenticatedTimetableRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/portal/attendance': {
+      id: '/portal/attendance'
+      path: '/attendance'
+      fullPath: '/portal/attendance'
+      preLoaderRoute: typeof PortalAttendanceRouteImport
+      parentRoute: typeof PortalRoute
     }
     '/portal/chat': {
       id: '/portal/chat'
@@ -660,10 +679,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface PortalRouteChildren {
+  PortalAttendanceRoute: typeof PortalAttendanceRoute
   PortalChatRoute: typeof PortalChatRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
+  PortalAttendanceRoute: PortalAttendanceRoute,
   PortalChatRoute: PortalChatRoute,
 }
 

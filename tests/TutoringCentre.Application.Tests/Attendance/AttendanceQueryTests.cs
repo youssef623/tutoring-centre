@@ -1,3 +1,4 @@
+using TutoringCentre.Application.Attendance.Contracts;
 using TutoringCentre.Application.Academics.Contracts;
 using TutoringCentre.Application.Attendance;
 using TutoringCentre.Application.Attendance.Queries.GetAttendance;
@@ -18,7 +19,7 @@ public sealed class AttendanceQueryTests
         var fixture = new AttendanceHandlerFixture();
         fixture.Scope.Scope = Scope(kind);
         var reads = new Reads();
-        var result = await new ListAttendanceSessionsHandler(fixture.Roster, fixture.Scope, reads, new FakeCentreTimeZoneProvider(), fixture.Clock)
+        var result = await new ListAttendanceSessionsHandler(fixture.Roster, fixture.Scope, reads, new FakeCentreTimeZoneProvider(), fixture.Clock, fixture.Actor)
             .HandleAsync(new(fixture.Session.LocalDate), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(count, result.Value.Items.Count);
@@ -36,7 +37,7 @@ public sealed class AttendanceQueryTests
     {
         var fixture = new AttendanceHandlerFixture();
         fixture.Clock.UtcNow = new(2026, 12, 4, 22, 30, 0, TimeSpan.Zero);
-        var result = await new ListAttendanceSessionsHandler(fixture.Roster, fixture.Scope, new Reads(), new FakeCentreTimeZoneProvider(), fixture.Clock)
+        var result = await new ListAttendanceSessionsHandler(fixture.Roster, fixture.Scope, new Reads(), new FakeCentreTimeZoneProvider(), fixture.Clock, fixture.Actor)
             .HandleAsync(new(), CancellationToken.None);
         Assert.Equal(new DateOnly(2026, 12, 5), result.Value.Date);
         Assert.Equal("Africa/Cairo", result.Value.TimeZoneId);
@@ -52,7 +53,7 @@ public sealed class AttendanceQueryTests
     {
         var fixture = new AttendanceHandlerFixture();
         fixture.Clock.UtcNow = fixture.Session.StartsAt.AddMinutes(minutes);
-        var result = await new ListAttendanceSessionsHandler(fixture.Roster, fixture.Scope, new Reads(), new FakeCentreTimeZoneProvider(), fixture.Clock)
+        var result = await new ListAttendanceSessionsHandler(fixture.Roster, fixture.Scope, new Reads(), new FakeCentreTimeZoneProvider(), fixture.Clock, fixture.Actor)
             .HandleAsync(new(fixture.Session.LocalDate), CancellationToken.None);
         Assert.Equal(expected, Assert.Single(result.Value.Items).Window);
     }
@@ -64,7 +65,7 @@ public sealed class AttendanceQueryTests
         var reads = new Reads();
         reads.Records.Add(new(fixture.Students[0].StudentId, new(Guid.NewGuid(), "present", "manual", fixture.Clock.UtcNow, "Marker", 0, 55)));
         reads.Records.Add(new(Guid.NewGuid(), reads.Records[0].Record));
-        var result = await new GetSessionAttendanceHandler(fixture.Roster, fixture.Scope, reads, new FakeCentreTimeZoneProvider(), fixture.Clock)
+        var result = await new GetSessionAttendanceHandler(fixture.Roster, fixture.Scope, reads, new FakeCentreTimeZoneProvider(), fixture.Clock, fixture.Actor)
             .HandleAsync(new(fixture.Session.SessionId), CancellationToken.None);
         Assert.Equal(3, result.Value.Items.Count);
         Assert.Equal(55u, result.Value.Items[0].Record!.Version);
@@ -75,7 +76,7 @@ public sealed class AttendanceQueryTests
     public async Task Roster_NotOwnedAndUnknown_AreNotFound()
     {
         var fixture = new AttendanceHandlerFixture();
-        var handler = new GetSessionAttendanceHandler(fixture.Roster, fixture.Scope, new Reads(), new FakeCentreTimeZoneProvider(), fixture.Clock);
+        var handler = new GetSessionAttendanceHandler(fixture.Roster, fixture.Scope, new Reads(), new FakeCentreTimeZoneProvider(), fixture.Clock, fixture.Actor);
         foreach (var id in new[] { fixture.OtherSession.SessionId, Guid.NewGuid() })
         {
             var result = await handler.HandleAsync(new(id), CancellationToken.None);
@@ -91,7 +92,7 @@ public sealed class AttendanceQueryTests
     {
         var reads = new Reads();
         var scope = new FakeTeachingScope { Scope = Scope(kind) };
-        var result = await new GetAttendanceHandler(scope, reads).HandleAsync(new(null, null, new(2026, 12, 1), new(2026, 12, 5)), CancellationToken.None);
+        var result = await new GetAttendanceHandler(scope, reads, new FakeCurrentActor(), new EmptyPortalScope()).HandleAsync(new(null, null, new(2026, 12, 1), new(2026, 12, 5)), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(kind == "all", reads.Access!.IsAll);
         Assert.Equal(kind == "own" ? AttendanceHandlerFixture.TeacherId : (Guid?)null, reads.Access.TeacherId);
@@ -140,6 +141,12 @@ public sealed class AttendanceQueryTests
         "own" => TeachingScope.Own(AttendanceHandlerFixture.TeacherId),
         _ => TeachingScope.None,
     };
+
+    private sealed class EmptyPortalScope : TutoringCentre.Application.Common.Security.IPortalScopeResolver
+    {
+        public Task<IReadOnlySet<Guid>> ResolveAsync(TutoringCentre.Application.Common.Security.IPortalActor actor, CancellationToken ct)
+            => Task.FromResult<IReadOnlySet<Guid>>(new HashSet<Guid>());
+    }
 
     private sealed class Reads : IAttendanceReadService
     {

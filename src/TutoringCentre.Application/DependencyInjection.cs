@@ -28,6 +28,8 @@ public static class DependencyInjection
         services.AddSingleton<ISystemScopeRunner, SystemScopeRunner>();
         services.AddScoped<TutoringCentre.Application.Common.Execution.IActorScopeRunner, TutoringCentre.Application.Common.Execution.ActorScopeRunner>();
         services.AddScoped<TutoringCentre.Application.Assistant.PortalActorFactory>();
+        TutoringCentre.Application.Assistant.Tools.ToolRegistration.AddTool<TutoringCentre.Application.Assistant.Tools.GetAttendance.GetAttendanceTool>(services);
+        services.AddScoped<TutoringCentre.Application.Assistant.Contracts.IAssistantCalendar, TutoringCentre.Application.Assistant.AssistantCalendar>();
         services.AddScoped<TutoringCentre.Application.Assistant.Tools.ToolRegistry>();
         services.AddScoped<TutoringCentre.Application.Assistant.Tools.ToolGateway>();
 
@@ -36,7 +38,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandTimeoutPolicy, TutoringCentre.Application.Assistant.AgentCommandTimeoutPolicy>();
         services.AddOutbox();
         services.AddOutboxMessage<InboundMessageReceived, TutoringCentre.Application.Conversations.Inbound.Commands.ProcessInboundMessage.ProcessInboundMessageCommand>(message => new(message.MessageId));
-        services.AddOutboxMessage<TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentRequested, TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentCommand>(message => new(message.InboundMessageId));
+        services.AddOutboxMessage<TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentRequested, TutoringCentre.Application.Assistant.Commands.RunAgent.RunAgentCommand>(message => new(message.InboundMessageId), "assistant.conversation_busy");
         services.AddOutboxMessage<SendOutboundMessageRequested, SendOutboundMessageCommand>(message => new(message.OutboundMessageId));
         services.AddOutboxMessage<DeliveryStatusRecorded, RecordDeliveryStatusCommand>(message => new(message.OutboundMessageId, message.Status));
         services.AddScoped<ChannelSenderRegistry>();

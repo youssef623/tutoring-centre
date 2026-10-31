@@ -22,6 +22,8 @@ public sealed class OutboxRegistry
     }
 
     /// <summary>Known work awaiting its consumer; it must remain pending rather than be acknowledged or discarded.</summary>
+    public bool IsRetryable(string typeName, string code) => _mappings.TryGetValue(typeName, out var mapping) && mapping.RetryableCodes.Contains(code, StringComparer.Ordinal);
+
     public bool IsDeferred(string typeName) => _deferred.Contains(typeName);
 
     public bool TryResolve(string typeName, string payload, out OutboxDelivery? delivery)
@@ -43,7 +45,7 @@ public sealed class OutboxDelivery(object command, Func<IServiceProvider, Cancel
     public Task<Result> DispatchAsync(IServiceProvider services, CancellationToken cancellationToken) => dispatch(services, cancellationToken);
 }
 
-internal sealed record OutboxMapping(string TypeName, Func<string, OutboxDelivery> Resolve);
+internal sealed record OutboxMapping(string TypeName, Func<string, OutboxDelivery> Resolve, IReadOnlyList<string> RetryableCodes);
 internal sealed record DeferredOutboxType(string TypeName);
 
 public static class OutboxRegistration
@@ -67,7 +69,7 @@ public static class OutboxRegistration
 
     /// <summary>Registers one stable message type to one idempotent command. Delivery may repeat after commit.</summary>
     public static IServiceCollection AddOutboxMessage<TMessage, TCommand>(this IServiceCollection services,
-        Func<TMessage, TCommand> toCommand) where TMessage : class, IOutboxMessage
+        Func<TMessage, TCommand> toCommand, params string[] retryableCodes) where TMessage : class, IOutboxMessage
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(toCommand);
@@ -80,7 +82,7 @@ public static class OutboxRegistration
         // or arbitrary command discovery occurs, and delivery itself uses the typed dispatcher delegate.
         var factory = typeof(OutboxRegistration).GetMethod(nameof(CreateMapping), BindingFlags.NonPublic | BindingFlags.Static)!
             .MakeGenericMethod(typeof(TMessage), typeof(TCommand), contracts[0].GenericTypeArguments[0]);
-        var mapping = (OutboxMapping)factory.Invoke(null, [toCommand])!;
+        var mapping = (OutboxMapping)factory.Invoke(null, [toCommand, retryableCodes])!;
         // Installing the real consumer explicitly promotes pending work; the type is never both active and deferred.
         foreach (var descriptor in services.Where(descriptor => descriptor.ImplementationInstance is DeferredOutboxType deferred
             && deferred.TypeName == TMessage.TypeName).ToArray())
@@ -98,7 +100,7 @@ public static class OutboxRegistration
             throw new InvalidOperationException($"Outbox type '{typeName}' is already registered.");
     }
 
-    private static OutboxMapping CreateMapping<TMessage, TCommand, TResponse>(Func<TMessage, TCommand> toCommand)
+    private static OutboxMapping CreateMapping<TMessage, TCommand, TResponse>(Func<TMessage, TCommand> toCommand, string[] retryableCodes)
         where TMessage : class, IOutboxMessage where TCommand : ICommand<TResponse> => new(TMessage.TypeName, payload =>
         {
             var message = JsonSerializer.Deserialize<TMessage>(payload, JsonSerializerOptions.Web)
@@ -106,5 +108,5 @@ public static class OutboxRegistration
             var command = toCommand(message);
             return new OutboxDelivery(command, async (services, ct) =>
                 await services.GetRequiredService<Dispatcher>().SendAsync<TCommand, TResponse>(command, ct));
-        });
+        }, Array.AsReadOnly(retryableCodes.ToArray()));
 }

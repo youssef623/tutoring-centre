@@ -27,24 +27,25 @@ export function PortalShell({ me, children }: { me: MeDto; children?: ReactNode 
           >
             <Link
               to="/portal/chat"
-              className="flex items-center gap-2 border-b-2 border-primary px-3 py-2 text-sm font-medium text-primary"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium"
+              activeOptions={{ exact: true, includeSearch: false }}
+              activeProps={{ className: "border-b-2 border-primary text-primary" }}
+              inactiveProps={{ className: "border-b-2 border-transparent text-muted-foreground" }}
             >
               <MessageCircle className="size-4" aria-hidden="true" />
               {t("chat")}
             </Link>
-            {[{ key: "attendance", Icon: CalendarDays }].map(({ key, Icon }) => (
-              <button
-                key={key}
-                disabled
-                className="flex min-w-24 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground"
-              >
-                <Icon className="size-4" aria-hidden="true" />
-                <span>
-                  {t(key)}
-                  <span className="mt-1 block text-xs text-primary">{t("coming")}</span>
-                </span>
-              </button>
-            ))}
+            <Link
+              to="/portal/attendance"
+              search={{ month: undefined }}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium"
+              activeOptions={{ exact: true, includeSearch: false }}
+              activeProps={{ className: "border-b-2 border-primary text-primary" }}
+              inactiveProps={{ className: "border-b-2 border-transparent text-muted-foreground" }}
+            >
+              <CalendarDays className="size-4" aria-hidden="true" />
+              {t("attendance")}
+            </Link>{" "}
           </nav>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />

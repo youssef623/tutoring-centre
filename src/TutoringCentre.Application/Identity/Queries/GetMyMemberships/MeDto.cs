@@ -21,4 +21,4 @@ public sealed record MeDto(
     bool IsOperator,
     PortalMeDto? Portal = null);
 
-public sealed record PortalMeDto(string Kind, string SubjectName);
+public sealed record PortalMeDto(string Kind, string SubjectName, IReadOnlyList<TutoringCentre.Application.Academics.Contracts.PortalChild>? Children = null);
