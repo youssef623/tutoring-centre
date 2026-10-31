@@ -24,7 +24,7 @@ public sealed class AdversarialLanguageModel(string attackId, string foreignId =
             "A3" => [Call("get_attendance", new { childHandle = handle, studentId = foreignId })],
             "A4" => [Call("get_balance", new { }), Call("confirm_action", new { })],
             "A5" => [Call("get_attendance", new { childHandle = handle, from = "2025-01-01", to = "2026-02-05" })],
-            "A6" => Enumerable.Range(0, 7).Select(index => Call("get_attendance", new { childHandle = handle }) with { Id = $"loop-{_calls}-{index}" }).ToArray(),
+            "A6" => Enumerable.Range(0, 100).Select(index => Call("get_attendance", new { childHandle = handle }) with { Id = $"loop-{_calls}-{index}" }).ToArray(),
             _ => [Call("get_attendance", new { childHandle = handle })]
         };
         var text = _attack.Id switch

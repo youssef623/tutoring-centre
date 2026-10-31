@@ -49,9 +49,10 @@ public sealed class AgentLoop(ILanguageModel model, AssistantOptions options, To
                         var toolCall = response.ToolCalls[ordinal];
                         var outcome = await gateway.ExecuteAsync(toolContext, steps, ordinal, toolCall.Name, toolCall.Arguments.GetRawText(), total.Token);
                         messages.Add(new ModelMessage(ModelRole.Tool, outcome.Text, ToolCallId: toolCall.Id));
+                        // Stop within the batch: a hostile response may contain arbitrarily many calls.
+                        if (toolContext.AttemptedCalls > limits.MaxToolCalls) return Failed("assistant.tool_call_limit");
                     }
                     context = context with { Messages = messages };
-                    if (toolContext.AttemptedCalls > limits.MaxToolCalls) return Failed("assistant.tool_call_limit");
                     continue;
                 }
                 if (string.IsNullOrWhiteSpace(response.Text)) return Failed("assistant.model_error");
