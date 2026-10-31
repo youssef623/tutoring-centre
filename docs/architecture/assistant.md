@@ -19,3 +19,6 @@ Use Testing with Assistant__Provider=scripted, Assistant__ScriptPath pointing to
 For a local live smoke run, provide Assistant__ApiKey and Assistant__Model through environment variables, set ASSISTANT_E2E_LIVE=1 and run the same journey. No key is needed or allowed in CI. Scripted provider is accepted only in Testing. Keys must never appear in artifacts, logs or committed configuration.
 
 See ADR 0018 for web identity and ADR 0019 for the transaction and future three-phase alternative.
+# Month 5 billing boundary
+
+There is no financial assistant tool. The tool allow-list, current-run family handles, strict argument schemas, caps and output guards continue to protect the attendance flow. Charging happens only through system commands/jobs/outbox, independently of model responses. Refusal snapshots include billing.charges, effective fee schedules and audit among business evidence; only the six established bookkeeping tables are excluded. The Month 5 journey checks an own-child attendance answer, a cross-family refusal and staff-visible allowed activity through the existing pipeline.

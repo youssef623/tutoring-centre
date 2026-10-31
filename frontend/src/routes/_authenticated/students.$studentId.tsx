@@ -1,3 +1,5 @@
+import { StudentBillingTab } from "@/features/billing/StudentBillingTab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PortalAccountSection } from "@/features/portal/PortalAccountSection";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -247,20 +249,34 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
         </div>
       </div>
 
-      <PortalAccountSection kind="student" subjectId={student.id} />
-      <ParentsCard student={student} canManage={canManage && !isArchived} />
-      <Can permission={Permissions.AttendanceCardsManage}>
-        <StudentCardSection key={student.id} student={student} />
-      </Can>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">{t("billing:overview")}</TabsTrigger>
+          <Can permission={Permissions.BillingView}>
+            <TabsTrigger value="billing">{t("billing:title")}</TabsTrigger>
+          </Can>
+        </TabsList>
+        <TabsContent value="overview" className="space-y-4">
+          <PortalAccountSection kind="student" subjectId={student.id} />
+          <ParentsCard student={student} canManage={canManage && !isArchived} />
+          <Can permission={Permissions.AttendanceCardsManage}>
+            <StudentCardSection key={student.id} student={student} />
+          </Can>
 
-      <Can permission={Permissions.EnrollmentsView}>
-        <StudentEnrollmentsCard student={student} canEnroll={!isArchived} />
-      </Can>
+          <Can permission={Permissions.EnrollmentsView}>
+            <StudentEnrollmentsCard student={student} canEnroll={!isArchived} />
+          </Can>
 
-      <Can permission={Permissions.AttendanceView}>
-        <StudentAttendanceCard studentId={student.id} />
-      </Can>
-
+          <Can permission={Permissions.AttendanceView}>
+            <StudentAttendanceCard studentId={student.id} />
+          </Can>
+        </TabsContent>
+        <Can permission={Permissions.BillingView}>
+          <TabsContent value="billing">
+            <StudentBillingTab studentId={student.id} />
+          </TabsContent>
+        </Can>
+      </Tabs>
       {canManage && (
         <StudentEditDialog student={student} open={editOpen} onOpenChange={setEditOpen} />
       )}

@@ -144,9 +144,11 @@ public sealed class PortalChatEndpointTests(ApiFactory factory) : IAsyncLifetime
             .AddSingleton<ILanguageModel>(model)
             .AddSingleton(factory.Services.GetRequiredService<IClock>())
             .BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
+        var relay = services.GetRequiredService<OutboxRelayService>();
+        // Enrollment's new identifier-only billing work belongs to fixture setup, before the measured chat turn.
+        for (var setupStage = 0; setupStage < 3; setupStage++) await relay.ProcessBatchAsync();
         using var sent = await SendAsync(actor.Client, Guid.NewGuid(), "\u0645\u0631\u062d\u0628\u0627");
         Assert.Equal(HttpStatusCode.Created,sent.StatusCode);
-        var relay = services.GetRequiredService<OutboxRelayService>();
         for(var stage=0;stage<3;stage++) Assert.Equal(1,await relay.ProcessBatchAsync());
         Assert.Equal(0,await relay.ProcessBatchAsync());
         using var list = await actor.Client.GetAsync(Messages);

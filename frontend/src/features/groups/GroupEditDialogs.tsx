@@ -78,7 +78,15 @@ function useGroupMutationOutcome(group: GroupDto, onOpenChange: (open: boolean) 
   return { succeed, fail, queryClient };
 }
 
-function FieldMessage({ id, error, t }: { id: string; error: FieldError | undefined; t: (key: string) => string }) {
+function FieldMessage({
+  id,
+  error,
+  t,
+}: {
+  id: string;
+  error: FieldError | undefined;
+  t: (key: string) => string;
+}) {
   if (error === undefined) {
     return null;
   }
@@ -165,16 +173,25 @@ export function RenameGroupDialog({ group, open, onOpenChange }: GroupDialogProp
     formState: { errors, isSubmitting, isDirty },
   } = useForm<RenameGroupFormValues>({
     resolver: zodResolver(renameGroupFormSchema),
-    values: open ? { name: group.name } : undefined,
+    values: open ? { name: group.name, monthlyFee: group.monthlyFee ?? "0.00" } : undefined,
   });
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await mutation.mutateAsync({ id: group.id, data: { name: values.name, version: group.version } });
+      await mutation.mutateAsync({
+        id: group.id,
+        data: {
+          name: values.name,
+          version: group.version,
+          ...(values.monthlyFee !== (group.monthlyFee ?? "0.00") && values.monthlyFee !== undefined
+            ? { monthlyFee: Number(values.monthlyFee) }
+            : {}),
+        },
+      });
       await succeed(t("toasts.renamed"));
     } catch (thrown) {
       const apiError = asApiError(thrown);
-      if (!applyTranslatedFieldErrors(apiError, setError, ["name"] as const)) {
+      if (!applyTranslatedFieldErrors(apiError, setError, ["name", "monthlyFee"] as const)) {
         await fail(apiError);
       }
     }
@@ -204,6 +221,21 @@ export function RenameGroupDialog({ group, open, onOpenChange }: GroupDialogProp
         {...register("name")}
       />
       <FieldMessage id="rename-group-name-error" error={errors.name} t={t} />
+      <Label htmlFor="rename-group-monthlyFee">{t("form.monthlyFeeLabel")}</Label>
+      <Input
+        id="rename-group-monthlyFee"
+        type="number"
+        inputMode="decimal"
+        min="0"
+        max="99999999.99"
+        step="0.01"
+        dir="ltr"
+        disabled={isSubmitting}
+        {...register("monthlyFee")}
+        aria-invalid={errors.monthlyFee !== undefined}
+      />
+      <p className="text-xs text-muted-foreground">{t("form.monthlyFeeHint")}</p>
+      <FieldMessage id="rename-group-monthlyFee-error" error={errors.monthlyFee} t={t} />
     </GroupDialogFrame>
   );
 }
@@ -224,7 +256,10 @@ export function ChangeGroupCapacityDialog({ group, open, onOpenChange }: GroupDi
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await mutation.mutateAsync({ id: group.id, data: { capacity: values.capacity, version: group.version } });
+      await mutation.mutateAsync({
+        id: group.id,
+        data: { capacity: values.capacity, version: group.version },
+      });
       await succeed(t("toasts.capacityChanged"));
     } catch (thrown) {
       const apiError = asApiError(thrown);
@@ -261,7 +296,11 @@ export function ChangeGroupCapacityDialog({ group, open, onOpenChange }: GroupDi
         className="w-32 text-start"
         disabled={isSubmitting}
         aria-invalid={errors.capacity !== undefined}
-        aria-describedby={errors.capacity !== undefined ? "change-group-capacity-error" : "change-group-capacity-hint"}
+        aria-describedby={
+          errors.capacity !== undefined
+            ? "change-group-capacity-error"
+            : "change-group-capacity-hint"
+        }
         {...register("capacity", { valueAsNumber: true })}
       />
       {errors.capacity === undefined ? (
@@ -293,7 +332,10 @@ export function AssignGroupTeacherDialog({ group, open, onOpenChange }: GroupDia
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await mutation.mutateAsync({ id: group.id, data: { teacherId: values.teacherId, version: group.version } });
+      await mutation.mutateAsync({
+        id: group.id,
+        data: { teacherId: values.teacherId, version: group.version },
+      });
       await succeed(t("toasts.teacherChanged"));
     } catch (thrown) {
       const apiError = asApiError(thrown);

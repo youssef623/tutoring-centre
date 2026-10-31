@@ -1,3 +1,4 @@
+import { formatMoney } from "@/features/billing/money";
 import { Link } from "@tanstack/react-router";
 import { Armchair, CircleSlash, Plus, UsersRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -42,7 +43,7 @@ export function GroupsList({
   onlyFreeSeats?: boolean;
   onCreate: () => void;
 }) {
-  const { t } = useTranslation("groups");
+  const { t, i18n } = useTranslation("groups");
   const { t: tCommon } = useTranslation("common");
   const canManage = useCan(Permissions.GroupsManage);
   const { data, error, isPending, refetch } = useListGroups({
@@ -98,7 +99,13 @@ export function GroupsList({
 
   if (data.items.length === 0) {
     if (isFiltered) {
-      return <EmptyState icon={CircleSlash} title={t("emptyState.noMatchTitle")} description={t("emptyState.noMatchDescription")} />;
+      return (
+        <EmptyState
+          icon={CircleSlash}
+          title={t("emptyState.noMatchTitle")}
+          description={t("emptyState.noMatchDescription")}
+        />
+      );
     }
 
     return canManage ? (
@@ -116,14 +123,20 @@ export function GroupsList({
         }
       />
     ) : (
-      <EmptyState icon={UsersRound} title={t("emptyState.assignedTitle")} description={t("emptyState.assignedDescription")} />
+      <EmptyState
+        icon={UsersRound}
+        title={t("emptyState.assignedTitle")}
+        description={t("emptyState.assignedDescription")}
+      />
     );
   }
 
   const active = data.items.filter((group) => group.status === "active");
   const enrolled = active.reduce((sum, group) => sum + Number(group.enrolledCount), 0);
   const capacity = active.reduce((sum, group) => sum + Number(group.capacity), 0);
-  const fullCount = active.filter((group) => Number(group.enrolledCount) >= Number(group.capacity)).length;
+  const fullCount = active.filter(
+    (group) => Number(group.enrolledCount) >= Number(group.capacity),
+  ).length;
   // A client-side filter of the page already loaded, labelled as such; the counts themselves stay the server's.
   const rows = onlyFreeSeats
     ? active.filter((group) => Number(group.enrolledCount) < Number(group.capacity))
@@ -133,14 +146,22 @@ export function GroupsList({
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatTile icon={UsersRound} label={t("stats.activeGroups")} value={active.length} />
-        <StatTile icon={Armchair} label={t("stats.openSeats")} value={Math.max(0, capacity - enrolled)} />
+        <StatTile
+          icon={Armchair}
+          label={t("stats.openSeats")}
+          value={Math.max(0, capacity - enrolled)}
+        />
         <StatTile icon={CircleSlash} label={t("stats.fullGroups")} value={fullCount} />
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState icon={CircleSlash} title={t("emptyState.noMatchTitle")} description={t("emptyState.noMatchDescription")} />
+        <EmptyState
+          icon={CircleSlash}
+          title={t("emptyState.noMatchTitle")}
+          description={t("emptyState.noMatchDescription")}
+        />
       ) : (
-          <DataTable className="sm:min-w-[720px]">
+        <DataTable className="sm:min-w-[720px]">
           <DataTableHead>
             <DataTableColumn>{t("columns.name")}</DataTableColumn>
             <DataTableColumn>{t("columns.subject")}</DataTableColumn>
@@ -163,6 +184,11 @@ export function GroupsList({
                       >
                         <bdi>{group.name}</bdi>
                       </Link>
+                      {typeof group.monthlyFee === "string" && (
+                        <span className="text-xs text-muted-foreground">
+                          <bdi dir="ltr">{formatMoney(group.monthlyFee, i18n.language)}</bdi> EGP
+                        </span>
+                      )}
                       {isArchived && <StatusBadge status="archived" />}
                     </span>
                   </DataTableCell>
@@ -173,7 +199,10 @@ export function GroupsList({
                     <bdi>{group.teacherName}</bdi>
                   </DataTableCell>
                   <DataTableCell label={t("columns.seats")}>
-                    <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
+                    <SeatMeter
+                      enrolled={Number(group.enrolledCount)}
+                      capacity={Number(group.capacity)}
+                    />
                   </DataTableCell>
                 </DataTableRow>
               );

@@ -9,7 +9,8 @@ namespace TutoringCentre.Application.Academics.Groups.Commands.RenameGroup;
 /// name is a success with no change. The save, not the handler, detects a stale version.
 /// </summary>
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by the DI container.")]
-internal sealed class RenameGroupHandler(IGroupRepository groups) : ICommandHandler<RenameGroupCommand, Unit>
+internal sealed class RenameGroupHandler(IGroupRepository groups, TutoringCentre.Application.Common.Ports.IClock clock,
+    TutoringCentre.Application.Centres.Contracts.ICentreTimeZoneProvider zones) : ICommandHandler<RenameGroupCommand, Unit>
 {
     public async Task<Result<Unit>> HandleAsync(RenameGroupCommand command, CancellationToken cancellationToken)
     {
@@ -33,6 +34,14 @@ internal sealed class RenameGroupHandler(IGroupRepository groups) : ICommandHand
             return Result<Unit>.Failure(GroupErrors.NameTaken());
         }
 
+        if (command.MonthlyFee is { } amount)
+        {
+            var fee = TutoringCentre.Domain.Common.Money.Create(amount);
+            if (fee.IsFailure) return Result<Unit>.Failure(fee.Error!);
+            var month = TutoringCentre.Domain.Common.BillingMonth.Of(TutoringCentre.Application.Common.Time.CentreCalendar.Today(clock, await zones.GetForCurrentCentreAsync(cancellationToken))).Next();
+            var changed = group.SetMonthlyFee(fee.Value, month);
+            if (changed.IsFailure) return Result<Unit>.Failure(changed.Error!);
+        }
         return Result<Unit>.Success(Unit.Value);
     }
 }

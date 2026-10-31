@@ -1,3 +1,4 @@
+using TutoringCentre.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -26,6 +27,7 @@ internal sealed class GroupConfiguration : IEntityTypeConfiguration<Group>
             table =>
             {
                 table.HasCheckConstraint("ck_groups_status", "status IN ('active','archived')");
+                table.HasCheckConstraint("ck_groups_monthly_fee", "monthly_fee >= 0");
                 table.HasCheckConstraint("ck_groups_capacity", "capacity BETWEEN 1 AND 200");
             });
 
@@ -39,6 +41,8 @@ internal sealed class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.Property(group => group.SubjectId).IsRequired();
         builder.Property(group => group.TeacherId).IsRequired();
         builder.Property(group => group.Capacity).IsRequired();
+        builder.Property(group => group.MonthlyFee).HasConversion(x => x.Amount, x => TutoringCentre.Domain.Common.Money.Create(x).Value).HasPrecision(10, 2).HasDefaultValueSql("0");
+        builder.Navigation(group => group.MonthlyFees).UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder
             .Property(group => group.Status)

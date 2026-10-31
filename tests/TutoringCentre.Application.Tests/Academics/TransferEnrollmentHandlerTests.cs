@@ -112,6 +112,7 @@ public sealed class TransferEnrollmentHandlerTests
         Assert.Equal(NileCentreId, added.CentreId);
         Assert.Equal(EnrollmentStatus.Active, added.Status);
         Assert.Equal(sut.Clock.UtcNow, added.EnrolledAt);
+        Assert.Equal(added.Id, Assert.IsType<TutoringCentre.Application.Academics.Contracts.EnrollmentStarted>(Assert.Single(sut.Outbox.Messages)).EnrollmentId);
     }
 
     private sealed class Sut
@@ -127,8 +128,10 @@ public sealed class TransferEnrollmentHandlerTests
             Current = Enrollment.Start(NileCentreId, Guid.CreateVersion7(), Source.Id, Clock.UtcNow.AddDays(-7)).Value;
             Enrollments.Existing.Add(Current);
             var actor = new FakeCurrentActor { Actor = new StaffActor(Guid.CreateVersion7(), NileCentreId, StaffRole.Secretary) };
-            Handler = new TransferEnrollmentHandler(actor, Clock, Groups, Enrollments);
+            Handler = new TransferEnrollmentHandler(actor, Clock, Groups, Enrollments, Outbox);
         }
+
+        public FakeOutbox Outbox { get; } = new();
 
         public FakeClock Clock { get; } = new();
 

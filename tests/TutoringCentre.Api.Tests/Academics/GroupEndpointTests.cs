@@ -59,8 +59,9 @@ public sealed class GroupEndpointTests(ApiFactory factory) : IAsyncLifetime
         Assert.Equal("active", group.GetProperty("status").GetString());
         Assert.True(group.GetProperty("version").GetUInt32() > 0);
 
-        // Groups carry no contact data: exactly the ten GroupDto fields, nothing else.
-        Assert.Equal(10, group.EnumerateObject().Count());
+        // Money-authorized staff additionally receive the additive, two-place fee field; still no contact data.
+        Assert.Equal("0.00", group.GetProperty("monthlyFee").GetString());
+        Assert.Equal(11, group.EnumerateObject().Count());
     }
 
     [Fact]

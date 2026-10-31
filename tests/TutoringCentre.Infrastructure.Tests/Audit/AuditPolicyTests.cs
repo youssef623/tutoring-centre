@@ -25,9 +25,9 @@ public sealed class AuditPolicyTests
     }
 
     [Fact]
-    public void Entries_HasExactlyFifteenAuditedTypes()
+    public void Entries_HasExactlySeventeenAuditedTypes()
     {
-        Assert.Equal(15, AuditPolicy.Entries.Count);
+        Assert.Equal(17, AuditPolicy.Entries.Count);
         Assert.Contains(typeof(TutoringCentre.Domain.Conversations.ChannelAccount), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(PortalLink), AuditPolicy.Entries.Keys);
         Assert.Contains(typeof(StudentCard), AuditPolicy.Entries.Keys);
@@ -219,7 +219,7 @@ public sealed class AuditPolicyTests
         var entry = AuditPolicy.Entries[typeof(Group)];
 
         Assert.Equal(AuditEntityType.Group, entry.EntityType);
-        Assert.Equal(new HashSet<string> { "Name", "SubjectId", "TeacherId", "Capacity", "Status" }, entry.AllowedFields);
+        Assert.Equal(new HashSet<string> { "Name", "SubjectId", "TeacherId", "Capacity", "Status", "MonthlyFee" }, entry.AllowedFields);
         Assert.Empty(entry.MaskedFields);
     }
 
@@ -284,7 +284,7 @@ public sealed class AuditPolicyTests
     {
         var withoutList = AuditPolicy.Entries.Values.Where(entry => entry.Actions is null).ToList();
 
-        Assert.Equal(11, withoutList.Count);
+        Assert.Equal(12, withoutList.Count);
         Assert.All(withoutList, entry =>
             Assert.All(Enum.GetValues<AuditAction>(), action => Assert.True(entry.Records(action))));
     }

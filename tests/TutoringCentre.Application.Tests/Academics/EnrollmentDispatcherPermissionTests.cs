@@ -145,6 +145,7 @@ public sealed class EnrollmentDispatcherPermissionTests
         reads.StudentIds.Add(student.Id);
 
         var provider = new ServiceCollection()
+            .AddSingleton<TutoringCentre.Application.Common.Messaging.IOutbox>(new FakeOutbox())
             .AddSingleton(unitOfWork)
             .AddSingleton<ICurrentActor>(new FakeCurrentActor { Actor = actor })
             .AddSingleton<IClock>(new FakeClock())

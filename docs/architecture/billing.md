@@ -1,0 +1,15 @@
+# Billing, Month 5
+
+The billing module creates and reads monthly obligations. It has no payments, balances, allocations, settings, proration, adjustment creation, parent finance or assistant tool. The user confirmed that all provisioned centres count as active under the current directory contract; a lifecycle flag is not part of this slice.
+
+`CreateMonthlyChargesCommand` and `CreateEnrollmentChargeCommand` require billing.generate, held by no normal role; only SystemActor generation is supported, with no HTTP generation route. The batch defaults to the centre-local month through CentreCalendar. The monthly registration is billing.monthly-charges, cron `30 0 1 * *`, Africa/Cairo, and one independently retryable child per directory centre. The existing Centre model has no lifecycle status: the shared directory currently regards every provisioned centre as active; no independent billing-only lifecycle is invented.
+
+Academics publishes IBillingRosterSource facts, student existence and authorized group/subject labels. Billing never reads Academics entities directly. Enrollment intervals are half-open UTC instants intersected with the local month's boundaries. Latest overlapping enrollment per student/subject wins by enrolled_at then ID; the same path serves batch and single consumers. An inactive student/group or nonpositive effective fee yields no charge. A zero-price transfer does not resurrect an older charged group.
+
+Enrollment and transfer preserve the existing capacity locks and append one EnrollmentStarted identifier to the same transaction. The relay runs the billing command in its normal system scope. Repeated delivery, transfer and monthly-job races use the same partial unique key, not a precheck alone. A failed consumer cannot reverse a committed enrollment.
+
+The ledger's composite primary key and foreign keys, partial monthly unique index, first-day/month/amount/reason/due checks, student/due index, forced RLS and SELECT/INSERT-only application grants are defined in the coordinated migration. Unrelated failures roll back the centre batch, including audit. See ADR 0022 for fee timing, audit and conflict handling.
+
+GET /api/students/{studentId}/charges requires billing.view. Unknown and foreign students return the same 404. The query has an explicit centre predicate in addition to EF filters/RLS, orders billing month descending then ID descending and uses that tuple as a keyset cursor. Amounts are invariant strings with exactly two places; billingMonth is yyyy-MM and dueDate is a calendar DateOnly. No paid/outstanding fields exist.
+
+Owner and Secretary can view billing. Teacher, Parent and Student cannot. Group fees are omitted from JSON unless billing.view or groups.manage is held; missing fields are not zero or explicit null. Create omission defaults to zero, update omission preserves price. The staff Billing tab uses the same permission, exact decimal-string/BigInt display, calendar-date formatting and LTR numeric spans in Arabic. The initial fee helper states immediate effect; edit helpers state next-month effect.

@@ -31,4 +31,5 @@ public sealed record GroupDto(
     int Capacity,
     int EnrolledCount,
     GroupStatus Status,
-    uint Version);
+    uint Version,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? MonthlyFee = null);

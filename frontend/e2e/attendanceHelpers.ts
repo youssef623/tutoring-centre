@@ -48,6 +48,15 @@ export async function createAttendanceSession(
   owner: Page,
   teacherUserId: string | null,
   namedStudent?: string,
+  options?: {
+    createGroup?: (facts: {
+      name: string;
+      subjectId: string;
+      teacherId: string;
+      capacity: number;
+    }) => Promise<{ id: string }>;
+    enroll?: (groupId: string, studentName: string) => Promise<void>;
+  },
 ) {
   const suffix = `${Date.now().toString()}-${Math.random().toString(36).slice(2, 7)}`;
   const sessionsResponse = await owner.request.get("/api/attendance/sessions");
@@ -92,14 +101,21 @@ export async function createAttendanceSession(
   const name = `Attendance ${suffix}`;
   const subject = subjects.items.at(0);
   if (!subject) throw new Error("No subject is available for the attendance fixture.");
-  const group = (await (
-    await attendanceWrite(owner, "/api/groups", {
-      name,
-      subjectId: subject.id,
-      teacherId: fixtureTeacherId,
-      capacity: 10,
-    })
-  ).json()) as { id: string };
+  const group = options?.createGroup
+    ? await options.createGroup({
+        name,
+        subjectId: subject.id,
+        teacherId: fixtureTeacherId,
+        capacity: 10,
+      })
+    : ((await (
+        await attendanceWrite(owner, "/api/groups", {
+          name,
+          subjectId: subject.id,
+          teacherId: fixtureTeacherId,
+          capacity: 10,
+        })
+      ).json()) as { id: string });
   const studentName = namedStudent ?? `Attendance student ${suffix}`;
   const student = (await (
     await attendanceWrite(owner, "/api/students", {
@@ -113,7 +129,9 @@ export async function createAttendanceSession(
       relationship: "father",
     })
   ).json()) as { id: string };
-  await attendanceWrite(owner, `/api/groups/${group.id}/enrollments`, { studentId: student.id });
+  if (options?.enroll) await options.enroll(group.id, studentName);
+  else
+    await attendanceWrite(owner, `/api/groups/${group.id}/enrollments`, { studentId: student.id });
   const dayOfWeek = new Intl.DateTimeFormat("en-US", { timeZone: zone, weekday: "long" })
     .format(instant)
     .toLowerCase();

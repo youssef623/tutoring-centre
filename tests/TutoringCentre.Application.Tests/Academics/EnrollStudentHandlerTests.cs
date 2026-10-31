@@ -101,6 +101,7 @@ public sealed class EnrollStudentHandlerTests
         Assert.True(result.IsSuccess, result.Error?.Message);
         var added = Assert.Single(sut.Enrollments.Added);
         Assert.Equal(result.Value.EnrollmentId, added.Id);
+        Assert.Equal(added.Id, Assert.IsType<TutoringCentre.Application.Academics.Contracts.EnrollmentStarted>(Assert.Single(sut.Outbox.Messages)).EnrollmentId);
         Assert.Equal(NileCentreId, added.CentreId);
         Assert.Equal(sut.Student.Id, added.StudentId);
         Assert.Equal(sut.Group.Id, added.GroupId);
@@ -114,6 +115,7 @@ public sealed class EnrollStudentHandlerTests
         Assert.Equal(code, result.Error!.Code);
         Assert.Equal(kind, result.Error.Kind);
         Assert.Empty(sut.Enrollments.Added);
+        Assert.Empty(sut.Outbox.Messages);
     }
 
     private sealed class Sut
@@ -125,8 +127,10 @@ public sealed class EnrollStudentHandlerTests
             Groups.Existing.Add(Group);
             Students.Existing.Add(Student);
             var actor = new FakeCurrentActor { Actor = new StaffActor(Guid.CreateVersion7(), NileCentreId, StaffRole.Secretary) };
-            Handler = new EnrollStudentHandler(actor, Clock, Groups, Students, Enrollments);
+            Handler = new EnrollStudentHandler(actor, Clock, Groups, Students, Enrollments, Outbox);
         }
+
+        public FakeOutbox Outbox { get; } = new();
 
         public FakeClock Clock { get; } = new();
 

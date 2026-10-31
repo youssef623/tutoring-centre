@@ -4,6 +4,7 @@ export const Permissions = {
   PortalChat: "portal.chat",
   AssistantView: "assistant.view",
   BillingView: "billing.view",
+  BillingGenerate: "billing.generate",
   SubjectsView: "subjects.view",
   SubjectsManage: "subjects.manage",
   StaffView: "staff.view",

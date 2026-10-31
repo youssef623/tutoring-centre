@@ -227,6 +227,13 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<decimal>("MonthlyFee")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("monthly_fee")
+                        .HasDefaultValueSql("0");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -283,7 +290,50 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("ck_groups_capacity", "capacity BETWEEN 1 AND 200");
 
+                            t.HasCheckConstraint("ck_groups_monthly_fee", "monthly_fee >= 0");
+
                             t.HasCheckConstraint("ck_groups_status", "status IN ('active','archived')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.GroupMonthlyFee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<DateOnly>("EffectiveMonth")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_month");
+
+                    b.Property<decimal>("Fee")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("fee");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_group_monthly_fees");
+
+                    b.HasAlternateKey("CentreId", "Id")
+                        .HasName("ux_group_monthly_fees_centre_id_id");
+
+                    b.HasIndex("CentreId", "GroupId", "EffectiveMonth")
+                        .IsUnique()
+                        .HasDatabaseName("ux_group_monthly_fees_month");
+
+                    b.ToTable("group_monthly_fees", "academics", t =>
+                        {
+                            t.HasCheckConstraint("ck_group_monthly_fees_month", "extract(day from effective_month)=1");
+
+                            t.HasCheckConstraint("ck_group_monthly_fees_nonnegative", "fee >= 0");
                         });
                 });
 
@@ -1107,6 +1157,101 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_student_cards_revocation", "(status = 'revoked') = (revoked_at IS NOT NULL AND revocation_reason IS NOT NULL)");
 
                             t.HasCheckConstraint("ck_student_cards_status", "status IN ('active','revoked')");
+                        });
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Billing.Charge", b =>
+                {
+                    b.Property<Guid>("CentreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centre_id");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateOnly>("BillingMonth")
+                        .HasColumnType("date")
+                        .HasColumnName("billing_month");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("enrollment_id");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("teacher_id");
+
+                    b.HasKey("CentreId", "Id")
+                        .HasName("ux_charges_centre_id_id");
+
+                    b.HasIndex("CentreId", "GroupId")
+                        .HasDatabaseName("ix_charges_centre_id_group_id");
+
+                    b.HasIndex("CentreId", "SubjectId")
+                        .HasDatabaseName("ix_charges_centre_id_subject_id");
+
+                    b.HasIndex("CentreId", "TeacherId")
+                        .HasDatabaseName("ix_charges_centre_id_teacher_id");
+
+                    b.HasIndex("CentreId", "EnrollmentId", "StudentId")
+                        .HasDatabaseName("ix_charges_centre_id_enrollment_id_student_id");
+
+                    b.HasIndex("CentreId", "StudentId", "DueDate")
+                        .HasDatabaseName("ix_charges_student_due");
+
+                    b.HasIndex("CentreId", "StudentId", "SubjectId", "BillingMonth")
+                        .IsUnique()
+                        .HasDatabaseName("ux_charges_monthly")
+                        .HasFilter("kind='monthly'");
+
+                    b.ToTable("charges", "billing", t =>
+                        {
+                            t.HasCheckConstraint("ck_charges_due", "due_date >= billing_month");
+
+                            t.HasCheckConstraint("ck_charges_kind_amount", "(kind='monthly' AND amount>0) OR (kind='adjustment' AND amount<>0 AND reason IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_charges_month", "extract(day from billing_month)=1");
                         });
                 });
 
@@ -1969,6 +2114,24 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_groups_teachers");
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.GroupMonthlyFee", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_group_monthly_fees_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Group", null)
+                        .WithMany("MonthlyFees")
+                        .HasForeignKey("CentreId", "GroupId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_group_monthly_fees_groups_centre_id_group_id");
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Parent", b =>
                 {
                     b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
@@ -2207,6 +2370,48 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_student_cards_students");
                 });
 
+            modelBuilder.Entity("TutoringCentre.Domain.Billing.Charge", b =>
+                {
+                    b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_charges_centres");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Group", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "GroupId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_charges_groups");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "SubjectId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_charges_subjects");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Teacher", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "TeacherId")
+                        .HasPrincipalKey("CentreId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_charges_teachers");
+
+                    b.HasOne("TutoringCentre.Domain.Academics.Enrollment", null)
+                        .WithMany()
+                        .HasForeignKey("CentreId", "EnrollmentId", "StudentId")
+                        .HasPrincipalKey("CentreId", "Id", "StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_charges_enrollments");
+                });
+
             modelBuilder.Entity("TutoringCentre.Domain.Conversations.ChannelAccount", b =>
                 {
                     b.HasOne("TutoringCentre.Domain.Centres.Centre", null)
@@ -2372,6 +2577,11 @@ namespace TutoringCentre.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_outbox_messages_centres");
+                });
+
+            modelBuilder.Entity("TutoringCentre.Domain.Academics.Group", b =>
+                {
+                    b.Navigation("MonthlyFees");
                 });
 
             modelBuilder.Entity("TutoringCentre.Domain.Academics.Student", b =>

@@ -156,8 +156,8 @@ public sealed class RolePermissionsTests
     [Fact]
     public void Owner_HoldsEveryStaffPermission()
     {
-        Assert.Equal(26, Permissions.All.Count);
-        Assert.All(Permissions.All.Where(permission => permission != Permissions.ConversationsIngest), permission => Assert.True(RolePermissions.Holds(StaffRole.Owner, permission)));
+        Assert.Equal(27, Permissions.All.Count);
+        Assert.All(Permissions.All.Where(permission => permission != Permissions.ConversationsIngest && permission != Permissions.BillingGenerate), permission => Assert.True(RolePermissions.Holds(StaffRole.Owner, permission)));
     }
 
     [Theory]

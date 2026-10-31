@@ -21,7 +21,8 @@ internal sealed class EnrollStudentHandler(
     IClock clock,
     IGroupRepository groups,
     IStudentRepository students,
-    IEnrollmentRepository enrollments)
+    IEnrollmentRepository enrollments,
+    TutoringCentre.Application.Common.Messaging.IOutbox outbox)
     : ICommandHandler<EnrollStudentCommand, EnrollStudentResult>
 {
     public async Task<Result<EnrollStudentResult>> HandleAsync(EnrollStudentCommand command, CancellationToken cancellationToken)
@@ -64,6 +65,7 @@ internal sealed class EnrollStudentHandler(
         }
 
         enrollments.Add(started.Value);
+        outbox.Enqueue(new TutoringCentre.Application.Academics.Contracts.EnrollmentStarted(started.Value.Id));
         return Result<EnrollStudentResult>.Success(new EnrollStudentResult(started.Value.Id));
     }
 }

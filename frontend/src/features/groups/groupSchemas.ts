@@ -5,7 +5,11 @@ import { z } from "zod";
  * (Group.Create/Rename/ChangeCapacity, the handlers' subject and teacher checks, name uniqueness). Messages
  * are translation keys in the "groups" namespace. Capacity is a number end to end, never sent as a string.
  */
-export const groupNameSchema = z.string().trim().min(1, "validation.nameRequired").max(80, "validation.nameTooLong");
+export const groupNameSchema = z
+  .string()
+  .trim()
+  .min(1, "validation.nameRequired")
+  .max(80, "validation.nameTooLong");
 
 export const groupCapacitySchema = z
   .number({ error: "validation.capacityRequired" })
@@ -13,16 +17,24 @@ export const groupCapacitySchema = z
   .min(1, "validation.capacityRange")
   .max(200, "validation.capacityRange");
 
+export const monthlyFeeSchema = z
+  .string()
+  .regex(/^\d{1,8}(?:\.\d{1,2})?$/, "validation.monthlyFee");
+
 export const createGroupFormSchema = z.object({
   name: groupNameSchema,
   subjectId: z.string({ error: "validation.subjectRequired" }).min(1, "validation.subjectRequired"),
   teacherId: z.string({ error: "validation.teacherRequired" }).min(1, "validation.teacherRequired"),
   capacity: groupCapacitySchema,
+  monthlyFee: monthlyFeeSchema.optional(),
 });
 
 export type CreateGroupFormValues = z.infer<typeof createGroupFormSchema>;
 
-export const renameGroupFormSchema = z.object({ name: groupNameSchema });
+export const renameGroupFormSchema = z.object({
+  name: groupNameSchema,
+  monthlyFee: monthlyFeeSchema.optional(),
+});
 
 export type RenameGroupFormValues = z.infer<typeof renameGroupFormSchema>;
 

@@ -206,8 +206,13 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
+      - name: Build shared journey probes
+        run: dotnet build tests/TutoringCentre.Evaluation -c Release
+
       - name: Run the E2E auth journeys
         working-directory: frontend
+        env:
+          E2E_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
         run: npm run test:e2e
 
       - name: Upload the Playwright report
