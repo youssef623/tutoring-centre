@@ -26,8 +26,8 @@ public sealed class ToolCallLogTests(PostgresFixture fixture) : ConversationsTes
     [Theory]
     [InlineData("fake_tool","{\"child\":\"child_1\"}",false,"allowed",null)]
     [InlineData("unknown","{}",false,"denied","tool.unknown")]
-    [InlineData("fake_tool","{\"child\":\"child_1\",\"studentId\":\"raw\"}",false,"invalid","tool.arguments_invalid")]
-    [InlineData("fake_tool","{\"child\":\"child_1\"}",true,"denied","tool.call_limit")]
+    [InlineData("fake_tool","{\"child\":\"child_1\",\"studentId\":\"raw\"}",false,"invalid","tool.invalid_arguments")]
+    [InlineData("fake_tool","{\"child\":\"child_1\"}",true,"denied","tool.call_cap")]
     public async Task RealRunLogsEveryDecisionAndDatabaseProtectsEvidence(string name,string arguments,bool cap,string expected,string? code)
     {
         await using var services=Fixture.CreateServiceProvider(s=>{

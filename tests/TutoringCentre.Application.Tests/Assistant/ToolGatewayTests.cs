@@ -17,7 +17,7 @@ public sealed class ToolGatewayTests
     [Theory]
     [InlineData("fake_tool", "{\"child\":\"child_1\"}", "allowed", null)]
     [InlineData("unknown", "{}", "denied", "tool.unknown")]
-    [InlineData("fake_tool", "{\"child\":\"child_1\",\"studentId\":\"secret\"}", "invalid", "tool.arguments_invalid")]
+    [InlineData("fake_tool", "{\"child\":\"child_1\",\"studentId\":\"secret\"}", "invalid", "tool.invalid_arguments")]
     [InlineData("error_tool", "{\"child\":\"child_1\"}", "denied", "tool.handle_unknown")]
     [InlineData("throw_tool", "{\"child\":\"child_1\"}", "failed", "tool.internal_error")]
     [InlineData("fake_tool", "{\"child\":\"child_9\"}", "denied", "tool.handle_unknown")]
@@ -35,7 +35,7 @@ public sealed class ToolGatewayTests
     {
         await using var fixture = new Harness();
         for(var i=0;i<8;i++) await fixture.Gateway.ExecuteAsync(fixture.Context,1,i,"fake_tool","{\"child\":\"child_1\"}",CancellationToken.None);
-        Assert.Equal(8,fixture.Log.Rows.Count); Assert.Equal(2,fixture.Log.Rows.Count(x=>x.ReasonCode=="tool.call_limit"));
+        Assert.Equal(8,fixture.Log.Rows.Count); Assert.Equal(2,fixture.Log.Rows.Count(x=>x.ReasonCode=="tool.call_cap"));
     }
     [Theory] [InlineData(false)] [InlineData(true)]
     public async Task LoopContinuesWithToolMessageAndHonorsStepCap(bool forever)
@@ -71,13 +71,13 @@ public sealed class ToolGatewayTests
         public ToolContext Context { get; } = new(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),HandleResolver.Mint([new(Guid.NewGuid(),"Ahmed")]));
         public ToolRegistry Registry { get; }
         public ToolGateway Gateway { get; }
-        public Harness()
+        public Harness(ITool? attendance = null, AssistantOptions? options = null)
         {
             ITool[] tools=[new FakeTool("fake_tool"),new FakeTool("error_tool"),new FakeTool("throw_tool"),new FakeTool("large_tool"),new FakeTool("slow_tool")];
-            Registry=new ToolRegistry(tools);
+            Registry=new ToolRegistry(attendance is null ? tools : [attendance]);
             _provider=new ServiceCollection().AddSingleton(Registry).BuildServiceProvider();
             var current=new CurrentActorContext();current.Set(new SystemActor(Context.CentreId));
-            Gateway=new ToolGateway(Registry,new Scope(_provider),new PortalActorFactory(new Directory(),current),new Conversations(),Log,new AssistantOptions());
+            Gateway=new ToolGateway(Registry,new Scope(_provider),new PortalActorFactory(new Directory(),current),new Conversations(),Log,options ?? new AssistantOptions());
         }
         public ValueTask DisposeAsync()=>_provider.DisposeAsync();
     }
