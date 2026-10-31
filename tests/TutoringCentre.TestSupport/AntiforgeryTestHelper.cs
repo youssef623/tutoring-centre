@@ -5,7 +5,7 @@ using TutoringCentre.Api.Auth;
 namespace TutoringCentre.Api.Tests.Fixtures;
 
 /// <summary>Fetches and attaches an antiforgery token so tests exercise the real CSRF protection, never bypass it.</summary>
-internal static class AntiforgeryTestHelper
+public static class AntiforgeryTestHelper
 {
     private static readonly Uri AntiforgeryUri = new("/api/auth/antiforgery", UriKind.Relative);
 

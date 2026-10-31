@@ -1,0 +1,28 @@
+[
+  {
+    "text": null,
+    "toolCalls": [
+      {
+        "id": "probe",
+        "name": "get_attendance",
+        "arguments": {
+          "childHandle": "child_1"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 1,
+      "outputTokens": 1
+    },
+    "stopReason": "ToolCalls"
+  },
+  {
+    "text": "Ahmed is present.",
+    "toolCalls": [],
+    "usage": {
+      "inputTokens": 1,
+      "outputTokens": 1
+    },
+    "stopReason": "Completed"
+  }
+]

@@ -69,3 +69,11 @@ Ideas that are out of scope for the current slice. Each entry: date, idea, why n
 | 2026-10-31 | Assistant foreign-name guard loads centre student names per reply | Keeps the deterministic guard current but adds a query and memory cost; substring checks permit user-mentioned names and cannot establish semantic truth | Measure at scale before adding a tenant-safe cache with membership/name invalidation |
 | 2026-10-31 | Assistant family handles live only in run memory | Prevents persistent aliases from becoming authorization and permits fresh family resolution each run | If the agent is split across phases, persist an explicitly scoped expiring mapping and recheck current actor/family |
 | 2026-10-31 | Attendance no-record ambiguity | An empty query result means not recorded yet, not absent; the tool emits an explicit note | Preserve this distinction in future summaries and any automatic absence policy |
+
+## Evaluation (Days 85-87)
+
+- Only 15 synthetic cases: grow to 150 with better semantic/compound-sentence expectations.
+- No live CI: replay measures surrounding application, not current model quality.
+- No LLM-as-judge; deterministic lexical scoring has known limits.
+- No repeated-run variance measurement.
+- The first genuine local Qwen 4B baseline fails E3 and E11 quality expectations. Improve model selection in a future deliberate recording run; retain the 90% overall / 80% style floors and disclose this failing baseline before merge.

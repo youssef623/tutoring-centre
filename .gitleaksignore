@@ -1,3 +1,25 @@
 d6dcee1da98d10d4c78058b30f851db3cb47f5cd:src/TutoringCentre.Infrastructure/Identity/StaffAccountService.cs:generic-api-key:20
 27a08b8c344ba6b84df228c55453cce2eae531d2:frontend/e2e/first-login.spec.ts:generic-api-key:59
 5f94d073a4ef8b429c5d2fafbda68ff7c9879e16:frontend/e2e/full-centre-setup.spec.ts:generic-api-key:122
+
+# Reviewed SHA256 cassette request hashes, not credentials (PR 114).
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E12.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E14.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E15.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E8.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E7.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E9.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E10.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E11.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E13.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E3.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E2.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E2.json:generic-api-key:72
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E4.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E4.json:generic-api-key:72
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E5.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E5.json:generic-api-key:72
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E6.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E6.json:generic-api-key:80
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E1.json:generic-api-key:7
+9f5a9b3da66b9a768797b8136fd145fc6919132a:tests/TutoringCentre.Evaluation/cassettes/E1.json:generic-api-key:72

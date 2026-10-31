@@ -1,0 +1,55 @@
+{
+  "id": "E7",
+  "tags": {
+    "languageStyle": "english",
+    "category": "ambiguity"
+  },
+  "persona": "duplicate",
+  "turns": [
+    {
+      "text": "Did Ahmed attend today?"
+    }
+  ],
+  "expect": {
+    "toolCalls": [],
+    "replyMustMention": [],
+    "replyMustNotMention": [
+      "present",
+      "absent",
+      "late",
+      "حاضر",
+      "حضر",
+      "غائب",
+      "غايب",
+      "متأخر"
+    ],
+    "canaries": [],
+    "databaseDiff": "none",
+    "alternatives": [],
+    "clarification": {
+      "mustMention": [
+        {
+          "anyOf": [
+            "which",
+            "clarify",
+            "أي",
+            "مين",
+            "حدد",
+            "تقصد"
+          ]
+        }
+      ],
+      "mustNotMention": [
+        "present",
+        "absent",
+        "late",
+        "حاضر",
+        "حضر",
+        "غائب",
+        "غايب",
+        "متأخر"
+      ]
+    },
+    "replyFacts": []
+  }
+}

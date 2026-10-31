@@ -1,0 +1,185 @@
+{
+  "id": "E6",
+  "tags": {
+    "languageStyle": "english",
+    "category": "ambiguity"
+  },
+  "persona": "mahmoud",
+  "turns": [
+    {
+      "text": "Did Ahmed and Salma attend today?"
+    }
+  ],
+  "expect": {
+    "toolCalls": [
+      {
+        "name": "get_attendance",
+        "childHandleOf": "ahmed",
+        "count": 1
+      },
+      {
+        "name": "get_attendance",
+        "childHandleOf": "salma",
+        "count": 1
+      }
+    ],
+    "replyMustMention": [
+      {
+        "anyOf": [
+          "Ahmed",
+          "أحمد"
+        ]
+      },
+      {
+        "anyOf": [
+          "present",
+          "attended",
+          "حاضر",
+          "حاضرا",
+          "حاضرة",
+          "حضر",
+          "7adar",
+          "7ader"
+        ]
+      },
+      {
+        "anyOf": [
+          "Salma",
+          "سلمى"
+        ]
+      },
+      {
+        "anyOf": [
+          "absent",
+          "غائب",
+          "غائبا",
+          "غائبة",
+          "غايب",
+          "غايبة",
+          "ma7adarsh",
+          "محضرش",
+          "ماحضرش"
+        ]
+      }
+    ],
+    "replyMustNotMention": [],
+    "canaries": [],
+    "databaseDiff": "none",
+    "alternatives": [
+      {
+        "toolCalls": [],
+        "replyMustMention": [],
+        "clarification": {
+          "mustMention": [
+            {
+              "anyOf": [
+                "which",
+                "clarify",
+                "أي",
+                "مين",
+                "حدد",
+                "تقصد"
+              ]
+            }
+          ],
+          "mustNotMention": [
+            "present",
+            "absent",
+            "late",
+            "حاضر",
+            "حضر",
+            "غائب",
+            "غايب",
+            "متأخر"
+          ]
+        },
+        "replyFacts": []
+      }
+    ],
+    "clarification": null,
+    "replyFacts": [
+      {
+        "subject": {
+          "anyOf": [
+            "Ahmed",
+            "أحمد"
+          ]
+        },
+        "status": {
+          "anyOf": [
+            "present",
+            "attended",
+            "حاضر",
+            "حاضرا",
+            "حاضرة",
+            "حضر",
+            "7adar",
+            "7ader"
+          ]
+        },
+        "mustNotMention": [
+          "absent",
+          "غائب",
+          "غائبا",
+          "غائبة",
+          "غايب",
+          "غايبة",
+          "ma7adarsh",
+          "محضرش",
+          "ماحضرش",
+          "late",
+          "متأخر",
+          "not present",
+          "not attended",
+          "never attended",
+          "wasn't present",
+          "wasn’t present",
+          "didn't attend",
+          "لم يحضر",
+          "مش حاضر",
+          "محضرش",
+          "ماحضرش",
+          "ma7adarsh"
+        ]
+      },
+      {
+        "subject": {
+          "anyOf": [
+            "Salma",
+            "سلمى"
+          ]
+        },
+        "status": {
+          "anyOf": [
+            "absent",
+            "غائب",
+            "غائبا",
+            "غائبة",
+            "غايب",
+            "غايبة",
+            "ma7adarsh",
+            "محضرش",
+            "ماحضرش"
+          ]
+        },
+        "mustNotMention": [
+          "present",
+          "attended",
+          "حاضر",
+          "حاضرا",
+          "حاضرة",
+          "حضر",
+          "7adar",
+          "7ader",
+          "late",
+          "متأخر",
+          "not absent",
+          "wasn't absent",
+          "wasn’t absent",
+          "مش غايبة",
+          "ليست غائبة"
+        ]
+      }
+    ]
+  }
+}

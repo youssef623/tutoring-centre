@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/TutoringCentre.Api/TutoringCentre.Api.csproj" />
+    <ProjectReference Include="../TutoringCentre.TestSupport/TutoringCentre.TestSupport.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cases/**/*.json;cassettes/**/*.json;fixtures/**/*.json;thresholds.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

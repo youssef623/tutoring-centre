@@ -77,6 +77,17 @@ public sealed class DependencyRuleTests
         Assert.True(result.IsSuccessful, ArchitectureSupport.Describe(result));
     }
 
+    [Fact]
+    public void Evaluation_IsOutsideProductionAndCorrectnessTests()
+    {
+        var root = ProjectFiles.FindRepositoryRoot();
+        foreach (var project in Directory.EnumerateFiles(Path.Combine(root, "src"), "*.csproj", SearchOption.AllDirectories)
+            .Append(Path.Combine(root, "tests", "TutoringCentre.Api.Tests", "TutoringCentre.Api.Tests.csproj")))
+            Assert.DoesNotContain(XDocument.Load(project).Descendants("ProjectReference"), x => ((string?)x.Attribute("Include"))?.Contains("TutoringCentre.Evaluation", StringComparison.Ordinal) == true);
+        var evalTests = XDocument.Load(Path.Combine(root, "tests", "TutoringCentre.Evaluation.Tests", "TutoringCentre.Evaluation.Tests.csproj"));
+        Assert.Equal("TutoringCentre.Evaluation", Path.GetFileNameWithoutExtension(Assert.Single(evalTests.Descendants("ProjectReference")).Attribute("Include")!.Value.Replace('\\', Path.DirectorySeparatorChar)));
+    }
+
     private static void AssertNoDependencies(Assembly assembly, string[] forbidden)
     {
         var types = Types.InAssembly(assembly);

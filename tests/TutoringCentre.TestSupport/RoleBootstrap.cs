@@ -7,7 +7,7 @@ namespace TutoringCentre.Api.Tests.Fixtures;
 /// test-only passwords, so the test fixture exercises the exact same role split as production instead of a
 /// stand-in for it.
 /// </summary>
-internal static class RoleBootstrap
+public static class RoleBootstrap
 {
     private const string ScriptPathInContainer = "/bootstrap-roles.sh";
 
