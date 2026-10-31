@@ -17,7 +17,15 @@ function me(role: "owner" | "teacher", permissions: string[]) {
     preferredLocale: "en",
     activeCentreId: "c-nile",
     activeRole: role,
-    memberships: [{ centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role, timeZoneId: "Africa/Cairo" }],
+    memberships: [
+      {
+        centreId: "c-nile",
+        centreName: "Nile Tutoring Centre",
+        centreSlug: "nile-centre",
+        role,
+        timeZoneId: "Africa/Cairo",
+      },
+    ],
     permissions,
   };
 }
@@ -52,8 +60,26 @@ function group(overrides: Record<string, unknown> = {}) {
 }
 
 const teachers = [
-  { id: "t-1", fullName: "Amina Hassan", phone: null, status: "active", userId: null, userDisplayName: null, activeGroupCount: 1, version: 1 },
-  { id: "t-2", fullName: "Mona Said", phone: null, status: "active", userId: null, userDisplayName: null, activeGroupCount: 0, version: 1 },
+  {
+    id: "t-1",
+    fullName: "Amina Hassan",
+    phone: null,
+    status: "active",
+    userId: null,
+    userDisplayName: null,
+    activeGroupCount: 1,
+    version: 1,
+  },
+  {
+    id: "t-2",
+    fullName: "Mona Said",
+    phone: null,
+    status: "active",
+    userId: null,
+    userDisplayName: null,
+    activeGroupCount: 0,
+    version: 1,
+  },
 ];
 
 function problem(status: number, code: string, detail: string, errors?: Record<string, string[]>) {
@@ -71,7 +97,13 @@ describe("GroupDetailPage", () => {
       http.get(teachersUrl, () => HttpResponse.json({ items: teachers })),
       http.get("/api/groups", () => HttpResponse.json({ items: [group()] })),
       http.get(`${groupUrl}/roster`, () =>
-        HttpResponse.json({ groupId: "g-1", groupName: "Physics A", capacity: 20, enrolledCount: 0, items: [] }),
+        HttpResponse.json({
+          groupId: "g-1",
+          groupName: "Physics A",
+          capacity: 20,
+          enrolledCount: 0,
+          items: [],
+        }),
       ),
       http.get(`${groupUrl}/schedule-rules`, () => HttpResponse.json({ items: [] })),
     );
@@ -85,24 +117,32 @@ describe("GroupDetailPage", () => {
     renderRouter("/groups/g-1");
 
     // First render in the file pays the cold-start cost; a full parallel suite run can push it past 3s.
-    expect(await screen.findByRole("heading", { name: "Physics A" }, { timeout: 5000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Physics A" }, { timeout: 5000 }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("4 / 20")).toHaveAttribute("dir", "ltr");
   });
 
   it("a 404 shows the single not-found state", async () => {
-    server.use(http.get(groupUrl, () => problem(404, "group.not_found", "This group could not be found.")));
+    server.use(
+      http.get(groupUrl, () => problem(404, "group.not_found", "This group could not be found.")),
+    );
 
     renderRouter("/groups/g-1");
 
-    expect(await screen.findByRole("heading", { name: "Group not found" }, { timeout: 3000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Group not found" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to groups" })).toBeInTheDocument();
   });
 
   it("the tab parameter selects the tab, and Roster shows the roster", async () => {
     renderRouter("/groups/g-1?tab=roster");
 
-    expect(await screen.findByText("No students enrolled yet", {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(
+      await screen.findByText("No students enrolled yet", {}, { timeout: 3000 }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Roster" })).toHaveAttribute("aria-selected", "true");
   });
 
@@ -128,9 +168,12 @@ describe("GroupDetailPage", () => {
     );
 
     renderRouter("/groups/g-1");
+    fireEvent.click(await screen.findByText("Actions", {}, { timeout: 3000 }));
     fireEvent.click(await screen.findByRole("button", { name: "Rename" }, { timeout: 3000 }));
     const dialog = await screen.findByRole("dialog");
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Name" }), { target: { value: "Physics B" } });
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Name" }), {
+      target: { value: "Physics B" },
+    });
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
@@ -148,9 +191,14 @@ describe("GroupDetailPage", () => {
     );
 
     renderRouter("/groups/g-1");
-    fireEvent.click(await screen.findByRole("button", { name: "Change capacity" }, { timeout: 3000 }));
+    fireEvent.click(await screen.findByText("Actions", {}, { timeout: 3000 }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change capacity" }, { timeout: 3000 }),
+    );
     const dialog = await screen.findByRole("dialog");
-    fireEvent.change(within(dialog).getByRole("spinbutton", { name: "Capacity" }), { target: { value: "25" } });
+    fireEvent.change(within(dialog).getByRole("spinbutton", { name: "Capacity" }), {
+      target: { value: "25" },
+    });
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
@@ -168,7 +216,10 @@ describe("GroupDetailPage", () => {
     );
 
     renderRouter("/groups/g-1");
-    fireEvent.click(await screen.findByRole("button", { name: "Change teacher" }, { timeout: 3000 }));
+    fireEvent.click(await screen.findByText("Actions", {}, { timeout: 3000 }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change teacher" }, { timeout: 3000 }),
+    );
     const dialog = await screen.findByRole("dialog");
     // The select is disabled until the teachers list arrives; its current value then shows by name.
     expect(await within(dialog).findByText("Amina Hassan")).toBeInTheDocument();
@@ -194,9 +245,12 @@ describe("GroupDetailPage", () => {
     );
 
     renderRouter("/groups/g-1");
+    fireEvent.click(await screen.findByText("Actions", {}, { timeout: 3000 }));
     fireEvent.click(await screen.findByRole("button", { name: "Rename" }, { timeout: 3000 }));
     const dialog = await screen.findByRole("dialog");
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Name" }), { target: { value: "Physics B" } });
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Name" }), {
+      target: { value: "Physics B" },
+    });
     const before = groupCalls;
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
 
@@ -209,24 +263,42 @@ describe("GroupDetailPage", () => {
   });
 
   it("an enrolment rule refusal gets its specific message", async () => {
-    server.use(http.put(`${groupUrl}/capacity`, () => problem(422, "group.capacity_below_enrolled", "Below enrolled.")));
+    server.use(
+      http.put(`${groupUrl}/capacity`, () =>
+        problem(422, "group.capacity_below_enrolled", "Below enrolled."),
+      ),
+    );
 
     renderRouter("/groups/g-1");
-    fireEvent.click(await screen.findByRole("button", { name: "Change capacity" }, { timeout: 3000 }));
+    fireEvent.click(await screen.findByText("Actions", {}, { timeout: 3000 }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change capacity" }, { timeout: 3000 }),
+    );
     const dialog = await screen.findByRole("dialog");
-    fireEvent.change(within(dialog).getByRole("spinbutton", { name: "Capacity" }), { target: { value: "2" } });
+    fireEvent.change(within(dialog).getByRole("spinbutton", { name: "Capacity" }), {
+      target: { value: "2" },
+    });
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
 
     expect(
-      await screen.findByText("Capacity cannot be lower than the number of students already enrolled."),
+      await screen.findByText(
+        "Capacity cannot be lower than the number of students already enrolled.",
+      ),
     ).toBeInTheDocument();
   });
 
   it("changing to a teacher busy at one of the group's sessions says so and keeps the current teacher", async () => {
-    server.use(http.put(`${groupUrl}/teacher`, () => problem(409, "schedule.teacher_double_booked", "Double booked.")));
+    server.use(
+      http.put(`${groupUrl}/teacher`, () =>
+        problem(409, "schedule.teacher_double_booked", "Double booked."),
+      ),
+    );
 
     renderRouter("/groups/g-1");
-    fireEvent.click(await screen.findByRole("button", { name: "Change teacher" }, { timeout: 3000 }));
+    fireEvent.click(await screen.findByText("Actions", {}, { timeout: 3000 }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change teacher" }, { timeout: 3000 }),
+    );
     const dialog = await screen.findByRole("dialog");
     expect(await within(dialog).findByText("Amina Hassan")).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("combobox", { name: "Teacher" }));
@@ -236,7 +308,9 @@ describe("GroupDetailPage", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
 
     expect(
-      await screen.findByText("That teacher already has a session at one of this group's times. The group keeps its current teacher."),
+      await screen.findByText(
+        "That teacher already has a session at one of this group's times. The group keeps its current teacher.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -245,7 +319,9 @@ describe("GroupDetailPage", () => {
 
     renderRouter("/groups/g-1");
 
-    expect(await screen.findByText("This group is archived", {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(
+      await screen.findByText("This group is archived", {}, { timeout: 3000 }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Change capacity" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Change teacher" })).not.toBeInTheDocument();
@@ -257,7 +333,9 @@ describe("GroupDetailPage", () => {
 
     renderRouter("/groups/g-1");
 
-    expect(await screen.findByRole("heading", { name: "Physics A" }, { timeout: 3000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Physics A" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
     for (const name of ["Rename", "Change capacity", "Change teacher", "Archive", "Restore"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }

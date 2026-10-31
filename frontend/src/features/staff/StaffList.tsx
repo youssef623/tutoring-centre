@@ -1,3 +1,4 @@
+import { PersonIdentity } from "@/components/shared/PersonIdentity";
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
 import { useState } from "react";
@@ -82,7 +83,10 @@ export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMember
   const handleReactivate = async (member: StaffMemberDto) => {
     setReactivatingId(member.membershipId);
     try {
-      await reactivateMutation.mutateAsync({ membershipId: member.membershipId, data: { version: member.version } });
+      await reactivateMutation.mutateAsync({
+        membershipId: member.membershipId,
+        data: { version: member.version },
+      });
       await invalidate();
       toast.success(t("toasts.reactivated"));
     } catch (thrown) {
@@ -158,7 +162,7 @@ export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMember
               <DataTableRow key={member.membershipId} muted={isInactive}>
                 <DataTableCell kind="primary">
                   <span className="flex flex-wrap items-center gap-2">
-                    <bdi>{member.displayName}</bdi>
+                    <PersonIdentity name={member.displayName} />
                     {member.isCurrentUser && <Badge variant="secondary">{t("you")}</Badge>}
                     {isInactive && <Badge variant="outline">{t("status.inactive")}</Badge>}
                   </span>
@@ -166,13 +170,20 @@ export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMember
                 <DataTableCell label={t("columns.email")} className="[overflow-wrap:anywhere]">
                   <bdi>{member.email}</bdi>
                 </DataTableCell>
-                <DataTableCell label={t("columns.role")}>{tAuth(`roles.${String(member.role)}`)}</DataTableCell>
+                <DataTableCell label={t("columns.role")}>
+                  {tAuth(`roles.${String(member.role)}`)}
+                </DataTableCell>
                 <DataTableCell kind="actions">
                   {!member.isCurrentUser && (
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
-                          <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.openMenu")} />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={t("actions.openMenu")}
+                          />
                         }
                       >
                         <MoreVertical className="size-4" aria-hidden="true" />
@@ -227,10 +238,12 @@ export function StaffList({ onChangeRole }: { onChangeRole: (member: StaffMember
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle dir="auto">
-              {deactivateTarget !== null && t("confirmations.deactivateTitle", { name: deactivateTarget.displayName })}
+              {deactivateTarget !== null &&
+                t("confirmations.deactivateTitle", { name: deactivateTarget.displayName })}
             </AlertDialogTitle>
             <AlertDialogDescription dir="auto">
-              {deactivateTarget !== null && t("confirmations.deactivateBody", { name: deactivateTarget.displayName })}
+              {deactivateTarget !== null &&
+                t("confirmations.deactivateBody", { name: deactivateTarget.displayName })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

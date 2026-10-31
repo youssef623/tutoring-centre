@@ -1,3 +1,4 @@
+import { navigateFromMasthead } from "./helpers/navigation.js";
 import { type Browser, type Locator, type Page, expect, test } from "@playwright/test";
 
 // The seeded dev password is never written here: it is supplied by whoever runs the suite
@@ -42,18 +43,25 @@ async function enrollBySearch(page: Page, search: string, studentName: string): 
   await page.getByRole("button", { name: "Enroll student" }).first().click();
   const dialog = page.getByRole("dialog", { name: "Enroll a student" });
   await dialog.getByRole("searchbox", { name: "Search students" }).fill(search);
-  await dialog.getByRole("option", { name: new RegExp(studentName) }).click();
+  await dialog
+    .getByRole("option")
+    .filter({ has: page.getByText(studentName, { exact: true }) })
+    .click();
   await dialog.getByRole("button", { name: "Enroll", exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByRole("table").getByRole("link", { name: studentName })).toBeVisible();
 }
 
 /** A second secretary window on a student's page, with the enroll-in-a-group picker opened on `groupName`. */
-async function prepareEnrollFromStudentPage(browser: Browser, studentName: string, groupName: string) {
+async function prepareEnrollFromStudentPage(
+  browser: Browser,
+  studentName: string,
+  groupName: string,
+) {
   const context = await browser.newContext();
   const page = await context.newPage();
   await signIn(page, "secretary@nile.test");
-  await page.getByRole("navigation").getByRole("link", { name: "Students" }).click();
+  await navigateFromMasthead(page, "Students");
   await page.getByRole("searchbox").fill(studentName);
   await page.getByRole("link", { name: studentName, exact: true }).click();
   await expect(page.getByRole("heading", { name: studentName })).toBeVisible();
@@ -89,7 +97,10 @@ test("secretary: fills a two-seat group, sees a full group refuse politely, tran
   await enrollBySearch(page, "ياسمين", "ياسمين علي");
   await expect(page.getByText("2 / 2")).toBeVisible();
   await expect(page.getByText("Full", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Enroll student" })).toHaveAttribute("aria-disabled", "true");
+  await expect(page.getByRole("button", { name: "Enroll student" })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
 
   // The late window is refused by the server, in words, with the dialog still open.
   await late.dialog.getByRole("button", { name: "Enroll", exact: true }).click();
@@ -114,7 +125,9 @@ test("secretary: fills a two-seat group, sees a full group refuse politely, tran
   await page.getByRole("button", { name: "Actions for أحمد محمود" }).click();
   await page.getByRole("menuitem", { name: "Withdraw" }).click();
   const confirm = page.getByRole("alertdialog");
-  await expect(confirm.getByRole("heading", { name: `Withdraw أحمد محمود from ${otherGroup}?` })).toBeVisible();
+  await expect(
+    confirm.getByRole("heading", { name: `Withdraw أحمد محمود from ${otherGroup}?` }),
+  ).toBeVisible();
   await confirm.getByRole("button", { name: "Withdraw", exact: true }).click();
   await expect(page.getByText("No students enrolled yet")).toBeVisible();
 });
@@ -124,7 +137,7 @@ test("teacher: sees their own group's roster, names only, with no actions", asyn
   await page.getByRole("button", { name: "Nile Tutoring Centre" }).click();
   await expect(page.getByRole("heading", { name: "Welcome, Two-Centre Teacher" })).toBeVisible();
 
-  await page.getByRole("navigation").getByRole("link", { name: "Groups" }).click();
+  await navigateFromMasthead(page, "Groups");
   await page.getByRole("link", { name: "رياضيات - المجموعة أ" }).click();
   await page.getByRole("tab", { name: "Roster" }).click();
 

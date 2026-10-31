@@ -24,6 +24,7 @@
     "status": "Status"
   },
   "actions": {
+    "groupMenu": "Actions",
     "create": "Create group",
     "rename": "Rename",
     "changeCapacity": "Change capacity",

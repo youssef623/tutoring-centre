@@ -1,5 +1,6 @@
 {
   "nav": {
+    "more": "More",
     "conversations": "Conversations",
     "dashboard": "Dashboard",
     "subjects": "Subjects",
@@ -14,7 +15,11 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "home": "Hessa home",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "people": "People",
+    "learning": "Learning",
+    "operations": "Operations",
+    "quickAccess": "Quick navigation"
   },
   "header": {
     "activeCentre": "Active centre"
@@ -52,6 +57,18 @@
       "viewAll": "All groups",
       "empty": "No group is close to full.",
       "noGroups": "There are no active groups yet."
-    }
+    },
+    "capacity": "Centre capacity",
+    "capacityDescription": "Across all active groups",
+    "quickActions": "Quick actions"
+  },
+  "teacher": {
+    "groups": "Your groups",
+    "upcoming": "Upcoming sessions this week",
+    "next": "Next session",
+    "noGroups": "No active groups assigned",
+    "noSessions": "No upcoming sessions this week",
+    "openRegister": "Open register",
+    "retry": "Retry"
   }
 }

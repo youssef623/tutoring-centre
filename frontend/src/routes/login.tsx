@@ -1,7 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ClipboardCheck, Loader2, MessageCircle, Users, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Mail,
+  LockKeyhole,
+  ClipboardCheck,
+  Loader2,
+  MessageCircle,
+  Users,
+  Wallet,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -104,19 +113,22 @@ function LoginPage() {
   });
 
   return (
-    <main className="login-page min-h-dvh lg:grid lg:grid-cols-2">
+    <main className="login-page min-h-dvh">
+      <header className="signin-masthead">
+        <HessaLoginLogo />
+        <LanguageSwitcher />
+      </header>
+      <img className="learning-fan" src="/brand/learning-fan.png" alt="" />
+      <div className="signin-story">
+        <h2>{t("panel.tagline")}</h2>
+      </div>
       {/* Form column */}
       <div className="login-form-column relative flex min-h-dvh flex-col px-6 py-8 sm:px-10 lg:min-h-0 lg:px-14">
-        <div className="login-topbar flex items-center justify-end">
-          <LanguageSwitcher />
-        </div>
-
         <div className="flex flex-1 items-center justify-center py-10">
           <div className="login-form-stack w-full max-w-lg">
-            <HessaLoginLogo />
             <div className="login-form-box w-full space-y-6">
               <div className="space-y-1.5">
-                <p className="text-sm font-medium text-primary">{t("login.eyebrow")}</p>
+                <p className="signin-welcome">{t("login.eyebrow")}</p>
                 <h1 className="font-heading text-3xl font-semibold tracking-tight">
                   {t("login.title")}
                 </h1>
@@ -130,7 +142,7 @@ function LoginPage() {
               )}
 
               <form
-                className="space-y-4"
+                className="signin-form space-y-7"
                 onSubmit={(event) => {
                   void onSubmit(event);
                 }}
@@ -140,16 +152,19 @@ function LoginPage() {
                   <label className="text-sm font-medium" htmlFor="email">
                     {t("login.emailLabel")}
                   </label>
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    disabled={isSubmitting}
-                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
-                    aria-invalid={errors.email !== undefined}
-                    aria-describedby={errors.email === undefined ? undefined : "email-error"}
-                    {...register("email")}
-                  />
+                  <div className="signin-input">
+                    <Mail aria-hidden="true" />
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      disabled={isSubmitting}
+                      className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
+                      aria-invalid={errors.email !== undefined}
+                      aria-describedby={errors.email === undefined ? undefined : "email-error"}
+                      {...register("email")}
+                    />
+                  </div>
                   {errors.email !== undefined && (
                     <p id="email-error" className="text-sm text-destructive">
                       {errors.email.type === "server"
@@ -162,16 +177,21 @@ function LoginPage() {
                   <label className="text-sm font-medium" htmlFor="password">
                     {t("login.passwordLabel")}
                   </label>
-                  <input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    disabled={isSubmitting}
-                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
-                    aria-invalid={errors.password !== undefined}
-                    aria-describedby={errors.password === undefined ? undefined : "password-error"}
-                    {...register("password")}
-                  />
+                  <div className="signin-input">
+                    <LockKeyhole aria-hidden="true" />
+                    <input
+                      id="password"
+                      type="password"
+                      autoComplete="current-password"
+                      disabled={isSubmitting}
+                      className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
+                      aria-invalid={errors.password !== undefined}
+                      aria-describedby={
+                        errors.password === undefined ? undefined : "password-error"
+                      }
+                      {...register("password")}
+                    />
+                  </div>
                   {errors.password !== undefined && (
                     <p id="password-error" className="text-sm text-destructive">
                       {errors.password.type === "server"
@@ -188,6 +208,7 @@ function LoginPage() {
                 >
                   {isSubmitting && <Loader2 className="animate-spin" aria-hidden="true" />}
                   {isSubmitting ? t("login.submitting") : t("login.submit")}
+                  <ArrowRight aria-hidden="true" className="rtl:rotate-180" />
                 </Button>
               </form>
             </div>
@@ -195,41 +216,14 @@ function LoginPage() {
         </div>
       </div>
 
-      {/* Brand panel */}
-      <aside
-        className="login-panel relative hidden overflow-hidden text-white lg:flex lg:flex-col lg:justify-center"
-        aria-hidden="true"
-      >
-        {/* decorative glows. Tailwind arbitrary-value utilities, not a style attribute: the CSS lands in the
-            build's stylesheet rather than as an inline style, which a strict CSP (style-src 'self') blocks. */}
-
-        <div className="login-panel-content relative z-10 mx-auto flex w-full flex-col gap-8 px-10 xl:px-20">
-          <HessaLoginLogo />
-
-          <div className="space-y-0">
-            <h2 className="font-heading text-4xl leading-tight font-semibold tracking-tight text-balance xl:text-5xl">
-              {t("panel.tagline")}
-            </h2>
-            <p className="mt-4 text-lg text-white/80">{t("panel.description")}</p>
+      <footer className="signin-features" aria-hidden="true">
+        {PANEL_FEATURES.map(({ icon: Icon, key }) => (
+          <div key={key}>
+            <Icon />
+            <span>{t(`panel.features.${key}.title`)}</span>
           </div>
-
-          <ul className="space-y-3">
-            {PANEL_FEATURES.map(({ icon: Icon, key }) => (
-              <li key={key} className="login-feature flex items-start gap-4 py-4">
-                <span className="flex size-10 shrink-0 items-center justify-center text-[#b397ff]">
-                  <Icon className="size-7" strokeWidth={1.75} />
-                </span>
-                <div className="space-y-0.5">
-                  <p className="text-base font-semibold">{t(`panel.features.${key}.title`)}</p>
-                  <p className="text-base text-white/75">
-                    {t(`panel.features.${key}.description`)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside>
+        ))}
+      </footer>
     </main>
   );
 }

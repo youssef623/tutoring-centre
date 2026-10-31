@@ -1,17 +1,18 @@
-import { Link } from "@tanstack/react-router";
 import {
-  Armchair,
-  ArrowRight,
-  CircleSlash,
-  GraduationCap,
-  UserPlus,
-  UsersRound,
-} from "lucide-react";
+  DataTable,
+  DataTableHead,
+  DataTableColumn,
+  DataTableBody,
+  DataTableRow,
+  DataTableCell,
+} from "@/components/shared/DataTable";
+import { Link } from "@tanstack/react-router";
+import { BookOpen, Armchair, ArrowRight, GraduationCap, UserPlus, UsersRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
 import { useListGroups, type GroupDto } from "@/api/generated/tutoring-centre";
-import { StatTile } from "@/components/shared/StatTile";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -60,6 +61,7 @@ export function QuickActions() {
 export function GroupsOverview() {
   const { t } = useTranslation("shell");
   const { t: tCommon } = useTranslation("common");
+  const { t: tGroups } = useTranslation("groups");
   const { data, error, isPending, refetch } = useListGroups();
 
   if (isPending) {
@@ -111,78 +113,113 @@ export function GroupsOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-        <StatTile
-          icon={UsersRound}
-          label={t("dashboard.stats.activeGroups")}
-          value={active.length}
-        />
-        <StatTile icon={GraduationCap} label={t("dashboard.stats.seatsTaken")} value={seatsTaken} />
-        <StatTile
-          icon={Armchair}
-          label={t("dashboard.stats.openSeats")}
-          value={Math.max(0, capacity - seatsTaken)}
-        />
-        <StatTile icon={CircleSlash} label={t("dashboard.stats.fullGroups")} value={fullCount} />
-      </div>
-
-      <section
-        aria-labelledby="dashboard-filling-up"
-        className="capacity-surface rounded-xl border border-border bg-card"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-          <div className="space-y-0.5">
-            <h2 id="dashboard-filling-up" className="text-base font-semibold">
-              {t("dashboard.fillingUp.title")}
-            </h2>
-            <p className="text-sm text-muted-foreground">{t("dashboard.fillingUp.description")}</p>
+      <section className="capacity-ribbon">
+        <div className="capacity-ribbon-title">
+          <Armchair aria-hidden="true" />
+          <div>
+            <h2>{t("dashboard.capacity")}</h2>
+            <p>{t("dashboard.capacityDescription")}</p>
           </div>
-          <Link
-            to="/groups"
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
-          >
-            {t("dashboard.fillingUp.viewAll")}
-            <ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" />
-          </Link>
         </div>
-
-        {fillingUp.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-            {active.length === 0
-              ? t("dashboard.fillingUp.noGroups")
-              : t("dashboard.fillingUp.empty")}
-          </p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {fillingUp.map((group) => (
-              <li
-                key={group.id}
-                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3"
-              >
-                <div className="min-w-0 space-y-0.5">
-                  <Link
-                    to="/groups/$groupId"
-                    params={{ groupId: group.id }}
-                    search={{ tab: "roster" }}
-                    className="font-medium hover:text-primary hover:underline"
-                  >
-                    <bdi>{group.name}</bdi>
-                  </Link>
-                  <p className="text-xs text-muted-foreground">
-                    <bdi>{group.subjectName}</bdi>
-                    {" · "}
-                    <bdi>{group.teacherName}</bdi>
-                  </p>
-                </div>
-                <SeatMeter
-                  enrolled={Number(group.enrolledCount)}
-                  capacity={Number(group.capacity)}
-                />
-              </li>
+        <div className="capacity-ribbon-data">
+          <div className="capacity-distribution" aria-hidden="true">
+            <span
+              className={`share-${String(Math.round((seatsTaken / Math.max(1, capacity)) * 100))}`}
+            />
+            <span
+              className={`share-${String(Math.round((Math.max(0, capacity - seatsTaken) / Math.max(1, capacity)) * 100))}`}
+            />
+            <span className={capacity === 0 ? "share-100" : "share-0"} />
+          </div>
+          <dl>
+            {[
+              ["activeGroups", active.length],
+              ["seatsTaken", seatsTaken],
+              ["openSeats", Math.max(0, capacity - seatsTaken)],
+              ["fullGroups", fullCount],
+            ].map(([key, value]) => (
+              <div key={key}>
+                <dt>{t(`dashboard.stats.${String(key)}`)}</dt>
+                <dd>{value}</dd>
+              </div>
             ))}
-          </ul>
-        )}
+          </dl>
+        </div>
       </section>
+      <div className="dashboard-lower">
+        <section
+          aria-labelledby="dashboard-filling-up"
+          className="capacity-surface rounded-xl border border-border bg-card"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+            <div className="space-y-0.5">
+              <h2 id="dashboard-filling-up" className="text-base font-semibold">
+                {t("dashboard.fillingUp.title")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t("dashboard.fillingUp.description")}
+              </p>
+            </div>
+            <Link
+              to="/groups"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {t("dashboard.fillingUp.viewAll")}
+              <ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" />
+            </Link>
+          </div>
+
+          {fillingUp.length === 0 ? (
+            <p className="dashboard-empty">
+              <BookOpen aria-hidden="true" />
+              {active.length === 0
+                ? t("dashboard.fillingUp.noGroups")
+                : t("dashboard.fillingUp.empty")}
+            </p>
+          ) : (
+            <DataTable>
+              <DataTableHead>
+                <DataTableColumn>{tGroups("columns.name")}</DataTableColumn>
+                <DataTableColumn>{tGroups("columns.subject")}</DataTableColumn>
+                <DataTableColumn>{tGroups("columns.teacher")}</DataTableColumn>
+                <DataTableColumn>{tGroups("columns.seats")}</DataTableColumn>
+              </DataTableHead>
+              <DataTableBody>
+                {fillingUp.map((group) => (
+                  <DataTableRow key={group.id}>
+                    <DataTableCell kind="primary">
+                      <Link
+                        to="/groups/$groupId"
+                        params={{ groupId: group.id }}
+                        search={{ tab: "roster" }}
+                        className="font-medium hover:text-primary"
+                      >
+                        <bdi>{group.name}</bdi>
+                      </Link>
+                    </DataTableCell>
+                    <DataTableCell label={tGroups("columns.subject")}>
+                      <bdi>{group.subjectName}</bdi>
+                    </DataTableCell>
+                    <DataTableCell label={tGroups("columns.teacher")}>
+                      <bdi>{group.teacherName}</bdi>
+                    </DataTableCell>
+                    <DataTableCell label={tGroups("columns.seats")}>
+                      <SeatMeter
+                        enrolled={Number(group.enrolledCount)}
+                        capacity={Number(group.capacity)}
+                      />
+                    </DataTableCell>
+                  </DataTableRow>
+                ))}
+              </DataTableBody>
+            </DataTable>
+          )}
+        </section>
+        <aside className="dashboard-quick">
+          <h2>{t("dashboard.quickActions")}</h2>
+          <QuickActions />
+        </aside>
+      </div>
     </div>
   );
 }

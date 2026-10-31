@@ -16,10 +16,13 @@ async function signIn(page: Page, email: string): Promise<void> {
   await expect(page.getByRole("heading", { name: /^(Welcome,|Choose a centre)/ })).toBeVisible();
 }
 
-test("secretary: no owner-only nav items, and no owner-only page by direct URL", async ({ page }) => {
+test("secretary: no owner-only nav items, and no owner-only page by direct URL", async ({
+  page,
+}) => {
   await signIn(page, "secretary@nile.test");
 
-  const sidebar = page.getByRole("navigation");
+  const sidebar = page.locator(".desktop-navigation");
+  await sidebar.locator("summary").filter({ hasText: "Learning" }).click();
   await expect(sidebar.getByRole("link", { name: "Dashboard" })).toBeVisible();
   await expect(sidebar.getByRole("link", { name: "Subjects" })).toBeVisible();
   await expect(sidebar.getByRole("link", { name: "Staff" })).not.toBeAttached();
@@ -29,7 +32,11 @@ test("secretary: no owner-only nav items, and no owner-only page by direct URL",
   const guardedRequests: string[] = [];
   page.on("request", (request) => {
     const url = request.url();
-    if (url.includes("/api/staff") || url.includes("/api/centre/settings") || url.includes("/api/audit")) {
+    if (
+      url.includes("/api/staff") ||
+      url.includes("/api/centre/settings") ||
+      url.includes("/api/audit")
+    ) {
       guardedRequests.push(url);
     }
   });

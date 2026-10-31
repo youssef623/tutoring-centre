@@ -1,4 +1,7 @@
 {
+  "directions": { "inbound": "Inbound", "outbound": "Outbound" },
+  "search": "Search by name or phone",
+  "lastMessageAt": "Last message",
   "direction": "Direction",
   "loading": "Loading…",
   "sentAt": "Sent",

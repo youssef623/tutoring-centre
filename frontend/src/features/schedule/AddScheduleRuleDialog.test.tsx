@@ -19,7 +19,9 @@ async function choose(dialog: HTMLElement, label: string, option: string) {
 
 async function openDialog() {
   renderRouter("/groups/g-1?tab=schedule");
-  fireEvent.click(await screen.findByRole("button", { name: "Add weekly session" }, { timeout: 5000 }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Add weekly session" }, { timeout: 5000 }),
+  );
   return screen.findByRole("dialog", { name: "Add weekly session" });
 }
 
@@ -30,7 +32,9 @@ async function fillSaturdayEvening(dialog: HTMLElement) {
   await choose(dialog, "Minute", "00");
   await choose(dialog, "AM or PM", "PM");
   await choose(dialog, "Length", "1 hour 30 minutes");
-  fireEvent.change(within(dialog).getByRole("textbox", { name: "Room (optional)" }), { target: { value: "Room 2" } });
+  fireEvent.change(within(dialog).getByRole("textbox", { name: "Room (optional)" }), {
+    target: { value: "Room 2" },
+  });
 }
 
 describe("AddScheduleRuleDialog", () => {
@@ -41,6 +45,13 @@ describe("AddScheduleRuleDialog", () => {
     vi.setSystemTime(Now);
     rulesCalls = 0;
     server.use(
+      http.get("/api/timetable", ({ request }) =>
+        HttpResponse.json({
+          timeZoneId: "Africa/Cairo",
+          weekStart: new URL(request.url).searchParams.get("weekStart"),
+          sessions: [],
+        }),
+      ),
       http.get("/api/me", () => HttpResponse.json(secretaryMe)),
       http.get("/api/groups/g-1", () => HttpResponse.json(group())),
       http.get(rulesUrl, () => {
@@ -62,7 +73,9 @@ describe("AddScheduleRuleDialog", () => {
     const dialog = await openDialog();
 
     expect(within(dialog).getByLabelText("Starts on")).toHaveValue("2027-04-20");
-    expect(within(dialog).getByText("Times are in the centre's time zone (Africa/Cairo).")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Times are in the centre's time zone (Africa/Cairo)."),
+    ).toBeInTheDocument();
   });
 
   it("sends exactly the five contract fields as local values, then toasts the count and refreshes the rules", async () => {
@@ -106,7 +119,13 @@ describe("AddScheduleRuleDialog", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Add weekly session" }));
     await screen.findByText("4 sessions scheduled");
 
-    expect(Object.keys(body).sort()).toEqual(["dayOfWeek", "durationMinutes", "effectiveFrom", "room", "startTime"]);
+    expect(Object.keys(body).sort()).toEqual([
+      "dayOfWeek",
+      "durationMinutes",
+      "effectiveFrom",
+      "room",
+      "startTime",
+    ]);
     expect(body).not.toHaveProperty("teacherId");
     expect(body).not.toHaveProperty("centreId");
     expect(body.startTime).toMatch(/^\d{2}:\d{2}$/);
@@ -114,8 +133,14 @@ describe("AddScheduleRuleDialog", () => {
   });
 
   it.each([
-    ["schedule.teacher_double_booked", "The group's teacher already has a session at that time. Choose another day or time."],
-    ["schedule.group_double_booked", "This group already has a session at that time. Choose another day or time."],
+    [
+      "schedule.teacher_double_booked",
+      "The group's teacher already has a session at that time. Choose another day or time.",
+    ],
+    [
+      "schedule.group_double_booked",
+      "This group already has a session at that time. Choose another day or time.",
+    ],
   ])("a 409 %s shows its own message and keeps the dialog open", async (code, message) => {
     server.use(http.post(rulesUrl, () => problemDetails(409, code, "Double booked.")));
 
@@ -148,7 +173,9 @@ describe("AddScheduleRuleDialog", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Add weekly session" }));
 
     const timeGroup = within(dialog).getByRole("group", { name: "Start time" });
-    expect(await within(timeGroup).findByRole("alert")).toHaveTextContent("Start time must be on a 5-minute boundary.");
+    expect(await within(timeGroup).findByRole("alert")).toHaveTextContent(
+      "Start time must be on a 5-minute boundary.",
+    );
   });
 
   it("without a day nothing is sent and the day select says why", async () => {

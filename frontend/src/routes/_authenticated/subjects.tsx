@@ -34,7 +34,7 @@ function SubjectsPage() {
   };
 
   return (
-    <section className="space-y-6">
+    <section className="subjects-page directory-page space-y-6">
       <PageHeader
         title={t("page.title")}
         description={t("page.subtitle")}

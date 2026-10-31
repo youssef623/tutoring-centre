@@ -4,6 +4,8 @@ import { Link, useMatches } from "@tanstack/react-router";
 import { cn } from "cn";
 import {
   BookOpen,
+  Building2,
+  ChevronDown,
   CalendarRange,
   ClipboardCheck,
   GraduationCap,
@@ -21,7 +23,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { HessaWordmark } from "@/components/brand/HessaLogo";
-import { Badge } from "@/components/ui/badge";
+
 import { LanguageSwitcher } from "@/features/language/LanguageSwitcher";
 import type { MeDto } from "@/api/generated/tutoring-centre";
 import { Can } from "@/features/session/Can";
@@ -32,7 +34,7 @@ import "@/features/shell/routeStaticData";
 
 export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
   const { t: tShell } = useTranslation("shell");
-  const { t: tAuth } = useTranslation("auth");
+
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const activeCentre = me.memberships.find(
     (membership) => membership.centreId === me.activeCentreId,
@@ -44,14 +46,10 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
 
   return (
     <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-      <div className="app-shell flex min-h-screen">
+      <div className="app-shell min-h-screen">
         <a href="#main-content" className="skip-link">
           {tShell("nav.skipToContent")}
         </a>
-        <aside className="app-rail hidden w-60 shrink-0 space-y-8 border-e border-sidebar-border bg-sidebar p-5 text-sidebar-foreground md:block">
-          <SidebarBrand />
-          <SidebarNav />
-        </aside>
 
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
@@ -79,7 +77,11 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
         </Dialog.Portal>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="app-header flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-4 md:px-8">
+          <header className="app-header flex items-center justify-between gap-3 bg-card">
+            <div className="desktop-brand">
+              <SidebarBrand />
+            </div>
+            <DesktopNav me={me} />
             <div className="flex min-w-0 items-center gap-2">
               <Dialog.Trigger
                 className="rounded-md p-1.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden"
@@ -88,27 +90,120 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
                 <MenuIcon className="size-5" aria-hidden="true" />
               </Dialog.Trigger>
               {activeCentre !== undefined && (
-                <div
+                <Link
+                  to="/select-centre"
                   aria-label={tShell("header.activeCentre")}
-                  className="flex min-w-0 items-center gap-2"
+                  className="centre-selector flex min-w-0 items-center gap-3"
                 >
+                  <Building2 className="size-5 shrink-0" aria-hidden="true" />
                   <span dir="auto" className="truncate font-medium">
                     {activeCentre.centreName}
                   </span>
-                  <Badge variant="secondary">{tAuth(`roles.${String(activeCentre.role)}`)}</Badge>
-                </div>
+                  <ChevronDown className="size-4" aria-hidden="true" />
+                </Link>
               )}
             </div>
             <UserMenu me={me} />
           </header>
-          <main id="main-content" className="workspace flex-1 p-4 md:p-8 lg:p-10">
-            <div className={cn("mx-auto w-full", isWide ? "max-w-7xl" : "max-w-5xl")}>
+          <main id="main-content" className="workspace flex-1">
+            <div className={cn("mx-auto w-full", isWide ? "workspace-wide" : "workspace-standard")}>
               {children}
             </div>
           </main>
+          <div className="mobile-bottom-nav">
+            <SidebarNav
+              compact
+              onNavigate={() => {
+                setMobileNavOpen(false);
+              }}
+            />
+            <Dialog.Trigger className="mobile-more">
+              <MenuIcon aria-hidden="true" />
+              <span>{tShell("nav.more")}</span>
+            </Dialog.Trigger>
+          </div>
         </div>
       </div>
     </Dialog.Root>
+  );
+}
+
+function DesktopNav({ me }: { me: MeDto }) {
+  const { t } = useTranslation("shell");
+  const groups = [
+    {
+      key: "people",
+      icon: Users,
+      links: [
+        ["students", "/students", Permissions.StudentsView],
+        ["teachers", "/teachers", Permissions.TeachersView],
+      ],
+    },
+    {
+      key: "learning",
+      icon: BookOpen,
+      links: [
+        ["subjects", "/subjects", Permissions.SubjectsView],
+        ["groups", "/groups", Permissions.GroupsView],
+        ["timetable", "/timetable", Permissions.ScheduleView],
+      ],
+    },
+    {
+      key: "operations",
+      icon: Settings,
+      links: [
+        ["attendance", "/attendance", Permissions.AttendanceView],
+        ["staff", "/staff", Permissions.StaffView],
+        ["settings", "/settings", Permissions.CentreSettingsManage],
+        ["audit", "/audit", Permissions.AuditView],
+        ["conversations", "/conversations", Permissions.ConversationsView],
+      ],
+    },
+  ] as const;
+  return (
+    <nav className="desktop-navigation" aria-label={t("nav.openMenu")}>
+      <Link to="/" activeOptions={{ exact: true }}>
+        <LayoutDashboard aria-hidden="true" />
+        {t("nav.dashboard")}
+      </Link>
+      {groups.map(({ key, icon: Icon, links }) => {
+        const visible = links.filter(([, , permission]) => me.permissions.includes(permission));
+        return (
+          visible.length > 0 && (
+            <details
+              className="nav-disclosure"
+              name="hessa-masthead"
+              key={key}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.currentTarget.open = false;
+                  event.currentTarget.querySelector("summary")?.focus();
+                }
+              }}
+            >
+              <summary>
+                <Icon aria-hidden="true" />
+                {t(`nav.${key}`)}
+                <ChevronDown aria-hidden="true" className="nav-chevron" />
+              </summary>
+              <div className="nav-dropdown">
+                {visible.map(([label, to]) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    onClick={(event) =>
+                      event.currentTarget.closest("details")?.removeAttribute("open")
+                    }
+                  >
+                    {t(`nav.${label}`)}
+                  </Link>
+                ))}
+              </div>
+            </details>
+          )
+        );
+      })}
+    </nav>
   );
 }
 
@@ -123,19 +218,25 @@ function SidebarBrand({ onNavigate }: { onNavigate?: () => void }) {
       aria-label={t("nav.home")}
       className="rail-brand flex w-fit items-center rounded-md px-1 py-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <HessaWordmark className="[&_svg]:size-8" />
+      <HessaWordmark className="masthead-wordmark" />
     </Link>
   );
 }
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarNav({
+  onNavigate,
+  compact = false,
+}: {
+  onNavigate?: () => void;
+  compact?: boolean;
+}) {
   const { t } = useTranslation("shell");
 
   const linkClassName =
     "rail-link flex items-center gap-3 rounded-lg border-s-2 border-s-transparent px-3 py-3 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:border-s-sidebar-primary data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
 
   return (
-    <nav aria-label={t("nav.openMenu")} className="space-y-1">
+    <nav aria-label={t(compact ? "nav.quickAccess" : "nav.openMenu")} className="space-y-1">
       <Link to="/" className={linkClassName} activeOptions={{ exact: true }} onClick={onNavigate}>
         <LayoutDashboard className="size-4" aria-hidden="true" />
         {t("nav.dashboard")}
@@ -218,7 +319,7 @@ export function UserMenu({ me }: { me: MeDto }) {
     <Menu.Root>
       <Menu.Trigger className="flex shrink-0 items-center gap-2 rounded-md py-1.5 ps-1.5 pe-1.5 sm:pe-3 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
         <span
-          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground"
+          className="profile-monogram flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-base font-medium text-primary"
           aria-hidden="true"
         >
           {initialsOf(me.displayName)}

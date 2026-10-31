@@ -85,13 +85,13 @@ function ChangePasswordPage() {
   });
 
   return (
-    <main className="auth-utility flex min-h-dvh flex-col">
+    <main className="auth-utility password-page flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 sm:px-10">
         <HessaWordmark />
         <LanguageSwitcher />
       </header>
 
-      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 pb-16 sm:px-0">
+      <div className="password-layout">
         <div className="space-y-1.5">
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
             {t("changePassword.title")}

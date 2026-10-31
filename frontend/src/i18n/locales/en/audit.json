@@ -1,4 +1,6 @@
 {
+  "changesTitle": "Changes",
+  "columns": { "time": "Time", "actor": "Actor", "action": "Action", "entity": "Entity" },
   "page": {
     "title": "Audit log",
     "subtitle": "Every change made in this centre, newest first.",
@@ -11,6 +13,7 @@
     "toLabel": "To"
   },
   "entityType": {
+    "portal_link": "Portal account",
     "subject": "Subject",
     "membership": "Staff membership",
     "centre": "Centre",
@@ -30,6 +33,7 @@
     "deleted": "Deleted"
   },
   "field": {
+    "monthlyFee": "Monthly fee",
     "name": "Name",
     "status": "Status",
     "role": "Role",

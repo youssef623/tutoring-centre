@@ -39,7 +39,10 @@ function TeachersPageContent() {
   const [dialogState, setDialogState] = useState<TeacherDialogState>(null);
 
   const setArchived = (next: boolean) => {
-    void navigate({ search: (previous) => ({ ...previous, archived: next ? true : undefined }), replace: true });
+    void navigate({
+      search: (previous) => ({ ...previous, archived: next ? true : undefined }),
+      replace: true,
+    });
   };
 
   const openCreate = () => {
@@ -47,7 +50,7 @@ function TeachersPageContent() {
   };
 
   return (
-    <section className="space-y-6">
+    <section className="teachers-page directory-page space-y-6">
       <PageHeader
         title={t("page.title")}
         description={t("page.subtitle")}

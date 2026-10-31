@@ -102,7 +102,7 @@ test("owner creates a parent login; parent changes its password and enters an is
   await expect(page.locator("html")).toHaveAttribute("lang", "ar");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   const navigation = page.getByRole("navigation", { name: portalAr.navigation, exact: true });
-  await expect(navigation.getByRole("link")).toHaveCount(2);
+  await expect(navigation.getByRole("link")).toHaveCount(3);
   await expect(navigation.getByRole("button")).toHaveCount(0);
   await expect(navigation.getByRole("link", { name: portalAr.chat, exact: true })).toBeEnabled();
   await expect(

@@ -1,9 +1,14 @@
+import { GroupSessionTimeline } from "./GroupSessionTimeline";
 import { CalendarClock, CalendarPlus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
-import { useListGroupScheduleRules, type GroupDto, type ScheduleRuleDto } from "@/api/generated/tutoring-centre";
+import {
+  useListGroupScheduleRules,
+  type GroupDto,
+  type ScheduleRuleDto,
+} from "@/api/generated/tutoring-centre";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -54,7 +59,11 @@ export function GroupScheduleTab({ group }: { group: GroupDto }) {
         <AlertTitle>{t("rules.errorTitle")}</AlertTitle>
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
-          {apiError.correlationId !== undefined && <p>{t("rules.errorReference", { correlationId: isolateLtr(apiError.correlationId) })}</p>}
+          {apiError.correlationId !== undefined && (
+            <p>
+              {t("rules.errorReference", { correlationId: isolateLtr(apiError.correlationId) })}
+            </p>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -81,9 +90,11 @@ export function GroupScheduleTab({ group }: { group: GroupDto }) {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="group-schedule space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {timeZoneId !== null && <p className="text-sm text-muted-foreground">{t("timeZoneNote", { zone: timeZoneId })}</p>}
+        {timeZoneId !== null && (
+          <p className="text-sm text-muted-foreground">{t("timeZoneNote", { zone: timeZoneId })}</p>
+        )}
         {data.items.length > 0 && <Can permission={Permissions.ScheduleManage}>{addButton}</Can>}
       </div>
 
@@ -107,7 +118,10 @@ export function GroupScheduleTab({ group }: { group: GroupDto }) {
                       variant="ghost"
                       size="sm"
                       className="text-destructive hover:text-destructive"
-                      aria-label={t("actions.endLabel", { day: t(`weekdays.${rule.dayOfWeek}`), time: timeRange(rule) })}
+                      aria-label={t("actions.endLabel", {
+                        day: t(`weekdays.${rule.dayOfWeek}`),
+                        time: timeRange(rule),
+                      })}
                       onClick={() => {
                         setEndTarget(rule);
                       }}
@@ -121,8 +135,17 @@ export function GroupScheduleTab({ group }: { group: GroupDto }) {
       )}
 
       {timeZoneId !== null && today !== null && (
+        <GroupSessionTimeline groupId={group.id} today={today} timeZoneId={timeZoneId} />
+      )}
+      {timeZoneId !== null && today !== null && (
         <Can permission={Permissions.ScheduleManage}>
-          <AddScheduleRuleDialog group={group} today={today} timeZoneId={timeZoneId} open={addOpen} onOpenChange={setAddOpen} />
+          <AddScheduleRuleDialog
+            group={group}
+            today={today}
+            timeZoneId={timeZoneId}
+            open={addOpen}
+            onOpenChange={setAddOpen}
+          />
           <EndScheduleRuleDialog
             rule={endTarget}
             groupId={group.id}

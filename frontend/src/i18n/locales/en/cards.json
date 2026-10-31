@@ -1,4 +1,6 @@
 {
+  "preview": "Card preview",
+  "previewHint": "Issue the selected cards to generate their secure QR codes.",
   "title": "Student cards",
   "status": {
     "Active": "Active",

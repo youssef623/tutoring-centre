@@ -1,4 +1,6 @@
 {
+  "changesTitle": "التغييرات",
+  "columns": { "time": "الوقت", "actor": "المستخدم", "action": "الإجراء", "entity": "البيان" },
   "page": {
     "title": "سجل النشاط",
     "subtitle": "كل تغيير تم في هذا المركز، الأحدث أولًا.",
@@ -11,6 +13,7 @@
     "toLabel": "إلى"
   },
   "entityType": {
+    "portal_link": "حساب البوابة",
     "subject": "مادة",
     "membership": "عضوية موظف",
     "centre": "المركز",
@@ -30,6 +33,7 @@
     "deleted": "تم الحذف"
   },
   "field": {
+    "monthlyFee": "الرسوم الشهرية",
     "name": "الاسم",
     "status": "الحالة",
     "role": "الدور",

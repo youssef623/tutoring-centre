@@ -24,7 +24,8 @@
     "cancelled": "ملغاة",
     "room": "القاعة {room}",
     "recorded": "مسجّل",
-    "recordedLabel": "{recorded} من {expected} مسجّل"
+    "recordedLabel": "{recorded} من {expected} مسجّل",
+    "openRegister": "فتح سجل الحضور"
   },
   "window": {
     "not_open": "لم يُفتح بعد",

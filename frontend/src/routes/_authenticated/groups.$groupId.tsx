@@ -4,9 +4,11 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Archive,
   ArchiveRestore,
+  Armchair,
   ArrowLeft,
   BookOpen,
   CalendarDays,
+  ChevronDown,
   LayoutGrid,
   Pencil,
   Presentation,
@@ -231,7 +233,7 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
   };
 
   return (
-    <section className="space-y-6">
+    <section className="group-profile space-y-6">
       <Link
         to="/groups"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
@@ -285,47 +287,53 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
                   {t("actions.restore")}
                 </Button>
               ) : (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setEditDialog("rename");
-                    }}
-                  >
-                    <Pencil className="size-4" aria-hidden="true" />
-                    {t("actions.rename")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setEditDialog("capacity");
-                    }}
-                  >
-                    {t("actions.changeCapacity")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setEditDialog("assignTeacher");
-                    }}
-                  >
-                    {t("actions.changeTeacher")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => {
-                      setArchiveConfirmOpen(true);
-                    }}
-                  >
-                    <Archive className="size-4" aria-hidden="true" />
-                    {t("actions.archive")}
-                  </Button>
-                </>
+                <details className="group-actions">
+                  <summary>
+                    {t("actions.groupMenu")}
+                    <ChevronDown aria-hidden="true" className="size-4" />
+                  </summary>
+                  <div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditDialog("rename");
+                      }}
+                    >
+                      <Pencil className="size-4" aria-hidden="true" />
+                      {t("actions.rename")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditDialog("capacity");
+                      }}
+                    >
+                      {t("actions.changeCapacity")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditDialog("assignTeacher");
+                      }}
+                    >
+                      {t("actions.changeTeacher")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        setArchiveConfirmOpen(true);
+                      }}
+                    >
+                      <Archive className="size-4" aria-hidden="true" />
+                      {t("actions.archive")}
+                    </Button>
+                  </div>
+                </details>
               )}
             </div>
           </Can>
@@ -370,9 +378,19 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="group-overview-layout grid gap-4 md:grid-cols-3">
             <div className="rounded-xl border border-border bg-card p-4 md:col-span-1">
               <p className="mb-3 text-sm text-muted-foreground">{t("overview.seats")}</p>
+              <div className="seat-map" aria-hidden="true">
+                {Array.from({ length: Math.min(60, Number(group.capacity)) }, (_, index) => (
+                  <span
+                    key={index}
+                    className={index < Number(group.enrolledCount) ? "seat-occupied" : "seat-open"}
+                  >
+                    <Armchair />
+                  </span>
+                ))}
+              </div>
               <SeatMeter
                 enrolled={Number(group.enrolledCount)}
                 capacity={Number(group.capacity)}

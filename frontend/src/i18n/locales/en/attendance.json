@@ -24,7 +24,8 @@
     "cancelled": "Cancelled",
     "room": "Room {room}",
     "recorded": "recorded",
-    "recordedLabel": "{recorded} of {expected} recorded"
+    "recordedLabel": "{recorded} of {expected} recorded",
+    "openRegister": "Open register"
   },
   "window": {
     "not_open": "Not open yet",

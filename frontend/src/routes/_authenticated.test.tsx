@@ -9,12 +9,29 @@ const meUrl = "/api/me";
 const selectCentreUrl = "/api/session/centre";
 const logoutUrl = "/api/auth/logout";
 
-const nileMembership = { centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "teacher" };
-const maadiMembership = { centreId: "c-maadi", centreName: "Maadi Learning Hub", centreSlug: "maadi-hub", role: "teacher" };
+const nileMembership = {
+  centreId: "c-nile",
+  centreName: "Nile Tutoring Centre",
+  centreSlug: "nile-centre",
+  role: "teacher",
+};
+const maadiMembership = {
+  centreId: "c-maadi",
+  centreName: "Maadi Learning Hub",
+  centreSlug: "maadi-hub",
+  role: "teacher",
+};
 
-function me(overrides: Partial<{ activeCentreId: string | null; memberships: unknown[]; isOperator: boolean }> = {}) {
+function me(
+  overrides: Partial<{
+    activeCentreId: string | null;
+    memberships: unknown[];
+    isOperator: boolean;
+  }> = {},
+) {
   const memberships = overrides.memberships ?? [nileMembership, maadiMembership];
-  const activeCentreId = overrides.activeCentreId === undefined ? "c-nile" : overrides.activeCentreId;
+  const activeCentreId =
+    overrides.activeCentreId === undefined ? "c-nile" : overrides.activeCentreId;
   return {
     userId: "u-1",
     displayName: "Two-Centre Teacher",
@@ -66,7 +83,9 @@ describe("the protected layout's guard", () => {
 
     renderRouter("/");
 
-    expect(await screen.findByText("Two-Centre Teacher", {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: "Two-Centre Teacher" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Nile Tutoring Centre")).toBeInTheDocument();
   });
 });
@@ -76,11 +95,15 @@ describe("global 401 handling", () => {
     server.use(http.get(meUrl, () => HttpResponse.json(me())));
 
     const { router, queryClient } = renderRouter("/");
-    await screen.findByText("Two-Centre Teacher");
+    await screen.findByRole("button", { name: "Two-Centre Teacher" });
 
     // Switch centre (a real mutation already in the app) now comes back unauthenticated,
     // as if the session had just been revoked server-side.
-    server.use(http.post(selectCentreUrl, () => HttpResponse.json({ title: "Unauthorized", status: 401 }, { status: 401 })));
+    server.use(
+      http.post(selectCentreUrl, () =>
+        HttpResponse.json({ title: "Unauthorized", status: 401 }, { status: 401 }),
+      ),
+    );
     fireEvent.click(await screen.findByRole("button", { name: "Two-Centre Teacher" }));
     fireEvent.click(await screen.findByRole("menuitem", { name: "Switch centre" }));
     fireEvent.click(await screen.findByRole("button", { name: /Maadi Learning Hub/ }));
@@ -92,7 +115,10 @@ describe("global 401 handling", () => {
   });
 
   it("logout clears the cache", async () => {
-    server.use(http.get(meUrl, () => HttpResponse.json(me())), http.post(logoutUrl, () => new HttpResponse(null, { status: 204 })));
+    server.use(
+      http.get(meUrl, () => HttpResponse.json(me())),
+      http.post(logoutUrl, () => new HttpResponse(null, { status: 204 })),
+    );
 
     const { router, queryClient } = renderRouter("/");
     fireEvent.click(await screen.findByRole("button", { name: "Two-Centre Teacher" }));

@@ -1,3 +1,4 @@
+import { PersonIdentity } from "@/components/shared/PersonIdentity";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,24 +34,34 @@ export function RosterTable({
       <DataTableHead>
         <DataTableColumn>{t("roster.columns.student")}</DataTableColumn>
         <DataTableColumn>{t("roster.columns.enrolledAt")}</DataTableColumn>
-        {rowMenu !== undefined && <DataTableColumn hidden>{t("roster.columns.actions")}</DataTableColumn>}
+        {rowMenu !== undefined && (
+          <DataTableColumn hidden>{t("roster.columns.actions")}</DataTableColumn>
+        )}
       </DataTableHead>
       <DataTableBody>
         {items.map((entry) => (
           <DataTableRow key={entry.enrollmentId}>
             <DataTableCell kind="primary">
               {linkStudents ? (
-                <Link to="/students/$studentId" params={{ studentId: entry.studentId }} className="font-medium hover:underline">
-                  <bdi>{entry.studentName}</bdi>
+                <Link
+                  to="/students/$studentId"
+                  params={{ studentId: entry.studentId }}
+                  className="font-medium hover:underline"
+                >
+                  <PersonIdentity name={entry.studentName} />
                 </Link>
               ) : (
-                <bdi className="font-medium">{entry.studentName}</bdi>
+                <PersonIdentity name={entry.studentName} />
               )}
             </DataTableCell>
             <DataTableCell label={t("roster.columns.enrolledAt")} className="text-muted-foreground">
-              <time dateTime={entry.enrolledAt}>{dateFormat.format(new Date(entry.enrolledAt))}</time>
+              <time dateTime={entry.enrolledAt}>
+                {dateFormat.format(new Date(entry.enrolledAt))}
+              </time>
             </DataTableCell>
-            {rowMenu !== undefined && <DataTableCell kind="actions">{rowMenu(entry)}</DataTableCell>}
+            {rowMenu !== undefined && (
+              <DataTableCell kind="actions">{rowMenu(entry)}</DataTableCell>
+            )}
           </DataTableRow>
         ))}
       </DataTableBody>

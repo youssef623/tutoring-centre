@@ -30,7 +30,7 @@ function StaffPageContent() {
   const [roleTarget, setRoleTarget] = useState<StaffMemberDto | null>(null);
 
   return (
-    <section className="space-y-6">
+    <section className="staff-page directory-page space-y-6">
       <PageHeader
         title={t("page.title")}
         description={t("page.subtitle")}

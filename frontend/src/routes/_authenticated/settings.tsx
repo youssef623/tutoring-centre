@@ -152,7 +152,7 @@ function SettingsPageContent() {
     <section className="space-y-4">
       <PageHeader title={t("page.title")} description={t("page.subtitle")} />
       <form
-        className="settings-form max-w-xl space-y-5 rounded-2xl border bg-card p-6 shadow-xs"
+        className="settings-form space-y-5 rounded-2xl border bg-card p-6 shadow-xs"
         onSubmit={(event) => {
           void onSubmit(event);
         }}

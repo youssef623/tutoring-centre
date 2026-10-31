@@ -1,4 +1,10 @@
 {
+  "chatContextParent": "احصل على إجابات سريعة عن سجلات حضور أبنائك.",
+  "chatContextStudent": "احصل على إجابات سريعة عن سجل حضورك.",
+  "homeWelcome": "مرحبًا، {name}",
+  "homePrompt": "اختر خدمة للمتابعة.",
+  "homeAttendanceParent": "تابع سجلات حضور أبنائك.",
+  "homeAttendanceStudent": "تابع سجل حضورك.",
   "navigation": "التنقل في البوابة",
   "chat": "المحادثات",
   "attendance": "الحضور",
@@ -56,5 +62,8 @@
   "attendanceError": "تعذر تحميل الحضور.",
   "attendanceEmpty": "لم يتم تسجيل حضور لهذا الشهر",
   "attendanceNext": "الشهر التالي",
-  "attendanceLoading": "جار تحميل الحضور…"
+  "attendanceLoading": "جار تحميل الحضور…",
+  "home": "الرئيسية",
+  "viewAttendance": "عرض الحضور",
+  "openChat": "فتح المحادثة"
 }
