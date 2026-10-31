@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up .NET from global.json
         uses: actions/setup-dotnet@v5
@@ -58,7 +58,7 @@ jobs:
     name: eval-replay
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
@@ -84,7 +84,7 @@ jobs:
         working-directory: frontend
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node.js (LTS) with npm cache
         uses: actions/setup-node@v6
@@ -154,7 +154,7 @@ jobs:
       Auth__LoginRateLimit__PermitLimit: "100"
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up .NET from global.json
         uses: actions/setup-dotnet@v5
@@ -244,7 +244,7 @@ jobs:
           --health-retries 10
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Same roles the local Compose stack and the e2e job above rely on: a service container has no
       # docker-entrypoint-initdb.d folder, so db/bootstrap-roles.sh is what actually creates them.
@@ -324,7 +324,7 @@ jobs:
       DEMO_SEED_PASSWORD: ci-only-throwaway-seed-password
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Build and start the local production stack
         run: docker compose -f compose.yaml -f compose.prod.yaml up --build -d
