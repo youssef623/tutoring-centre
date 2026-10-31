@@ -96,5 +96,5 @@ public sealed class ToolArguments
         }
         return !schema.TryGetProperty("enum", out var values) || values.EnumerateArray().Any(x => JsonElement.DeepEquals(x, value));
     }
-    private static Result<ToolArguments> Invalid() => Result<ToolArguments>.Failure(Error.Validation("tool.arguments_invalid", "Tool arguments do not match the declared schema."));
+    private static Result<ToolArguments> Invalid() => Result<ToolArguments>.Failure(Error.Validation("tool.invalid_arguments", "Tool arguments do not match the declared schema."));
 }

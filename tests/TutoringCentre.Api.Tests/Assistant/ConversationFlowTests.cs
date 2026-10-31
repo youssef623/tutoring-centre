@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TutoringCentre.Api.Cli;
 using TutoringCentre.Api.Tests.Fixtures;
+using TutoringCentre.Api.Tests.Support;
+using TutoringCentre.Application.Tests.Fakes;
 using TutoringCentre.Application;
 using TutoringCentre.Application.Assistant.Models;
 using TutoringCentre.Application.Common.Ports;
@@ -116,12 +118,29 @@ public sealed class ConversationFlowTests(ApiFactory factory) : IAsyncLifetime
         Assert.EndsWith("present.", reply, StringComparison.Ordinal);
         Assert.DoesNotMatch(@"[0-9a-fA-F]{8}-[0-9a-fA-F-]{27,}", reply);
         Assert.Equal(1L, await factory.ScalarAsync<long>("select count(*) from assistant.agent_runs where status='completed' and guard_reason is null"));
+        // Week 14 walkthrough: the same signed-in parent asks about an unauthorized child next.
+        var before = await DatabaseSnapshot.CaptureAsync(factory.SuperuserConnectionString);
+        model.Attack = true;
+        using var foreign = await AntiforgeryTestHelper.PostAsJsonAsync(actor.Client, new Uri("/api/portal/chat/messages", UriKind.Relative),
+            new { clientMessageId = Guid.NewGuid(), text = "Did Omar attend today?" });
+        Assert.Equal(HttpStatusCode.Created, foreign.StatusCode);
+        for (var i = 0; i < 3; i++) await relay.ProcessBatchAsync();
+        Assert.Equal(2L, await factory.ScalarAsync<long>("select count(*) from assistant.agent_runs"));
+        Assert.Equal(2L, await factory.ScalarAsync<long>("select count(*) from conversations.outbound_messages"));
+        Assert.Equal(1L, await factory.ScalarAsync<long>($"select count(*) from conversations.outbound_messages where text='{AttackCatalogue.Refusal}'"));
+        Assert.Equal(1L, await factory.ScalarAsync<long>("select count(*) from assistant.tool_calls where decision='denied' and reason_code='tool.handle_unknown'"));
+        Assert.Equal(before.ToArray(), (await DatabaseSnapshot.CaptureAsync(factory.SuperuserConnectionString)).ToArray());
+        using var students = await actor.Client.GetAsync(new Uri("/api/students", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.Forbidden, students.StatusCode);
     }
     private sealed class AttendanceModel : ILanguageModel
     {
+        private readonly AdversarialLanguageModel _hostile = new("A10");
+        public bool Attack { get; set; }
         public int ToolRequests { get; private set; }
         public Task<Result<ModelResponse>> GenerateAsync(ModelRequest request, CancellationToken ct)
         {
+            if (Attack) return _hostile.GenerateAsync(request, ct);
             var last = request.Messages[^1];
             if(last.Role == ModelRole.Tool)
             {

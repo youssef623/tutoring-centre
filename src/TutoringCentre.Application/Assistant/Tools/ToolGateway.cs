@@ -22,12 +22,18 @@ public sealed class ToolGateway(ToolRegistry registry, IActorScopeRunner scopes,
         {
             tool = registry.Find(name);
             context.AttemptedCalls++;
-            if (context.AttemptedCalls > options.MaxToolCalls) outcome = Deny("tool.call_limit");
+            if (context.AttemptedCalls > options.MaxToolCalls) outcome = Deny("tool.call_cap");
             else if (tool is null) outcome = Deny("tool.unknown");
             else
             {
                 var arguments = ToolArguments.Parse(tool.Descriptor.Schema, argumentsJson);
-                if (arguments.IsFailure) outcome = new(ToolDecision.Invalid, "tool.arguments_invalid", "Invalid tool arguments (tool.arguments_invalid).");
+                if (arguments.IsFailure)
+                {
+                    var rejected = ClassifyRejectedHandle(name, argumentsJson);
+                    outcome = rejected is null
+                        ? new(ToolDecision.Invalid, "tool.invalid_arguments", "Invalid tool arguments (tool.invalid_arguments).")
+                        : Deny(rejected);
+                }
                 else
                 {
                     argumentSummary = arguments.Value.HandleSummary();
@@ -47,7 +53,8 @@ public sealed class ToolGateway(ToolRegistry registry, IActorScopeRunner scopes,
                             context.HasAttendance |= name == "get_attendance";
                             context.ReturnedFacts += JsonSerializer.Serialize(result.Value.Data, JsonSerializerOptions.Web);
                         }
-                        outcome = result.IsFailure ? Deny(result.Error!.Code)
+                        outcome = result.IsFailure ? result.Error!.Code == "tool.invalid_arguments"
+                            ? new(ToolDecision.Invalid, result.Error.Code, "Invalid tool arguments (tool.invalid_arguments).") : Deny(result.Error.Code)
                             : new(ToolDecision.Allowed, null, Context.ContextBuilder.Truncate(JsonSerializer.Serialize(result.Value.Data, JsonSerializerOptions.Web), 4000));
                     }
                 }
@@ -59,6 +66,23 @@ public sealed class ToolGateway(ToolRegistry registry, IActorScopeRunner scopes,
             outcome.Decision, outcome.ReasonCode, argumentSummary, outcome.Decision == ToolDecision.Allowed ? resultSummary : "result withheld",
             (int)Math.Min(int.MaxValue, Stopwatch.GetElapsedTime(start).TotalMilliseconds), DateTimeOffset.UtcNow));
         return outcome;
+    }
+    // Classification only: these values still never pass schema validation or reach a tool.
+    private static string? ClassifyRejectedHandle(string name, string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            if (name != "get_attendance" || document.RootElement.ValueKind != JsonValueKind.Object
+                || document.RootElement.EnumerateObject().Count() != 1
+                || !document.RootElement.TryGetProperty("childHandle", out var handle)
+                || handle.ValueKind != JsonValueKind.String) return null;
+            var value = handle.GetString();
+            if (Guid.TryParse(value, out _)) return "tool.raw_id_rejected";
+            return System.Text.RegularExpressions.Regex.IsMatch(value!, "^[a-zA-Z]+$",
+                System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)) ? "tool.handle_unknown" : null;
+        }
+        catch (JsonException) { return null; }
     }
     private static ToolOutcome Deny(string code) => System.Text.RegularExpressions.Regex.IsMatch(code, "^[a-z][a-z0-9_.-]{0,59}$", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100))
         ? new(ToolDecision.Denied, code, $"Tool request denied ({code}).")

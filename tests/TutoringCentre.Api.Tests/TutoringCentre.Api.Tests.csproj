@@ -25,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Share source without referencing a test assembly; no shared fake project exists. -->
+    <Compile Include="../TutoringCentre.Application.Tests/Fakes/AttackCatalogue.cs" Link="Support/AttackCatalogue.cs" />
+    <Compile Include="../TutoringCentre.Application.Tests/Fakes/AdversarialLanguageModel.cs" Link="Support/AdversarialLanguageModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\TutoringCentre.Api\TutoringCentre.Api.csproj" />
   </ItemGroup>
 
