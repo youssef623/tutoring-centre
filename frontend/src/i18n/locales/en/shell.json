@@ -13,7 +13,8 @@
     "audit": "Audit log",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "home": "Hessa home"
+    "home": "Hessa home",
+    "skipToContent": "Skip to content"
   },
   "header": {
     "activeCentre": "Active centre"

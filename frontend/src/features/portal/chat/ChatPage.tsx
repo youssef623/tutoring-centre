@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Composer } from "./Composer";
 import { MessageList } from "./MessageList";
 import { useChatMessages } from "./useChatMessages";
+import { MessageCircle } from "lucide-react";
 
 export function ChatPage() {
   const { t } = useTranslation("portal");
   const chat = useChatMessages();
   return (
     <section
-      className="mx-auto flex min-h-[65dvh] w-full max-w-3xl flex-col rounded-xl border bg-background text-start"
+      className="chat-surface mx-auto flex min-h-[70dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border bg-card text-start shadow-sm"
       aria-labelledby="chat-title"
     >
       <h1 id="chat-title" className="px-5 pt-6 text-3xl font-semibold tracking-tight sm:px-7">
@@ -36,7 +37,12 @@ export function ChatPage() {
           </div>
         )}
         {!chat.isPending && !chat.error && !chat.items.length && !chat.optimistic && (
-          <p className="p-7 text-muted-foreground">{t("chatEmpty")}</p>
+          <div className="flex flex-col items-center gap-4 px-7 py-14 text-center text-muted-foreground">
+            <span className="grid size-14 place-items-center rounded-2xl bg-accent text-primary">
+              <MessageCircle aria-hidden="true" className="size-7" />
+            </span>
+            <p>{t("chatEmpty")}</p>
+          </div>
         )}
         {chat.hasNextPage && (
           <Button

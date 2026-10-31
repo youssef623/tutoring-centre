@@ -7,30 +7,97 @@
   align-items: center;
   justify-content: space-between;
   gap: 2mm;
-  border: 0.2mm solid #b8b8b8;
+  border: 0.2mm solid #d5caee;
+  border-inline-start: 1.2mm solid #8b5cf4;
   background: #fff;
   color: #111;
   font-family: "Geist Variable", "IBM Plex Sans Arabic", sans-serif;
   break-inside: avoid;
 }
-.card-names { min-inline-size: 0; flex: 1; display: grid; gap: 2mm; overflow-wrap: anywhere; }
-.card-face p { margin: 0; }
-.card-centre { font-size: 3mm; font-weight: 600; line-height: 1.3; }
-.card-group { font-size: 2.6mm; line-height: 1.35; color: #444; }
-.card-student { font-weight: 600; line-height: 1.3; }
-.card-machine { flex: none; text-align: center; direction: ltr; }
-.card-qr { display: block; inline-size: 32mm; block-size: 32mm; transform: none; }
-.card-number { font-size: 2.5mm; line-height: 1.5; }
-.card-page { display: grid; grid-template-columns: repeat(2, 85.6mm); grid-auto-rows: 54mm; gap: 8mm 6mm; align-content: start; }
-.card-screen-sheet { overflow: auto; padding: 1rem; background: var(--muted); border-radius: 0.75rem; }
-.card-screen-sheet .card-page + .card-page { margin-block-start: 8mm; }
-.card-print-root { display: none; }
-@page { size: A4; margin: 12mm; }
+.card-names {
+  min-inline-size: 0;
+  flex: 1;
+  display: grid;
+  gap: 2mm;
+  overflow-wrap: anywhere;
+}
+.card-face p {
+  margin: 0;
+}
+.card-centre {
+  color: #6034af;
+  font-size: 3mm;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.card-group {
+  font-size: 2.6mm;
+  line-height: 1.35;
+  color: #444;
+}
+.card-student {
+  font-weight: 600;
+  line-height: 1.3;
+}
+.card-machine {
+  flex: none;
+  text-align: center;
+  direction: ltr;
+}
+.card-qr {
+  display: block;
+  inline-size: 32mm;
+  block-size: 32mm;
+  transform: none;
+}
+.card-number {
+  font-size: 2.5mm;
+  line-height: 1.5;
+}
+.card-page {
+  display: grid;
+  grid-template-columns: repeat(2, 85.6mm);
+  grid-auto-rows: 54mm;
+  gap: 8mm 6mm;
+  align-content: start;
+}
+.card-screen-sheet {
+  overflow: auto;
+  padding: 1rem;
+  background: var(--muted);
+  border-radius: 0.75rem;
+}
+.card-screen-sheet .card-page + .card-page {
+  margin-block-start: 8mm;
+}
+.card-print-root {
+  display: none;
+}
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
-  body:has(> .card-print-root) > :not(.card-print-root) { display: none !important; }
-  body:has(> .card-print-root) { margin: 0; background: white; }
-  .card-print-root { display: block; }
-  .card-page { block-size: 272mm; break-inside: avoid; break-after: page; }
-  .card-page:last-child { break-after: auto; }
-  .card-face { border: 0.2mm dashed #888; print-color-adjust: exact; }
+  body:has(> .card-print-root) > :not(.card-print-root) {
+    display: none !important;
+  }
+  body:has(> .card-print-root) {
+    margin: 0;
+    background: white;
+  }
+  .card-print-root {
+    display: block;
+  }
+  .card-page {
+    block-size: 272mm;
+    break-inside: avoid;
+    break-after: page;
+  }
+  .card-page:last-child {
+    break-after: auto;
+  }
+  .card-face {
+    border: 0.2mm dashed #888;
+    print-color-adjust: exact;
+  }
 }

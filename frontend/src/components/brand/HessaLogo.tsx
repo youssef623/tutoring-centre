@@ -2,35 +2,85 @@ import { useId } from "react";
 import { cn } from "cn";
 
 /**
- * The Hessa (حصة) brand mark: a graduation cap on a rounded teal tile.
+ * Hessa's six fanned pages converge at the lower-right corner, matching the brand reference.
  * Self-contained SVG with a locally-scoped gradient id so multiple instances never collide.
  */
 export function HessaMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 128 144" role="img" aria-hidden="true" className={cn("size-10", className)}>
+      <HessaPages />
+    </svg>
+  );
+}
+
+function HessaPages() {
   const gradientId = useId();
   return (
-    <svg
-      viewBox="0 0 48 48"
-      role="img"
-      aria-hidden="true"
-      className={cn("size-10", className)}
-    >
+    <>
       <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="var(--brand-grad-from, #14b8a6)" />
-          <stop offset="1" stopColor="var(--brand-grad-to, #0f766e)" />
+        <linearGradient
+          id={gradientId}
+          x1="20"
+          y1="20"
+          x2="108"
+          y2="126"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#B69AFF" />
+          <stop offset="0.58" stopColor="#8B5CF4" />
+          <stop offset="1" stopColor="#6F3FE5" />
         </linearGradient>
       </defs>
-      <rect width="48" height="48" rx="13" fill={`url(#${gradientId})`} />
-      {/* mortarboard */}
-      <path d="M24 12 L40 20 L24 28 L8 20 Z" fill="#fff" />
-      <path
-        d="M16 23.3 L24 27.3 L32 23.3 V30 C32 32.2 28.4 33.8 24 33.8 C19.6 33.8 16 32.2 16 30 Z"
-        fill="#fff"
-        opacity="0.9"
-      />
-      {/* tassel */}
-      <path d="M40 20 V28.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="40" cy="30.2" r="1.9" fill="var(--brand-grad-accent, #f59e0b)" />
+      <g fill={`url(#${gradientId})`}>
+        <path d="M0 80v20c35-4 72 9 103 23C69 97 35 78 0 80Z" />
+        <path d="m13 60-5 13c41 10 73 31 97 51C72 90 43 67 13 60Z" />
+        <path d="m25 40-7 16c41 19 72 48 90 69C80 85 51 55 25 40Z" />
+        <path d="m44 27-13 8c38 31 66 71 79 91C88 83 63 43 44 27Z" />
+        <path d="m73 13-15 7c25 34 45 83 53 105C102 77 89 38 73 13Z" />
+        <path d="m97 0-14 12c17 47 25 87 30 114C110 75 105 34 97 0Z" />
+      </g>
+    </>
+  );
+}
+
+/** Fixed SVG baselines keep the two names as close as in the supplied reference. */
+export function HessaLoginLogo({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 304 144"
+      direction="ltr"
+      role="img"
+      aria-label="Hessa حصة"
+      className={cn("login-reference-logo", className)}
+    >
+      <HessaPages />
+      <text
+        x="142"
+        y="58"
+        fill="currentColor"
+        fontFamily="Geist Variable, sans-serif"
+        fontSize="52"
+        fontWeight="700"
+        letterSpacing="-2"
+        textLength="152"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        Hessa
+      </text>
+      <text
+        x="142"
+        y="112"
+        fill="currentColor"
+        fontFamily="IBM Plex Sans Arabic, sans-serif"
+        fontSize="60"
+        fontWeight="600"
+        direction="rtl"
+        textAnchor="end"
+        textLength="116"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        حصة
+      </text>
     </svg>
   );
 }
@@ -47,12 +97,12 @@ export function HessaWordmark({
   showArabic?: boolean;
 }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
+    <span dir="ltr" className={cn("inline-flex items-center gap-2.5", className)}>
       <HessaMark className="size-9" />
-      <span className="flex items-baseline gap-1.5 leading-none">
+      <span className="brand-type flex items-baseline gap-2 leading-none">
         <span className="font-heading text-xl font-semibold tracking-tight">Hessa</span>
         {showArabic && (
-          <span dir="rtl" className="text-lg font-medium text-muted-foreground">
+          <span dir="rtl" className="brand-arabic text-lg font-medium text-muted-foreground">
             حصة
           </span>
         )}

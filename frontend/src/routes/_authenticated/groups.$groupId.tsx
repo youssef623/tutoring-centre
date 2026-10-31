@@ -240,7 +240,7 @@ function GroupDetailContent({ group }: { group: GroupDto }) {
         {t("detail.backToList")}
       </Link>
 
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="profile-summary rounded-2xl border border-border border-t-3 border-t-brand bg-card p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-3">

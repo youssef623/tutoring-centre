@@ -4,7 +4,12 @@ import { useTranslation } from "react-i18next";
 import type { TimetableSessionDto } from "@/api/generated/tutoring-centre";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatTimeRange } from "@/features/schedule/centreTime";
 import { cn } from "cn";
 
@@ -32,7 +37,7 @@ export function SessionCard({
       aria-label={`${session.groupName}, ${timeRange}`}
       data-status={session.status}
       className={cn(
-        "space-y-1.5 rounded-lg border border-border bg-card p-2.5 text-sm shadow-xs",
+        "session-card space-y-2 rounded-lg border border-border border-s-3 border-s-brand bg-card p-3 text-sm shadow-xs",
         isCancelled && "border-dashed bg-muted/40 text-muted-foreground shadow-none",
       )}
     >
@@ -53,7 +58,10 @@ export function SessionCard({
                   variant="ghost"
                   size="icon-xs"
                   className="-me-1 -mt-0.5 shrink-0"
-                  aria-label={t("actions.openSessionMenu", { group: session.groupName, time: timeRange })}
+                  aria-label={t("actions.openSessionMenu", {
+                    group: session.groupName,
+                    time: timeRange,
+                  })}
                 />
               }
             >
@@ -73,7 +81,10 @@ export function SessionCard({
         to="/groups/$groupId"
         params={{ groupId: session.groupId }}
         search={{ tab: "schedule" }}
-        className={cn("block font-semibold break-words hover:underline", isCancelled && "line-through")}
+        className={cn(
+          "block font-semibold break-words hover:underline",
+          isCancelled && "line-through",
+        )}
       >
         <bdi>{session.groupName}</bdi>
       </Link>

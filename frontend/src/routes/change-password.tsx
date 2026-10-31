@@ -85,7 +85,7 @@ function ChangePasswordPage() {
   });
 
   return (
-    <main className="flex min-h-dvh flex-col bg-muted/30">
+    <main className="auth-utility flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 sm:px-10">
         <HessaWordmark />
         <LanguageSwitcher />
@@ -104,7 +104,7 @@ function ChangePasswordPage() {
         </div>
 
         <form
-          className="space-y-4"
+          className="auth-form space-y-4"
           onSubmit={(event) => {
             void onSubmit(event);
           }}
@@ -121,10 +121,13 @@ function ChangePasswordPage() {
               disabled={isSubmitting}
               className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
               aria-invalid={errors.currentPassword !== undefined}
+              aria-describedby={
+                errors.currentPassword === undefined ? undefined : "current-password-error"
+              }
               {...register("currentPassword")}
             />
             {errors.currentPassword !== undefined && (
-              <p className="text-sm text-destructive">
+              <p id="current-password-error" className="text-sm text-destructive">
                 {errors.currentPassword.type === "server"
                   ? errors.currentPassword.message
                   : t(errors.currentPassword.message ?? "")}
@@ -143,10 +146,11 @@ function ChangePasswordPage() {
               disabled={isSubmitting}
               className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
               aria-invalid={errors.newPassword !== undefined}
+              aria-describedby={errors.newPassword === undefined ? undefined : "new-password-error"}
               {...register("newPassword")}
             />
             {errors.newPassword !== undefined && (
-              <p className="text-sm text-destructive">
+              <p id="new-password-error" className="text-sm text-destructive">
                 {errors.newPassword.type === "server"
                   ? errors.newPassword.message
                   : t(errors.newPassword.message ?? "")}
@@ -165,10 +169,13 @@ function ChangePasswordPage() {
               disabled={isSubmitting}
               className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-ring/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive"
               aria-invalid={errors.confirmPassword !== undefined}
+              aria-describedby={
+                errors.confirmPassword === undefined ? undefined : "confirm-password-error"
+              }
               {...register("confirmPassword")}
             />
             {errors.confirmPassword !== undefined && (
-              <p className="text-sm text-destructive">
+              <p id="confirm-password-error" className="text-sm text-destructive">
                 {errors.confirmPassword.type === "server"
                   ? errors.confirmPassword.message
                   : t(errors.confirmPassword.message ?? "")}

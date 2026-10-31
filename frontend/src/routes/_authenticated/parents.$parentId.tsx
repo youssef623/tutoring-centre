@@ -119,7 +119,7 @@ function ParentDetailContent({ parent }: { parent: ParentDetailDto }) {
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="profile-heading flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight" dir="auto">
           {parent.fullName}
         </h1>
@@ -136,7 +136,7 @@ function ParentDetailContent({ parent }: { parent: ParentDetailDto }) {
         )}
       </div>
 
-      <div className="max-w-md space-y-3 rounded-xl border border-border p-4">
+      <div className="profile-summary max-w-xl space-y-4 rounded-xl border border-border p-5">
         <div className="flex items-center justify-between gap-4">
           <span className="text-sm text-muted-foreground">{t("card.phoneLabel")}</span>
           <PhoneText value={parent.phone} />

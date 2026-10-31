@@ -44,15 +44,19 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
 
   return (
     <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-      <div className="flex min-h-screen">
-        <aside className="hidden w-56 shrink-0 space-y-6 border-e border-sidebar-border bg-sidebar p-4 text-sidebar-foreground md:block">
+      <div className="app-shell flex min-h-screen">
+        <a href="#main-content" className="skip-link">
+          {tShell("nav.skipToContent")}
+        </a>
+        <aside className="app-rail hidden w-60 shrink-0 space-y-8 border-e border-sidebar-border bg-sidebar p-5 text-sidebar-foreground md:block">
           <SidebarBrand />
           <SidebarNav />
         </aside>
 
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 bg-foreground/40 transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-          <Dialog.Popup className="fixed inset-y-0 start-0 flex h-full w-64 flex-col gap-4 bg-sidebar p-4 text-sidebar-foreground shadow-md transition-transform ltr:data-[ending-style]:-translate-x-full ltr:data-[starting-style]:-translate-x-full rtl:data-[ending-style]:translate-x-full rtl:data-[starting-style]:translate-x-full">
+          <Dialog.Backdrop className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+          <Dialog.Popup className="app-rail fixed inset-y-0 start-0 z-50 flex h-full w-72 max-w-[85vw] flex-col gap-6 overflow-y-auto bg-sidebar p-5 text-sidebar-foreground shadow-md transition-transform ltr:data-[ending-style]:-translate-x-full ltr:data-[starting-style]:-translate-x-full rtl:data-[ending-style]:translate-x-full rtl:data-[starting-style]:translate-x-full">
+            <Dialog.Title className="sr-only">{tShell("nav.openMenu")}</Dialog.Title>
             <div className="flex items-center justify-between gap-2">
               <SidebarBrand
                 onNavigate={() => {
@@ -75,7 +79,7 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
         </Dialog.Portal>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 md:px-6">
+          <header className="app-header flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-4 md:px-8">
             <div className="flex min-w-0 items-center gap-2">
               <Dialog.Trigger
                 className="rounded-md p-1.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden"
@@ -97,7 +101,7 @@ export function AppShell({ me, children }: { me: MeDto; children: ReactNode }) {
             </div>
             <UserMenu me={me} />
           </header>
-          <main className="flex-1 p-4 md:p-6">
+          <main id="main-content" className="workspace flex-1 p-4 md:p-8 lg:p-10">
             <div className={cn("mx-auto w-full", isWide ? "max-w-7xl" : "max-w-5xl")}>
               {children}
             </div>
@@ -117,7 +121,7 @@ function SidebarBrand({ onNavigate }: { onNavigate?: () => void }) {
       to="/"
       onClick={onNavigate}
       aria-label={t("nav.home")}
-      className="flex w-fit items-center rounded-md px-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="rail-brand flex w-fit items-center rounded-md px-1 py-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <HessaWordmark className="[&_svg]:size-8" />
     </Link>
@@ -128,10 +132,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation("shell");
 
   const linkClassName =
-    "flex items-center gap-2.5 rounded-md border-s-2 border-s-transparent px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:border-s-sidebar-primary data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
+    "rail-link flex items-center gap-3 rounded-lg border-s-2 border-s-transparent px-3 py-3 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:border-s-sidebar-primary data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
 
   return (
-    <nav className="space-y-1">
+    <nav aria-label={t("nav.openMenu")} className="space-y-1">
       <Link to="/" className={linkClassName} activeOptions={{ exact: true }} onClick={onNavigate}>
         <LayoutDashboard className="size-4" aria-hidden="true" />
         {t("nav.dashboard")}

@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Armchair, ArrowRight, CircleSlash, GraduationCap, UserPlus, UsersRound } from "lucide-react";
+import {
+  Armchair,
+  ArrowRight,
+  CircleSlash,
+  GraduationCap,
+  UserPlus,
+  UsersRound,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
@@ -22,7 +29,7 @@ export function QuickActions() {
   const { t } = useTranslation("shell");
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="quick-actions flex flex-wrap gap-3">
       <Can permission={Permissions.StudentsManage}>
         <Link to="/students/new" className={buttonVariants()}>
           <UserPlus className="size-4" aria-hidden="true" />
@@ -94,7 +101,8 @@ export function GroupsOverview() {
   const active = data.items.filter((group) => group.status === "active");
   const seatsTaken = active.reduce((sum, group) => sum + Number(group.enrolledCount), 0);
   const capacity = active.reduce((sum, group) => sum + Number(group.capacity), 0);
-  const share = (group: GroupDto) => Number(group.enrolledCount) / Math.max(1, Number(group.capacity));
+  const share = (group: GroupDto) =>
+    Number(group.enrolledCount) / Math.max(1, Number(group.capacity));
   const fullCount = active.filter((group) => share(group) >= 1).length;
   const fillingUp = active
     .filter((group) => share(group) >= FillingUpShare)
@@ -104,13 +112,24 @@ export function GroupsOverview() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-        <StatTile icon={UsersRound} label={t("dashboard.stats.activeGroups")} value={active.length} />
+        <StatTile
+          icon={UsersRound}
+          label={t("dashboard.stats.activeGroups")}
+          value={active.length}
+        />
         <StatTile icon={GraduationCap} label={t("dashboard.stats.seatsTaken")} value={seatsTaken} />
-        <StatTile icon={Armchair} label={t("dashboard.stats.openSeats")} value={Math.max(0, capacity - seatsTaken)} />
+        <StatTile
+          icon={Armchair}
+          label={t("dashboard.stats.openSeats")}
+          value={Math.max(0, capacity - seatsTaken)}
+        />
         <StatTile icon={CircleSlash} label={t("dashboard.stats.fullGroups")} value={fullCount} />
       </div>
 
-      <section aria-labelledby="dashboard-filling-up" className="rounded-xl border border-border bg-card">
+      <section
+        aria-labelledby="dashboard-filling-up"
+        className="capacity-surface rounded-xl border border-border bg-card"
+      >
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
           <div className="space-y-0.5">
             <h2 id="dashboard-filling-up" className="text-base font-semibold">
@@ -129,12 +148,17 @@ export function GroupsOverview() {
 
         {fillingUp.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-            {active.length === 0 ? t("dashboard.fillingUp.noGroups") : t("dashboard.fillingUp.empty")}
+            {active.length === 0
+              ? t("dashboard.fillingUp.noGroups")
+              : t("dashboard.fillingUp.empty")}
           </p>
         ) : (
           <ul className="divide-y divide-border">
             {fillingUp.map((group) => (
-              <li key={group.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+              <li
+                key={group.id}
+                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3"
+              >
                 <div className="min-w-0 space-y-0.5">
                   <Link
                     to="/groups/$groupId"
@@ -150,7 +174,10 @@ export function GroupsOverview() {
                     <bdi>{group.teacherName}</bdi>
                   </p>
                 </div>
-                <SeatMeter enrolled={Number(group.enrolledCount)} capacity={Number(group.capacity)} />
+                <SeatMeter
+                  enrolled={Number(group.enrolledCount)}
+                  capacity={Number(group.capacity)}
+                />
               </li>
             ))}
           </ul>

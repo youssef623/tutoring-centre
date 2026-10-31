@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { DemoBanner } from "@/features/status/DemoBanner";
 import { Toaster } from "@/components/ui/sonner";
+import { FailedPage, MissingPage } from "@/components/shared/RouteState";
 
 /** Available to every route's `beforeLoad`/`loader` (Day 17: the guard reads the session through it). */
 export interface RouterContext {
@@ -10,6 +11,8 @@ export interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
+  notFoundComponent: MissingPage,
+  errorComponent: FailedPage,
 });
 
 function RootLayout() {

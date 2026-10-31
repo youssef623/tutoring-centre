@@ -19,10 +19,12 @@ function DashboardPage() {
     return null;
   }
 
-  const activeCentre = me.memberships.find((membership) => membership.centreId === me.activeCentreId);
+  const activeCentre = me.memberships.find(
+    (membership) => membership.centreId === me.activeCentreId,
+  );
 
   return (
-    <section className="space-y-6">
+    <section className="dashboard space-y-8">
       <PageHeader
         title={t("dashboard.welcome", { name: me.displayName })}
         {...(activeCentre === undefined

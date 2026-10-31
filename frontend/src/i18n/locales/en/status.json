@@ -19,5 +19,6 @@
     "applicationVersion": "Application version",
     "latestMigration": "Latest migration",
     "none": "none"
-  }
+  },
+  "title": "System status"
 }
