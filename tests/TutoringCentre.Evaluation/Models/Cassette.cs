@@ -4,7 +4,7 @@ using TutoringCentre.Application.Assistant.Models;
 using TutoringCentre.Evaluation.Cases;
 namespace TutoringCentre.Evaluation.Models;
 
-public sealed record CassetteEntry(string Key, ModelRequest Request, ModelResponse Response);
+public sealed record CassetteEntry(string RequestHash, ModelRequest Request, ModelResponse Response);
 public sealed record Cassette(string CaseId, string PromptVersion, string Model, CassetteEntry[] Entries)
 {
     private static readonly JsonSerializerOptions ScanJson = new(CaseLoader.Json)
@@ -15,7 +15,7 @@ public sealed record Cassette(string CaseId, string PromptVersion, string Model,
     {
         if (!File.Exists(path)) throw new FileNotFoundException("eval.cassette_missing", path);
         var cassette = JsonSerializer.Deserialize<Cassette>(File.ReadAllText(path), CaseLoader.Json) ?? throw new InvalidDataException("eval.cassette_invalid");
-        if (cassette.Entries.Length == 0 || cassette.Entries.Any(e => e.Key != CassetteKey.Create(cassette.PromptVersion, e.Request))) throw new InvalidDataException("eval.cassette_invalid");
+        if (cassette.Entries.Length == 0 || cassette.Entries.Any(e => e.RequestHash != CassetteKey.Create(cassette.PromptVersion, e.Request))) throw new InvalidDataException("eval.cassette_invalid");
         return cassette;
     }
     public async Task WriteAsync(string path, IEnumerable<string> secrets)

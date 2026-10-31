@@ -45,3 +45,7 @@ Full offline replay ran with Ollama stopped and CI=true. All 15 private logical 
 The quality acceptance requirement remains incomplete. The evaluation job must remain red for a baseline below its floors. No external CI was triggered/polled, and no remote red/green or uploaded-artifact result is claimed. No live CI job exists.
 
 Fifteen synthetic cases and lexical checks are coarse evidence. No model-quality, repeated-run variance or universal no-leak claim is made. See evaluation-methodology.md and ADR 0021.
+
+## PR 114 follow-up
+
+The first remote secret scan reported twenty generic-api-key findings. Each finding was verified against its historical commit and matched only a 64-character SHA256 cassette request hash. The serialized field is now requestHash, and .gitleaksignore adds only those twenty exact historical commit/path/rule/line fingerprints, following the existing repository convention. No path, credential rule or current-file content is broadly ignored. All fifteen requests/responses were compared with the original recording and are semantically unchanged. The new serialization round-trip regression brings the fast suite to 85 passing tests.

@@ -17,6 +17,21 @@ public sealed class CassetteTests
     public static ModelRequest Request => new("child_1: Ahmed\nchild_2: Salma", [new(ModelRole.User, "Hello")], [new("get_attendance", "description", JsonSerializer.SerializeToElement(new { type = "object" }))], 100);
     public static ModelResponse Response => new(null, [new("a", "get_attendance", JsonSerializer.SerializeToElement(new { childHandle = "child_1" }))], new(1, 2), ModelStopReason.ToolCalls);
     public static Cassette Cassette => new("E1", AssistantPrompt.Version, "synthetic-test", [new(CassetteKey.Create(AssistantPrompt.Version, Request), Request, Response)]);
+    [Fact]
+    public async Task Recording_UsesExplicitRequestHashAndRoundTrips()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json");
+        try
+        {
+            await Cassette.WriteAsync(path, []);
+            using var json = JsonDocument.Parse(await File.ReadAllTextAsync(path));
+            var entry = json.RootElement.GetProperty("entries")[0];
+            Assert.Equal(Cassette.Entries[0].RequestHash, entry.GetProperty("requestHash").GetString());
+            Assert.False(entry.TryGetProperty("key", out _));
+            Assert.Equal(Cassette.Entries[0].RequestHash, Cassette.Read(path).Entries[0].RequestHash);
+        }
+        finally { File.Delete(path); }
+    }
     [Fact] public void Key_SameRequestSameKey() => Assert.Equal(CassetteKey.Create("v2", Request), CassetteKey.Create("v2", Request));
     [Theory]
     [InlineData("version")]
@@ -46,7 +61,7 @@ public sealed class CassetteTests
     public async Task Recording_RoundTripPreservesRequest()
     {
         var model = new RecordingLanguageModel(new ScriptedProbeModel()); await model.GenerateAsync(Request, CancellationToken.None);
-        Assert.Single(model.Entries); Assert.Equal(CassetteKey.Create("v2", Request), model.Entries[0].Key);
+        Assert.Single(model.Entries); Assert.Equal(CassetteKey.Create("v2", Request), model.Entries[0].RequestHash);
     }
     [Theory]
     [InlineData("sk-abcdefghijklmnop")]
