@@ -2,35 +2,85 @@ import { useId } from "react";
 import { cn } from "cn";
 
 /**
- * Hessa's open book: rising pages meet at a shared spine, suggesting discovery and progress.
+ * Hessa's six fanned pages converge at the lower-right corner, matching the brand reference.
  * Self-contained SVG with a locally-scoped gradient id so multiple instances never collide.
  */
 export function HessaMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 128 144" role="img" aria-hidden="true" className={cn("size-10", className)}>
+      <HessaPages />
+    </svg>
+  );
+}
+
+function HessaPages() {
   const gradientId = useId();
   return (
-    <svg viewBox="0 0 48 48" role="img" aria-hidden="true" className={cn("size-10", className)}>
+    <>
       <defs>
         <linearGradient
           id={gradientId}
-          x1="0"
-          y1="0"
-          x2="48"
-          y2="48"
+          x1="20"
+          y1="20"
+          x2="108"
+          y2="126"
           gradientUnits="userSpaceOnUse"
         >
           <stop offset="0" stopColor="#B69AFF" />
-          <stop offset="1" stopColor="#8B5CF4" />
+          <stop offset="0.58" stopColor="#8B5CF4" />
+          <stop offset="1" stopColor="#6F3FE5" />
         </linearGradient>
       </defs>
       <g fill={`url(#${gradientId})`}>
-        <path d="M23 38C17 33 10 31 3 32v-6c8 0 15 5 20 12Z" />
-        <path d="M23 36C17 28 12 24 6 23l2-6c8 3 12 10 15 19Z" />
-        <path d="M23 33C20 24 16 18 12 15l5-5c5 6 6 14 6 23Z" />
-        <path d="M24 31 21 6l7 2-4 23Z" />
-        <path d="M26 34c1-10 5-19 10-23l4 5c-6 4-10 10-14 18Z" />
-        <path d="M26 37c5-10 10-15 16-17l3 6c-8 1-13 5-19 11Z" />
-        <path d="M25 39c7-6 13-8 20-8v6c-8-2-14-1-20 2Z" />
+        <path d="M0 80v20c35-4 72 9 103 23C69 97 35 78 0 80Z" />
+        <path d="m13 60-5 13c41 10 73 31 97 51C72 90 43 67 13 60Z" />
+        <path d="m25 40-7 16c41 19 72 48 90 69C80 85 51 55 25 40Z" />
+        <path d="m44 27-13 8c38 31 66 71 79 91C88 83 63 43 44 27Z" />
+        <path d="m73 13-15 7c25 34 45 83 53 105C102 77 89 38 73 13Z" />
+        <path d="m97 0-14 12c17 47 25 87 30 114C110 75 105 34 97 0Z" />
       </g>
+    </>
+  );
+}
+
+/** Fixed SVG baselines keep the two names as close as in the supplied reference. */
+export function HessaLoginLogo({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 304 144"
+      direction="ltr"
+      role="img"
+      aria-label="Hessa حصة"
+      className={cn("login-reference-logo", className)}
+    >
+      <HessaPages />
+      <text
+        x="142"
+        y="58"
+        fill="currentColor"
+        fontFamily="Geist Variable, sans-serif"
+        fontSize="52"
+        fontWeight="700"
+        letterSpacing="-2"
+        textLength="152"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        Hessa
+      </text>
+      <text
+        x="142"
+        y="112"
+        fill="currentColor"
+        fontFamily="IBM Plex Sans Arabic, sans-serif"
+        fontSize="60"
+        fontWeight="600"
+        direction="rtl"
+        textAnchor="end"
+        textLength="116"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        حصة
+      </text>
     </svg>
   );
 }
@@ -47,7 +97,7 @@ export function HessaWordmark({
   showArabic?: boolean;
 }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
+    <span dir="ltr" className={cn("inline-flex items-center gap-2.5", className)}>
       <HessaMark className="size-9" />
       <span className="brand-type flex items-baseline gap-2 leading-none">
         <span className="font-heading text-xl font-semibold tracking-tight">Hessa</span>

@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource/ibm-plex-sans-arabic";
+@import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -410,21 +411,6 @@
     border-radius: 1rem;
     background: var(--card);
   }
-  .login-wordmark {
-    gap: 1rem;
-  }
-  .login-wordmark > svg {
-    inline-size: 3.5rem;
-    block-size: 3.5rem;
-  }
-  .login-wordmark > span {
-    flex-direction: column;
-    align-items: start;
-    gap: 0.4rem;
-  }
-  .login-wordmark > span > span {
-    font-size: 1.75rem;
-  }
   .login-form-column h1 {
     font-size: clamp(2rem, 3vw, 2.75rem);
     letter-spacing: -0.045em;
@@ -467,30 +453,45 @@
 .dark .brand-button {
   color: #fff;
 }
-
-/* Sign-in lockup and form use the proportions of the standalone concept. */
-.login-form-stack > .login-wordmark { display: flex; inline-size: fit-content; margin: 0 auto 2.5rem; }
-.login-form-stack .login-wordmark > svg { inline-size: 6rem; block-size: 6rem; }
-.login-form-stack .login-wordmark > span > span { font-size: 2.5rem; }
-.login-form-box > div:first-child { text-align: center; }
-.login-form-box > div:first-child > p:first-child { font-size: 1.5rem; color: var(--foreground); font-weight: 650; }
-.login-form-box h1 { font-size: 1.5rem; font-weight: 500; letter-spacing: -.02em; }
-.login-form-box input { background: var(--card); block-size: 3rem; }
-.login-form-box button[type="submit"] { block-size: 3rem; }
-.login-feature { border: 0; }
-@media (width < 64rem) {
-  .login-form-stack > .login-wordmark { margin-block-end: 2rem; }
-  .login-form-stack .login-wordmark > svg { inline-size: 3.5rem; block-size: 3.5rem; }
-  .login-form-stack .login-wordmark > span > span { font-size: 1.75rem; }
-  .login-form-stack .login-wordmark > span { flex-direction: column; align-items: start; }
+.login-form-box > div:first-child {
+  text-align: center;
 }
+.login-form-box > div:first-child > p:first-child {
+  font-size: 1.5rem;
+  color: var(--foreground);
+  font-weight: 650;
+}
+.login-form-box h1 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.login-form-box input {
+  background: var(--card);
+  block-size: 3rem;
+}
+.login-form-box button[type="submit"] {
+  block-size: 3rem;
+}
+.login-feature {
+  border: 0;
+}
+
 @media (min-width: 64rem) and (max-height: 48rem) {
-  .login-form-stack > .login-wordmark { margin-block-end: 1rem; }
-  .login-form-stack .login-wordmark > svg { inline-size: 4rem; block-size: 4rem; }
-  .login-panel-content { padding-block: 2rem; gap: 1.25rem; }
-  .login-panel-content > div:first-child > svg { inline-size: 4rem; block-size: 4rem; }
-  .login-panel h2 { font-size: 2rem; }
-  .login-feature { padding-block: .5rem; }
+  .login-panel-content {
+    padding-block: 2rem;
+    gap: 1.25rem;
+  }
+  .login-panel-content > div:first-child > svg {
+    inline-size: 4rem;
+    block-size: 4rem;
+  }
+  .login-panel h2 {
+    font-size: 2rem;
+  }
+  .login-feature {
+    padding-block: 0.5rem;
+  }
 }
 
 @keyframes workspace-enter {
@@ -554,17 +555,6 @@
     padding: 0;
     border: 0;
     background: transparent;
-  }
-  .login-wordmark > svg {
-    inline-size: 2.5rem;
-    block-size: 2.5rem;
-  }
-  .login-wordmark > span {
-    flex-direction: row;
-    align-items: baseline;
-  }
-  .login-wordmark > span > span {
-    font-size: 1.25rem;
   }
   [data-slot="dialog-content"] {
     padding: 1.25rem;
@@ -644,5 +634,37 @@
 
   .data-table tbody td:empty {
     display: none;
+  }
+}
+
+.login-reference-logo {
+  display: block;
+  inline-size: 19rem;
+  block-size: 9rem;
+  max-inline-size: 100%;
+  flex-shrink: 0;
+  color: var(--foreground);
+}
+.login-form-stack > .login-reference-logo {
+  margin: 0 auto 2.5rem;
+}
+.login-panel .login-reference-logo {
+  color: #fff;
+}
+@media (width < 64rem) {
+  .login-reference-logo {
+    inline-size: 15rem;
+    block-size: auto;
+    aspect-ratio: 304 / 144;
+  }
+}
+@media (min-width: 64rem) and (max-height: 48rem) {
+  .login-reference-logo {
+    inline-size: 15.5rem;
+    block-size: auto;
+    aspect-ratio: 304 / 144;
+  }
+  .login-form-stack > .login-reference-logo {
+    margin-block-end: 1rem;
   }
 }

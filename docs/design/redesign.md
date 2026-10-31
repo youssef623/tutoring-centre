@@ -43,7 +43,7 @@ The generated concepts were inspected with `view_image` alongside the final Play
 
 Above-the-fold copy audit: existing sign-in strings, feature descriptions, operational headings, field labels and actions are retained. Actual authenticated names and API counts replace concept samples. Portal welcome intentionally now describes the existing services and offers Chat / Attendance shortcuts. Branded route error text and the translated skip link are intentional accessibility/completion additions. No invented metrics or new product claims were added.
 
-The implemented visual system was faithfully reviewed against the concepts. Intentional functional adaptations: the concept's illustrative row names, dashboard columns, filled icons and fan asymmetry do not override the repository's real data, existing list structure, outline icon system or scalable two-sided book mark. The dashboard can be empty when no real group meets its capacity threshold. These are documented production adaptations, not placeholders.
+The implemented visual system was faithfully reviewed against the concepts. Intentional functional adaptations: the concept's illustrative row names, dashboard columns, filled icons do not override the repository's real data, existing list structure, outline icon system. The dashboard can be empty when no real group meets its capacity threshold. These are documented production adaptations, not placeholders.
 
 ## Verification
 
@@ -74,3 +74,7 @@ npm.cmd run dev
 Open http://localhost:5173 and use your configured seed password with the accounts documented in the root README. `npm.cmd` avoids PowerShell execution-policy restrictions on npm's script shim. Preview parent/student surfaces with `parent@nile.test` / `student@nile.test`; staff roles use the existing owner, secretary and teacher accounts. Do not put credentials into source control.
 
 Changes are isolated to `redesigning-frontend`. Unrelated documentation deletions/moves that appeared during the session are left unstaged and preserved.
+
+## Logo reference correction
+
+The login now uses a fixed SVG lockup with six asymmetric fanned pages and tightly stacked English/Arabic baselines. The Arabic face is locally served at weight 600. Both light and dark login logos share the same geometry and spacing; document RTL cannot reverse the lockup. Shared mark assets and favicon follow the corrected fan. Compared the supplied reference against desktop (1586 ? 992) and mobile (390 ? 844) browser captures with view_image; page copy and authentication behavior remain unchanged.
