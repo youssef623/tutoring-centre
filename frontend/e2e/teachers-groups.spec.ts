@@ -1,10 +1,13 @@
+import { navigateFromMasthead } from "./helpers/navigation.js";
 import { type Browser, type Page, expect, test } from "@playwright/test";
 
 // The seeded dev password is never written here: it is supplied by whoever runs the suite
 // (the CI job sets a throwaway, Task 18.5; locally the developer sets their own, Task 18.3).
 const password: string = process.env.SEED_PASSWORD ?? "";
 if (password === "") {
-  throw new Error("SEED_PASSWORD must be set to run the E2E teacher and group journeys (see README).");
+  throw new Error(
+    "SEED_PASSWORD must be set to run the E2E teacher and group journeys (see README).",
+  );
 }
 
 async function signIn(page: Page, email: string): Promise<void> {
@@ -17,7 +20,12 @@ async function signIn(page: Page, email: string): Promise<void> {
 }
 
 /** Picks an option in a Base UI select inside `scope` by the trigger's label. */
-async function choose(page: Page, scope: ReturnType<Page["getByRole"]>, label: string, option: string): Promise<void> {
+async function choose(
+  page: Page,
+  scope: ReturnType<Page["getByRole"]>,
+  label: string,
+  option: string,
+): Promise<void> {
   await scope.getByRole("combobox", { name: label }).click();
   await page.getByRole("option", { name: option, exact: true }).click();
 }
@@ -45,21 +53,23 @@ async function urlOfGroupTaughtByMona(browser: Browser): Promise<string> {
   }
 }
 
-test("owner: adds a teacher, creates a group for a seeded subject with them, then changes its capacity", async ({ page }) => {
+test("owner: adds a teacher, creates a group for a seeded subject with them, then changes its capacity", async ({
+  page,
+}) => {
   const suffix = Date.now().toString();
   const teacherName = `هالة سمير ${suffix}`;
   const groupName = `فيزياء ٢ث ${suffix}`;
 
   await signIn(page, "owner@nile.test");
 
-  await page.getByRole("navigation").getByRole("link", { name: "Teachers" }).click();
+  await navigateFromMasthead(page, "Teachers");
   await expect(page.getByRole("heading", { name: "Teachers" })).toBeVisible();
   await page.getByRole("button", { name: "Add teacher" }).first().click();
   await page.getByLabel("Full name").fill(teacherName);
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("row", { name: teacherName })).toBeVisible();
 
-  await page.getByRole("navigation").getByRole("link", { name: "Groups" }).click();
+  await navigateFromMasthead(page, "Groups");
   await expect(page.getByRole("heading", { name: "Groups" })).toBeVisible();
   await page.getByRole("button", { name: "Create group" }).first().click();
   const dialog = page.getByRole("dialog");
@@ -73,6 +83,7 @@ test("owner: adds a teacher, creates a group for a seeded subject with them, the
   await expect(page.getByRole("heading", { name: groupName })).toBeVisible();
   await expect(page.getByText("0 / 15")).toBeVisible();
 
+  await page.locator(".group-actions>summary").click();
   await page.getByRole("button", { name: "Change capacity" }).click();
   await page.getByRole("dialog").getByRole("spinbutton", { name: "Capacity" }).fill("18");
   await page.getByRole("dialog").getByRole("button", { name: "Save" }).click();
@@ -90,7 +101,7 @@ test("teacher: one account sees only its own group in Nile, not another teacher'
   await page.getByRole("button", { name: "Nile Tutoring Centre" }).click();
   await expect(page.getByRole("heading", { name: "Welcome, Two-Centre Teacher" })).toBeVisible();
 
-  await page.getByRole("navigation").getByRole("link", { name: "Groups" }).click();
+  await navigateFromMasthead(page, "Groups");
   await expect(page.getByRole("link", { name: "رياضيات - المجموعة أ" })).toBeVisible();
   // Other journeys create additional groups for this teacher; assert ownership, not seed counts.
   await expect(page.getByRole("row", { name: /منى السيد/ })).toHaveCount(0);
@@ -104,9 +115,11 @@ test("teacher: one account sees only its own group in Nile, not another teacher'
   await page.getByRole("menuitem", { name: "Switch centre" }).click();
   await page.getByRole("button", { name: "Maadi Learning Hub" }).click();
   await expect(page.getByRole("heading", { name: "Welcome, Two-Centre Teacher" })).toBeVisible();
-  await expect(page.getByRole("banner").getByText("Maadi Learning Hub", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByText("Maadi Learning Hub", { exact: true }),
+  ).toBeVisible();
 
-  await page.getByRole("navigation").getByRole("link", { name: "Groups" }).click();
+  await navigateFromMasthead(page, "Groups");
   await expect(page.getByRole("link", { name: "Mathematics - Group A" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Physics - Group A" })).toBeVisible();
   await expect(page.getByText("رياضيات - المجموعة أ")).toHaveCount(0);
@@ -116,13 +129,13 @@ test("teacher: one account sees only its own group in Nile, not another teacher'
 test("secretary: sees Teachers read-only, and can create groups", async ({ page }) => {
   await signIn(page, "secretary@nile.test");
 
-  await page.getByRole("navigation").getByRole("link", { name: "Teachers" }).click();
+  await navigateFromMasthead(page, "Teachers");
   await expect(page.getByRole("heading", { name: "Teachers" })).toBeVisible();
   await expect(page.getByRole("row", { name: /كريم فتحي/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Add teacher" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^Actions for/ })).toHaveCount(0);
 
-  await page.getByRole("navigation").getByRole("link", { name: "Groups" }).click();
+  await navigateFromMasthead(page, "Groups");
   await expect(page.getByRole("heading", { name: "Groups" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create group" }).first()).toBeVisible();
 });

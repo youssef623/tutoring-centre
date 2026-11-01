@@ -1,3 +1,4 @@
+import { PersonIdentity } from "@/components/shared/PersonIdentity";
 import { PortalAccountSection } from "@/features/portal/PortalAccountSection";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { SearchX } from "lucide-react";
@@ -118,10 +119,10 @@ function ParentDetailContent({ parent }: { parent: ParentDetailDto }) {
   const [editOpen, setEditOpen] = useState(false);
 
   return (
-    <section className="space-y-4">
+    <section className="parent-profile space-y-4">
       <div className="profile-heading flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight" dir="auto">
-          {parent.fullName}
+          <PersonIdentity name={parent.fullName} />
         </h1>
         {canManage && (
           <Button
@@ -143,7 +144,7 @@ function ParentDetailContent({ parent }: { parent: ParentDetailDto }) {
         </div>
       </div>
 
-      <div className="max-w-md space-y-3">
+      <div className="parent-children space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">{t("children.title")}</h2>
 
         {parent.children.length === 0 ? (
@@ -184,7 +185,7 @@ function ChildRow({ child }: { child: ParentChildDto }) {
             params={{ studentId: child.studentId }}
             className="font-medium hover:underline"
           >
-            <bdi>{child.fullName}</bdi>
+            <PersonIdentity name={child.fullName} />
           </Link>
           {isArchived && <StatusBadge status="archived" />}
         </span>

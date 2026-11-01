@@ -1,7 +1,14 @@
 {
+  "preview": "معاينة البطاقات",
+  "previewHint": "أصدر البطاقات المحددة لإنشاء رموز الحضور الآمنة.",
   "title": "بطاقات الطلاب",
   "status": { "Active": "سارية", "Revoked": "ملغاة" },
-  "revocationReasons": { "Reissued": "إعادة إصدار", "Lost": "مفقودة", "Damaged": "تالفة", "Withdrawn": "انسحاب" },
+  "revocationReasons": {
+    "Reissued": "إعادة إصدار",
+    "Lost": "مفقودة",
+    "Damaged": "تالفة",
+    "Withdrawn": "انسحاب"
+  },
   "faceLabel": "بطاقة {name}",
   "qrLabel": "رمز الاستجابة السريعة لبطاقة الطالب",
   "number": "البطاقة",
@@ -37,5 +44,10 @@
   "limit": "حدد ٦٠ طالبًا على الأكثر.",
   "bulkConfirm": "أفهم أن البطاقات الحالية للطلاب المحددين ستتوقف عن العمل.",
   "issueSelected": "إصدار بطاقات الطلاب المحددين",
-  "reasons": { "lost": "مفقودة", "damaged": "تالفة", "withdrawn": "انسحاب الطالب", "reissued": "إعادة إصدار" }
+  "reasons": {
+    "lost": "مفقودة",
+    "damaged": "تالفة",
+    "withdrawn": "انسحاب الطالب",
+    "reissued": "إعادة إصدار"
+  }
 }

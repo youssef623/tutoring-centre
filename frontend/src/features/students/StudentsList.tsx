@@ -1,3 +1,7 @@
+import { BookOpen, SearchX } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Fragment, useState } from "react";
+import { PersonIdentity } from "@/components/shared/PersonIdentity";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -30,10 +34,17 @@ import { isolateLtr } from "@/lib/bidi";
 
 const PageSize = 25;
 
-export function StudentsList({ search, includeArchived }: { search: string; includeArchived: boolean }) {
+export function StudentsList({
+  search,
+  includeArchived,
+}: {
+  search: string;
+  includeArchived: boolean;
+}) {
   const { t } = useTranslation("students");
   const { t: tCommon } = useTranslation("common");
   const canManage = useCan(Permissions.StudentsManage);
+  const [letter, setLetter] = useState<string | null>(null);
 
   const params: ListStudentsParams = {
     ...(search === "" ? {} : { search }),
@@ -41,12 +52,14 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
     pageSize: PageSize,
   };
 
-  const { data, error, isPending, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: getListStudentsQueryKey(params),
-    queryFn: ({ pageParam, signal }) => listStudents({ ...params, cursor: pageParam }, { signal }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-  });
+  const { data, error, isPending, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: getListStudentsQueryKey(params),
+      queryFn: ({ pageParam, signal }) =>
+        listStudents({ ...params, cursor: pageParam }, { signal }),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    });
 
   if (isPending) {
     return (
@@ -66,7 +79,9 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
         <AlertTitle>{t("error.title")}</AlertTitle>
         <AlertDescription className="flex flex-col gap-2">
           <p>{messageFor(apiError)}</p>
-          {apiError.correlationId !== undefined && <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>}
+          {apiError.correlationId !== undefined && (
+            <p>{t("error.reference", { correlationId: isolateLtr(apiError.correlationId) })}</p>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -84,46 +99,88 @@ export function StudentsList({ search, includeArchived }: { search: string; incl
   }
 
   const items = data.pages.flatMap((page) => page.items);
+  const initial = (name: string) => Array.from(name.trim())[0]?.toLocaleUpperCase() ?? "";
+  const letters = [...new Set(items.map((item) => initial(item.fullName)))].sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const selectedLetter = letter !== null && letters.includes(letter) ? letter : null;
+  const visible = items
+    .filter((item) => selectedLetter === null || initial(item.fullName) === selectedLetter)
+    .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
   if (items.length === 0) {
     if (search === "") {
       return (
-        <div className="rounded-xl border border-dashed border-border py-10 text-center">
-          <p className="text-sm font-medium">{t("emptyState.title")}</p>
-          <p className="text-sm text-muted-foreground">{t("emptyState.description")}</p>
-          {canManage && (
-            <Link to="/students/new" className={buttonVariants({ className: "mt-3" })}>
-              {t("actions.register")}
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title={t("emptyState.title")}
+          description={t("emptyState.description")}
+          action={
+            <>
+              {canManage && (
+                <Link to="/students/new" className={buttonVariants({ className: "mt-3" })}>
+                  {t("actions.register")}
+                </Link>
+              )}
+            </>
+          }
+        />
       );
     }
 
-    return (
-      <div className="rounded-xl border border-dashed border-border py-10 text-center">
-        <p className="text-sm font-medium" dir="auto">
-          {t("emptyState.noMatchTitle", { search })}
-        </p>
-      </div>
-    );
+    return <EmptyState icon={SearchX} title={t("emptyState.noMatchTitle", { search })} />;
   }
 
   return (
-    <div className="space-y-3">
-      <DataTable className="sm:min-w-[640px]">
-        <DataTableHead>
-          <DataTableColumn>{t("columns.name")}</DataTableColumn>
-          <DataTableColumn>{t("columns.schoolYear")}</DataTableColumn>
-          <DataTableColumn>{t("columns.primaryParent")}</DataTableColumn>
-          <DataTableColumn>{t("columns.parentPhone")}</DataTableColumn>
-        </DataTableHead>
-        <DataTableBody>
-          {items.map((student) => (
-            <StudentRow key={student.id} student={student} />
+    <div className="student-directory space-y-3">
+      <div className="student-directory-grid">
+        <div className="alphabet-index" role="group" aria-label={t("page.alphabetLabel")}>
+          <button
+            type="button"
+            aria-pressed={selectedLetter === null}
+            onClick={() => {
+              setLetter(null);
+            }}
+          >
+            {t("page.allLetters")}
+          </button>
+          {letters.map((item) => (
+            <button
+              type="button"
+              key={item}
+              aria-pressed={selectedLetter === item}
+              onClick={() => {
+                setLetter(item);
+              }}
+            >
+              {item}
+            </button>
           ))}
-        </DataTableBody>
-      </DataTable>
+        </div>
+        <DataTable className="sm:min-w-[640px]">
+          <DataTableHead>
+            <DataTableColumn>{t("columns.name")}</DataTableColumn>
+            <DataTableColumn>{t("columns.schoolYear")}</DataTableColumn>
+            <DataTableColumn>{t("columns.primaryParent")}</DataTableColumn>
+            <DataTableColumn>{t("columns.parentPhone")}</DataTableColumn>
+          </DataTableHead>
+          <DataTableBody>
+            {visible.map((student, index) => (
+              <Fragment key={student.id}>
+                {(index === 0 ||
+                  initial(visible[index - 1]?.fullName ?? "") !== initial(student.fullName)) && (
+                  <tr className="initial-heading">
+                    <th scope="rowgroup" colSpan={4}>
+                      <bdi>{initial(student.fullName)}</bdi>
+                    </th>
+                  </tr>
+                )}
+                <StudentRow student={student} />
+              </Fragment>
+            ))}
+          </DataTableBody>
+        </DataTable>
+      </div>
 
       {hasNextPage && (
         <LoadMoreButton
@@ -145,8 +202,12 @@ function StudentRow({ student }: { student: StudentListItemDto }) {
     <DataTableRow muted={isArchived}>
       <DataTableCell kind="primary">
         <span className="flex flex-wrap items-center gap-2">
-          <Link to="/students/$studentId" params={{ studentId: student.id }} className="font-medium hover:underline">
-            <bdi>{student.fullName}</bdi>
+          <Link
+            to="/students/$studentId"
+            params={{ studentId: student.id }}
+            className="font-medium hover:underline"
+          >
+            <PersonIdentity name={student.fullName} />
           </Link>
           {isArchived && <StatusBadge status="archived" />}
         </span>
@@ -158,7 +219,11 @@ function StudentRow({ student }: { student: StudentListItemDto }) {
         <bdi>{student.primaryParentName ?? "—"}</bdi>
       </DataTableCell>
       <DataTableCell label={t("columns.parentPhone")}>
-        {student.primaryParentPhone === null ? "—" : <PhoneText value={student.primaryParentPhone} />}
+        {student.primaryParentPhone === null ? (
+          "—"
+        ) : (
+          <PhoneText value={student.primaryParentPhone} />
+        )}
       </DataTableCell>
     </DataTableRow>
   );

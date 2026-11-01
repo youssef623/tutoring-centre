@@ -39,15 +39,21 @@ function StudentsPageContent() {
   const navigate = useNavigate({ from: Route.fullPath });
 
   const setQuery = (next: string) => {
-    void navigate({ search: (previous) => ({ ...previous, q: next === "" ? undefined : next }), replace: true });
+    void navigate({
+      search: (previous) => ({ ...previous, q: next === "" ? undefined : next }),
+      replace: true,
+    });
   };
 
   const setArchived = (next: boolean) => {
-    void navigate({ search: (previous) => ({ ...previous, archived: next ? true : undefined }), replace: true });
+    void navigate({
+      search: (previous) => ({ ...previous, archived: next ? true : undefined }),
+      replace: true,
+    });
   };
 
   return (
-    <section className="space-y-6">
+    <section className="directory-page space-y-6">
       <PageHeader
         title={t("page.title")}
         description={t("page.subtitle")}

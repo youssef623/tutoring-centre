@@ -2,7 +2,15 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import i18n from "@/i18n";
-import { group, Now, secretaryMe, session, teacherMe, teachers, timetable } from "@/features/schedule/scheduleTestData";
+import {
+  group,
+  Now,
+  secretaryMe,
+  session,
+  teacherMe,
+  teachers,
+  timetable,
+} from "@/features/schedule/scheduleTestData";
 import { server } from "@/test/msw/server";
 import { renderRouter } from "@/test/renderRouter";
 
@@ -29,7 +37,9 @@ describe("TimetablePage", () => {
       http.get("/api/timetable", ({ request }) => {
         const weekStart = new URL(request.url).searchParams.get("weekStart") ?? "";
         requestedWeeks.push(weekStart);
-        return HttpResponse.json(timetable(weekStart, weekStart === "2027-04-24" ? sessions : [], responseZone));
+        return HttpResponse.json(
+          timetable(weekStart, weekStart === "2027-04-24" ? sessions : [], responseZone),
+        );
       }),
     );
   });
@@ -39,10 +49,28 @@ describe("TimetablePage", () => {
     await i18n.changeLanguage("en");
   });
 
+  it("keeps overlapping sessions reachable in an expandable stack", async () => {
+    sessions = [session(), session({ id: "overlap", groupName: "Chemistry B" })];
+    renderRouter("/timetable?week=2027-04-24");
+    const label = await screen.findByText(
+      "2 sessions",
+      { selector: "summary strong" },
+      { timeout: 5000 },
+    );
+    const summary = label.closest("summary");
+    if (!summary) throw new Error("Expected the overlapping-session disclosure");
+    fireEvent.click(summary);
+    const saturday = screen.getByRole("region", { name: /^Saturday/ });
+    expect(within(saturday).getByRole("article", { name: /^Physics A,/ })).toBeVisible();
+    expect(within(saturday).getByRole("article", { name: /^Chemistry B,/ })).toBeVisible();
+  });
+
   it("without a week in the URL opens the centre's current week, from Saturday", async () => {
     renderRouter("/timetable");
 
-    expect(await screen.findByText("No sessions this week", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(
+      await screen.findByText("No sessions this week", {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
     // Tuesday 20 April in Cairo belongs to the week of Saturday 17 April.
     expect(requestedWeeks).toEqual(["2027-04-17"]);
     expect(screen.getByRole("button", { name: "This week" })).toBeDisabled();
@@ -52,7 +80,13 @@ describe("TimetablePage", () => {
     // 22:30Z on Saturday is 00:30 on Sunday in Cairo: the server says Sunday, and so does the grid.
     sessions = [
       session(),
-      session({ id: "s-2", groupName: "Late Group", localDate: "2027-04-25", startsAt: "2027-04-24T22:30:00Z", endsAt: "2027-04-24T23:30:00Z" }),
+      session({
+        id: "s-2",
+        groupName: "Late Group",
+        localDate: "2027-04-25",
+        startsAt: "2027-04-24T22:30:00Z",
+        endsAt: "2027-04-24T23:30:00Z",
+      }),
     ];
 
     renderRouter("/timetable?week=2027-04-24");
@@ -90,7 +124,9 @@ describe("TimetablePage", () => {
 
   it("week navigation goes through the URL and fetches that week", async () => {
     const { router } = renderRouter("/timetable?week=2027-04-17");
-    expect(await screen.findByText("No sessions this week", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(
+      await screen.findByText("No sessions this week", {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Next week" }));
 
@@ -116,10 +152,16 @@ describe("TimetablePage", () => {
     );
 
     renderRouter("/timetable?week=2027-04-24");
-    fireEvent.click(await screen.findByRole("button", { name: /^Actions for Physics A at/ }, { timeout: 5000 }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /^Actions for Physics A at/ }, { timeout: 5000 }),
+    );
     fireEvent.click(await screen.findByRole("menuitem", { name: "Cancel session" }));
     const confirm = await screen.findByRole("alertdialog");
-    expect(within(confirm).getByRole("heading", { name: "Cancel Physics A on Saturday, April 24 at 6:00 PM?" })).toBeInTheDocument();
+    expect(
+      within(confirm).getByRole("heading", {
+        name: "Cancel Physics A on Saturday, April 24 at 6:00 PM?",
+      }),
+    ).toBeInTheDocument();
     fireEvent.click(within(confirm).getByRole("button", { name: "Cancel session" }));
 
     expect(await screen.findByText("Session cancelled")).toBeInTheDocument();
@@ -142,8 +184,14 @@ describe("TimetablePage", () => {
   it("with schedule.manage an empty week hints at adding weekly sessions or extending", async () => {
     renderRouter("/timetable?week=2027-05-29");
 
-    expect(await screen.findByText("No sessions this week", {}, { timeout: 5000 })).toBeInTheDocument();
-    expect(screen.getByText("Add weekly sessions on a group's Schedule tab, or extend the schedule to fill later weeks.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("No sessions this week", {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Add weekly sessions on a group's Schedule tab, or extend the schedule to fill later weeks.",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Extend schedule" })).toBeInTheDocument();
   });
 

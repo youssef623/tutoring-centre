@@ -124,7 +124,7 @@ export function RegisterStudentForm() {
 
   return (
     <form
-      className="registration-form max-w-lg space-y-6"
+      className="registration-form space-y-6"
       onSubmit={(event) => {
         void onSubmit(event);
       }}

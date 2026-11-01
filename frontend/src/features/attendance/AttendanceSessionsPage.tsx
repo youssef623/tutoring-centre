@@ -25,16 +25,26 @@ export function AttendanceSessionsPage({
 }) {
   const { t } = useTranslation("attendance");
   const { t: tCommon } = useTranslation("common");
-  const { data, error, isPending, refetch } = useListAttendanceSessions(date === undefined ? undefined : { date });
+  const { data, error, isPending, refetch } = useListAttendanceSessions(
+    date === undefined ? undefined : { date },
+  );
 
   return (
-    <section className="space-y-6">
+    <section className="attendance-day space-y-6">
       <PageHeader title={t("page.title")} description={t("page.subtitle")} />
 
-      <DateNavigator date={data?.date ?? date} isToday={date === undefined} onDateChange={onDateChange} />
+      <DateNavigator
+        date={data?.date ?? date}
+        isToday={date === undefined}
+        onDateChange={onDateChange}
+      />
 
       {isPending ? (
-        <div role="status" aria-label={t("sessions.loading.label")} className="grid gap-3 sm:grid-cols-2">
+        <div
+          role="status"
+          aria-label={t("sessions.loading.label")}
+          className="grid gap-3 sm:grid-cols-2"
+        >
           <Skeleton className="h-36 w-full" />
           <Skeleton className="h-36 w-full" />
           <Skeleton className="h-36 w-full" />
@@ -63,13 +73,21 @@ export function AttendanceSessionsPage({
           </AlertDescription>
         </Alert>
       ) : data.items.length === 0 ? (
-        <EmptyState icon={CalendarX2} title={t("sessions.empty.title")} description={t("sessions.empty.description")} />
+        <EmptyState
+          icon={CalendarX2}
+          title={t("sessions.empty.title")}
+          description={t("sessions.empty.description")}
+        />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="attendance-timeline">
           {[...data.items]
             .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))
             .map((session) => (
-              <AttendanceSessionCard key={session.sessionId} session={session} timeZoneId={data.timeZoneId} />
+              <AttendanceSessionCard
+                key={session.sessionId}
+                session={session}
+                timeZoneId={data.timeZoneId}
+              />
             ))}
         </ul>
       )}

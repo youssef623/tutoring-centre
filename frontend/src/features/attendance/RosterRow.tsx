@@ -1,3 +1,4 @@
+import { PersonIdentity } from "@/components/shared/PersonIdentity";
 import { History, Pencil, QrCode } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -46,16 +47,23 @@ export function RosterRow({
     record === null
       ? ""
       : isolateLtr(
-          new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short", timeZone: timeZoneId }).format(
-            new Date(record.markedAt),
-          ),
+          new Intl.DateTimeFormat(i18n.language, {
+            dateStyle: "medium",
+            timeStyle: "short",
+            timeZone: timeZoneId,
+          }).format(new Date(record.markedAt)),
         );
 
   return (
-    <li className={cn("space-y-3 rounded-lg border border-border bg-card p-3", rowError !== undefined && "border-destructive")}>
+    <li
+      className={cn(
+        "register-row space-y-3 rounded-lg border border-border bg-card p-3",
+        rowError !== undefined && "border-destructive",
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <p dir="auto" className="min-w-0 break-words text-base font-semibold">
-          <bdi>{item.studentName}</bdi>
+          <PersonIdentity name={item.studentName} />
         </p>
 
         <div className="flex flex-wrap items-center gap-1.5">
@@ -97,7 +105,12 @@ export function RosterRow({
         </div>
       </div>
 
-      <StatusToggle studentName={item.studentName} value={shown} disabled={markingDisabled} onChange={onChange} />
+      <StatusToggle
+        studentName={item.studentName}
+        value={shown}
+        disabled={markingDisabled}
+        onChange={onChange}
+      />
 
       {rowError !== undefined && (
         <p role="alert" className="text-sm text-destructive">

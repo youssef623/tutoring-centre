@@ -1,3 +1,4 @@
+import { useSession } from "@/features/session/useSession";
 import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { Button } from "@/components/ui/button";
@@ -9,15 +10,18 @@ import { MessageCircle } from "lucide-react";
 export function ChatPage() {
   const { t } = useTranslation("portal");
   const chat = useChatMessages();
+  const { me } = useSession();
   return (
     <section
-      className="chat-surface mx-auto flex min-h-[70dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border bg-card text-start shadow-sm"
+      className="chat-surface portal-chat-layout mx-auto flex min-h-[70dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border bg-card text-start shadow-sm"
       aria-labelledby="chat-title"
     >
-      <h1 id="chat-title" className="px-5 pt-6 text-3xl font-semibold tracking-tight sm:px-7">
-        {t("chat")}
-      </h1>
-      <div className="min-h-48 flex-1">
+      <div className="chat-context">
+        <h1 id="chat-title">{t("chat")}</h1>
+        <p>{t("chatEmpty")}</p>
+        <p>{t(me?.portal?.kind === "parent" ? "chatContextParent" : "chatContextStudent")}</p>
+      </div>
+      <div className="chat-thread min-h-48 flex-1">
         {chat.isPending && (
           <p role="status" className="p-7 text-sm text-muted-foreground">
             {t("chatLoading")}

@@ -1,4 +1,7 @@
 {
+  "directions": { "inbound": "واردة", "outbound": "صادرة" },
+  "search": "ابحث بالاسم أو رقم الهاتف",
+  "lastMessageAt": "آخر رسالة",
   "direction": "الاتجاه",
   "loading": "جارٍ التحميل…",
   "sentAt": "وقت الإرسال",

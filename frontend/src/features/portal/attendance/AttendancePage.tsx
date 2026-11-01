@@ -40,7 +40,7 @@ export function AttendancePage() {
     void navigate({ search: { month: next } });
   };
   return (
-    <section className="mx-auto max-w-3xl space-y-7">
+    <section className="portal-attendance mx-auto space-y-7">
       <PageHeader title={t("attendance")} />
       <div className="flex flex-wrap items-end justify-between gap-5 rounded-xl border bg-card p-4">
         {me?.portal?.kind === "parent" && children.length > 1 && (

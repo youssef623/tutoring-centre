@@ -1,3 +1,4 @@
+import { navigateFromMasthead } from "./helpers/navigation.js";
 import { type Browser, type Locator, type Page, expect, test } from "@playwright/test";
 
 // The seeded dev password is never written here: it is supplied by whoever runs the suite
@@ -12,12 +13,16 @@ if (password === "") {
  * never today, so its 18:00 session is always in the future (cancellable) whatever time the suite runs.
  */
 function nextSaturdayInCairo(): string {
-  const parts = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Africa/Cairo" }).formatToParts(
-    new Date(),
-  );
-  const part = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((candidate) => candidate.type === type)?.value);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Africa/Cairo",
+  }).formatToParts(new Date());
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((candidate) => candidate.type === type)?.value);
   const today = new Date(Date.UTC(part("year"), part("month") - 1, part("day")));
-  const daysAhead = ((6 - today.getUTCDay() + 7) % 7) || 7;
+  const daysAhead = (6 - today.getUTCDay() + 7) % 7 || 7;
   today.setUTCDate(today.getUTCDate() + daysAhead);
   return today.toISOString().slice(0, 10);
 }
@@ -79,7 +84,11 @@ async function addWeeklySession(
 }
 
 /** As the Nile owner in its own context: a fresh teacher's group with a Saturday 18:00 session in `week`. */
-async function scheduleAnotherTeachersGroup(browser: Browser, groupName: string, saturday: string): Promise<void> {
+async function scheduleAnotherTeachersGroup(
+  browser: Browser,
+  groupName: string,
+  saturday: string,
+): Promise<void> {
   const context = await browser.newContext();
   const page = await context.newPage();
   try {
@@ -87,14 +96,21 @@ async function scheduleAnotherTeachersGroup(browser: Browser, groupName: string,
     const teacherName = `معلم آخر ${groupName}`;
     await addTeacher(page, teacherName);
     const groupPath = await createGroup(page, groupName, teacherName);
-    const dialog = await addWeeklySession(page, groupPath, { hour: "6", minute: "00", length: "1 hour 30 minutes", startsOn: saturday });
+    const dialog = await addWeeklySession(page, groupPath, {
+      hour: "6",
+      minute: "00",
+      length: "1 hour 30 minutes",
+      startsOn: saturday,
+    });
     await expect(dialog).toBeHidden();
   } finally {
     await context.close();
   }
 }
 
-test("owner: schedules two groups of one teacher, is refused the overlap, and cancels a session", async ({ page }) => {
+test("owner: schedules two groups of one teacher, is refused the overlap, and cancels a session", async ({
+  page,
+}) => {
   const suffix = Date.now().toString();
   const teacherName = `سلمى فاروق ${suffix}`;
   const firstGroup = `فيزياء سبت أ ${suffix}`;
@@ -108,22 +124,39 @@ test("owner: schedules two groups of one teacher, is refused the overlap, and ca
 
   // Saturday 18:00 for 90 minutes on the first group.
   // Three or four Saturdays fall in the four-week horizon, depending on the weekday the suite runs.
-  const firstDialog = await addWeeklySession(page, firstPath, { hour: "6", minute: "00", length: "1 hour 30 minutes", startsOn: saturday });
+  const firstDialog = await addWeeklySession(page, firstPath, {
+    hour: "6",
+    minute: "00",
+    length: "1 hour 30 minutes",
+    startsOn: saturday,
+  });
   await expect(page.getByText(/^[34] sessions scheduled$/)).toBeVisible();
   await expect(firstDialog).toBeHidden();
   await expect(page.getByRole("row", { name: /Saturday/ })).toBeVisible();
 
   // The timetable shows it on Saturday, at 18:00 in the centre's time.
-  await page.getByRole("navigation").getByRole("link", { name: "Timetable" }).click();
+  await navigateFromMasthead(page, "Timetable");
   await expect(page.getByRole("heading", { name: "Timetable" })).toBeVisible();
   await page.goto(`/timetable?week=${saturday}`);
   const saturdayColumn = page.getByRole("region", { name: /^Saturday/ });
-  const firstCard = saturdayColumn.getByRole("article", { name: new RegExp(`^${firstGroup}, 6:00\\s?–\\s?7:30\\sPM$`, "u") });
+  const firstCard = saturdayColumn.getByRole("article", {
+    name: new RegExp(`^${firstGroup}, 6:00\\s?–\\s?7:30\\sPM$`, "u"),
+  });
+  await revealSessionStack(page, firstGroup);
   await expect(firstCard).toBeVisible();
 
   // 19:00 starts inside the teacher's 18:00-19:30 session: the database refuses it, and the dialog says why.
-  const overlap = await addWeeklySession(page, secondPath, { hour: "7", minute: "00", length: "1 hour", startsOn: saturday });
-  await expect(overlap.getByText("The group's teacher already has a session at that time. Choose another day or time.")).toBeVisible();
+  const overlap = await addWeeklySession(page, secondPath, {
+    hour: "7",
+    minute: "00",
+    length: "1 hour",
+    startsOn: saturday,
+  });
+  await expect(
+    overlap.getByText(
+      "The group's teacher already has a session at that time. Choose another day or time.",
+    ),
+  ).toBeVisible();
   await expect(overlap).toBeVisible();
 
   // Moved to 19:30, it fits.
@@ -133,17 +166,30 @@ test("owner: schedules two groups of one teacher, is refused the overlap, and ca
 
   // Cancel the first group's session: it stays on the timetable, marked.
   await page.goto(`/timetable?week=${saturday}`);
-  await expect(saturdayColumn.getByRole("article", { name: new RegExp(`^${secondGroup}, 7:30\\s?–\\s?8:30\\sPM$`, "u") })).toBeVisible();
+  await revealSessionStack(page, secondGroup);
+  await expect(
+    saturdayColumn.getByRole("article", {
+      name: new RegExp(`^${secondGroup}, 7:30\\s?–\\s?8:30\\sPM$`, "u"),
+    }),
+  ).toBeVisible();
+  await revealSessionStack(page, firstGroup);
   await firstCard.getByRole("button", { name: /^Actions for/ }).click();
   await page.getByRole("menuitem", { name: "Cancel session" }).click();
   const confirm = page.getByRole("alertdialog");
-  await expect(confirm.getByRole("heading", { name: new RegExp(`^Cancel ${firstGroup} on .+ at 6:00\\sPM\\?$`, "u") })).toBeVisible();
+  await expect(
+    confirm.getByRole("heading", {
+      name: new RegExp(`^Cancel ${firstGroup} on .+ at 6:00\\sPM\\?$`, "u"),
+    }),
+  ).toBeVisible();
   await confirm.getByRole("button", { name: "Cancel session" }).click();
   await expect(page.getByText("Session cancelled")).toBeVisible();
   await expect(firstCard.getByText("Cancelled", { exact: true })).toBeVisible();
 });
 
-test("teacher: sees only their own sessions in Nile, with no schedule controls", async ({ page, browser }) => {
+test("teacher: sees only their own sessions in Nile, with no schedule controls", async ({
+  page,
+  browser,
+}) => {
   const saturday = nextSaturdayInCairo();
   const othersGroup = `فيزياء غيري ${Date.now().toString()}`;
   await scheduleAnotherTeachersGroup(browser, othersGroup, saturday);
@@ -152,7 +198,7 @@ test("teacher: sees only their own sessions in Nile, with no schedule controls",
   await page.getByRole("button", { name: "Nile Tutoring Centre" }).click();
   await expect(page.getByRole("heading", { name: "Welcome, Two-Centre Teacher" })).toBeVisible();
 
-  await page.getByRole("navigation").getByRole("link", { name: "Timetable" }).click();
+  await navigateFromMasthead(page, "Timetable");
   await expect(page.getByRole("heading", { name: "Timetable" })).toBeVisible();
   await page.goto(`/timetable?week=${saturday}`);
   await expect(page.getByRole("navigation", { name: /^Week of/ })).toBeVisible();
@@ -169,3 +215,10 @@ test("teacher: sees only their own sessions in Nile, with no schedule controls",
   await expect(page.getByRole("button", { name: /^Actions for/ })).toHaveCount(0);
   await expect(page.getByRole("combobox", { name: "Teacher" })).toHaveCount(0);
 });
+
+async function revealSessionStack(page: Page, name: string): Promise<void> {
+  await page.locator(".timetable-grid").waitFor();
+  const stack = page.locator(".timetable-cluster").filter({ hasText: name });
+  if ((await stack.count()) && (await stack.getAttribute("open")) === null)
+    await stack.locator("summary").click();
+}

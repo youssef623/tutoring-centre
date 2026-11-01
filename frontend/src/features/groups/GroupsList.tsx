@@ -1,3 +1,5 @@
+import { SubjectGlyph } from "@/components/shared/SubjectGlyph";
+import { Fragment } from "react";
 import { formatMoney } from "@/features/billing/money";
 import { Link } from "@tanstack/react-router";
 import { Armchair, CircleSlash, Plus, UsersRound } from "lucide-react";
@@ -141,6 +143,9 @@ export function GroupsList({
   const rows = onlyFreeSeats
     ? active.filter((group) => Number(group.enrolledCount) < Number(group.capacity))
     : data.items;
+  const orderedRows = [...rows].sort(
+    (a, b) => a.subjectName.localeCompare(b.subjectName) || a.name.localeCompare(b.name),
+  );
 
   return (
     <div className="space-y-4">
@@ -169,42 +174,54 @@ export function GroupsList({
             <DataTableColumn>{t("columns.seats")}</DataTableColumn>
           </DataTableHead>
           <DataTableBody>
-            {rows.map((group) => {
+            {orderedRows.map((group, index) => {
               const isArchived = group.status === "archived";
 
               return (
-                <DataTableRow key={group.id} muted={isArchived}>
-                  <DataTableCell kind="primary">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <Link
-                        to="/groups/$groupId"
-                        params={{ groupId: group.id }}
-                        search={{ tab: "overview" }}
-                        className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                      >
-                        <bdi>{group.name}</bdi>
-                      </Link>
-                      {typeof group.monthlyFee === "string" && (
-                        <span className="text-xs text-muted-foreground">
-                          <bdi dir="ltr">{formatMoney(group.monthlyFee, i18n.language)}</bdi> EGP
+                <Fragment key={group.id}>
+                  {(index === 0 || orderedRows[index - 1]?.subjectId !== group.subjectId) && (
+                    <tr className="group-subject-lane">
+                      <th colSpan={4} scope="rowgroup">
+                        <span>
+                          <SubjectGlyph name={group.subjectName} />
+                          <bdi>{group.subjectName}</bdi>
                         </span>
-                      )}
-                      {isArchived && <StatusBadge status="archived" />}
-                    </span>
-                  </DataTableCell>
-                  <DataTableCell label={t("columns.subject")}>
-                    <bdi>{group.subjectName}</bdi>
-                  </DataTableCell>
-                  <DataTableCell label={t("columns.teacher")}>
-                    <bdi>{group.teacherName}</bdi>
-                  </DataTableCell>
-                  <DataTableCell label={t("columns.seats")}>
-                    <SeatMeter
-                      enrolled={Number(group.enrolledCount)}
-                      capacity={Number(group.capacity)}
-                    />
-                  </DataTableCell>
-                </DataTableRow>
+                      </th>
+                    </tr>
+                  )}
+                  <DataTableRow muted={isArchived}>
+                    <DataTableCell kind="primary">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Link
+                          to="/groups/$groupId"
+                          params={{ groupId: group.id }}
+                          search={{ tab: "overview" }}
+                          className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                        >
+                          <bdi>{group.name}</bdi>
+                        </Link>
+                        {typeof group.monthlyFee === "string" && (
+                          <span className="text-xs text-muted-foreground">
+                            <bdi dir="ltr">{formatMoney(group.monthlyFee, i18n.language)}</bdi> EGP
+                          </span>
+                        )}
+                        {isArchived && <StatusBadge status="archived" />}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell label={t("columns.subject")}>
+                      <bdi>{group.subjectName}</bdi>
+                    </DataTableCell>
+                    <DataTableCell label={t("columns.teacher")}>
+                      <bdi>{group.teacherName}</bdi>
+                    </DataTableCell>
+                    <DataTableCell label={t("columns.seats")}>
+                      <SeatMeter
+                        enrolled={Number(group.enrolledCount)}
+                        capacity={Number(group.capacity)}
+                      />
+                    </DataTableCell>
+                  </DataTableRow>
+                </Fragment>
               );
             })}
           </DataTableBody>

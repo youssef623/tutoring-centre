@@ -13,7 +13,7 @@ export const Route = createFileRoute("/status")({
 function StatusPage() {
   const { t } = useTranslation("status");
   return (
-    <main className="mx-auto w-full max-w-3xl p-6">
+    <main className="system-status min-h-dvh p-6">
       <div className="mb-10 flex items-center justify-between">
         <HessaWordmark />
         <LanguageSwitcher />

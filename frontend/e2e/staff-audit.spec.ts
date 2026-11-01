@@ -31,7 +31,11 @@ async function addStaffMember(page: Page, email: string, displayName: string): P
   await expect(page.getByRole("row", { name: new RegExp(displayName) })).toBeVisible();
 }
 
-async function changeRole(page: Page, displayName: string, roleName: "Teacher" | "Assistant"): Promise<void> {
+async function changeRole(
+  page: Page,
+  displayName: string,
+  roleName: "Teacher" | "Assistant",
+): Promise<void> {
   const row = page.getByRole("row", { name: new RegExp(displayName) });
   await row.getByRole("button", { name: "Open actions menu" }).click();
   await page.getByRole("menuitem", { name: "Change role" }).click();
@@ -54,10 +58,14 @@ test("owner: changing a member's role appears in the audit log with translated b
   await signIn(page, "owner@nile.test");
   await page.goto("/staff");
   await addStaffMember(page, email, displayName);
-  await expect(page.getByRole("row", { name: new RegExp(displayName) }).getByText("Teacher")).toBeVisible();
+  await expect(
+    page.getByRole("row", { name: new RegExp(displayName) }).getByText("Teacher"),
+  ).toBeVisible();
 
   await changeRole(page, displayName, "Assistant");
-  await expect(page.getByRole("row", { name: new RegExp(displayName) }).getByText("Assistant")).toBeVisible();
+  await expect(
+    page.getByRole("row", { name: new RegExp(displayName) }).getByText("Assistant"),
+  ).toBeVisible();
 
   await page.goto("/audit");
   await page.getByLabel("Entity type").click();
@@ -68,7 +76,9 @@ test("owner: changing a member's role appears in the audit log with translated b
   // plus "newest first" picks it out: no other journey changes a role that way.
   const thisChange = page.getByText("Role:Teacher→Assistant").first();
   await expect(thisChange).toBeVisible();
-  const thisEntry = thisChange.locator("xpath=ancestor::div[contains(@class,'rounded-xl')][1]");
-  await expect(thisEntry.getByText("Nile Owner")).toBeVisible();
-  await expect(thisEntry.getByText("Updated")).toBeVisible();
+  const selectedRow = page
+    .locator(".audit-ledger tr")
+    .filter({ has: page.locator(".audit-select[aria-pressed=true]") });
+  await expect(selectedRow.getByRole("button", { name: "Nile Owner" })).toBeVisible();
+  await expect(selectedRow.getByText("Updated", { exact: true })).toBeVisible();
 });

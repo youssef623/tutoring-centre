@@ -24,6 +24,7 @@
     "status": "الحالة"
   },
   "actions": {
+    "groupMenu": "الإجراءات",
     "create": "إنشاء مجموعة",
     "rename": "إعادة التسمية",
     "changeCapacity": "تغيير السعة",

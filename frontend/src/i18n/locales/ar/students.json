@@ -1,5 +1,7 @@
 {
   "page": {
+    "alphabetLabel": "تصفية الطلاب المعروضين حسب الحرف الأول",
+    "allLetters": "الكل",
     "title": "الطلاب",
     "searchLabel": "البحث عن الطلاب",
     "showArchived": "إظهار المؤرشفين",

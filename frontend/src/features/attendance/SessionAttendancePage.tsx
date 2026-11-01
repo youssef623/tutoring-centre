@@ -1,10 +1,25 @@
 import { Link, useBlocker } from "@tanstack/react-router";
-import { ArrowLeft, CalendarDays, CheckCheck, Clock, Loader2, Presentation, SearchX, TriangleAlert, Users, UsersRound } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckCheck,
+  Clock,
+  Loader2,
+  Presentation,
+  SearchX,
+  TriangleAlert,
+  Users,
+  UsersRound,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { asApiError } from "@/api/apiFetch";
 import { messageFor } from "@/api/errorMessages";
-import { useGetSessionAttendance, type AttendanceStudentDto, type SessionAttendanceDto } from "@/api/generated/tutoring-centre";
+import {
+  useGetSessionAttendance,
+  type AttendanceStudentDto,
+  type SessionAttendanceDto,
+} from "@/api/generated/tutoring-centre";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -120,9 +135,17 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
   const rowErrorList = Object.entries(rowErrors);
 
   return (
-    <section className="space-y-6 pb-24">
+    <section className="session-register space-y-6 pb-24">
       <SessionHeader data={data} />
-      {markingOpen && <Link to="/attendance/sessions/$sessionId/scan" params={{ sessionId }} className={buttonVariants()}>{t("scanner:scanCards")}</Link>}
+      {markingOpen && (
+        <Link
+          to="/attendance/sessions/$sessionId/scan"
+          params={{ sessionId }}
+          className={buttonVariants()}
+        >
+          {t("scanner:scanCards")}
+        </Link>
+      )}
 
       <WindowNotice
         window={data.window}
@@ -150,7 +173,11 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
       )}
 
       {data.items.length === 0 ? (
-        <EmptyState icon={UsersRound} title={t("roster.empty.title")} description={t("roster.empty.description")} />
+        <EmptyState
+          icon={UsersRound}
+          title={t("roster.empty.title")}
+          description={t("roster.empty.description")}
+        />
       ) : (
         <>
           {markingOpen && (
@@ -189,13 +216,19 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
       )}
 
       {markingOpen && data.items.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-background/95 px-4 py-3 backdrop-blur">
+        <div className="register-save-dock fixed inset-x-0 bottom-0 z-10 border-t border-border bg-background/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
             <p aria-live="polite" className="text-sm font-medium">
               {t("roster.unsavedCount", { count: unsavedCount })}
             </p>
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" className="h-11 px-4" disabled={!hasUnsaved || isSaving} onClick={discard}>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 px-4"
+                disabled={!hasUnsaved || isSaving}
+                onClick={discard}
+              >
                 {t("roster.discard")}
               </Button>
               <Button
@@ -235,7 +268,9 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("roster.leave.title")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("roster.leave.description", { count: unsavedCount })}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {t("roster.leave.description", { count: unsavedCount })}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("roster.leave.stay")}</AlertDialogCancel>
@@ -258,7 +293,12 @@ export function SessionAttendancePage({ sessionId }: { sessionId: string }) {
 function SessionHeader({ data }: { data: SessionAttendanceDto }) {
   const { t, i18n } = useTranslation("attendance");
   const { session } = data;
-  const timeRange = formatTimeRange(session.startsAt, session.endsAt, data.timeZoneId, i18n.language);
+  const timeRange = formatTimeRange(
+    session.startsAt,
+    session.endsAt,
+    data.timeZoneId,
+    i18n.language,
+  );
 
   return (
     <header className="space-y-3">
@@ -283,7 +323,11 @@ function SessionHeader({ data }: { data: SessionAttendanceDto }) {
         {session.status === "cancelled" ? (
           <Badge variant="outline">{t("sessions.cancelled")}</Badge>
         ) : (
-          <WindowBadge window={data.window} startsAt={session.startsAt} timeZoneId={data.timeZoneId} />
+          <WindowBadge
+            window={data.window}
+            startsAt={session.startsAt}
+            timeZoneId={data.timeZoneId}
+          />
         )}
       </div>
 
@@ -334,7 +378,9 @@ function WindowNotice({
     : window === "closed" || windowClosed
       ? t("roster.notice.closed")
       : window === "not_open"
-        ? t("roster.notice.notOpen", { time: isolateLtr(formatTime(windowOpensAt(startsAt), timeZoneId, i18n.language)) })
+        ? t("roster.notice.notOpen", {
+            time: isolateLtr(formatTime(windowOpensAt(startsAt), timeZoneId, i18n.language)),
+          })
         : !canMark
           ? t("roster.notice.viewOnly")
           : undefined;

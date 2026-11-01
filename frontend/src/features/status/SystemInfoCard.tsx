@@ -46,7 +46,7 @@ export function SystemInfoCard() {
   }
 
   return (
-    <Card>
+    <Card className="status-info">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
           {t("systemInfo.title")}

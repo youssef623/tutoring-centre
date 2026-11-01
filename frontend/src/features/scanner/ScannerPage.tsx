@@ -58,7 +58,7 @@ export function ScannerPage({ sessionId }: { sessionId: string }) {
   const time = (value: string) => formatTime(value, data.timeZoneId, i18n.language);
   const notice = scans.notice;
   return (
-    <section className="scanner-workspace mx-auto max-w-3xl space-y-5">
+    <section className="scanner-workspace mx-auto space-y-5">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <p dir="auto">

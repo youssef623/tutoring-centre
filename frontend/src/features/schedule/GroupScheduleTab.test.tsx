@@ -17,12 +17,29 @@ describe("GroupScheduleTab", () => {
     vi.setSystemTime(Now);
     rulesCalls = 0;
     server.use(
+      http.get("/api/timetable", ({ request }) =>
+        HttpResponse.json({
+          timeZoneId: "Africa/Cairo",
+          weekStart: new URL(request.url).searchParams.get("weekStart"),
+          sessions: [],
+        }),
+      ),
       http.get("/api/me", () => HttpResponse.json(secretaryMe)),
       http.get("/api/groups/g-1", () => HttpResponse.json(group())),
       http.get(rulesUrl, () => {
         rulesCalls += 1;
         return HttpResponse.json({
-          items: [rule(), rule({ id: "r-2", dayOfWeek: "monday", startTime: "16:00", durationMinutes: 60, room: null, effectiveTo: "2027-04-12" })],
+          items: [
+            rule(),
+            rule({
+              id: "r-2",
+              dayOfWeek: "monday",
+              startTime: "16:00",
+              durationMinutes: 60,
+              room: null,
+              effectiveTo: "2027-04-12",
+            }),
+          ],
         });
       }),
     );
@@ -36,7 +53,9 @@ describe("GroupScheduleTab", () => {
   it("shows a loading state, then the rules Saturday first, times left to right and an ended rule labelled", async () => {
     renderRouter("/groups/g-1?tab=schedule");
 
-    expect(await screen.findByRole("status", { name: "Loading weekly sessions" }, { timeout: 5000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("status", { name: "Loading weekly sessions" }, { timeout: 5000 }),
+    ).toBeInTheDocument();
     const table = await screen.findByRole("table");
     const [saturday, monday] = within(table).getAllByRole("row").slice(1);
     if (saturday === undefined || monday === undefined) {
@@ -58,19 +77,27 @@ describe("GroupScheduleTab", () => {
 
     renderRouter("/groups/g-1?tab=schedule");
 
-    expect(await screen.findByText("No weekly sessions yet", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(
+      await screen.findByText("No weekly sessions yet", {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add weekly session" })).toBeInTheDocument();
   });
 
   it("a failed load shows the error with Retry, and Retry loads the rules", async () => {
     let fail = true;
     server.use(
-      http.get(rulesUrl, () => (fail ? problemDetails(500, "server.error", "Boom.") : HttpResponse.json({ items: [rule()] }))),
+      http.get(rulesUrl, () =>
+        fail
+          ? problemDetails(500, "server.error", "Boom.")
+          : HttpResponse.json({ items: [rule()] }),
+      ),
     );
 
     renderRouter("/groups/g-1?tab=schedule");
 
-    expect(await screen.findByText("Weekly sessions could not be loaded", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(
+      await screen.findByText("Weekly sessions could not be loaded", {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
     fail = false;
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(await screen.findByText("Saturday")).toBeInTheDocument();
@@ -96,15 +123,23 @@ describe("GroupScheduleTab", () => {
     );
 
     renderRouter("/groups/g-1?tab=schedule");
-    fireEvent.click(await screen.findByRole("button", { name: /^End Saturday at/ }, { timeout: 5000 }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /^End Saturday at/ }, { timeout: 5000 }),
+    );
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("Sessions after the last date are cancelled. Earlier sessions stay as they are.")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Sessions after the last date are cancelled. Earlier sessions stay as they are.",
+      ),
+    ).toBeInTheDocument();
     const lastDate = within(dialog).getByLabelText("Last date");
     // Defaults to today in the centre's zone; a date before the rule took effect is refused before any request.
     expect(lastDate).toHaveValue("2027-04-20");
     fireEvent.change(lastDate, { target: { value: "2027-03-01" } });
     fireEvent.click(within(dialog).getByRole("button", { name: "End weekly session" }));
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent("The last date cannot be before");
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+      "The last date cannot be before",
+    );
     expect(body).toBeUndefined();
 
     fireEvent.change(lastDate, { target: { value: "2027-04-27" } });

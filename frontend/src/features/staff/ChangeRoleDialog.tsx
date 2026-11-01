@@ -22,7 +22,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function ChangeRoleDialog({
   member,
@@ -55,7 +61,10 @@ export function ChangeRoleDialog({
     }
 
     try {
-      await mutation.mutateAsync({ membershipId: member.membershipId, data: { role, version: member.version } });
+      await mutation.mutateAsync({
+        membershipId: member.membershipId,
+        data: { role, version: member.version },
+      });
       await invalidate();
       toast.success(t("toasts.roleChanged"));
       onOpenChange(false);
@@ -75,7 +84,7 @@ export function ChangeRoleDialog({
 
   return (
     <Dialog open={member !== null} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="role-editor">
         <DialogHeader>
           <DialogTitle dir="auto">
             {member !== null && t("dialogs.changeRoleTitle", { name: member.displayName })}
@@ -92,7 +101,9 @@ export function ChangeRoleDialog({
             disabled={mutation.isPending}
           >
             <SelectTrigger id="change-role-select" className="w-full">
-              <SelectValue>{(value: StaffMemberDto["role"]) => (value === null ? "" : tAuth(`roles.${value}`))}</SelectValue>
+              <SelectValue>
+                {(value: StaffMemberDto["role"]) => (value === null ? "" : tAuth(`roles.${value}`))}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={StaffRole.teacher}>{tAuth("roles.teacher")}</SelectItem>

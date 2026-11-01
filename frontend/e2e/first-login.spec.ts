@@ -20,7 +20,10 @@ async function signIn(page: Page, email: string, withPassword: string): Promise<
   await page.getByRole("button", { name: "Sign in" }).click();
 }
 
-test("a new staff member is forced through a password change on first sign-in", async ({ page, browser }) => {
+test("a new staff member is forced through a password change on first sign-in", async ({
+  page,
+  browser,
+}) => {
   const newEmail = `e2e-firstlogin-${Date.now().toString()}@nile.test`;
   const newDisplayName = "E2E First Login";
 
@@ -37,7 +40,10 @@ test("a new staff member is forced through a password change on first sign-in", 
   // A fresh 16-character password from the seeded alphabet (Infrastructure's StaffAccountService) — this
   // is the only place in the whole run this value is ever read, and it goes straight into a new, isolated
   // browser context below rather than anywhere that could be logged or retained.
-  const temporaryPassword = await page.getByText(/^[A-Za-z0-9]{16}$/).innerText();
+  const temporaryPassword = await page
+    .getByRole("dialog")
+    .getByText(/^[A-Za-z0-9]{16}$/)
+    .innerText();
   await page.getByRole("button", { name: "Done" }).click();
 
   // A second, fully isolated session for the new staff member — separate cookies from the owner's session
@@ -49,7 +55,9 @@ test("a new staff member is forced through a password change on first sign-in", 
 
     await expect(newUserPage.getByRole("heading", { name: "Change password" })).toBeVisible();
     await expect(
-      newUserPage.getByText("You're signing in with a temporary password. Choose a new password to continue."),
+      newUserPage.getByText(
+        "You're signing in with a temporary password. Choose a new password to continue.",
+      ),
     ).toBeVisible();
 
     // Visiting the centre picker directly while still flagged is bounced straight back here.
@@ -66,10 +74,14 @@ test("a new staff member is forced through a password change on first sign-in", 
     await expect(newUserPage.getByRole("heading", { name: "Choose a centre" })).toBeVisible();
 
     await newUserPage.getByRole("button", { name: "Nile Tutoring Centre" }).click();
-    await expect(newUserPage.getByRole("heading", { name: `Welcome, ${newDisplayName}` })).toBeVisible();
+    await expect(
+      newUserPage.getByRole("heading", { name: `Welcome, ${newDisplayName}` }),
+    ).toBeVisible();
 
     // A teacher by default: no owner-only nav.
-    await expect(newUserPage.getByRole("navigation").getByRole("link", { name: "Staff" })).not.toBeAttached();
+    await expect(
+      newUserPage.getByRole("navigation").getByRole("link", { name: "Staff" }),
+    ).not.toBeAttached();
   } finally {
     await newUserContext.close();
   }

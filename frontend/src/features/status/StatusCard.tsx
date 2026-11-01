@@ -52,7 +52,7 @@ export function StatusCard() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="status-health w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <span aria-hidden="true" className="size-3 rounded-full bg-green-500" />

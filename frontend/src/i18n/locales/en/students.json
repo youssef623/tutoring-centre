@@ -1,5 +1,7 @@
 {
   "page": {
+    "alphabetLabel": "Filter loaded students by initial",
+    "allLetters": "All",
     "title": "Students",
     "searchLabel": "Search students",
     "showArchived": "Show archived",

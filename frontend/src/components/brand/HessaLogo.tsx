@@ -96,17 +96,12 @@ export function HessaWordmark({
   className?: string;
   showArabic?: boolean;
 }) {
-  return (
-    <span dir="ltr" className={cn("inline-flex items-center gap-2.5", className)}>
+  return showArabic ? (
+    <HessaLoginLogo className={cn("masthead-wordmark", className)} />
+  ) : (
+    <span className={cn("inline-flex items-center gap-2", className)}>
       <HessaMark className="size-9" />
-      <span className="brand-type flex items-baseline gap-2 leading-none">
-        <span className="font-heading text-xl font-semibold tracking-tight">Hessa</span>
-        {showArabic && (
-          <span dir="rtl" className="brand-arabic text-lg font-medium text-muted-foreground">
-            حصة
-          </span>
-        )}
-      </span>
+      <strong>Hessa</strong>
     </span>
   );
 }

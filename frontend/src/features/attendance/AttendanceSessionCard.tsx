@@ -1,3 +1,4 @@
+import { SubjectGlyph } from "@/components/shared/SubjectGlyph";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, MapPin, Presentation } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -7,7 +8,8 @@ import { formatTimeRange } from "@/features/schedule/centreTime";
 import { cn } from "cn";
 import { WindowBadge } from "./WindowBadge";
 
-const cardClassName = "block rounded-lg border border-border bg-card p-4 text-sm shadow-xs";
+const cardClassName =
+  "attendance-session block rounded-lg border border-border bg-card p-4 text-sm shadow-xs";
 
 /**
  * One session of the day: its time range in the centre's zone, the group, subject, teacher and room, the
@@ -41,11 +43,16 @@ export function AttendanceSessionCard({
         {isCancelled ? (
           <Badge variant="outline">{t("sessions.cancelled")}</Badge>
         ) : (
-          <WindowBadge window={session.window} startsAt={session.startsAt} timeZoneId={timeZoneId} />
+          <WindowBadge
+            window={session.window}
+            startsAt={session.startsAt}
+            timeZoneId={timeZoneId}
+          />
         )}
       </div>
 
       <p className={cn("mt-2 break-words text-base font-semibold", isCancelled && "line-through")}>
+        <SubjectGlyph name={session.subjectName} />
         <bdi>{session.groupName}</bdi>
       </p>
       <p className="break-words text-muted-foreground">
@@ -60,20 +67,28 @@ export function AttendanceSessionCard({
         {session.room !== null && (
           <p className="flex items-center gap-1">
             <MapPin className="size-4 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 break-words">{t("sessions.room", { room: session.room })}</span>
+            <span className="min-w-0 break-words">
+              {t("sessions.room", { room: session.room })}
+            </span>
           </p>
         )}
       </div>
 
       {!isCancelled && (
         <p className="mt-3 flex items-center justify-between gap-2 font-medium">
-          <span className="flex items-baseline gap-1.5" aria-label={t("sessions.recordedLabel", { recorded, expected })}>
+          <span
+            className="flex items-baseline gap-1.5"
+            aria-label={t("sessions.recordedLabel", { recorded, expected })}
+          >
             <bdi dir="ltr" className="tabular-nums">{`${recorded} / ${expected}`}</bdi>
             <span className="font-normal text-muted-foreground" aria-hidden="true">
               {t("sessions.recorded")}
             </span>
           </span>
-          <ChevronRight className="size-4 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
+          <span className="register-link-label">
+            {t("sessions.openRegister")}
+            <ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
+          </span>
         </p>
       )}
     </>
@@ -82,7 +97,13 @@ export function AttendanceSessionCard({
   if (isCancelled) {
     return (
       <li>
-        <div data-status={session.status} className={cn(cardClassName, "border-dashed bg-muted/40 text-muted-foreground shadow-none")}>
+        <div
+          data-status={session.status}
+          className={cn(
+            cardClassName,
+            "border-dashed bg-muted/40 text-muted-foreground shadow-none",
+          )}
+        >
           {body}
         </div>
       </li>

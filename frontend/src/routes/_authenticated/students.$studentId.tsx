@@ -1,3 +1,4 @@
+import { PersonIdentity } from "@/components/shared/PersonIdentity";
 import { StudentBillingTab } from "@/features/billing/StudentBillingTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PortalAccountSection } from "@/features/portal/PortalAccountSection";
@@ -68,7 +69,7 @@ function StudentDetailPageContent() {
 
   if (isPending) {
     return (
-      <section className="space-y-4">
+      <section className="student-profile space-y-4">
         <div role="status" aria-label={t("loading.detailLabel")} className="max-w-md space-y-3">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-32 w-full" />
@@ -186,7 +187,7 @@ function StudentDetailContent({ student }: { student: StudentDetailDto }) {
     <section className="space-y-4">
       <div className="profile-heading flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight" dir="auto">
-          {student.fullName}
+          <PersonIdentity name={student.fullName} />
         </h1>
         {canManage && (
           <div className="flex items-center gap-2">

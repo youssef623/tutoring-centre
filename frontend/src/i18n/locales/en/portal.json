@@ -1,4 +1,10 @@
 {
+  "chatContextParent": "Get quick answers about your children's attendance records.",
+  "chatContextStudent": "Get quick answers about your attendance records.",
+  "homeWelcome": "Welcome, {name}",
+  "homePrompt": "Choose a service to continue.",
+  "homeAttendanceParent": "View attendance for your children.",
+  "homeAttendanceStudent": "View your attendance records.",
   "navigation": "Portal navigation",
   "chat": "Chat",
   "attendance": "Attendance",
@@ -56,5 +62,8 @@
   "attendanceError": "Attendance could not be loaded.",
   "attendanceEmpty": "No attendance recorded for this month",
   "attendanceNext": "Next month",
-  "attendanceLoading": "Loading attendance…"
+  "attendanceLoading": "Loading attendance…",
+  "home": "Home",
+  "viewAttendance": "View attendance",
+  "openChat": "Open chat"
 }

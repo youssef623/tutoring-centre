@@ -1,3 +1,5 @@
+import { SearchInput } from "@/components/shared/SearchInput";
+import { PersonIdentity } from "@/components/shared/PersonIdentity";
 import { RunBlock, type RunItem } from "./RunBlock";
 import { useCan } from "@/features/session/useCan";
 import { Permissions } from "@/features/session/permissions";
@@ -18,6 +20,8 @@ interface Conversation {
 export function ConversationsPage() {
   const { t, i18n } = useTranslation("conversations");
   const canInspect = useCan(Permissions.AssistantView);
+  const [search, setSearch] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [details, setDetails] = useState<ConversationMessage | null>(null);
   const conversations = useQuery({
@@ -43,11 +47,16 @@ export function ConversationsPage() {
         direction: item.kind === "inbound" || item.kind === "outbound" ? item.kind : item.direction,
       })),
     ) ?? [];
+  const participant = conversations.data?.items.find((item) => item.id === selected);
+  const inspected = details ?? items.find((item) => item.kind !== "run");
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} />
       <div className="conversation-workspace grid min-h-[65dvh] overflow-hidden rounded-2xl border bg-card shadow-sm md:grid-cols-[16rem_1fr]">
         <aside className="border-b md:border-e md:border-b-0" aria-label={t("title")}>
+          <div className="conversation-search">
+            <SearchInput value={search} onChange={setSearch} label={t("search")} />
+          </div>
           {conversations.isPending && (
             <p role="status" className="p-5">
               {t("loading")}
@@ -68,26 +77,34 @@ export function ConversationsPage() {
           {conversations.data?.items.length === 0 && (
             <p className="p-5 text-sm text-muted-foreground">{t("empty")}</p>
           )}
-          {conversations.data?.items.map((item) => (
-            <button
-              key={item.id}
-              aria-pressed={selected === item.id}
-              className={`block w-full border-b px-5 py-4 text-start text-sm hover:bg-muted ${selected === item.id ? "bg-accent" : ""}`}
-              onClick={() => {
-                setSelected(item.id);
-                setDetails(null);
-              }}
-            >
-              <span dir="auto" className="block break-words font-medium">
-                {item.address}
-              </span>
-              <span className="mt-1 block text-xs text-muted-foreground">
-                {item.channel ?? "whatsapp"}
-              </span>
-            </button>
-          ))}
+          {conversations.data?.items
+            .filter((item) => item.address.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+            .map((item) => (
+              <button
+                key={item.id}
+                aria-pressed={selected === item.id}
+                className={`block w-full border-b px-5 py-4 text-start text-sm hover:bg-muted ${selected === item.id ? "bg-accent" : ""}`}
+                onClick={() => {
+                  setSelected(item.id);
+                  setDetails(null);
+                }}
+              >
+                <span dir="auto" className="block break-words font-medium">
+                  <PersonIdentity name={item.address} />
+                </span>
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {item.channel ?? "whatsapp"}
+                </span>
+              </button>
+            ))}
         </aside>
         <section aria-label={t("thread")} className="min-w-0 p-5 sm:p-7">
+          {participant && (
+            <header className="conversation-participant">
+              <PersonIdentity name={participant.address} />
+              <span>{participant.channel ?? "whatsapp"}</span>
+            </header>
+          )}
           {!selected && <p className="py-12 text-center text-muted-foreground">{t("select")}</p>}
           {selected && messages.isPending && <p role="status">{t("loading")}</p>}
           {messages.error && (
@@ -148,6 +165,7 @@ export function ConversationsPage() {
                       className="rounded px-1 py-1 underline focus-visible:ring-2 focus-visible:ring-ring"
                       onClick={() => {
                         setDetails(message);
+                        setDetailsOpen(window.innerWidth < 1024);
                       }}
                     >
                       {t("details")}
@@ -158,11 +176,49 @@ export function ConversationsPage() {
             )}
           </ol>
         </section>
+        <aside className="conversation-inspector" aria-label={t("details")}>
+          <h2>{t("details")}</h2>
+          {selected && (
+            <dl>
+              {[
+                [
+                  "channel",
+                  conversations.data?.items.find((item) => item.id === selected)?.channel ??
+                    "whatsapp",
+                ],
+                [
+                  "lastMessageAt",
+                  conversations.data?.items.find((item) => item.id === selected)?.lastMessageAt,
+                ],
+                ["direction", inspected?.direction],
+                ["status", inspected?.status],
+                ["processedAt", inspected?.processedAt],
+                ["sentAt", inspected?.sentAt],
+                ["failureCode", inspected?.failureCode],
+                ["correlationId", inspected?.correlationId],
+                ["messageId", inspected?.id],
+              ]
+                .filter(([, value]) => value != null)
+                .map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{t(label ?? "channel")}</dt>
+                    <dd dir="auto">
+                      {label === "status"
+                        ? t(`statuses.${value ?? "received"}`, { defaultValue: value })
+                        : label === "direction"
+                          ? t(`directions.${value ?? "inbound"}`, { defaultValue: value })
+                          : value}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+          )}
+        </aside>
       </div>
       <MessageDetailsDrawer
-        message={details}
+        message={detailsOpen ? details : null}
         onClose={() => {
-          setDetails(null);
+          setDetailsOpen(false);
         }}
       />
     </div>

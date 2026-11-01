@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { Route as AttendanceIndexRoute } from "@/routes/_authenticated/attendance.index";
@@ -13,7 +13,14 @@ function meWith(permissions: string[]) {
     preferredLocale: "en",
     activeCentreId: "c-nile",
     activeRole: "teacher",
-    memberships: [{ centreId: "c-nile", centreName: "Nile Tutoring Centre", centreSlug: "nile-centre", role: "teacher" }],
+    memberships: [
+      {
+        centreId: "c-nile",
+        centreName: "Nile Tutoring Centre",
+        centreSlug: "nile-centre",
+        role: "teacher",
+      },
+    ],
     permissions,
   };
 }
@@ -28,7 +35,10 @@ describe("attendance navigation", () => {
 
     renderRouter("/");
 
-    const nav = within(await screen.findByRole("navigation", {}, { timeout: 3000 }));
+    const nav = within(
+      await screen.findByRole("navigation", { name: "Open menu" }, { timeout: 3000 }),
+    );
+    fireEvent.click(nav.getByText("Operations"));
     expect(nav.getByRole("link", { name: "Attendance" })).toHaveAttribute("href", "/attendance");
     expect(nav.queryByRole("link", { name: "Students" })).not.toBeInTheDocument();
   });
@@ -38,7 +48,10 @@ describe("attendance navigation", () => {
 
     renderRouter("/");
 
-    const nav = within(await screen.findByRole("navigation", {}, { timeout: 3000 }));
+    const nav = within(
+      await screen.findByRole("navigation", { name: "Open menu" }, { timeout: 3000 }),
+    );
+    fireEvent.click(nav.getByText("Learning"));
     expect(nav.getByRole("link", { name: "Groups" })).toBeInTheDocument();
     expect(nav.queryByRole("link", { name: "Attendance" })).not.toBeInTheDocument();
   });
@@ -55,7 +68,9 @@ describe("attendance navigation", () => {
   });
 
   it("validates date as an ISO calendar date and drops anything else", () => {
-    const validate = AttendanceIndexRoute.options.validateSearch as (search: Record<string, unknown>) => unknown;
+    const validate = AttendanceIndexRoute.options.validateSearch as (
+      search: Record<string, unknown>,
+    ) => unknown;
 
     expect(validate({ date: "2026-12-05" })).toEqual({ date: "2026-12-05" });
     expect(validate({ date: "tomorrow" })).toEqual({});
@@ -67,6 +82,12 @@ describe("attendance navigation", () => {
     signInWith(["groups.view"]);
 
     renderRouter("/attendance");
-    expect(await screen.findByRole("heading", { name: "You don't have access to this page" }, { timeout: 3000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole(
+        "heading",
+        { name: "You don't have access to this page" },
+        { timeout: 3000 },
+      ),
+    ).toBeInTheDocument();
   });
 });

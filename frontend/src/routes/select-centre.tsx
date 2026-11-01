@@ -108,7 +108,7 @@ function SelectCentrePage() {
   };
 
   return (
-    <main className="auth-utility flex min-h-dvh flex-col">
+    <main className="auth-utility centre-selection flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 sm:px-10">
         <HessaWordmark />
         <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ function SelectCentrePage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 pb-16 pt-4 sm:px-0">
+      <div className="centre-selection-layout">
         {isEmpty ? (
           <NoActiveCentre email={me.email} onSignOut={signOut} />
         ) : (

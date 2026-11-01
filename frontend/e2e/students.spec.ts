@@ -1,3 +1,4 @@
+import { navigateFromMasthead } from "./helpers/navigation.js";
 import { type Page, expect, test } from "@playwright/test";
 
 // The seeded dev password is never written here: it is supplied by whoever runs the suite
@@ -24,7 +25,9 @@ function uniquePhone(): string {
   return `+2010${digits}`;
 }
 
-test("secretary: registers a student with a new parent in Arabic, then finds them by search", async ({ page }) => {
+test("secretary: registers a student with a new parent in Arabic, then finds them by search", async ({
+  page,
+}) => {
   const suffix = Date.now().toString();
   const studentName = `أحمد ${suffix}`;
   const parentName = `ولي أمر ${suffix}`;
@@ -37,7 +40,7 @@ test("secretary: registers a student with a new parent in Arabic, then finds the
   await page.getByRole("button", { name: "العربية" }).click();
   await page.keyboard.press("Escape");
 
-  await page.getByRole("navigation").getByRole("link", { name: "الطلاب" }).click();
+  await navigateFromMasthead(page, "الطلاب");
   await expect(page.getByRole("heading", { name: "الطلاب" })).toBeVisible();
   await page.getByRole("link", { name: "تسجيل طالب" }).click();
 
@@ -53,12 +56,14 @@ test("secretary: registers a student with a new parent in Arabic, then finds the
   await expect(page.getByText("تم تسجيل الطالب.")).toBeVisible();
 
   // Back to the list: searching the undotted spelling finds the registered (dotted) name.
-  await page.getByRole("navigation").getByRole("link", { name: "الطلاب" }).click();
+  await navigateFromMasthead(page, "الطلاب");
   await page.getByRole("searchbox").fill("احمد");
   await expect(page.getByRole("row", { name: studentName })).toBeVisible();
 });
 
-test("secretary: registering a sibling with the same parent phone links the existing parent", async ({ page }) => {
+test("secretary: registering a sibling with the same parent phone links the existing parent", async ({
+  page,
+}) => {
   const suffix = Date.now().toString();
   const phone = uniquePhone();
   const parentName = `Test Parent ${suffix}`;
@@ -110,5 +115,7 @@ test("tenant isolation: the Maadi owner sees none of Nile's students, and a teac
   await page.getByRole("button", { name: "Nile Tutoring Centre" }).click();
   await expect(page.getByRole("heading", { name: "Welcome, Two-Centre Teacher" })).toBeVisible();
 
-  await expect(page.getByRole("navigation").getByRole("link", { name: "Students" })).not.toBeAttached();
+  await expect(
+    page.getByRole("navigation").getByRole("link", { name: "Students" }),
+  ).not.toBeAttached();
 });

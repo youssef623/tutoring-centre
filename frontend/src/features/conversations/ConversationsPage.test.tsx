@@ -44,9 +44,9 @@ it("shows failed outbound status and provider-neutral details", async () => {
   );
   const { container } = renderWithQueryClient(<ConversationsPage />);
   fireEvent.click(await screen.findByText("Nile Parent"));
-  expect(await screen.findByText("Failed")).toBeInTheDocument();
+  expect((await screen.findAllByText("Failed")).length).toBeGreaterThan(0);
   fireEvent.click(screen.getByRole("button", { name: "Details" }));
-  expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  expect(screen.getByRole("complementary", { name: "Details" })).toBeInTheDocument();
   expect(screen.getByText("delivery.failed")).toBeInTheDocument();
   expect(screen.getByText("trace-1")).toBeInTheDocument();
   expect(screen.getByText("message-1")).toBeInTheDocument();
