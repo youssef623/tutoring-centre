@@ -44,7 +44,7 @@ RUN dotnet publish src/TutoringCentre.Api/TutoringCentre.Api.csproj \
     --no-self-contained
 
 # ---- Final stage: runtime only ---------------------------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
 WORKDIR /app
 
 COPY --from=backend-build /app/publish .
